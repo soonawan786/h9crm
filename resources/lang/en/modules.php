@@ -1568,7 +1568,8 @@ return array (
         'addknowledgebaseCategory' => 'Manage Article Category',
         'emergency_contact' => 'Emergency Contact',
         'recruit' => 'Recruit',
-        'bankaccount' => 'Bank Account'
+        'bankaccount' => 'Bank Account',
+        'woo_commerce'=>'Woo Commerce'
     ),
     'projectSettings' => array (
         'sendNotificationsTo' => 'Send Reminder To',
@@ -1834,6 +1835,14 @@ return array (
         'createOrder' => 'Create Order',
         'orderDate' => 'Order Date',
         'orderNumber' => 'Order Number',
+    ),
+    'woo_commerce' => array (
+        'integrate' => 'Integrate Woo Commerce',
+        'website_url' => 'Website URL',
+        'client_id' =>'Client Id',
+        'secret_key' =>'Secret Key',
+        'woo_orders'=>'Woo Commerce Orders'
+        // 'orderNumber' => 'Order Number',
     ),
     'pusher' => array (
         'notificationTitle' => 'Enable Pusher For',

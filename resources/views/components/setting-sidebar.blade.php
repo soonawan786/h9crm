@@ -177,6 +177,9 @@
                 {{-- WORKSUITESAAS --}}
                 <x-setting-menu-item :active="$activeMenu" menu="billing" :href="route('billing.index')"
                                      :text="__('superadmin.menu.billing')"/>
+                {{-- woocomerce setting --}}
+                <x-setting-menu-item :active="$activeMenu" menu="integrate" :href="route('woo.create')"
+                                     :text="__('app.menu.integrate')"/>
             @endif
 
     </ul>

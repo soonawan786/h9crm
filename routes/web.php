@@ -112,6 +112,7 @@ use App\Http\Controllers\AppreciationController;
 use App\Http\Controllers\EstimateTemplateController;
 use App\Http\Controllers\LeaveFileController;
 use App\Http\Controllers\QuickbookController;
+use App\Http\Controllers\WooCommerceController;
 
 Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified'], 'prefix' => 'account'], function () {
     Route::post('image/upload', [ImageController::class, 'store'])->name('image.store');
@@ -732,5 +733,12 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
 
     Route::get('quickbooks/{hash}/callback', [QuickbookController::class, 'callback'])->name('quickbooks.callback');
     Route::get('quickbooks', [QuickbookController::class, 'index'])->name('quickbooks.index');
+
+    //change order status
+    Route::post('woocommerce/change-order-status',[WooCommerceController::class, 'changeOrderStatus'])->name('woo.change_order_status');
+    //show woocommerce orders
+    Route::get('woocommerce',[WooCommerceController::class, 'wooIndex'])->name('woo.orders');
+    //fetch orders and store
+     Route::get('woocommerce/orders',[WooCommerceController::class, 'wooOrders'])->name('woo.fetch.orders');
 
 });

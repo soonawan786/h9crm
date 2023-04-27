@@ -50,6 +50,7 @@ use App\Http\Controllers\NotificationSettingController;
 use App\Http\Controllers\QuickbookSettingsController;
 use App\Http\Controllers\UnitTypeController;
 use App\Http\Controllers\UpdateAppController;
+use App\Http\Controllers\WooCommerceController;
 use Illuminate\Support\Facades\Route;
 
 Route::group(['middleware' => 'auth', 'prefix' => 'account/settings'], function () {
@@ -211,6 +212,10 @@ Route::group(['middleware' => 'auth', 'prefix' => 'account/settings'], function 
     Route::resource('employee-shifts', EmployeeShiftController::class);
 
     Route::resource('quickbooks-settings', QuickbookSettingsController::class);
+    //woocommerce integration
+    Route::get('woocommerce',[WooCommerceController::class, 'wooCreate'])->name('woo.create');
+    //store woocommerce
+    Route::post('woocommerce/store',[WooCommerceController::class, 'wooStore'])->name('woo.store');
 
 });
 

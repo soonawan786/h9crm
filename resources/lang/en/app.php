@@ -123,6 +123,9 @@ return array (
         'Events' => 'Events',
         'products' => 'Products',
         'orders' => 'Orders',
+        'woo_commerce'=>'Woo Commerce',
+        'internal_orders'=>'Internal Order',
+        'online_orders'=>'Online Order',
         'profileSettings' => 'Profile Settings',
         'twoFactorAuthentication' => 'Two-Factor Authentication',
         'attendanceSettings' => 'Attendance Settings',
@@ -361,6 +364,7 @@ return array (
         'consentSettings' => 'Consent Settings',
         'consentLists' => 'Consent Lists',
         'quickBookSettings' => 'Quickbooks Settings',
+        'integrate'=>'Integrate Woo Commerce'
     ),
     'parentId' => 'Parent',
     'childId' => 'Child',

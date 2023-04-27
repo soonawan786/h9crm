@@ -394,4 +394,5 @@ return array(
     'quickBooksConnectSuccess' => 'QuickBooks account is connected.',
     'cacheClear' => 'Successfully cleared cache.',
     'emailCannotChange' => 'Email cannot be changed as it is registered with other companies also.',
+    'websiteUrlTooltip'=>'Add Website Url'
 );
