@@ -1569,7 +1569,8 @@ return array (
         'emergency_contact' => 'Emergency Contact',
         'recruit' => 'Recruit',
         'bankaccount' => 'Bank Account',
-        'woo_commerce'=>'Woo Commerce'
+        'woo_commerce'=>'Woo Commerce',
+        'whats_app'=>'WhatsApp'
     ),
     'projectSettings' => array (
         'sendNotificationsTo' => 'Send Reminder To',
@@ -1843,6 +1844,9 @@ return array (
         'secret_key' =>'Secret Key',
         'woo_orders'=>'Woo Commerce Orders'
         // 'orderNumber' => 'Order Number',
+    ),
+    'whatsapp'=>array(
+        'integrate'=>'Integrate WhatsApp'
     ),
     'pusher' => array (
         'notificationTitle' => 'Enable Pusher For',

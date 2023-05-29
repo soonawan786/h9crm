@@ -676,7 +676,8 @@ class CompanyObserver
             'orders',
             'knowledgebase',
             'zoom',
-            'woo_commerce'
+            'woo_commerce',
+            'whats_app'
         ];
 
         $otherModules = [

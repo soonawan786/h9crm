@@ -4,6 +4,7 @@ namespace App\Listeners;
 
 use App\Events\NewInvoiceEvent;
 use App\Notifications\NewInvoice;
+use App\Notifications\NewInvoiceWhatsApp;
 use Illuminate\Support\Facades\Notification;
 
 class NewInvoiceListener
@@ -20,6 +21,9 @@ class NewInvoiceListener
     {
         if ($event->notifyUser->email != null) {
             Notification::send($event->notifyUser, new NewInvoice($event->invoice));
+        }
+        if ($event->notifyUser->mobile != null) {
+            Notification::send($event->notifyUser, new NewInvoiceWhatsApp($event->invoice));
         }
 
     }

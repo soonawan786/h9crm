@@ -996,4 +996,9 @@ class User extends BaseModel
         })->whereHas('employeeDetail');
     }
 
+    public function routeNotificationForWhatsApp()
+    {
+        return $this->mobile;
+    }
+
 }

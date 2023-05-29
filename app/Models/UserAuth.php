@@ -55,7 +55,7 @@ class UserAuth extends BaseModel implements AuthenticatableContract, Authorizabl
 
     use Authenticatable, Authorizable, CanResetPassword, HasFactory, TwoFactorAuthenticatable, AuthMustVerifyEmail, Notifiable;
 
-    protected $fillable = ['email', 'password', 'remember_token'];
+    protected $fillable = ['email', 'password', 'remember_token','api_secret'];
     protected $hidden = ['password'];
     public $dates = ['two_factor_expires_at'];
 

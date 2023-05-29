@@ -50,6 +50,7 @@ use App\Http\Controllers\NotificationSettingController;
 use App\Http\Controllers\QuickbookSettingsController;
 use App\Http\Controllers\UnitTypeController;
 use App\Http\Controllers\UpdateAppController;
+use App\Http\Controllers\WhatsAppController;
 use App\Http\Controllers\WooCommerceController;
 use Illuminate\Support\Facades\Route;
 
@@ -216,6 +217,12 @@ Route::group(['middleware' => 'auth', 'prefix' => 'account/settings'], function 
     Route::get('woocommerce',[WooCommerceController::class, 'wooCreate'])->name('woo.create');
     //store woocommerce
     Route::post('woocommerce/store',[WooCommerceController::class, 'wooStore'])->name('woo.store');
+    //whatsapp integration
+    Route::get('whatsapp',[WhatsAppController::class, 'whatsapp'])->name('whatsapp');
+    Route::post('whatsapp/store',[WhatsAppController::class, 'whatsappStore'])->name('whatsapp.store');
+    Route::post('whatsapp/status-change',[WhatsAppController::class, 'whatsappStatusChange'])->name('whatsapp.status.change');
+    //test
+    Route::get('test',[WhatsAppController::class, 'test']);
 
 });
 

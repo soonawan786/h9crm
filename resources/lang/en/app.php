@@ -364,7 +364,8 @@ return array (
         'consentSettings' => 'Consent Settings',
         'consentLists' => 'Consent Lists',
         'quickBookSettings' => 'Quickbooks Settings',
-        'integrate'=>'Integrate Woo Commerce'
+        'integrate'=>'Integrate Woo Commerce',
+        'whatsapp'=>'Integrate WhatsApp'
     ),
     'parentId' => 'Parent',
     'childId' => 'Child',

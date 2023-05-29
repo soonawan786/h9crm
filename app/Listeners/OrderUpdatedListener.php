@@ -5,6 +5,7 @@ namespace App\Listeners;
 use App\Models\User;
 use App\Events\OrderUpdatedEvent;
 use App\Notifications\OrderUpdated;
+use App\Notifications\OrderUpdatedWhatsApp;
 use Illuminate\Support\Facades\Notification;
 
 class OrderUpdatedListener
@@ -20,6 +21,9 @@ class OrderUpdatedListener
     {
         Notification::send($event->notifyUser, new OrderUpdated($event->order));
         Notification::send(User::allAdmins($event->order->company->id), new OrderUpdated($event->order));
+        if ($event->notifyUser->mobile != null) {
+            Notification::send($event->notifyUser, new OrderUpdatedWhatsApp($event->order));
+        }
     }
 
 }

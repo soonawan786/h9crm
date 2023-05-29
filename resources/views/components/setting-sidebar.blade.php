@@ -180,6 +180,10 @@
                 {{-- woocomerce setting --}}
                 <x-setting-menu-item :active="$activeMenu" menu="integrate" :href="route('woo.create')"
                                      :text="__('app.menu.integrate')"/>
+
+                {{-- whatsapp setting --}}
+                <x-setting-menu-item :active="$activeMenu" menu="whatsapp" :href="route('whatsapp')"
+                                     :text="__('app.menu.whatsapp')"/>
             @endif
 
     </ul>
