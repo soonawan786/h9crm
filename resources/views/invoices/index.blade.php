@@ -27,7 +27,7 @@
                             <option value="all">@lang('app.all')</option>
                         @endif
                         @foreach ($clients as $client)
-                                <x-user-option :user="$client" />
+                                <x-user-option :user="$client" :clientHistoryId="$id" />
                             </option>
                         @endforeach
                     </select>

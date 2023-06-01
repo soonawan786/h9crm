@@ -72,7 +72,7 @@ class ClientDetails extends BaseModel
 
     use CustomFieldsTrait, HasCompany;
 
-    protected $fillable = ['company_name', 'user_id', 'address', 'postal_code', 'state', 'city', 'office', 'cell', 'website', 'note', 'skype', 'facebook', 'twitter', 'linkedin', 'gst_number', 'shipping_address', 'category_id', 'sub_category_id', 'company_logo'];
+    protected $fillable = ['company_name', 'user_id', 'address', 'postal_code', 'state', 'city', 'office', 'cell', 'website', 'note', 'skype', 'facebook', 'twitter', 'linkedin', 'gst_number', 'shipping_address', 'category_id', 'sub_category_id', 'company_logo','date_of_birth'];
 
     protected $default = ['id', 'company_name', 'address', 'website', 'note', 'skype', 'facebook', 'twitter', 'linkedin', 'gst_number', 'name', 'email', 'company_logo'];
 

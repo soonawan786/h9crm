@@ -4,10 +4,9 @@ namespace App\Notifications;
 
 use App\Channels\Messages\WhatsAppMessage;
 use App\Channels\WhatsAppChannel;
-use App\Http\Controllers\UrlShortenerController;
 use Illuminate\Notifications\Messages\MailMessage;
 
-class BirthdayReminderWhatsApp extends BaseNotification
+class ClientBirthdayReminderWhatsApp extends BaseNotification
 {
 
     private $birthDays;
@@ -46,20 +45,13 @@ class BirthdayReminderWhatsApp extends BaseNotification
     // phpcs:ignore
     public function toWhatsApp($notifiable)
     {
-        $list = '';
-        $n = 1;
-        foreach ($this->birthDays->upcomingBirthdays as $birthDay) {
-            $list  .= $n++.'. '.$birthDay['name'].PHP_EOL ;
-        }
+        $clientName = 'Dear '.$notifiable->name.PHP_EOL;
+        $text = $this->company->company_name.' wishes you a very happy birthday and thank you for being our valued customer!';
 
-        $url = route('dashboard');
-        $url = getDomainSpecificUrl($url, $this->company);
-        //$short_url = UrlShortenerController::shorten($url);
-
-        $content = __('email.BirthdayReminder.text') . PHP_EOL . $list;
+        $content = $clientName.$text;
 
         return (new WhatsAppMessage)
-            ->content($this->count . ' ' . __('email.BirthdayReminder.subject').PHP_EOL.$content.' '.$url);
+            ->content($content);
     }
 
     public function toArray()

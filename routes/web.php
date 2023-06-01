@@ -515,6 +515,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
         Route::resource('recurring-invoices', RecurringInvoiceController::class);
     });
     Route::resource('invoices', InvoiceController::class);
+    Route::get('client-invoice-history/{id}', [InvoiceController::class, 'clientHistory']);
 
     // Estimates
     Route::get('estimates/delete-image', [EstimateController::class, 'deleteEstimateItemImage'])->name('estimates.delete_image');
@@ -587,6 +588,8 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     });
     Route::resource('expenses', ExpenseController::class);
     Route::resource('expenseCategory', ExpenseCategoryController::class);
+    //purchase from name
+    Route::get('purchase-from',[ExpenseController::class,'getPurhcaseFromName']);
 
     // Timelogs
     Route::group(['prefix' => 'timelogs'], function () {

@@ -49,11 +49,11 @@ class NewInvoiceWhatsApp extends BaseNotification
 
             $url = route('front.invoice', $this->invoice->hash);
             $url = getDomainSpecificUrl($url, $this->company);
-            $short_url = UrlShortenerController::shorten($url);
+            //$short_url = UrlShortenerController::shorten($url);
 
             $content = __('email.invoice.text');
             return (new WhatsAppMessage)
-            ->content($content.' '.$short_url);
+            ->content($content.' '.$url);
         }
     }
 

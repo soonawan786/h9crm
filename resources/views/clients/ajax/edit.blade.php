@@ -47,11 +47,15 @@ $addClientSubCategoryPermission = user()->permission('manage_client_subcategory'
                                     @endforeach
                                 </x-forms.select>
                             </div>
-                            <div class="col-lg-4 col-md-6">
+                            <div class="col-md-3">
                                 <x-forms.tel fieldId="mobile" :fieldLabel="__('app.mobile')" fieldName="mobile"
                                     :fieldValue="$client->mobile" :fieldPlaceholder="__('placeholders.mobile')"></x-forms.tel>
                             </div>
-                            <div class="col-lg-4 col-md-6">
+                            <div class="col-md-3">
+                                <x-forms.datepicker fieldId="date_of_birth" :fieldLabel="__('modules.employees.dateOfBirth')"
+                                    fieldName="date_of_birth" :fieldValue="($clientDetail->date_of_birth ? $clientDetail->date_of_birth : '')" :fieldPlaceholder="__('placeholders.date')" />
+                            </div>
+                            <div class="col-md-2">
                                 <x-forms.select fieldId="gender" :fieldLabel="__('modules.employees.gender')"
                                     fieldName="gender">
                                     <option value="">--</option>
@@ -321,6 +325,15 @@ $addClientSubCategoryPermission = user()->permission('manage_client_subcategory'
                 ...datepickerConfig
             });
         }
+
+        datepicker('#date_of_birth', {
+            position: 'bl',
+            maxDate: new Date(),
+            @if (!is_null($clientDetail->date_of_birth))
+            dateSelected: new Date("{{ str_replace('-', '/', $clientDetail->date_of_birth) }}"),
+            @endif
+            ...datepickerConfig
+        });
 
         $('#category_id').change(function(e) {
 

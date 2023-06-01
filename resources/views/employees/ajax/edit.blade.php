@@ -38,6 +38,14 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
                                     :fieldPlaceholder="__('placeholders.email')" :fieldReadOnly="($emailCountInCompanies > 1)" :popover="($emailCountInCompanies > 1) ? __('messages.emailCannotChange') : null">
                                 </x-forms.text>
                             </div>
+                            <div class="col-lg-4 col-md-6">
+                                <div class="form-group my-3">
+                                    <label class="f-14 text-dark-grey mb-12" for="password">{{ __('modules.employees.employeePassword') }}</label>
+                                    <input type="password" name="password" id="employee_password" autocomplete="off"
+                                    placeholder="@lang('placeholders.password')" class="form-control height-35 f-14">
+                                </div>
+
+                            </div>
                             <div class="col-md-4">
                                 <x-forms.label class="my-3" fieldId="designation"
                                     :fieldLabel="__('app.designation')" fieldRequired="true">

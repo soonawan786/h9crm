@@ -3,14 +3,24 @@
     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
             aria-hidden="true">×</span></button>
 </div>
+
 <x-form id="save-client-data-form">
     <input type="hidden" name="ajax_create" value="1">
+    <input type="hidden" name="country" value="162">
     <div class="modal-body">
         <div class="row">
             <div class="col-md-12">
                 <x-forms.text fieldId="name" :fieldLabel="__('modules.client.clientName')" fieldName="name"
                     fieldRequired="true" :fieldPlaceholder="__('placeholders.name')"
                     :fieldValue="$lead->client_name ?? ''"></x-forms.text>
+            </div>
+            <div class="col-md-12">
+                <x-forms.tel fieldId="mobile" :fieldLabel="__('app.mobile')" fieldName="mobile"
+                                   :fieldPlaceholder="__('placeholders.mobile')" :fieldValue="$lead->mobile ?? ''"></x-forms.tel>
+            </div>
+            <div class="col-md-12">
+                <x-forms.datepicker fieldId="date_of_birth" :fieldLabel="__('modules.employees.dateOfBirth')"
+                    fieldName="date_of_birth" :fieldPlaceholder="__('placeholders.date')" />
             </div>
             <div class="col-md-12">
                 <x-forms.email fieldId="email" :fieldLabel="__('app.email')" fieldName="email"
@@ -52,6 +62,13 @@
         setTimeout(function () {
             $('[data-toggle="popover"]').popover();
         }, 500);
+
+        datepicker('#date_of_birth', {
+            position: 'bl',
+            maxDate: new Date(),
+            ...datepickerConfig
+        });
+
     });
 
     $('#random_password').click(function() {

@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\BirthdayReminderEvent;
+use App\Events\ClientBirthdayReminderEvent;
 use App\Helper\Reply;
+use App\Models\ClientDetails;
 use App\Models\EmployeeDetails;
 use Illuminate\Support\Facades\Notification;
 use App\Models\User;
@@ -110,6 +113,26 @@ class WhatsAppController extends  AccountBaseController
     }
 
     public function test(){
+        // $currentDay = now()->format('m-d');
+        // $clientBirthay = ClientDetails::join('users', 'client_details.user_id', '=', 'users.id')
+        // ->where('client_details.company_id', $this->company->id)
+        // ->where('users.status', 'active')
+        // ->whereRaw('DATE_FORMAT(`date_of_birth`, "%m-%d") = "' . $currentDay . '"')
+        // ->orderBy('client_details.date_of_birth')
+        // ->select('client_details.company_id', 'client_details.date_of_birth', 'users.name', 'users.image', 'users.id')
+        // ->get()->toArray();
+        //dd($clientBirthay);
+        //event(new ClientBirthdayReminderEvent($this->company, $clientBirthay));
+        //dd('after event');
+
+        // $event = EmployeeDetails::join('users', 'employee_details.user_id', '=', 'users.id')
+        //         ->where('employee_details.company_id', $this->company->id)
+        //         ->where('users.status', 'active')
+        //         ->whereRaw('DATE_FORMAT(`date_of_birth`, "%m-%d") = "' . $currentDay . '"')
+        //         ->orderBy('employee_details.date_of_birth')
+        //         ->select('employee_details.company_id', 'employee_details.date_of_birth', 'users.name', 'users.image', 'users.id')
+        //         ->get()->toArray();
+        // dd($event);
 
         //$users = User::allEmployees(null, false, null, $event->company->id);
         // $users = User::allEmployees(null, false, null, $this->company->id);
@@ -124,7 +147,7 @@ class WhatsAppController extends  AccountBaseController
 
         // Notification::send($users, new BirthdayReminderWhatsApp($event));
         //dd($this->user);
-        $this->user->notify(new TwoFactorCodeWhatsApp());
+        //$this->user->notify(new TwoFactorCodeWhatsApp());
         return 'hello';
     }
 }

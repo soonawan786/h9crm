@@ -171,7 +171,8 @@ class ClientController extends AccountBaseController
         if ($request->hasFile('company_logo')) {
             $data['company_logo'] = Files::upload($request->company_logo, 'client-logo', 300);
         }
-
+        //add date_of_birth for create
+        $data['date_of_birth']= date("Y-m-d", strtotime($request->date_of_birth));
         $user = User::create($data);
         $user->clientDetails()->create($data);
 
@@ -355,26 +356,29 @@ class ClientController extends AccountBaseController
             $data['image'] = Files::upload($request->image, 'avatar', 300);
         }
 
-
         $user->update($data);
 
         if ($user->clientDetails) {
+
             $data['category_id'] = $request->category_id;
             $data['sub_category_id'] = $request->sub_category_id;
             $data['note'] = trim_editor($request->note);
             $data['locale'] = $request->locale;
+
             $fields = $request->only($user->clientDetails->getFillable());
+            //add date_of_birth for update
+            $fields['date_of_birth']= date("Y-m-d", strtotime($data['date_of_birth']));
 
             if ($request->hasFile('company_logo')) {
                 Files::deleteFile($user->clientDetails->company_logo, 'client-logo');
                 $fields['company_logo'] = Files::upload($request->company_logo, 'client-logo', 300);
             }
-
             $user->clientDetails->fill($fields);
             $user->clientDetails->save();
-
         }
         else {
+            //update date_of_birth
+            $data['date_of_birth']= date("Y-m-d", strtotime($request->date_of_birth));
             $user->clientDetails()->create($data);
         }
 

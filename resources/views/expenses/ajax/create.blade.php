@@ -1,6 +1,20 @@
 @php
 $addExpenseCategoryPermission = user()->permission('manage_expense_category');
 @endphp
+<style>
+    .searchResultItem {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .searchResultItem:hover {
+            background-color: #f1f1f1;
+        }
+        .noResultsMessage {
+            padding: 5px 10px;
+            color: red;
+        }
+</style>
 
 <div class="row">
     <div class="col-sm-12">
@@ -109,6 +123,7 @@ $addExpenseCategoryPermission = user()->permission('manage_expense_category');
                     <div class="col-md-4">
                         <x-forms.text :fieldLabel="__('modules.expenses.purchaseFrom')" fieldName="purchase_from"
                             fieldId="purchase_from" :fieldPlaceholder="__('placeholders.expense.vendor')" />
+                        <ul id="searchResults"></ul>
                     </div>
 
                     @if($linkExpensePermission == 'all')
@@ -154,6 +169,72 @@ $addExpenseCategoryPermission = user()->permission('manage_expense_category');
 
     </div>
 </div>
+
+<script>
+    $(document).ready(function() {
+        var searchResults = $('#searchResults');
+        var searchInput = $('#purchase_from');
+        var resultsList = [];
+
+        searchInput.on('keyup', function() {
+            var searchTerm = $(this).val();
+
+            if (searchTerm !== '') {
+                $.ajax({
+                    url: "{{ url('account/purchase-from') }}",
+                    type: 'GET',
+                    data: {
+                        searchTerm: searchTerm,
+                    },
+                    success: function(response) {
+                        resultsList = response;
+                        showResults();
+                    }
+                });
+            } else {
+                resultsList = [];
+                showResults();
+            }
+        });
+
+        //show result function
+        function showResults() {
+            searchResults.empty();
+
+            if (resultsList.length > 0) {
+                $.each(resultsList, function(index, expense) {
+                    var li = $('<li>')
+                        .addClass('searchResultItem')
+                        .text(expense.purchase_from)
+                        .appendTo(searchResults);
+
+                    li.on('click', function() {
+                        var selectedExpense = resultsList[index];
+                        searchInput.val(selectedExpense.purchase_from);
+                        searchResults.hide();
+                    });
+                });
+
+                searchResults.show();
+            } else {
+                // var noResultsMessage = $('<li>')
+                //     .addClass('noResultsMessage')
+                //     .text('No Results Found')
+                //     .appendTo(searchResults);
+
+                // searchResults.show();
+                searchResults.hide();
+            }
+        }
+
+        $(document).on('click', function(e) {
+            if (!searchInput.is(e.target)) {
+                searchResults.hide();
+            }
+        });
+
+    });
+</script>
 
 
 <script>

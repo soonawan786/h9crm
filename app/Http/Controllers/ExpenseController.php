@@ -442,4 +442,9 @@ class ExpenseController extends AccountBaseController
         return Reply::dataOnly(['status' => 'success', 'employees' => $data]);
     }
 
+    public function getPurhcaseFromName(Request $request){
+
+        $results = Expense::where('purchase_from', 'LIKE', "%{$request->searchTerm}%")->groupBy('purchase_from')->limit(5)->get();
+        return response()->json($results);
+    }
 }

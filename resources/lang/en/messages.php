@@ -394,5 +394,8 @@ return array(
     'quickBooksConnectSuccess' => 'QuickBooks account is connected.',
     'cacheClear' => 'Successfully cleared cache.',
     'emailCannotChange' => 'Email cannot be changed as it is registered with other companies also.',
-    'websiteUrlTooltip'=>'Add Website Url'
+    'websiteUrlTooltip'=>'Add Website Url',
+    'selectCustomerForMobile' => 'Select client to show mobile number.',
+    'selectCustomerForDob' => 'Select client to show date of birth.',
+    'selectCustomerForInvoiceHistory'=>'Select client to show previous  invoice history'
 );

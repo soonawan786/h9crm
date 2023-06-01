@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\DataTables\InvoicesDataTable;
+use App\DataTables\InvoicesHistoryDataTable;
 use App\Events\NewInvoiceEvent;
 use App\Events\PaymentReminderEvent;
 use App\Helper\Files;
@@ -71,6 +72,7 @@ class InvoiceController extends AccountBaseController
                 $this->clients = User::allClients();
             }
         }
+        $this->id = null;
 
         return $dataTable->render('invoices.index', $this->data);
     }
@@ -1324,6 +1326,26 @@ class InvoiceController extends AccountBaseController
         $client_data = Product::where('unit_id', $id)->get();
         $unitId = UnitType::where('id', $id)->first();
         return Reply::dataOnly(['status' => 'success', 'data' => $client_data, 'type' => $unitId] );
+    }
+
+    public function clientHistory($id=null){
+        $dataTable = new InvoicesHistoryDataTable($id);
+        $viewPermission = user()->permission('view_invoices');
+        abort_403(!in_array($viewPermission, ['all', 'added', 'owned', 'both']));
+
+        if (!request()->ajax()) {
+            $this->projects = Project::allProjects();
+
+            if (in_array('client', user_roles())) {
+                $this->clients = User::client();
+            }
+            else {
+                $this->clients = User::allClients();
+            }
+        }
+        $this->id = $id;
+
+        return $dataTable->render('invoices.index', $this->data);
     }
 
 }

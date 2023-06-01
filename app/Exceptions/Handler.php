@@ -2,14 +2,12 @@
 
 namespace App\Exceptions;
 
-use AWS\CRT\Log;
 use Froiden\RestAPI\Exceptions\ApiException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\App;
 use Illuminate\Validation\ValidationException;
 use Throwable;
-use InvalidArgumentException;
 
 class Handler extends ExceptionHandler
 {
@@ -57,19 +55,11 @@ class Handler extends ExceptionHandler
 
     public function report(Throwable $exception)
     {
-        if ($this->shouldReport($exception)) {
-            // log the exception
-            echo $exception->getMessage();
+        if (app()->bound('sentry') && $this->shouldReport($exception) && App::environment('demo')) {
+            app('sentry')->captureException($exception);
         }
 
         parent::report($exception);
-
-        // if (app()->bound('sentry') && $this->shouldReport($exception) && App::environment('demo')) {
-        //     app('sentry')->captureException($exception);
-        // }
-        // dd($exception);
-
-        // parent::report($exception);
     }
 
     /**
@@ -89,15 +79,12 @@ class Handler extends ExceptionHandler
 
     public function render($request, Throwable $exception)
     {
-        if(($exception instanceof InvalidArgumentException) && str_contains($exception->getFile(), 'Illuminate/View/FileViewFinder')) abort(404);
-        //return response()->view('errors.custom', ['message' => $exception->getMessage()]);
+        if ($exception instanceof TokenMismatchException) {
 
-        // if ($exception instanceof TokenMismatchException) {
+            return redirect(route('login'))->with('message', 'You page session expired. Please try again');
+        }
 
-        //     return redirect(route('login'))->with('message', 'You page session expired. Please try again');
-        // }
-
-        // return parent::render($request, $exception);
+        return parent::render($request, $exception);
     }
 
 }

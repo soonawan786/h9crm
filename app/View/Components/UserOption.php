@@ -12,19 +12,21 @@ class UserOption extends Component
     public $pill;
     public $agent;
     public $userID;
+    public $clientHistoryId;
 
     /**
      * Create a new component instance.
      *
      * @return void
      */
-    public function __construct($user, $selected = false, $pill = false, $agent = false, $userID = null)
+    public function __construct($user, $selected = false, $pill = false, $agent = false, $userID = null,$clientHistoryId=null)
     {
         $this->user = $user;
         $this->selected = $selected;
         $this->pill = $pill;
         $this->agent = $agent;
         $this->userID = $userID;
+        $this->clientHistoryId = $clientHistoryId;
     }
 
     /**

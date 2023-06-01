@@ -48,10 +48,10 @@ class NewOrderWhatsApp extends BaseNotification
 
             $url = route('orders.show', $this->order->id);
             $url = getDomainSpecificUrl($url, $this->company);
-            $short_url = UrlShortenerController::shorten($url);
+            //$short_url = UrlShortenerController::shorten($url);
             $content = __('email.order.text');
             return (new WhatsAppMessage)
-            ->content($content.' '.$short_url);
+            ->content($content.' '.$url);
         }
     }
 

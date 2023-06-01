@@ -12,10 +12,18 @@
    }
 
 @endphp
-
+@if ($clientHistoryId==null)
 <option
-    {{ !$selected ?: 'selected' }}
-    data-content="{!! $content !!}"
-    value="{{ $userID ?? $user->id }}">
-    {{ mb_ucfirst($user->name) }}
+{{ !$selected ?: 'selected' }}
+data-content="{!! $content !!}"
+value="{{ $userID ?? $user->id }}">
+{{ mb_ucfirst($user->name) }}
 </option>
+@else
+<option
+data-content="{!! $content !!}"
+value="{{ $user->id }}" {{ ($clientHistoryId==$user->id)?'selected':'' }} >
+{{ mb_ucfirst($user->name) }}
+</option>
+@endif
+

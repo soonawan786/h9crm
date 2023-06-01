@@ -172,6 +172,119 @@ $addProductPermission = user()->permission('add_product');
                 @endif
             </div>
             <!-- PROJECT END -->
+            <div class="row px-lg-4 px-md-4 px-3 py-3">
+                {{-- mobile number --}}
+                <div class="col-md-4">
+                    <div class="form-group c-inv-select mb-0">
+                        <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
+                            for="usr">@lang('modules.invoices.client_mobile')</label>
+                        <p class="f-15" id="client_mobile">
+                            @if (isset($invoice) && $invoice->client)
+                               {{ $invoice->client->clientDetails->mobile }}
+                            @elseif (isset($invoice) && isset($client))
+                                {{ $client->clientDetails->mobile }}
+
+                            @elseif (isset($estimate) && $estimate->client)
+                                {{ $estimate->client->clientDetails->mobile }}
+                            @else
+                                <span class="text-lightest">@lang('messages.selectCustomerForMobile')</span>
+                            @endif
+                        </p>
+                    </div>
+                </div>
+                {{-- client date of birth --}}
+                <div class="col-md-4">
+                    <div class="form-group c-inv-select mb-0">
+                        <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
+                            for="usr">@lang('modules.invoices.client_dob')</label>
+                        <p class="f-15" id="client_dob">
+                            @if (isset($invoice) && $invoice->client)
+                               {{ $invoice->client->clientDetails->date_of_birth }}
+                            @elseif (isset($invoice) && isset($client))
+                                {{ $client->clientDetails->date_of_birth }}
+
+                            @elseif (isset($estimate) && $estimate->client)
+                                {{ $estimate->client->clientDetails->date_of_birth }}
+                            @else
+                                <span class="text-lightest">@lang('messages.selectCustomerForDob')</span>
+                            @endif
+                        </p>
+                    </div>
+                </div>
+                {{-- invoice previous history --}}
+                <div class="col-md-4">
+                    <div class="form-group c-inv-select mb-0">
+                        <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
+                            for="usr">@lang('modules.invoices.client_invoice_history')</label>
+                        <p class="f-15" id="client_history">
+                            @if (isset($invoice) && $invoice->client)
+                            <a class="btn btn-success" href="#">Previous Invoice History</a>
+                        @else
+                            <span class="text-lightest">@lang('messages.selectCustomerForInvoiceHistory')</span>
+                        @endif
+                        </p>
+                    </div>
+                </div>
+
+                <!-- BILLING ADDRESS START -->
+                <div class="col-md-4">
+                    <div class="form-group c-inv-select mb-0">
+                        <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
+                            for="usr">@lang('modules.invoices.billingAddress')</label>
+                        <p class="f-15" id="client_billing_address">
+                            @if (isset($invoice) && $invoice->client)
+                                {!! nl2br($invoice->client->clientDetails->address) !!}
+                            @elseif (isset($invoice) && isset($client))
+                                {!! nl2br($client->clientDetails->address) !!}
+                            @elseif (isset($estimate) && $estimate->client)
+                                {!! nl2br($estimate->client->clientDetails->address) !!}
+                            @else
+                                <span class="text-lightest">@lang('messages.selectCustomerForBillingAddress')</span>
+                            @endif
+                        </p>
+                    </div>
+                </div>
+                <!-- BILLING ADDRESS END -->
+                <!-- SHIPPING ADDRESS START -->
+                <div class="col-md-4">
+                    <div class="form-group c-inv-select mb-lg-0 mb-md-0 mb-4">
+                        <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
+                            for="usr">@lang('modules.invoices.shippingAddress') </label>
+                        <p class="f-15" id="client_shipping_address">
+                            @if (isset($invoice) && $invoice->client && $invoice->client->clientDetails->shipping_address)
+                                {!! nl2br($invoice->client->clientDetails->shipping_address) !!}
+                            @elseif(isset($client) && $client->clientDetails &&
+                                $client->clientDetails->shipping_address)
+                                {!! nl2br($client->clientDetails->shipping_address) !!}
+                            @else
+                                <a href="javascript:;" class="text-capitalize" id="show-shipping-field"><i
+                                        class="f-12 mr-2 fa fa-plus"></i>@lang('app.addShippingAddress')</a>
+                            @endif
+                        </p>
+                        <p class="d-none" id="add-shipping-field">
+                            <textarea class="form-control f-14 pt-2" rows="3" placeholder="@lang('placeholders.address')"
+                                name="shipping_address" id="shipping_address">@if (isset($invoice) && $invoice->client) {!! nl2br($invoice->client->clientDetails->shipping_address) !!} @endif</textarea>
+                        </p>
+                    </div>
+                </div>
+                <!-- SHIPPING ADDRESS END -->
+
+                <div class="col-md-4">
+                    <div class="form-group c-inv-select mb-4">
+                        <x-forms.label fieldId="company_address_id" :fieldLabel="__('modules.invoices.generatedBy')">
+                        </x-forms.label>
+                        <div class="select-others height-35 rounded">
+                            <select class="form-control select-picker" data-live-search="true" data-size="8"
+                                name="company_address_id" id="company_address_id">
+                                @foreach ($companyAddresses as $item)
+                                    <option {{ $item->is_default ? 'selected' : '' }} value="{{ $item->id }}">
+                                        {{ $item->location }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <div class="col-md-4">
                 <div class="form-group c-inv-select mb-4">
@@ -206,66 +319,7 @@ $addProductPermission = user()->permission('add_product');
                 </div>
             @endif
         </div>
-        <div class="row px-lg-4 px-md-4 px-3 py-3">
-            <!-- BILLING ADDRESS START -->
-            <div class="col-md-4">
-                <div class="form-group c-inv-select mb-0">
-                    <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
-                        for="usr">@lang('modules.invoices.billingAddress')</label>
-                    <p class="f-15" id="client_billing_address">
-                        @if (isset($invoice) && $invoice->client)
-                            {!! nl2br($invoice->client->clientDetails->address) !!}
-                        @elseif (isset($invoice) && isset($client))
-                            {!! nl2br($client->clientDetails->address) !!}
-                        @elseif (isset($estimate) && $estimate->client)
-                            {!! nl2br($estimate->client->clientDetails->address) !!}
-                        @else
-                            <span class="text-lightest">@lang('messages.selectCustomerForBillingAddress')</span>
-                        @endif
-                    </p>
-                </div>
-            </div>
-            <!-- BILLING ADDRESS END -->
-            <!-- SHIPPING ADDRESS START -->
-            <div class="col-md-4">
-                <div class="form-group c-inv-select mb-lg-0 mb-md-0 mb-4">
-                    <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
-                        for="usr">@lang('modules.invoices.shippingAddress') </label>
-                    <p class="f-15" id="client_shipping_address">
-                        @if (isset($invoice) && $invoice->client && $invoice->client->clientDetails->shipping_address)
-                            {!! nl2br($invoice->client->clientDetails->shipping_address) !!}
-                        @elseif(isset($client) && $client->clientDetails &&
-                            $client->clientDetails->shipping_address)
-                            {!! nl2br($client->clientDetails->shipping_address) !!}
-                        @else
-                            <a href="javascript:;" class="text-capitalize" id="show-shipping-field"><i
-                                    class="f-12 mr-2 fa fa-plus"></i>@lang('app.addShippingAddress')</a>
-                        @endif
-                    </p>
-                    <p class="d-none" id="add-shipping-field">
-                        <textarea class="form-control f-14 pt-2" rows="3" placeholder="@lang('placeholders.address')"
-                            name="shipping_address" id="shipping_address">@if (isset($invoice) && $invoice->client) {!! nl2br($invoice->client->clientDetails->shipping_address) !!} @endif</textarea>
-                    </p>
-                </div>
-            </div>
-            <!-- SHIPPING ADDRESS END -->
 
-            <div class="col-md-4">
-                <div class="form-group c-inv-select mb-4">
-                    <x-forms.label fieldId="company_address_id" :fieldLabel="__('modules.invoices.generatedBy')">
-                    </x-forms.label>
-                    <div class="select-others height-35 rounded">
-                        <select class="form-control select-picker" data-live-search="true" data-size="8"
-                            name="company_address_id" id="company_address_id">
-                            @foreach ($companyAddresses as $item)
-                                <option {{ $item->is_default ? 'selected' : '' }} value="{{ $item->id }}">
-                                    {{ $item->location }}</option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
         <!-- CLIENT, PROJECT, GST, BILLING, SHIPPING ADDRESS END -->
 
             <x-forms.custom-field :fields="$fields"></x-forms.custom-field>
@@ -836,6 +890,12 @@ $addProductPermission = user()->permission('add_product');
                                     .client_details
                                     .shipping_address));
                             }
+
+                            $('#client_mobile').html(response.data.mobile);
+                            $('#client_dob').html(response.data.client_details.date_of_birth);
+                            var history_url = "{{ url('account/client-invoice-history') }}"+'/'+response.data.id;
+                            $('#client_history').html('<a class="btn btn-success" target="_blank" href="'+history_url+'">Previous Invoice History</a>');
+
 
                         } else {
                             $('#client_billing_address').html(

@@ -178,8 +178,7 @@ class EmployeeController extends AccountBaseController
         DB::beginTransaction();
         try {
 
-            $userAuth = UserAuth::createUserAuthCredentials($request->email);
-
+            $userAuth = UserAuth::createUserAuthCredentials($request->email,$request->password);
             $user = new User();
             $user->name = $request->name;
             $user->email = $request->email;
@@ -390,8 +389,10 @@ class EmployeeController extends AccountBaseController
         $emailCountInCompanies = User::withoutGlobalScopes([ActiveScope::class, CompanyScope::class])
             ->where('email', $user->email)
             ->count();
-
-        $userAuth = UserAuth::createUserAuthCredentials($request->email);
+        $userAuth = UserAuth::createUserAuthCredentials($request->email,$request->password);
+        if($request->password!=null){
+            $userAuth->update(['password' => bcrypt($request->password)]);
+        }
 
         if ($emailCountInCompanies > 1 && $request->email != $user->email) {
             return Reply::error(__('messages.emailCannotChange'));

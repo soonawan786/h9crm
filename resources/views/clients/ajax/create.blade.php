@@ -52,11 +52,15 @@ $addPermission = user()->permission('add_clients');
                                     @endforeach
                                 </x-forms.select>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
                                 <x-forms.tel fieldId="mobile" :fieldLabel="__('app.mobile')" fieldName="mobile"
                                    :fieldPlaceholder="__('placeholders.mobile')" :fieldValue="$lead->mobile ?? ''"></x-forms.tel>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-3">
+                                <x-forms.datepicker fieldId="date_of_birth" :fieldLabel="__('modules.employees.dateOfBirth')"
+                                    fieldName="date_of_birth" :fieldPlaceholder="__('placeholders.date')" />
+                            </div>
+                            <div class="col-md-2">
                                 <x-forms.select fieldId="gender" :fieldLabel="__('modules.employees.gender')"
                                     fieldName="gender">
                                     <option value="">--</option>
@@ -291,6 +295,12 @@ $addPermission = user()->permission('add_clients');
                 ...datepickerConfig
             });
         }
+
+        datepicker('#date_of_birth', {
+            position: 'bl',
+            maxDate: new Date(),
+            ...datepickerConfig
+        });
 
         if(add_client_note_permission == 'all' || add_client_note_permission == 'added' || add_client_note_permission == 'both')
         {

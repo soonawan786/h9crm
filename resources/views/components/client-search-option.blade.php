@@ -6,5 +6,7 @@
         <p class='my-0 f-11 text-dark-grey'>{{ $user->email }}</p>
         <p class='my-0 f-11 text-dark-grey'>
             {{ !is_null($user->clientDetails) ? mb_ucwords($user->clientDetails->company_name) : ' ' }}</p>
+        <p class='my-0 f-11 text-dark-grey'>
+            {{ !is_null($user->clientDetails) ? mb_ucwords($user->mobile) : ' ' }}</p>
     </div>
 </div>

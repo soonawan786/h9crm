@@ -13,6 +13,7 @@ class WhatsAppChannel
         //dd($message);
         $type = 'text';
         $recipient = $notifiable->routeNotificationFor('WhatsApp');
+        //dd($message,$recipient);
         $apiSecret = auth()->user()->api_secret;
         $account_id = $this->getWhatsAppNumber($apiSecret);
 

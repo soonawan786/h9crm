@@ -31,6 +31,14 @@ $addDesignationPermission = user()->permission('add_designation');
                                 </x-forms.text>
                             </div>
                             <div class="col-lg-4 col-md-6">
+                                <div class="form-group my-3">
+                                    <label class="f-14 text-dark-grey mb-12" for="password">{{ __('modules.employees.employeePassword') }}</label>
+                                    <input type="password" name="password" id="employee_password" autocomplete="off"
+                                    placeholder="@lang('placeholders.password')" class="form-control height-35 f-14">
+                                </div>
+
+                            </div>
+                            <div class="col-lg-4 col-md-6">
                                 <x-forms.datepicker fieldId="date_of_birth" :fieldLabel="__('modules.employees.dateOfBirth')"
                                     fieldName="date_of_birth" :fieldPlaceholder="__('placeholders.date')" />
                             </div>

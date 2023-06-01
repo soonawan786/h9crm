@@ -94,7 +94,7 @@
 
     </x-table>
 
-    @include('vendor.froiden-envato.update.plugins', ['allModules' => $allModules])
+    {{-- @include('vendor.froiden-envato.update.plugins', ['allModules' => $allModules]) --}}
 </div>
 
 <script>
