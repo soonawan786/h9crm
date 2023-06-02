@@ -7,10 +7,12 @@ use App\Events\ClientBirthdayReminderEvent;
 use App\Helper\Reply;
 use App\Models\ClientDetails;
 use App\Models\EmployeeDetails;
+use App\Models\Invoice;
 use Illuminate\Support\Facades\Notification;
 use App\Models\User;
 use App\Models\WhatsApp;
 use App\Notifications\BirthdayReminderWhatsApp;
+use App\Notifications\NewInvoiceWhatsApp;
 use App\Notifications\TwoFactorCodeWhatsApp;
 use App\Notifications\WhatsAppNotification;
 use Illuminate\Http\Request;
@@ -113,6 +115,11 @@ class WhatsAppController extends  AccountBaseController
     }
 
     public function test(){
+        // $user = User::find(3);
+        // $invoice = Invoice::find(5);
+        // //dd('hi',$user,$invoice);
+        // Notification::send($user, new NewInvoiceWhatsApp($invoice));
+        dd('after event');
         // $currentDay = now()->format('m-d');
         // $clientBirthay = ClientDetails::join('users', 'client_details.user_id', '=', 'users.id')
         // ->where('client_details.company_id', $this->company->id)

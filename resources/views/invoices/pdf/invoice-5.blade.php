@@ -342,10 +342,37 @@
         }
 
         @endif
+        @page {
+            margin-top: 50mm;    /* Space for the header */
+            margin-bottom: 40mm; /* Space for the footer */
+        }
+
+        .header {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            height: 40mm; /* Height of the header */
+        /* background-color: #ebebeb;  Header background color */
+            text-align: center;
+            line-height: 30mm;
+            font-size: 18px;
+        }
+
+        .footer {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 40mm; /* Height of the footer */
+            /*background-color: #ebebeb;  Footer background color */
+            text-align: center;
+            line-height: 30mm;
+            font-size: 14px;
+        }
     </style>
 </head>
 
 <body class="content-wrapper">
+<div class="header"></div>
 <table class="bg-white" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
     <tbody>
     <!-- Table Row Start -->
@@ -769,7 +796,8 @@
         @endforelse
     </table>
 @endif
-
+<div class="footer">
+</div>
 </body>
 
 </html>

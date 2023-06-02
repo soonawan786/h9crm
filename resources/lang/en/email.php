@@ -122,7 +122,20 @@ return array(
     ),
     'invoice' => array(
         'subject' => 'New Invoice Received',
-        'text' => 'A new invoice has been received. Please click on the link below to view invoice.',
+        'text' => ', 🌟 Thank you for choosing our services! We appreciate your business and the trust you have placed in us. It was a pleasure working with you, and we are thrilled to hear that you had a positive experience.
+
+        ✨ At click2print, we strive to deliver excellent service and exceed our customers\' expectations. We look forward to the opportunity to work with you again in the future. Whether you need assistance with a new project or have any other requirements, please don\'t hesitate to reach out to us. We will be more than happy to help.
+
+        🤝 Thank you once again for your support. We value your partnership and the opportunity to serve you. We remain committed to providing top-notch solutions and ensuring your satisfaction.
+
+        Best regards,
+
+        h9crm.com',
+        'line1'=>'🌟 Thank you for choosing our services! We appreciate your business and the trust you have placed in us. It was a pleasure working with you, and we are thrilled to hear that you had a positive experience.',
+        'symbol_at' => '✨ At ',
+        'line2'=>', we strive to deliver excellent service and exceed our customers\' expectations. We look forward to the opportunity to work with you again in the future. Whether you need assistance with a new project or have any other requirements, please don\'t hesitate to reach out to us. We will be more than happy to help.',
+        'line3' => ' 🤝 Thank you once again for your support. We value your partnership and the opportunity to serve you. We remain committed to providing top-notch solutions and ensuring your satisfaction.',
+        //'text' => 'A new invoice has been received. Please click on the link below to view invoice.',
         'action' => 'View Invoice',
         'updateSubject' => 'Invoice Updated',
         'updateText' => 'Invoice has been updated. Please click on the link below to view invoice.',

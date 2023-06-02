@@ -50,10 +50,13 @@ class NewInvoiceWhatsApp extends BaseNotification
             $url = route('front.invoice', $this->invoice->hash);
             $url = getDomainSpecificUrl($url, $this->company);
             //$short_url = UrlShortenerController::shorten($url);
+            $clientName = 'Dear '. $notifiable->name.', ';
 
-            $content = __('email.invoice.text');
+            //$content = __('email.invoice.text');
+            $content = $clientName. PHP_EOL. PHP_EOL .__('email.invoice.line1').PHP_EOL.PHP_EOL.__('email.invoice.symbol_at').$this->company->company_name.__('email.invoice.line2').PHP_EOL.PHP_EOL.__('email.invoice.line3').PHP_EOL.PHP_EOL.'Best Regards, '.PHP_EOL.PHP_EOL.$this->company->company_name;
+            //dd($content);
             return (new WhatsAppMessage)
-            ->content($content.' '.$url);
+            ->content($content);
         }
     }
 
