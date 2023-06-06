@@ -46,9 +46,8 @@ class ClientBirthdayReminderWhatsApp extends BaseNotification
     public function toWhatsApp($notifiable)
     {
         $clientName = 'Dear '.$notifiable->name.PHP_EOL;
-        $text = $this->company->company_name.' wishes you a very happy birthday and thank you for being our valued customer!';
 
-        $content = $clientName.$text;
+        $content = $clientName. PHP_EOL. PHP_EOL .__('email.BirthdayReminder.line1').PHP_EOL. PHP_EOL .__('email.BirthdayReminder.line2').$this->company->company_name.__('email.BirthdayReminder.line3').PHP_EOL.PHP_EOL.__('email.BirthdayReminder.line4').PHP_EOL.PHP_EOL.__('email.BirthdayReminder.line5').PHP_EOL.PHP_EOL.__('email.BirthdayReminder.line6').PHP_EOL.PHP_EOL.'Warmest regards, '.PHP_EOL.PHP_EOL.$this->company->company_name.PHP_EOL.PHP_EOL.$this->company->company_phone;
 
         return (new WhatsAppMessage)
             ->content($content);

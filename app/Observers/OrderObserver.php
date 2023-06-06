@@ -7,6 +7,7 @@ use App\Models\Order;
 use App\Models\OrderItems;
 use App\Models\Notification;
 use App\Events\NewOrderEvent;
+use App\Events\OrderCompletedEvent;
 use App\Models\CompanyAddress;
 use App\Models\OrderItemImage;
 use App\Events\OrderUpdatedEvent;
@@ -112,6 +113,10 @@ class OrderObserver
             // Notify client
             $notifyUser = User::withoutGlobalScope(ActiveScope::class)->findOrFail($clientId);
 
+
+            if($order->status=='completed'){
+                event(new OrderCompletedEvent($order, $notifyUser));
+            }
             event(new OrderUpdatedEvent($order, $notifyUser));
         }
 

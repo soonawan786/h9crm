@@ -4,10 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Events\BirthdayReminderEvent;
 use App\Events\ClientBirthdayReminderEvent;
+use App\Events\InvoiceReminderAfterEvent;
+use App\Events\InvoiceReminderEvent;
+use App\Events\NewUserEvent;
+use App\Events\OrderCompletedEvent;
+use App\Events\PaymentReminderEvent;
 use App\Helper\Reply;
 use App\Models\ClientDetails;
+use App\Models\Company;
 use App\Models\EmployeeDetails;
 use App\Models\Invoice;
+use App\Models\InvoiceSetting;
+use App\Models\Order;
 use Illuminate\Support\Facades\Notification;
 use App\Models\User;
 use App\Models\WhatsApp;
@@ -15,6 +23,7 @@ use App\Notifications\BirthdayReminderWhatsApp;
 use App\Notifications\NewInvoiceWhatsApp;
 use App\Notifications\TwoFactorCodeWhatsApp;
 use App\Notifications\WhatsAppNotification;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -115,11 +124,60 @@ class WhatsAppController extends  AccountBaseController
     }
 
     public function test(){
+
+        // $clientId = 3;
+        // $order = Order::with('invoice')->find(1);
+
+        //     // Notify client
+        // $notifyUser = User::withoutGlobalScope(ActiveScope::class)->findOrFail($clientId);
+
+
+        // event(new OrderCompletedEvent($order, $notifyUser));
+
+        // dd('after order event');
+
+
+        //invoice reminder event
+        $company = Company::with('currency')->where('id',1)->first();
+
+        $invoice_setting = InvoiceSetting::where('company_id', $company->id)->first();
+
+        $invoices = Invoice::whereNotNull('due_date')
+                ->where('status', '!=', 'paid')
+                ->where('status', '!=', 'canceled')
+                ->where('status', '!=', 'draft')
+                ->where('company_id', $company->id);
+
+        $invoices_every = $invoices
+                    ->whereDate('due_date', '<', now($company->timezone))
+                    ->get();
+
+        foreach ($invoices_every as $invoice) {
+            $notifyUser = $invoice->client;
+            $date_diff = $invoice->due_date->diffInDays(now());
+
+            if ($invoice_setting->send_reminder_after != 0) {
+                if ($date_diff % $invoice_setting->send_reminder_after == 0 && !is_null($notifyUser)) {
+                    event(new InvoiceReminderAfterEvent($invoice, $notifyUser, $invoice_setting->send_reminder_after));
+                }
+            }
+            dd('after foreach');
+        }
+
+
+        dd('after invoice event');
+        //new user event
+        //$user = $this->user;
+
+        //event(new NewUserEvent($user, session('auth_pass')));
+
+        dd('after eventd');
         // $user = User::find(3);
         // $invoice = Invoice::find(5);
         // //dd('hi',$user,$invoice);
         // Notification::send($user, new NewInvoiceWhatsApp($invoice));
-        dd('after event');
+        // dd('after event');
+
         // $currentDay = now()->format('m-d');
         // $clientBirthay = ClientDetails::join('users', 'client_details.user_id', '=', 'users.id')
         // ->where('client_details.company_id', $this->company->id)
@@ -128,9 +186,8 @@ class WhatsAppController extends  AccountBaseController
         // ->orderBy('client_details.date_of_birth')
         // ->select('client_details.company_id', 'client_details.date_of_birth', 'users.name', 'users.image', 'users.id')
         // ->get()->toArray();
-        //dd($clientBirthay);
-        //event(new ClientBirthdayReminderEvent($this->company, $clientBirthay));
-        //dd('after event');
+        // event(new ClientBirthdayReminderEvent($this->company, $clientBirthay));
+        // dd('after event');
 
         // $event = EmployeeDetails::join('users', 'employee_details.user_id', '=', 'users.id')
         //         ->where('employee_details.company_id', $this->company->id)

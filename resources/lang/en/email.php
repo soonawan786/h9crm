@@ -61,6 +61,14 @@ return array(
         'subject' => 'Welcome to',
         'text' => 'Congratulations! Your account has been created successfully. You can login now and start using our service.',
         'action' => 'Login to Dashboard',
+        'line1'=>'On behalf of the entire team at ',
+        'line2'=>', I wanted to extend a warm welcome to you as our new client. 🎉🤝 We are thrilled to have you on board and are excited about the opportunity to work together. 😊🌟',
+        'line3'=>', we pride ourselves on delivering exceptional products/services and building strong relationships with our clients. 💼💪 We are confident that our partnership will be mutually beneficial, and we look forward to providing you with the highest level of service and support. 🤝🌟',
+        'line4'=>'Our dedicated team is committed to understanding your unique needs and exceeding your expectations. 🤝🎯 We will work closely with you to ensure that we meet your goals and deliver successful outcomes. 💼✨',
+        'line5'=>'Please feel free to reach out to me or any member of our team if you have any questions, concerns, or specific requirements. We are here to assist you every step of the way. 📞📧',
+        'line6'=>'Once again, welcome to the ',
+        'line7'=>' family. We are excited to embark on this journey together and create great things. 🎉🚀 ',
+        'line8'=>'Thank you for choosing us as your partner, and we assure you that your trust is well-placed. 🙏🔒',
     ),
     'newUserViaLink' => array(
         'subject' => 'New Team Member: Welcome to the Team!',
@@ -122,20 +130,14 @@ return array(
     ),
     'invoice' => array(
         'subject' => 'New Invoice Received',
-        'text' => ', 🌟 Thank you for choosing our services! We appreciate your business and the trust you have placed in us. It was a pleasure working with you, and we are thrilled to hear that you had a positive experience.
+        'line1'=>'Thank you for choosing our services! 😊🙏',
+        'line2'=>' We appreciate your business and the trust you have placed in us. It was a pleasure working with you, and we are thrilled to hear that you had a positive experience. 👍💼',
+        'symbol_at' => ' At ',
+        'line3'=>', we strive to deliver excellent service and exceed our customers\' expectations. 💪🌟 We look forward to the opportunity to work with you again in the future. Whether you need assistance with a new project or have any other requirements, please don\'t hesitate to reach out to us. We will be more than happy to help. 🤝📞',
+        'line4' => ' Thank you once again for your support. We value your partnership and the opportunity to serve you.',
+        'line5'=>'We remain committed to providing top-notch solutions and ensuring your satisfaction. 👏🔒',
 
-        ✨ At click2print, we strive to deliver excellent service and exceed our customers\' expectations. We look forward to the opportunity to work with you again in the future. Whether you need assistance with a new project or have any other requirements, please don\'t hesitate to reach out to us. We will be more than happy to help.
-
-        🤝 Thank you once again for your support. We value your partnership and the opportunity to serve you. We remain committed to providing top-notch solutions and ensuring your satisfaction.
-
-        Best regards,
-
-        h9crm.com',
-        'line1'=>'🌟 Thank you for choosing our services! We appreciate your business and the trust you have placed in us. It was a pleasure working with you, and we are thrilled to hear that you had a positive experience.',
-        'symbol_at' => '✨ At ',
-        'line2'=>', we strive to deliver excellent service and exceed our customers\' expectations. We look forward to the opportunity to work with you again in the future. Whether you need assistance with a new project or have any other requirements, please don\'t hesitate to reach out to us. We will be more than happy to help.',
-        'line3' => ' 🤝 Thank you once again for your support. We value your partnership and the opportunity to serve you. We remain committed to providing top-notch solutions and ensuring your satisfaction.',
-        //'text' => 'A new invoice has been received. Please click on the link below to view invoice.',
+        'text' => 'A new invoice has been received. Please click on the link below to view invoice.',
         'action' => 'View Invoice',
         'updateSubject' => 'Invoice Updated',
         'updateText' => 'Invoice has been updated. Please click on the link below to view invoice.',
@@ -147,6 +149,16 @@ return array(
         'action' => 'View Order',
         'updateSubject' => 'Order Updated',
         'updateText' => 'Order has been updated. Please click on the link below to view order.',
+
+        'line1'=>'We hope this message finds you well. 🌟 We are reaching out to provide you with an update on your order and to discuss the remaining payment for the invoice number ',
+        'line2'=>'Firstly, we would like to inform you that your order is completed and is scheduled for delivery on ',
+        'line3'=>'. 🚚📦 We have put in our best efforts to ensure that your order is handled with care and reaches you in a timely manner. 🌟🕒',
+        'line4'=>'Regarding the payment, we kindly request you to arrange the remaining payment for the invoice number mentioned above. 💼💸 As per our records, the outstanding balance is ',
+        'line5'=>'.💰 To ensure a smooth transaction, please initiate the payment at your earliest convenience. ⌛🔍',
+        'line6'=>'We value your business and would like to remind you that we have a dedicated customer support team available to assist you with any questions or concerns you may have. 🤝📞 If you require any further information regarding the payment process or if you need assistance with anything else, please do not hesitate to contact us. You can reach us via phone at ',
+        'phone_symbole'=>'.📞🤝',
+        'line7'=>'Once again, we appreciate your trust in our products/services and your prompt attention to the remaining payment. 🙏🌟 We look forward to continuing our business relationship and ensuring your satisfaction. 🤝💼',
+        'line8'=>'Thank you for your cooperation.'
     ),
     'projectReminder' => array(
         'text' => 'This is to remind you about the due date of the following projects which is',
@@ -321,6 +333,17 @@ return array(
         'subject' => 'Invoice Reminder',
         'text' => 'This is to remind you about the due date of the following invoice which was',
         'action' => 'View Invoice',
+        'line1'=>'We hope this message finds you well. 😊 ',
+        'line2'=>'This is a gentle reminder regarding the outstanding balance on your account. ⏰ As of the last update, a payment of ',
+        'invoice_remain'=>', remains due, against ',
+        'invoice_number'=>' Invoice # ',
+        'invoice_symbol'=>'  💸💼 . ',
+        'line3'=>'We kindly request that you settle this payment as soon as possible to ensure the smooth operation of our services. 🙏🔒 If you have already made the payment, please disregard this message and accept our apologies for any inconvenience caused. 🙏🚫',
+        'line4'=>'To facilitate the payment process, we offer various convenient methods, including online payment portals, bank transfers, or in-person payments at our office. 💻🏦🤝 If you require any assistance or wish to discuss alternative arrangements, please do not hesitate to contact our dedicated support team at ',
+        'line5'=>'Our representatives will be happy to guide you through the process and address any concerns you may have. 📞🤝',
+        'line6'=>'We understand that oversight or unexpected circumstances can lead to delayed payments, but prompt resolution of this matter would be greatly appreciated. ⌛🔍 By fulfilling your obligation, you contribute to the continued provision of high-quality services and enable us to serve you better. 🌟🙌',
+        'line7'=>'We sincerely apologize for any inconvenience this reminder may cause and appreciate your understanding in this matter. 🙏🙇♂️ We value you as a customer and are committed to maintaining a positive working relationship. Your cooperation in settling the outstanding balance is vital, and we trust that we can count on your prompt attention to this matter. ⏳🤝',
+        'line8'=>'Thank you for your immediate action in resolving this issue. 🙏🔍 We look forward to receiving your payment or receiving a call to confirm its settlement. 💼💰',
     ),
     'invoiceReminderAfter' => array(
         'subject' => 'Invoice Reminder',
@@ -343,6 +366,13 @@ return array(
         'action' => 'Go to dashboard',
         'birthdayNotification' => 'have birthday',
         'birthdayNotificationText' => ' others have birthday on ',
+        //new birthday client message
+        'line1' => 'Happy birthday!” 🎉🎂',
+        'line2' => 'On this joyous occasion, On behalf of the entire team at ',
+        'line3' => ', would like to extend our warmest wishes to you, our valued client. 🎉🎁 Thank you for your continued support and loyalty. We truly appreciate having you as part of our esteemed clientele. 🙏💼',
+        'line4' => 'To make your birthday even more special, we have a surprise gift for you. 🎁✨ Enjoy a flat 10% discount on any purchase you make today as our way of saying thank you. Take this opportunity to treat yourself or explore something new from our collection. Use the code *BDAY10* at checkout to avail of this exclusive birthday offer. 🎁🎉',
+        'line5' => 'As we celebrate this milestone in your life, we hope that your day is filled with love, happiness, and cherished moments. May this year bring you immense success, good health, and fulfillment. 🎉🥳 We are honored to be a part of your journey and look forward to serving you with the utmost dedication. 🙏🤝',
+        'line6' => 'Once again, happy birthday from all of us. Have a fantastic day and enjoy your special discount! 🎂🎉🎁',
     ),
     'twoFactor' => array(
         'line1' => 'Your two-factor authentication code is ',

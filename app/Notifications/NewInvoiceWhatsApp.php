@@ -46,6 +46,7 @@ class NewInvoiceWhatsApp extends BaseNotification
     public function toWhatsApp($notifiable)
     {
         if (($this->invoice->project && !is_null($this->invoice->project->client)) || !is_null($this->invoice->client_id)) {
+            //dd($this->company->company_phone);
 
             $url = route('front.invoice', $this->invoice->hash);
             $url = getDomainSpecificUrl($url, $this->company);
@@ -53,8 +54,7 @@ class NewInvoiceWhatsApp extends BaseNotification
             $clientName = 'Dear '. $notifiable->name.', ';
 
             //$content = __('email.invoice.text');
-            $content = $clientName. PHP_EOL. PHP_EOL .__('email.invoice.line1').PHP_EOL.PHP_EOL.__('email.invoice.symbol_at').$this->company->company_name.__('email.invoice.line2').PHP_EOL.PHP_EOL.__('email.invoice.line3').PHP_EOL.PHP_EOL.'Best Regards, '.PHP_EOL.PHP_EOL.$this->company->company_name;
-            //dd($content);
+            $content = $clientName. PHP_EOL. PHP_EOL .__('email.invoice.line1').PHP_EOL. PHP_EOL .__('email.invoice.line2').PHP_EOL.PHP_EOL.PHP_EOL.__('email.invoice.symbol_at').$this->company->company_name.__('email.invoice.line3').PHP_EOL.PHP_EOL.__('email.invoice.line4').PHP_EOL.PHP_EOL.__('email.invoice.line5').PHP_EOL.PHP_EOL.'Best Regards, '.PHP_EOL.PHP_EOL.$this->company->company_name.PHP_EOL.PHP_EOL.$this->company->company_phone;
             return (new WhatsAppMessage)
             ->content($content);
         }

@@ -20,7 +20,7 @@ class WhatsAppChannel
         $whatsAppClient = new Client($account_id,$recipient,$type,$message);
 
         $response = $whatsAppClient->sendWhatsAppSms();
-
+        //dd($response);
         return $response;
     }
 
