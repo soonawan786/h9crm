@@ -18,6 +18,8 @@ Route::group(
         Route::get('features', [FrontendController::class, 'feature'])->name('feature');
         Route::get('pricing', [FrontendController::class, 'pricing'])->name('pricing');
         Route::get('language/{lang}', [FrontendController::class, 'changeLanguage'])->name('language.lang');
+        //download profile
+        Route::get('download-profile', [FrontendController::class, 'downloadProfile'])->name('download.profile');
 
     }
 );

@@ -453,4 +453,5 @@ return [
     'paymentFailed' => 'Payment Failed',
     'myAccount' => 'My Account',
     'contactSupport' => 'Contact Support',
+    'download'=>'Download Profile'
 ];

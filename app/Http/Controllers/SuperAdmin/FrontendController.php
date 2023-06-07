@@ -32,6 +32,7 @@ use App\Http\Requests\SuperAdmin\Register\StoreClientRequest;
 use App\Models\UserAuth;
 use Illuminate\Support\Facades\DB;
 use function Amp\Promise\all;
+use Illuminate\Support\Facades\Response;
 
 class FrontendController extends FrontBaseController
 {
@@ -392,6 +393,14 @@ class FrontendController extends FrontBaseController
         DB::commit();
 
         return Reply::redirect(route('dashboard'), __('superadmin.clientRegistrationSuccess'));
+    }
+
+    //download profile logic
+    public function downloadProfile(){
+
+        $pathToFile = public_path('h9_profile.pdf');
+        $fileName = 'h9_profile.pdf';
+        return Response::download($pathToFile, $fileName);
     }
 
 }
