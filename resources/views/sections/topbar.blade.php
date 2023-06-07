@@ -163,6 +163,13 @@
                                     @lang('app.add') @lang('modules.tickets.ticket')
                                 </a>
                             @endif
+                            @if (in_array('invoices', user_modules()) && (user()->permission('add_invoices') == 'all'))
+                                <a class="dropdown-item f-14 text-dark openRightModal"
+                                   href="{{ route('invoices.create') }}">
+                                    <i class="fa fa-plus f-w-500 mr-2 f-11"></i>
+                                    @lang('app.add') @lang('modules.invoices.invoice')
+                                </a>
+                            @endif
                         </div>
                     </div>
                 </li>

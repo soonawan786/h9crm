@@ -539,7 +539,8 @@ return array (
         'description' => 'Description',
         'client_mobile'=>'Client Mobile Number',
         'client_dob'=>'Client Date of Birth',
-        'client_invoice_history'=>'Client Previous Invoice History'
+        'client_invoice_history'=>'Client Previous Invoice History',
+        'invoice'=>'Invoice'
     ),
     'issues' => array (
         'pending' => 'Pending',
