@@ -125,69 +125,82 @@ class WhatsAppController extends  AccountBaseController
 
     public function test(){
 
-        // $clientId = 3;
-        // $order = Order::with('invoice')->find(1);
+        //1 test invoice message
+            // $user = User::find(3);
+            // $invoice = Invoice::find(5);
+            // //dd('hi',$user,$invoice);
+            // Notification::send($user, new NewInvoiceWhatsApp($invoice));
 
-        //     // Notify client
-        // $notifyUser = User::withoutGlobalScope(ActiveScope::class)->findOrFail($clientId);
-
-
-        // event(new OrderCompletedEvent($order, $notifyUser));
-
-        // dd('after order event');
+            // dd('after new invoice ');
 
 
-        //invoice reminder event
-        $company = Company::with('currency')->where('id',1)->first();
+        //2 test greeting message of new user
+            // $user = $this->user;
 
-        $invoice_setting = InvoiceSetting::where('company_id', $company->id)->first();
+            // event(new NewUserEvent($user, session('auth_pass')));
 
-        $invoices = Invoice::whereNotNull('due_date')
-                ->where('status', '!=', 'paid')
-                ->where('status', '!=', 'canceled')
-                ->where('status', '!=', 'draft')
-                ->where('company_id', $company->id);
+            // dd('after greeting new user');
 
-        $invoices_every = $invoices
-                    ->whereDate('due_date', '<', now($company->timezone))
-                    ->get();
+        //3 payment reminder for invoice after
+            // $company = Company::with('currency')->where('id',1)->first();
 
-        foreach ($invoices_every as $invoice) {
-            $notifyUser = $invoice->client;
-            $date_diff = $invoice->due_date->diffInDays(now());
+            // $invoice_setting = InvoiceSetting::where('company_id', $company->id)->first();
 
-            if ($invoice_setting->send_reminder_after != 0) {
-                if ($date_diff % $invoice_setting->send_reminder_after == 0 && !is_null($notifyUser)) {
-                    event(new InvoiceReminderAfterEvent($invoice, $notifyUser, $invoice_setting->send_reminder_after));
-                }
-            }
-            dd('after foreach');
-        }
+            // $invoices = Invoice::whereNotNull('due_date')
+            //         ->where('status', '!=', 'paid')
+            //         ->where('status', '!=', 'canceled')
+            //         ->where('status', '!=', 'draft')
+            //         ->where('company_id', $company->id);
+
+            // $invoices_every = $invoices
+            //             ->whereDate('due_date', '<', now($company->timezone))
+            //             ->get();
+
+            // foreach ($invoices_every as $invoice) {
+            //     $notifyUser = $invoice->client;
+
+            //     //dd($notifyUser,$invoice,$invoice_setting->send_reminder_after);
+
+            //     event(new InvoiceReminderAfterEvent($invoice, $notifyUser, $invoice_setting->send_reminder_after));
+
+            //     // $date_diff = $invoice->due_date->diffInDays(now());
+
+            //     // if ($invoice_setting->send_reminder_after != 0) {
+            //     //     if ($date_diff % $invoice_setting->send_reminder_after == 0 && !is_null($notifyUser)) {
+            //     //         event(new InvoiceReminderAfterEvent($invoice, $notifyUser, $invoice_setting->send_reminder_after));
+            //     //     }
+            //     // }
+            //     dd('after foreach');
+            // }
+            // dd('after invoice reminder');
 
 
-        dd('after invoice event');
-        //new user event
-        //$user = $this->user;
 
-        //event(new NewUserEvent($user, session('auth_pass')));
+        //4 client birthday message
+            // $currentDay = now()->format('m-d');
+            // $clientBirthay = ClientDetails::join('users', 'client_details.user_id', '=', 'users.id')
+            // ->where('client_details.company_id', $this->company->id)
+            // ->where('users.status', 'active')
+            // ->whereRaw('DATE_FORMAT(`date_of_birth`, "%m-%d") = "' . $currentDay . '"')
+            // ->orderBy('client_details.date_of_birth')
+            // ->select('client_details.company_id', 'client_details.date_of_birth', 'users.name', 'users.image', 'users.id')
+            // ->get()->toArray();
+            // event(new ClientBirthdayReminderEvent($this->company, $clientBirthay));
+            // dd('after birthday event');
 
-        dd('after eventd');
-        // $user = User::find(3);
-        // $invoice = Invoice::find(5);
-        // //dd('hi',$user,$invoice);
-        // Notification::send($user, new NewInvoiceWhatsApp($invoice));
-        // dd('after event');
+        //5 delivery challan message
 
-        // $currentDay = now()->format('m-d');
-        // $clientBirthay = ClientDetails::join('users', 'client_details.user_id', '=', 'users.id')
-        // ->where('client_details.company_id', $this->company->id)
-        // ->where('users.status', 'active')
-        // ->whereRaw('DATE_FORMAT(`date_of_birth`, "%m-%d") = "' . $currentDay . '"')
-        // ->orderBy('client_details.date_of_birth')
-        // ->select('client_details.company_id', 'client_details.date_of_birth', 'users.name', 'users.image', 'users.id')
-        // ->get()->toArray();
-        // event(new ClientBirthdayReminderEvent($this->company, $clientBirthay));
-        // dd('after event');
+            $clientId = 3;
+            $order = Order::with('invoice')->find(1);
+
+                // Notify client
+            $notifyUser = User::withoutGlobalScope(ActiveScope::class)->findOrFail($clientId);
+
+
+            event(new OrderCompletedEvent($order, $notifyUser));
+
+            dd('after challan event');
+
 
         // $event = EmployeeDetails::join('users', 'employee_details.user_id', '=', 'users.id')
         //         ->where('employee_details.company_id', $this->company->id)
