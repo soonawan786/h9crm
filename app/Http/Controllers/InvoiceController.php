@@ -1362,4 +1362,14 @@ class InvoiceController extends AccountBaseController
         return $dataTable->render('invoices.index', $this->data);
     }
 
+    public function updateClient(Request $request){
+        $user = User::withoutGlobalScope(ActiveScope::class)->findOrFail($request->id);
+        $fields =[ 'date_of_birth'=>date("Y-m-d", strtotime($request->client_dob))];
+        $user->clientDetails->fill($fields);
+        $user->clientDetails->save();
+        $user->mobile = $request->client_mobile;
+        $user->save();
+        return Reply::success(__('messages.updateSuccess'));
+    }
+
 }

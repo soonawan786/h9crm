@@ -174,7 +174,7 @@ $addProductPermission = user()->permission('add_product');
             <!-- PROJECT END -->
             <div class="row px-lg-4 px-md-4 px-3 py-3">
                 {{-- mobile number --}}
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group c-inv-select mb-0">
                         <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
                             for="usr">@lang('modules.invoices.client_mobile')</label>
@@ -193,7 +193,7 @@ $addProductPermission = user()->permission('add_product');
                     </div>
                 </div>
                 {{-- client date of birth --}}
-                <div class="col-md-4">
+                <div class="col-md-3">
                     <div class="form-group c-inv-select mb-0">
                         <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
                             for="usr">@lang('modules.invoices.client_dob')</label>
@@ -209,6 +209,13 @@ $addProductPermission = user()->permission('add_product');
                                 <span class="text-lightest">@lang('messages.selectCustomerForDob')</span>
                             @endif
                         </p>
+                        <input style="display:none;"  type="text" class="px-6 position-relative text-dark font-weight-normal form-control height-35 rounded p-0 text-left f-15" name="client_dob" value="" id="save_client_dob">
+                    </div>
+                </div>
+                {{-- update button --}}
+                <div class="col-md-2" id="show_update" style="display:none;">
+                    <div class="form-group" style="margin-top:2rem;">
+                        <button class="btn btn-success" id="update_client">Update</button>
                     </div>
                 </div>
                 {{-- invoice previous history --}}
@@ -218,7 +225,7 @@ $addProductPermission = user()->permission('add_product');
                             for="usr">@lang('modules.invoices.client_invoice_history')</label>
                         <p class="f-15" id="client_history">
                             @if (isset($invoice) && $invoice->client)
-                            <a class="btn btn-success" href="#">Previous Invoice History</a>
+                            <a class="btn btn-info" href="#">Previous Invoice History</a>
                         @else
                             <span class="text-lightest">@lang('messages.selectCustomerForInvoiceHistory')</span>
                         @endif
@@ -845,6 +852,10 @@ $addProductPermission = user()->permission('add_product');
             position: 'bl',
             ...datepickerConfig
         });
+        const dp3 = datepicker('#save_client_dob', {
+            position: 'bl',
+            ...datepickerConfig
+        });
 
         $('#client_list_id').change(function() {
             var id = $(this).val();
@@ -905,11 +916,22 @@ $addProductPermission = user()->permission('add_product');
                                     .client_details
                                     .shipping_address));
                             }
+                            $('#client_mobile').html('<input type="text" class="px-6 position-relative text-dark font-weight-normal form-control height-35 rounded p-0 text-left f-15" name="client_mobile" value="'+response.data.mobile+'" id="save_client_mobile">');
 
-                            $('#client_mobile').html(response.data.mobile);
-                            $('#client_dob').html(response.data.client_details.date_of_birth);
+                            $('#save_client_dob').show();
+
+                            $('#client_dob').html($('#save_client_dob').val(response.data.client_details.date_of_birth));
+                            $('#show_update').show();
+
+
+                            //$('#save_client_dob').val(response.data.client_details.date_of_birth);
+
+                            // $('#client_mobile').html(response.data.mobile);
+
+                            // $('#client_dob').html(response.data.client_details.date_of_birth);
+
                             var history_url = "{{ url('account/client-invoice-history') }}"+'/'+response.data.id;
-                            $('#client_history').html('<a class="btn btn-success" target="_blank" href="'+history_url+'">Previous Invoice History</a>');
+                            $('#client_history').html('<a class="btn btn-info" target="_blank" href="'+history_url+'">Previous Invoice History</a>');
 
 
                         } else {
@@ -926,7 +948,6 @@ $addProductPermission = user()->permission('add_product');
             });
 
         }
-
         $('body').on('click', '#show-shipping-field', function() {
             $('#add-shipping-field').removeClass('d-none');
             $('#client_shipping_address').addClass('d-none');
@@ -1212,5 +1233,30 @@ $addProductPermission = user()->permission('add_product');
             }
         });
 
+    });
+
+
+    //update client phone and dob
+    $(document).on('click','#update_client',function(){
+        var id = $('#client_list_id').find(":selected").val();
+
+        var client_mobile = $('#save_client_mobile').val();
+
+        var client_dob = $('#save_client_dob').val();
+
+        var token = "{{ csrf_token() }}";
+
+        $.easyAjax({
+            url: "{{ route('update.client') }}",
+            type: "GET",
+            container: '#saveInvoiceForm',
+            blockUI: true,
+            data: {'client_mobile':client_mobile,'client_dob':client_dob,'id':id,'token': token},
+            success: function(response) {
+                if (response.status === 'success') {
+                    //alert('hello');
+                }
+            }
+        })
     });
 </script>

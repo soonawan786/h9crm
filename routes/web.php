@@ -148,6 +148,8 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
 
     Route::post('client-contacts/apply-quick-action', [ClientContactController::class, 'applyQuickAction'])->name('client-contacts.apply_quick_action');
     Route::resource('client-contacts', ClientContactController::class);
+    //ajax call to update client phone and dob
+    Route::get('update-client', [InvoiceController::class, 'updateClient'])->name('update.client');
 
     Route::get('client-notes/ask-for-password/{id}', [ClientNoteController::class, 'askForPassword'])->name('client_notes.ask_for_password');
     Route::post('client-notes/check-password', [ClientNoteController::class, 'checkPassword'])->name('client_notes.check_password');
