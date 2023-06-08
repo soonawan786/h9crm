@@ -286,7 +286,7 @@ $addProductPermission = user()->permission('add_product');
                 </div>
             </div>
 
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <div class="form-group c-inv-select mb-4">
                     <x-forms.label fieldId="calculate_tax" :fieldLabel="__('modules.invoices.calculateTax')">
                     </x-forms.label>
@@ -303,21 +303,36 @@ $addProductPermission = user()->permission('add_product');
             </div>
 
             @if($linkInvoicePermission == 'all')
-                <div class="col-md-4">
-                    <x-forms.select fieldId="bank_account_id" :fieldLabel="__('app.menu.bankaccount')" fieldName="bank_account_id"
-                        search="true">
-                        <option value="">--</option>
-                        @if($viewBankAccountPermission != 'none')
-                            @foreach ($bankDetails as $bankDetail)
-                                <option value="{{ $bankDetail->id }}">@if($bankDetail->type == 'bank')
-                                    {{ $bankDetail->bank_name }} | @endif
-                                    {{ mb_ucwords($bankDetail->account_name) }}
-                                </option>
-                            @endforeach
-                        @endif
-                    </x-forms.select>
+                <div class="col-md-3">
+                    <div class="form-group c-inv-select mb-4" style="margin-top: -1rem;">
+                        <x-forms.select fieldId="bank_account_id" :fieldLabel="__('app.menu.bankaccount')" fieldName="bank_account_id"
+                            search="true">
+                            <option value="">--</option>
+                            @if($viewBankAccountPermission != 'none')
+                                @foreach ($bankDetails as $bankDetail)
+                                    <option value="{{ $bankDetail->id }}">@if($bankDetail->type == 'bank')
+                                        {{ $bankDetail->bank_name }} | @endif
+                                        {{ mb_ucwords($bankDetail->account_name) }}
+                                    </option>
+                                @endforeach
+                            @endif
+                        </x-forms.select>
+                    </div>
                 </div>
             @endif
+            <div class="col-md-3">
+                <div class="form-group c-inv-select mb-4">
+                    <label class="f-14 text-dark-grey mb-12 text-capitalize w-100" for="usr">@lang('modules.invoices.client_referal_mobile') </label>
+                    <input type="text" class="form-control height-35 f-15" name="client_referal_mobile" placeholder="@lang('modules.invoices.client_referal_mobile')" value="{{ $item->item_name }}">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group c-inv-select mb-4">
+                    <label class="f-14 text-dark-grey mb-12 text-capitalize w-100" for="usr">@lang('modules.invoices.client_referal_name') </label>
+                    <input type="text" class="form-control height-35 f-15" name="client_referal_name" placeholder="@lang('modules.invoices.client_referal_name')" value="{{ $item->item_name }}">
+                </div>
+            </div>
+
         </div>
 
         <!-- CLIENT, PROJECT, GST, BILLING, SHIPPING ADDRESS END -->
