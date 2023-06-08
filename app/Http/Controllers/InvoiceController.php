@@ -37,11 +37,13 @@ use App\Models\ProductCategory;
 use App\Models\Tax;
 use App\Models\UnitType;
 use App\Models\User;
+use App\Notifications\ReferralInvoiceWhatsApp;
 use App\Scopes\ActiveScope;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Stripe\Stripe;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Notification;
 
 class InvoiceController extends AccountBaseController
 {
@@ -180,6 +182,7 @@ class InvoiceController extends AccountBaseController
 
     public function store(StoreInvoice $request)
     {
+
         $redirectUrl = urldecode($request->redirect_url);
 
         if ($redirectUrl == '') {
@@ -244,7 +247,15 @@ class InvoiceController extends AccountBaseController
         $invoice->company_address_id = $request->company_address_id;
         $invoice->estimate_id = $request->estimate_id ? $request->estimate_id : null;
         $invoice->bank_account_id = $request->bank_account_id;
+        //add referal name and number
+        $invoice->referral_mobile = $request->referral_mobile;
+        $invoice->referral_name = $request->referral_name;
         $invoice->save();
+        if($request->referral_mobile!=null && $request->referral_name!=null){
+            $refferalClient = User::find($request->client_id);
+            Notification::send($refferalClient, new ReferralInvoiceWhatsApp($refferalClient,$request->referral_name));
+        }
+
 
         // To add custom fields data
         if ($request->custom_fields_data) {
@@ -724,6 +735,9 @@ class InvoiceController extends AccountBaseController
         $invoice->invoice_number = $request->invoice_number;
         $invoice->company_address_id = $request->company_address_id;
         $invoice->bank_account_id = $request->bank_account_id;
+        //add referal name and number
+        $invoice->referral_mobile = $request->referral_mobile;
+        $invoice->referral_name = $request->referral_name;
         $invoice->save();
 
         // To add custom fields data

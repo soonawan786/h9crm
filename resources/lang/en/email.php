@@ -143,6 +143,18 @@ return array(
         'updateText' => 'Invoice has been updated. Please click on the link below to view invoice.',
         'updateTextSms' => 'Invoice has been updated. Please check the invoice :invoice_number.',
     ),
+    'referral' => array(
+        'start_line'=>'**Grateful for Your Referral - Thank You!**',
+        'line1'=>'We hope this message finds you well. 😊 We are writing to express our heartfelt gratitude for referring ',
+        'line2'=>' to us. Your recommendation holds immense value to us, and we sincerely appreciate your confidence in our services/products. 🙏🌟',
+        'line3'=>'Thanks to your kind referral, we had the opportunity to connect with ',
+        'line4'=>' and discuss how we could best meet their needs. We are thrilled to inform you that they have decided to partner with us, and we are confident that we will deliver exceptional results and exceed their expectations. 💼🤝🌟',
+        'line5'=>'Your gesture of referring ',
+        'line6'=>' speaks volumes about your trust in our abilities, and we are truly humbled by your support. It\'s through the generosity of clients like you that our business continues to grow and flourish. 🙏🌱',
+        'line7'=>'To express our gratitude, we would like to offer you a token of appreciation as a small gesture of thanks. 🎁 Please let us know your preferred method of receiving the gift so that we can arrange it accordingly. 🤝🎉',
+        'line8'=>'Once again, thank you for your invaluable support. We look forward to maintaining a strong and successful partnership with you. If there\'s anything we can do to assist you or anyone else you know in the future, please don\'t hesitate to reach out. 🤝🌟',
+        'line9'=>'Wishing you continued success and millions of happiness! 😊🌟',
+    ),
     'order' => array(
         'subject' => 'New Order Placed',
         'text' => 'A new order has been placed. Please click on the link below to view order.',

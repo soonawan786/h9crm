@@ -323,13 +323,13 @@ $addProductPermission = user()->permission('add_product');
             <div class="col-md-3">
                 <div class="form-group c-inv-select mb-4">
                     <label class="f-14 text-dark-grey mb-12 text-capitalize w-100" for="usr">@lang('modules.invoices.client_referal_mobile') </label>
-                    <input type="text" class="form-control height-35 f-15" name="client_referal_mobile" placeholder="@lang('modules.invoices.client_referal_mobile')" value="{{ $item->item_name }}">
+                    <input type="text" class="form-control height-35 f-15" name="referral_mobile" placeholder="@lang('modules.invoices.client_referal_mobile')" value="{{ $item->item_name }}">
                 </div>
             </div>
             <div class="col-md-3">
                 <div class="form-group c-inv-select mb-4">
                     <label class="f-14 text-dark-grey mb-12 text-capitalize w-100" for="usr">@lang('modules.invoices.client_referal_name') </label>
-                    <input type="text" class="form-control height-35 f-15" name="client_referal_name" placeholder="@lang('modules.invoices.client_referal_name')" value="{{ $item->item_name }}">
+                    <input type="text" class="form-control height-35 f-15" name="referral_name" placeholder="@lang('modules.invoices.client_referal_name')" value="{{ $item->item_name }}">
                 </div>
             </div>
 
