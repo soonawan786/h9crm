@@ -27,7 +27,7 @@ class WhatsAppChannel
     public function getWhatsAppNumber($apiSecret){
 
         $cURL = curl_init();
-        curl_setopt($cURL, CURLOPT_URL, "https://sms.legalbridge.com.pk/api/get/wa.accounts?secret={$apiSecret}");
+        curl_setopt($cURL, CURLOPT_URL, "https://whatsapp.h9crm.com/api/get/wa.accounts?secret={$apiSecret}");
         curl_setopt($cURL, CURLOPT_RETURNTRANSFER, true);
         $response = curl_exec($cURL);
         curl_close($cURL);

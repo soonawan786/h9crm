@@ -28,7 +28,7 @@ Class Client{
             "type" => $this->type,
             "message" => $this->message->content
         ];
-        $cURL = curl_init("https://sms.legalbridge.com.pk/api/send/whatsapp");
+        $cURL = curl_init("https://whatsapp.h9crm.com/api/send/whatsapp");
         curl_setopt($cURL, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($cURL, CURLOPT_POSTFIELDS, $chat);
         $response = curl_exec($cURL);
