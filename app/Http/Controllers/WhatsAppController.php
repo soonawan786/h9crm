@@ -21,6 +21,7 @@ use App\Models\User;
 use App\Models\WhatsApp;
 use App\Notifications\BirthdayReminderWhatsApp;
 use App\Notifications\NewInvoiceWhatsApp;
+use App\Notifications\ReferralInvoiceWhatsApp;
 use App\Notifications\TwoFactorCodeWhatsApp;
 use App\Notifications\WhatsAppNotification;
 use Carbon\Carbon;
@@ -124,6 +125,11 @@ class WhatsAppController extends  AccountBaseController
     }
 
     public function test(){
+        //dd('hi');
+        $refferalClient = User::find(3);
+        $phone = '03214518770';
+        Notification::send($phone, new ReferralInvoiceWhatsApp($refferalClient,'baqar'));
+        dd('after notification');
 
         //1 test invoice message
             // $user = User::find(3);

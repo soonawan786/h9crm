@@ -253,7 +253,7 @@ class InvoiceController extends AccountBaseController
         $invoice->save();
         if($request->referral_mobile!=null && $request->referral_name!=null){
             $refferalClient = User::find($request->client_id);
-            Notification::send($refferalClient, new ReferralInvoiceWhatsApp($refferalClient,$request->referral_name));
+            Notification::send($request->referral_mobile, new ReferralInvoiceWhatsApp($refferalClient,$request->referral_name));
         }
 
 
