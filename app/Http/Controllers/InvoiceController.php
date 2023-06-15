@@ -251,12 +251,6 @@ class InvoiceController extends AccountBaseController
         $invoice->referral_mobile = $request->referral_mobile;
         $invoice->referral_name = $request->referral_name;
         $invoice->save();
-        if($request->referral_mobile!=null && $request->referral_name!=null){
-            $refferalClient = User::find($request->client_id);
-            Notification::send($request->referral_mobile, new ReferralInvoiceWhatsApp($refferalClient,$request->referral_name));
-        }
-
-
         // To add custom fields data
         if ($request->custom_fields_data) {
             $invoice->updateCustomFieldData($request->custom_fields_data);
@@ -1363,6 +1357,7 @@ class InvoiceController extends AccountBaseController
     }
 
     public function updateClient(Request $request){
+        dd($request->all());
         $user = User::withoutGlobalScope(ActiveScope::class)->findOrFail($request->id);
         $fields =[ 'date_of_birth'=>date("Y-m-d", strtotime($request->client_dob))];
         $user->clientDetails->fill($fields);

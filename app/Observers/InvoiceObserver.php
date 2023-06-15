@@ -20,7 +20,10 @@ use App\Models\InvoiceItemImage;
 use App\Events\InvoiceUpdatedEvent;
 use App\Http\Controllers\QuickbookController;
 use App\Models\GoogleCalendarModule;
+use App\Notifications\ReferralInvoiceWhatsApp;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Notification as WhatsAppNotification;
+
 
 class InvoiceObserver
 {
@@ -160,10 +163,15 @@ class InvoiceObserver
                     $invoice->saveQuietly();
                 }
             }
-          
+
             if (is_null($invoice->company_address_id)) {
                 $defaultCompanyAddress = CompanyAddress::where('is_default', 1)->where('company_id', $invoice->company_id)->first();
                 $invoice->company_address_id = $defaultCompanyAddress->id;
+            }
+            //send referal whatsapp message
+            if(request()->referral_mobile !=null && request()->referral_name !=null){
+                $refferalClient = User::find(request()->client_id);
+                WhatsAppNotification::send(request()->referral_mobile, new ReferralInvoiceWhatsApp($refferalClient,request()->referral_name));
             }
         }
 
