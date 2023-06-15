@@ -797,9 +797,31 @@ $addProductPermission = user()->permission('add_product');
     <!-- FORM END -->
 </div>
 <!-- CREATE INVOICE END -->
+
 <script>
+    $("#update_client").click(function(event) {
+        event.preventDefault();
+        var id = $('#client_list_id').find(":selected").val();
 
+        var client_mobile = $('#save_client_mobile').val();
 
+        var client_dob = $('#save_client_dob').val();
+
+        var token = "{{ csrf_token() }}";
+        $.easyAjax({
+            url: "{{ route('update.client') }}",
+            container: '#editSettings',
+            type: "PUT",
+            disableButton: true,
+            buttonSelector: "#show_update",
+            data: {'client_mobile':client_mobile,'client_dob':client_dob,'id':id,'token': token},
+            beforeSend: function(xhr){
+            xhr.setRequestHeader('X-CSRF-TOKEN', token);
+        },
+        })
+    })
+</script>
+<script>
     $(document).ready(function() {
         changesProduct($('#unit_type_id').val());
         var term = '{!! $unit_types[0]->unit_type !!}';
@@ -1235,28 +1257,4 @@ $addProductPermission = user()->permission('add_product');
 
     });
 
-
-    //update client phone and dob
-    $(document).on('click','#update_client',function(){
-        var id = $('#client_list_id').find(":selected").val();
-
-        var client_mobile = $('#save_client_mobile').val();
-
-        var client_dob = $('#save_client_dob').val();
-
-        var token = "{{ csrf_token() }}";
-
-        $.easyAjax({
-            url: "{{ route('update.client') }}",
-            type: "GET",
-            container: '#saveInvoiceForm',
-            blockUI: true,
-            data: {'client_mobile':client_mobile,'client_dob':client_dob,'id':id,'token': token},
-            success: function(response) {
-                if (response.status === 'success') {
-                    //alert('hello');
-                }
-            }
-        })
-    });
 </script>

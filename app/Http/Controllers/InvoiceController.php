@@ -1357,7 +1357,6 @@ class InvoiceController extends AccountBaseController
     }
 
     public function updateClient(Request $request){
-        dd($request->all());
         $user = User::withoutGlobalScope(ActiveScope::class)->findOrFail($request->id);
         $fields =[ 'date_of_birth'=>date("Y-m-d", strtotime($request->client_dob))];
         $user->clientDetails->fill($fields);
