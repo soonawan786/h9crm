@@ -46,7 +46,7 @@ class ReferralInvoiceWhatsApp extends BaseNotification
     {
         $clientName = 'Dear '. $this->referralName.', ';//'Dear '. $this->referralClient->name.', ';
 
-        $content = __('email.referral.start_line').PHP_EOL. PHP_EOL.$clientName. PHP_EOL. PHP_EOL .__('email.referral.line1').$this->referralName.__('email.referral.line2').PHP_EOL.PHP_EOL.PHP_EOL.__('email.referral.line3').$this->referralClient->name.__('email.referral.line4').PHP_EOL.PHP_EOL.__('email.referral.line5').$this->referralClient->name.__('email.referral.line6').PHP_EOL.PHP_EOL.__('email.referral.line7').PHP_EOL.PHP_EOL.__('email.referral.line8').__('email.referral.line9').PHP_EOL.PHP_EOL.PHP_EOL.PHP_EOL.'Warm regards, '.PHP_EOL.PHP_EOL.$this->company->company_name.PHP_EOL.PHP_EOL.$this->company->company_phone;
+        $content = __('email.referral.start_line').PHP_EOL. PHP_EOL.$clientName. PHP_EOL. PHP_EOL .__('email.referral.line1').$this->referralClient->name.__('email.referral.line2').PHP_EOL.PHP_EOL.PHP_EOL.__('email.referral.line3').$this->referralClient->name.__('email.referral.line4').PHP_EOL.PHP_EOL.__('email.referral.line5').$this->referralClient->name.__('email.referral.line6').PHP_EOL.PHP_EOL.__('email.referral.line7').PHP_EOL.PHP_EOL.__('email.referral.line8').__('email.referral.line9').PHP_EOL.PHP_EOL.PHP_EOL.PHP_EOL.'Warm regards, '.PHP_EOL.PHP_EOL.$this->company->company_name.PHP_EOL.PHP_EOL.$this->company->company_phone;
         return (new WhatsAppMessage)
         ->content($content);
 
