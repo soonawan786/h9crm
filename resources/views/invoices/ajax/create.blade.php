@@ -293,7 +293,7 @@ $addProductPermission = user()->permission('add_product');
                 </div>
             </div>
 
-            <div class="col-md-3">
+            <div class="col-md-6">
                 <div class="form-group c-inv-select mb-4">
                     <x-forms.label fieldId="calculate_tax" :fieldLabel="__('modules.invoices.calculateTax')">
                     </x-forms.label>
@@ -310,7 +310,7 @@ $addProductPermission = user()->permission('add_product');
             </div>
 
             @if($linkInvoicePermission == 'all')
-                <div class="col-md-3">
+                <div class="col-md-6">
                     <div class="form-group c-inv-select mb-4" style="margin-top: -1rem;">
                         <x-forms.select fieldId="bank_account_id" :fieldLabel="__('app.menu.bankaccount')" fieldName="bank_account_id"
                             search="true">
@@ -327,18 +327,37 @@ $addProductPermission = user()->permission('add_product');
                     </div>
                 </div>
             @endif
-            <div class="col-md-3">
+            <div class="col-md-4">
+                <div class="form-group c-inv-select mb-4" style="margin-top: -1rem;">
+                    <x-forms.label  fieldId="" :fieldLabel="__('modules.invoices.client_referal_user')">
+                    </x-forms.label>
+                    <div class="select-others height-35 rounded">
+                        <select class="form-control select-picker" name="referral_name" id="referal_user_id" data-live-search="true" data-size="8">
+                            @foreach ($referalUsers as $referalUser)
+                                <option value="{{ $referalUser->id }}">
+                                    {{ mb_ucwords($referalUser->referral_name) }} |
+                                    {{ mb_ucwords($referalUser->referral_mobile) }}
+                                </option>
+                            @endforeach
+
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
                 <div class="form-group c-inv-select mb-4">
                     <label class="f-14 text-dark-grey mb-12 text-capitalize w-100" for="usr">@lang('modules.invoices.client_referal_mobile') </label>
                     <input type="text" class="form-control height-35 f-15" name="referral_mobile" placeholder="@lang('modules.invoices.client_referal_mobile')" value="{{ $item->item_name }}">
                 </div>
             </div>
-            <div class="col-md-3">
+            <div class="col-md-4">
                 <div class="form-group c-inv-select mb-4">
                     <label class="f-14 text-dark-grey mb-12 text-capitalize w-100" for="usr">@lang('modules.invoices.client_referal_name') </label>
                     <input type="text" class="form-control height-35 f-15" name="referral_name" placeholder="@lang('modules.invoices.client_referal_name')" value="{{ $item->item_name }}">
                 </div>
             </div>
+
 
         </div>
 

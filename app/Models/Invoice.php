@@ -308,5 +308,12 @@ class Invoice extends BaseModel
         return $invoiceSettings->invoice_prefix . $invoiceSettings->invoice_number_separator . $zero . $value;
 
     }
+    public function getInvoicesWithNonNullReferrals()
+    {
+        return $this->select('id', 'referral_name', 'referral_mobile')
+                    ->whereNotNull('referral_mobile')
+                    ->whereNotNull('referral_name')
+                    ->get();
+    }
 
 }

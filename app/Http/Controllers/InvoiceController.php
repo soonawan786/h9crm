@@ -175,6 +175,9 @@ class InvoiceController extends AccountBaseController
         }
 
         $this->view = 'invoices.ajax.create';
+        //get refeal user detail
+        $referUsers = $invoice->getInvoicesWithNonNullReferrals();
+        $this->referalUsers = $referUsers;
 
         return view('invoices.create', $this->data);
 

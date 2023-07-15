@@ -542,7 +542,8 @@ return array (
         'client_invoice_history'=>'Client Previous Invoice History',
         'invoice'=>'Invoice',
         'client_referal_mobile'=>'Referal Mobile',
-        'client_referal_name'=>'Client Referal Name'
+        'client_referal_name'=>'Client Referal Name',
+        'client_referal_user'=>'Client Referal Users'
     ),
     'issues' => array (
         'pending' => 'Pending',
