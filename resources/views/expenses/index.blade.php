@@ -379,5 +379,8 @@ $recurringExpensesPermission = user()->permission('manage_recurring_expense');
                 }
             })
         };
+        $('#print-button').click(function() {
+            window.print();
+        });
     </script>
 @endpush

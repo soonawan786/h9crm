@@ -977,6 +977,7 @@ return array (
         'attachBill' => 'Attach Bill',
         'removeBill' => 'Remove Bill',
         'approvedBy' => 'Approved By',
+        'bankName' => 'Bank Name',
     ),
     'expensesRecurring' => array (
         'addExpense' => 'Add Recurring Expense',

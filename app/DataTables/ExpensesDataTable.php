@@ -40,6 +40,11 @@ class ExpensesDataTable extends BaseDataTable
 
         $datatables = datatables()->eloquent($query);
         $datatables->addIndexColumn();
+        $datatables->addColumn('bank_name', function (Expense $expense) {
+            return $expense->bankAccount ? $expense->bankAccount->bank_name : 'Cash';
+        });
+
+
         $datatables->addColumn('check', function ($row) {
             return '<input type="checkbox" class="select-table-row" id="datatable-row-' . $row->id . '"  name="datatable_ids[]" value="' . $row->id . '" onclick="dataTableRowCheck(' . $row->id . ')">';
         });
@@ -182,7 +187,7 @@ class ExpensesDataTable extends BaseDataTable
             return 'row-' . $row->id;
         });
         $datatables->addIndexColumn();
-        $datatables->rawColumns(['action', 'status', 'user_id', 'item_name', 'check']);
+        $datatables->rawColumns(['action', 'status', 'user_id', 'item_name', 'check','bank_name']);
         $datatables->removeColumn('currency_id');
         $datatables->removeColumn('name');
         $datatables->removeColumn('currency_symbol');
@@ -208,8 +213,8 @@ class ExpensesDataTable extends BaseDataTable
     {
         $request = $this->request();
 
-        $model = Expense::with('currency', 'user', 'user.employeeDetail', 'user.employeeDetail.designation', 'user.session')
-            ->select('expenses.id', 'expenses.item_name', 'expenses.user_id', 'expenses.price', 'users.name', 'expenses.purchase_date', 'expenses.currency_id', 'currencies.currency_symbol', 'expenses.status', 'expenses.purchase_from', 'expenses.expenses_recurring_id', 'designations.name as designation_name', 'expenses.added_by')
+        $model = Expense::with('currency','user', 'user.employeeDetail', 'user.employeeDetail.designation', 'user.session','bankAccount')
+            ->select('expenses.id', 'expenses.item_name', 'expenses.user_id', 'expenses.price', 'users.name', 'expenses.purchase_date', 'expenses.currency_id', 'currencies.currency_symbol', 'expenses.status', 'expenses.purchase_from', 'expenses.expenses_recurring_id', 'designations.name as designation_name', 'expenses.added_by','expenses.bank_account_id')
             ->join('users', 'users.id', 'expenses.user_id')
             ->leftJoin('employee_details', 'employee_details.user_id', '=', 'users.id')
             ->leftJoin('designations', 'employee_details.designation_id', '=', 'designations.id')
@@ -314,6 +319,9 @@ class ExpensesDataTable extends BaseDataTable
             __('app.employee') => ['data' => 'employee_name', 'name' => 'user_id', 'visible' => false, 'title' => __('app.employee')],
             __('modules.expenses.purchaseFrom') => ['data' => 'purchase_from', 'name' => 'purchase_from', 'title' => __('modules.expenses.purchaseFrom')],
             __('modules.expenses.purchaseDate') => ['data' => 'purchase_date', 'name' => 'purchase_date', 'title' => __('modules.expenses.purchaseDate')],
+
+            __('modules.expenses.bankName') => ['data' => 'bank_name', 'name' => 'bank_name', 'title' => __('modules.expenses.bankName')],
+
             __('app.status') => ['data' => 'status', 'name' => 'status', 'exportable' => false, 'title' => __('app.status')],
             __('app.expense') . ' ' . __('app.status') => ['data' => 'status_export', 'name' => 'status', 'visible' => false, 'title' => __('app.expense')],
             Column::computed('action', __('app.action'))
