@@ -44,9 +44,15 @@ class NewUserWhatsApp extends BaseNotification
     {
         $clientName = 'Dear '.$notifiable->name.',';
 
-        $content = $clientName. PHP_EOL. PHP_EOL .__('email.newUser.line1').$this->company->company_name .__('email.newUser.line2').PHP_EOL.PHP_EOL.'At '.$this->company->company_name.__('email.newUser.line3').PHP_EOL.PHP_EOL.__('email.newUser.line4').PHP_EOL.PHP_EOL.__('email.newUser.line5').PHP_EOL.PHP_EOL.__('email.newUser.line6').$this->company->company_name.__('email.newUser.line7').PHP_EOL.PHP_EOL.__('email.newUser.line8').PHP_EOL.PHP_EOL.'Best regards, '.PHP_EOL.PHP_EOL.$this->company->company_name.PHP_EOL.PHP_EOL.$this->company->company_phone;
+        $content = __('email.newUser.weclome').PHP_EOL. PHP_EOL.$clientName. PHP_EOL. PHP_EOL .__('email.newUser.line1').PHP_EOL.PHP_EOL.__('email.newUser.line2').PHP_EOL.PHP_EOL.'At **'.$this->company->company_name.'**'.__('email.newUser.line3').PHP_EOL.PHP_EOL.__('email.newUser.line4').PHP_EOL.PHP_EOL.__('email.newUser.line5').PHP_EOL.PHP_EOL.'Best regards, '.PHP_EOL.PHP_EOL.'**'.$this->company->company_name.'**'.PHP_EOL.PHP_EOL.$this->company->company_phone;
         return (new WhatsAppMessage)
         ->content($content);
+
+        // $clientName = 'Dear '.$notifiable->name.',';
+
+        // $content = $clientName. PHP_EOL. PHP_EOL .__('email.newUser.line1').$this->company->company_name .__('email.newUser.line2').PHP_EOL.PHP_EOL.'At '.$this->company->company_name.__('email.newUser.line3').PHP_EOL.PHP_EOL.__('email.newUser.line4').PHP_EOL.PHP_EOL.__('email.newUser.line5').PHP_EOL.PHP_EOL.__('email.newUser.line6').$this->company->company_name.__('email.newUser.line7').PHP_EOL.PHP_EOL.__('email.newUser.line8').PHP_EOL.PHP_EOL.'Best regards, '.PHP_EOL.PHP_EOL.$this->company->company_name.PHP_EOL.PHP_EOL.$this->company->company_phone;
+        // return (new WhatsAppMessage)
+        // ->content($content);
     }
 
     /**

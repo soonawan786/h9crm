@@ -126,10 +126,10 @@ class WhatsAppController extends  AccountBaseController
 
     public function test(){
         //dd('hi');
-        $refferalClient = User::find(3);
-        $phone = '03214518770';
-        Notification::send($phone, new ReferralInvoiceWhatsApp($refferalClient,'baqar'));
-        dd('after notification');
+        //$refferalClient = User::find(3);
+        //$phone = '03214518770';
+        //Notification::send($phone, new ReferralInvoiceWhatsApp($refferalClient,'baqar'));
+        //dd('after notification');
 
         //1 test invoice message
             // $user = User::find(3);
@@ -141,11 +141,12 @@ class WhatsAppController extends  AccountBaseController
 
 
         //2 test greeting message of new user
-            // $user = $this->user;
+            $user = $this->user;
+            //dd($user);
 
-            // event(new NewUserEvent($user, session('auth_pass')));
+            event(new NewUserEvent($user, session('auth_pass')));
 
-            // dd('after greeting new user');
+            dd('after greeting new user');
 
         //3 payment reminder for invoice after
             // $company = Company::with('currency')->where('id',1)->first();
