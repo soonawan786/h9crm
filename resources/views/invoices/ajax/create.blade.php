@@ -1,6 +1,20 @@
 @php
 $addProductPermission = user()->permission('add_product');
 @endphp
+<style>
+    .searchResultItem {
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .searchResultItem:hover {
+            background-color: #f1f1f1;
+        }
+        .noResultsMessage {
+            padding: 5px 10px;
+            color: red;
+        }
+</style>
 
 <!-- CREATE INVOICE START -->
 <div class="bg-white rounded b-shadow-4 create-inv">
@@ -327,7 +341,7 @@ $addProductPermission = user()->permission('add_product');
                     </div>
                 </div>
             @endif
-            <div class="col-md-4">
+            {{-- <div class="col-md-4">
                 <div class="form-group c-inv-select mb-4" style="margin-top: -1rem;">
                     <x-forms.label  fieldId="" :fieldLabel="__('modules.invoices.client_referal_user')">
                     </x-forms.label>
@@ -343,22 +357,20 @@ $addProductPermission = user()->permission('add_product');
                         </select>
                     </div>
                 </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="form-group c-inv-select mb-4">
-                    <label class="f-14 text-dark-grey mb-12 text-capitalize w-100" for="usr">@lang('modules.invoices.client_referal_mobile') </label>
-                    <input type="text" class="form-control height-35 f-15" name="referral_mobile" placeholder="@lang('modules.invoices.client_referal_mobile')" value="{{ $item->item_name }}">
-                </div>
-            </div>
-            <div class="col-md-4">
+            </div> --}}
+            <div class="col-md-6">
                 <div class="form-group c-inv-select mb-4">
                     <label class="f-14 text-dark-grey mb-12 text-capitalize w-100" for="usr">@lang('modules.invoices.client_referal_name') </label>
-                    <input type="text" class="form-control height-35 f-15" name="referral_name" placeholder="@lang('modules.invoices.client_referal_name')" value="{{ $item->item_name }}">
+                    <input type="text" class="form-control height-35 f-15" name="referral_name" id="referral_name" placeholder="@lang('modules.invoices.client_referal_name')" value="{{ $item->item_name }}">
+                    <ul id="searchResults"></ul>
                 </div>
             </div>
-
-
+            <div class="col-md-6">
+                <div class="form-group c-inv-select mb-4">
+                    <label class="f-14 text-dark-grey mb-12 text-capitalize w-100" for="usr">@lang('modules.invoices.client_referal_mobile') </label>
+                    <input type="text" class="form-control height-35 f-15" name="referral_mobile" id="referral_mobile" placeholder="@lang('modules.invoices.client_referal_mobile')" value="{{ $item->item_name }}">
+                </div>
+            </div>
         </div>
 
         <!-- CLIENT, PROJECT, GST, BILLING, SHIPPING ADDRESS END -->
@@ -816,6 +828,76 @@ $addProductPermission = user()->permission('add_product');
     <!-- FORM END -->
 </div>
 <!-- CREATE INVOICE END -->
+
+
+<script>
+    $(document).ready(function() {
+        var searchResults = $('#searchResults');
+        var searchInput = $('#referral_name');
+        var referral_mobile = $('#referral_mobile');
+        var resultsList = [];
+
+        searchInput.on('keyup', function() {
+            var searchTerm = $(this).val();
+
+            if (searchTerm !== '') {
+                $.ajax({
+                    url: "{{ url('account/referral_name') }}",
+                    type: 'GET',
+                    data: {
+                        searchTerm: searchTerm,
+                    },
+                    success: function(response) {
+                        resultsList = response;
+                        $('#referral_mobile').val('');
+                        showResults();
+                    }
+                });
+            } else {
+                resultsList = [];
+                showResults();
+            }
+        });
+
+        //show result function
+        function showResults() {
+            searchResults.empty();
+
+            if (resultsList.length > 0) {
+                $.each(resultsList, function(index, invoice) {
+                    var li = $('<li>')
+                        .addClass('searchResultItem')
+                        .text(invoice.referral_name)
+                        .appendTo(searchResults);
+
+                    li.on('click', function() {
+                        var selectedExpense = resultsList[index];
+                        searchInput.val(selectedExpense.referral_name);
+                        referral_mobile.val(selectedExpense.referral_mobile);
+                        searchResults.hide();
+                    });
+                });
+
+                searchResults.show();
+            } else {
+                // var noResultsMessage = $('<li>')
+                //     .addClass('noResultsMessage')
+                //     .text('No Results Found')
+                //     .appendTo(searchResults);
+
+                // searchResults.show();
+                searchResults.hide();
+            }
+        }
+
+        $(document).on('click', function(e) {
+            if (!searchInput.is(e.target)) {
+                searchResults.hide();
+            }
+        });
+
+    });
+</script>
 
 <script>
     $("#update_client").click(function(event) {

@@ -517,6 +517,8 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
         Route::resource('recurring-invoices', RecurringInvoiceController::class);
     });
     Route::resource('invoices', InvoiceController::class);
+    //referral invoice name
+    Route::get('referral_name',[InvoiceController::class,'getReferralName']);
     Route::get('client-invoice-history/{id}', [InvoiceController::class, 'clientHistory']);
 
     // Estimates

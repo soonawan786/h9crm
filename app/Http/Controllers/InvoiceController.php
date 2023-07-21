@@ -1368,5 +1368,10 @@ class InvoiceController extends AccountBaseController
         $user->save();
         return Reply::success(__('messages.updateSuccess'));
     }
+    public function getReferralName(Request $request){
+        $results = Invoice::where('referral_name', 'LIKE', "%{$request->searchTerm}%")->groupBy('referral_name')->limit(5)->get();
+        return response()->json($results);
+
+    }
 
 }
