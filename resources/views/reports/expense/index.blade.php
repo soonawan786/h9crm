@@ -6,13 +6,13 @@
 @endpush
 
 @section('filter-section')
-
     <x-filters.filter-box>
         <!-- DATE START -->
         <div class="select-box d-flex pr-2 border-right-grey border-right-grey-sm-0">
             <p class="mb-0 pr-2 f-14 text-dark-grey d-flex align-items-center">@lang('app.duration')</p>
             <div class="select-status d-flex">
-                <input type="text" class="position-relative text-dark form-control border-0 p-2 text-left f-14 f-w-500 border-additional-grey"
+                <input type="text"
+                    class="position-relative text-dark form-control border-0 p-2 text-left f-14 f-w-500 border-additional-grey"
                     id="datatableRange2" placeholder="@lang('placeholders.dateRange')">
             </div>
         </div>
@@ -72,7 +72,6 @@
         <!-- RESET END -->
 
     </x-filters.filter-box>
-
 @endsection
 
 @section('content')
@@ -80,8 +79,7 @@
     <div class="content-wrapper">
         <div class="row mb-4">
             <div class="col-lg-4">
-                <x-cards.widget :title="__('modules.dashboard.totalExpenses')" value="0" icon="coins"
-                    widgetId="totalExpense" />
+                <x-cards.widget :title="__('modules.dashboard.totalExpenses')" value="0" icon="coins" widgetId="totalExpense" />
             </div>
         </div>
 
@@ -95,10 +93,12 @@
                     <!-- EXPENSE STATUS END -->
 
                     <div id="table-actions" class="flex-grow-1 align-items-center mt-4">
+                        <button id="custom-print-btn" style="padding: 8px 17px;font-size: 14px;margin-left: 2rem;"
+                            class="btn btn-secondary"><i class="fa fa-print"></i> Print</button>
                     </div>
                 </div>
             </div>
-             <div class="col-lg-6">
+            <div class="col-lg-6">
                 <x-cards.data :title="__($categoryTitle)">
                     <div id="expense-chart-card"></div>
                 </x-cards.data>
@@ -112,7 +112,6 @@
         <!-- Task Box End -->
     </div>
     <!-- CONTENT WRAPPER END -->
-
 @endsection
 
 @push('scripts')
@@ -120,7 +119,6 @@
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <script type="text/javascript">
-
         function setDate() {
             var start = moment().clone().startOf('month');
             var end = moment();
@@ -238,12 +236,12 @@
                         }
                     });
 
-        $('#search-text-field').on('keyup', function() {
-            if ($('#search-text-field').val() != "") {
-                $('#reset-filters').removeClass('d-none');
-                showTable();
-            }
-        });
+            $('#search-text-field').on('keyup', function() {
+                if ($('#search-text-field').val() != "") {
+                    $('#reset-filters').removeClass('d-none');
+                    showTable();
+                }
+            });
 
             $('#reset-filters').click(function() {
                 $('#filter-form')[0].reset();
@@ -264,5 +262,65 @@
 
         });
 
+        // Custom print button click event handler
+        $('#custom-print-btn').on('click', function() {
+            // Initialize an empty array to store the extracted data
+            var dataToPrint = [];
+
+            // Iterate through each row in the table
+            $('#expense-report-table tbody tr').each(function() {
+                // Extract the plain text content from each cell in the row
+                var rowData = $(this).find('td').map(function() {
+                    return $(this).text();
+                }).get();
+
+                // Split the "Employees" cell content to get only the employee name part
+                var employeeCellContent = rowData[2].split('|')[0].trim(); // Assumes | is the separator
+
+                // Format the table row data with the employee name
+                rowData[2] = employeeCellContent;
+
+                // Join the formatted row data with a pipe symbol and add it to the data array
+                dataToPrint.push(rowData.join(' | '));
+            });
+
+            // Join the rows with a line break (to separate rows) and add table head in front of the data
+            var tableHeaderText = $('#expense-report-table thead tr th').map(function() {
+                return $(this).text();
+            }).get().join(' | ');
+
+            var finalTableText = [tableHeaderText].concat(dataToPrint).join('\n');
+
+            // Open a new window and display the table data in plain text format with CSS styling
+            var printWindow = window.open('', '_blank');
+            printWindow.document.write('<html><head><title>Expense Report</title>');
+            printWindow.document.write('<style>');
+            printWindow.document.write('table { border-collapse: collapse; width: 100%; }');
+            printWindow.document.write('th, td { border: 1px solid black; padding: 8px; text-align: left; }');
+            printWindow.document.write('</style>');
+            printWindow.document.write('</head><body>');
+            printWindow.document.write('<table>');
+            printWindow.document.write('<thead><tr>');
+
+            // Add table header
+            var headers = $('#expense-report-table thead tr th').map(function() {
+                return '<th>' + $(this).text() + '</th>';
+            }).get().join('');
+
+            printWindow.document.write(headers);
+            printWindow.document.write('</tr></thead><tbody>');
+
+            // Add table data
+            printWindow.document.write(dataToPrint.map(function(row) {
+                return '<tr><td>' + row.replace(/\|/g, '</td><td>') + '</td></tr>';
+            }).join(''));
+
+            printWindow.document.write('</tbody></table>');
+            printWindow.document.write('</body></html>');
+            printWindow.document.close();
+
+            // Trigger the print functionality for the new window
+            printWindow.print();
+        });
     </script>
 @endpush
