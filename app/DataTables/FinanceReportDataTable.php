@@ -68,6 +68,9 @@ class FinanceReportDataTable extends BaseDataTable
                     }
                 }
             )
+            ->editColumn('bank_name', function ($row) {
+                return $row->invoice->bank_name ?? '--'; // Return bank name or '--' if not available
+            })
             ->addIndexColumn()
             ->smart(false)
             ->setRowId(function ($row) {
@@ -93,7 +96,12 @@ class FinanceReportDataTable extends BaseDataTable
     {
         $request = $this->request();
 
-        $model = Payment::with(['project:id,project_name', 'currency:id,currency_symbol,currency_code', 'invoice'])
+        $model = Payment::with(['project:id,project_name', 'currency:id,currency_symbol,currency_code',
+                'invoice'=>function($query){
+                    $query->leftJoin('bank_accounts', 'invoices.bank_account_id', '=', 'bank_accounts.id')
+                      ->select('invoices.*', 'bank_accounts.bank_name');
+                }
+            ])
             ->leftJoin('invoices', 'invoices.id', '=', 'payments.invoice_id')
             ->leftJoin('projects', 'projects.id', '=', 'payments.project_id')
             ->select('payments.id', 'payments.project_id', 'payments.currency_id', 'payments.invoice_id', 'payments.amount', 'payments.status', 'payments.paid_on', 'payments.remarks', 'payments.bill', 'payments.added_by');
@@ -167,6 +175,7 @@ class FinanceReportDataTable extends BaseDataTable
             __('app.invoice') . '#' => ['data' => 'invoice_number', 'name' => 'invoice.invoice_number', 'title' => __('app.invoice')],
             __('modules.invoices.amount') => ['data' => 'amount', 'name' => 'amount', 'title' => __('modules.invoices.amount')],
             __('modules.payments.paidOn') => ['data' => 'paid_on', 'name' => 'paid_on', 'title' => __('modules.payments.paidOn')],
+            __('modules.expenses.bankName') => ['data' => 'bank_name', 'name' => 'bank_name', 'title' => __('modules.expenses.bankName')],
             __('app.status') => ['data' => 'status', 'name' => 'status', 'title' => __('app.status')]
         ];
     }
