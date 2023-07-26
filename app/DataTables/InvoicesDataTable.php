@@ -198,12 +198,12 @@ class InvoicesDataTable extends BaseDataTable
                 || ($this->deleteInvoicePermission == 'owned' && $row->client_id == user()->id)
                 || ($this->deleteInvoicePermission == 'both' && ($row->client_id == user()->id || $row->added_by == user()->id))
             ) {
-                if ($firstInvoice->id == $row->id) {
+                //if ($firstInvoice->id == $row->id) {
                     $action .= '<a class="dropdown-item delete-table-row" href="javascript:;" data-toggle="tooltip"  data-invoice-id="' . $row->id . '">
                         <i class="fa fa-trash mr-2"></i>
                         ' . trans('app.delete') . '
                     </a>';
-                }
+               // }
             }
 
             if ($this->addInvoicesPermission == 'all' || $this->addInvoicesPermission == 'added') {

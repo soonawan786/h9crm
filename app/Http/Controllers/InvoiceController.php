@@ -385,7 +385,18 @@ class InvoiceController extends AccountBaseController
             || ($this->deletePermission == 'both' && ($invoice->client_id == user()->id) || $invoice->added_by == user()->id)
         ));
 
-        if ($firstInvoice->id == $id) {
+        //canceled
+
+        // if ($firstInvoice->id == $id) {
+        //     if (CreditNotes::where('invoice_id', $id)->exists()) {
+        //         CreditNotes::where('invoice_id', $id)->update(['invoice_id' => null]);
+        //     }
+
+        //     Invoice::destroy($id);
+
+        //     return Reply::success(__('messages.deleteSuccess'));
+        // }
+        if ($invoice->status == 'canceled') {
             if (CreditNotes::where('invoice_id', $id)->exists()) {
                 CreditNotes::where('invoice_id', $id)->update(['invoice_id' => null]);
             }
