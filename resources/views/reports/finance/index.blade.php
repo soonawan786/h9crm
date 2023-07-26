@@ -289,12 +289,39 @@
         //     printWindow.print();
         // });
 
+
+
+
+        // Function to format the amount as currency
+        function formatCurrency(amount) {
+            return 'Rs' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+        }
+
+        // Function to calculate the total amount for the current page
+        function calculateTotalAmount() {
+            var currentPageTotal = 0;
+
+            // Iterate through each row in the current page
+            $('#payments-table tbody tr').each(function() {
+                // Extract the plain text content from the amount cell in the row
+                var rowData = $(this).find('td').eq(2).text();
+                var amount = parseFloat(rowData.replace(/[^\d.-]/g, '')); // Remove non-numeric characters
+
+                // Add the amount to the current page total
+                if (!isNaN(amount)) {
+                    currentPageTotal += amount;
+                }
+            });
+
+            return currentPageTotal;
+        }
+
         $('#custom-print-btn').on('click', function() {
             // Initialize an empty array to store the extracted data
             var dataToPrint = [];
 
-            // Initialize a variable to store the total amount
-            var totalAmount = 0;
+            // Get the current page total amount
+            var totalAmount = calculateTotalAmount();
 
             // Iterate through each row in the table
             $('#payments-table tbody tr').each(function() {
@@ -303,16 +330,6 @@
                     return $(this).text();
                 }).get();
 
-                // Get the amount column index (Assuming it is the 2nd column, change the index if needed)
-                var amountIndex = 2;
-                var amount = parseFloat(rowData[amountIndex].replace(/[^\d.-]/g,
-                '')); // Remove non-numeric characters
-
-                // Add the amount to the total
-                if (!isNaN(amount)) {
-                    totalAmount += amount;
-                }
-
                 // Join the formatted row data with a pipe symbol and add it to the data array
                 dataToPrint.push(rowData.join(' | '));
             });
@@ -320,20 +337,7 @@
             // Format the total amount with currency formatting
             var formattedTotalAmount = 'Total Amount: ' + formatCurrency(totalAmount);
 
-            // Function to format the amount as currency
-            function formatCurrency(amount) {
-                return 'Rs' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-            }
-
-            // Join the rows with a line break (to separate rows) and add table head in front of the data
-            var tableHeaderText = $('#payments-table thead tr th').map(function() {
-                return $(this).text();
-            }).get().join(' | ');
-
-            // Join the rows with a line break
-            var finalTableText = [tableHeaderText].concat(dataToPrint).join('\n');
-
-            // Open a new window and display the table data in plain text format with CSS styling
+            // ... (remaining code to open the print window and display the table)
             var printWindow = window.open('', '_blank');
             printWindow.document.write('<html><head><title>Invoice Report</title>');
             printWindow.document.write('<style>');
@@ -359,7 +363,7 @@
 
             printWindow.document.write('</tbody></table>');
 
-            // Add the total amount to the end of the printed document
+            // Add the current page total amount to the end of the printed document
             printWindow.document.write('<p style="text-align: right;">' + formattedTotalAmount + '</p>');
 
             printWindow.document.write('</body></html>');
