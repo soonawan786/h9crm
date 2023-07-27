@@ -266,6 +266,8 @@
         $('#custom-print-btn').on('click', function() {
             // Initialize an empty array to store the extracted data
             var dataToPrint = [];
+            // Initialize a variable to store the total amount
+            var totalAmount = 0;
 
             // Iterate through each row in the table
             $('#expense-report-table tbody tr').each(function() {
@@ -280,9 +282,27 @@
                 // Format the table row data with the employee name
                 rowData[2] = employeeCellContent;
 
+                // Get the amount column index (Assuming it is the 2nd column, change the index if needed)
+                var amountIndex = 1;
+                var amount = parseFloat(rowData[amountIndex].replace(/[^\d.-]/g,
+                '')); // Remove non-numeric characters
+
+                // Add the amount to the total
+                if (!isNaN(amount)) {
+                    totalAmount += amount;
+                }
+
                 // Join the formatted row data with a pipe symbol and add it to the data array
                 dataToPrint.push(rowData.join(' | '));
             });
+
+            // Format the total amount with currency formatting
+            var formattedTotalAmount = '<b>Total Price: </b>' + formatCurrency(totalAmount);
+
+            // Function to format the amount as currency
+            function formatCurrency(amount) {
+                return 'Rs' + amount.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            }
 
             // Join the rows with a line break (to separate rows) and add table head in front of the data
             var tableHeaderText = $('#expense-report-table thead tr th').map(function() {
@@ -316,6 +336,11 @@
             }).join(''));
 
             printWindow.document.write('</tbody></table>');
+
+            // Add the total amount to the end of the printed document
+            printWindow.document.write('<p style="text-align: right;">' + formattedTotalAmount + '</p>');
+
+
             printWindow.document.write('</body></html>');
             printWindow.document.close();
 
