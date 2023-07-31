@@ -342,4 +342,8 @@ class WhatsAppController extends  AccountBaseController
         //$this->user->notify(new TwoFactorCodeWhatsApp());
         return 'hello';
     }
+
+    public function emailTest(){
+        dd('hi');
+    }
 }

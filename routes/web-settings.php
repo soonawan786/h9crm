@@ -223,6 +223,9 @@ Route::group(['middleware' => 'auth', 'prefix' => 'account/settings'], function 
     Route::post('whatsapp/status-change',[WhatsAppController::class, 'whatsappStatusChange'])->name('whatsapp.status.change');
     //test
     Route::get('test',[WhatsAppController::class, 'test']);
+    //email test
+    Route::get('etest',[WhatsAppController::class, 'emailTest']);
+
 
 });
 
