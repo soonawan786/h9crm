@@ -433,6 +433,7 @@ return array (
     'projectAdminPanel' => 'Project Admin Panel',
     'loginAsProjectAdmin' => 'Login As Project Admin',
     'price' => 'Price',
+    'quantity'=>'Quantity',
     'last' => 'Last',
     'income' => 'Income',
     'expense' => 'Expense',

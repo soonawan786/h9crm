@@ -25,9 +25,16 @@
                                 </x-forms.text>
                             </div>
 
-                            <div class="col-lg-4 col-md-6">
+                            <div class="col-lg-2 col-md-6">
                                 <x-forms.number class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.price')"
                                                 fieldName="price" fieldId="price" fieldRequired="true"
+                                                :fieldPlaceholder="__('placeholders.price')"
+                                                fieldValue="0"/>
+                            </div>
+
+                            <div class="col-lg-2 col-md-6">
+                                <x-forms.number class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.quantity')"
+                                                fieldName="quantity" fieldId="quantity" fieldRequired="true"
                                                 :fieldPlaceholder="__('placeholders.price')"
                                                 fieldValue="0"/>
                             </div>
@@ -80,6 +87,31 @@
                             </div>
 
                             <div class="col-lg-4 col-md-6">
+                                <x-forms.label class="my-3" fieldId=""
+                                               :fieldLabel="__('modules.productBrand.productBrand')">
+                                </x-forms.label>
+                                <x-forms.input-group>
+                                    <select class="form-control select-picker" name="brand_id"
+                                            id="product_brand_id" data-live-search="true">
+                                        <option value="">--</option>
+                                        @foreach ($brands as $brand)
+                                            <option value="{{ $brand->id }}">
+                                                {{ mb_ucwords($brand->brand_name) }}</option>
+                                        @endforeach
+                                    </select>
+
+                                    @if ($addProductCategoryPermission == 'all' || $addProductCategoryPermission == 'added')
+                                        <x-slot name="append">
+                                            <button id="add-brand" type="button"
+                                                    data-toggle="tooltip"
+                                                    data-original-title="{{ __('app.add').' '.__('modules.productBrand.productBrand') }}"
+                                                    class="btn btn-outline-secondary border-grey">@lang('app.add')</button>
+                                        </x-slot>
+                                    @endif
+                                </x-forms.input-group>
+                            </div>
+
+                            <div class="col-lg-4 col-md-6">
                                 <x-forms.label class="my-3" fieldId="" :fieldLabel="__('modules.invoices.tax')">
                                 </x-forms.label>
                                 <x-forms.input-group>
@@ -123,13 +155,19 @@
                                     </select>
                                 </x-forms.input-group>
                             </div>
+                            <div class="col-lg-4 col-md-6">
+                                <x-forms.text fieldId="hsn_sac_code" :fieldLabel="__('app.hsnSac')"
+                                              fieldName="hsn_sac_code"
+                                              :fieldPlaceholder="__('placeholders.hsnSac')">
+                                </x-forms.text>
+                            </div>
 
-                            <div class="col-lg-4 col-md-6 mt-3">
+                            <div class="col-lg-6 col-md-6 mt-3">
                                 <x-forms.checkbox class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.purchaseAllow')"
                                                   fieldName="purchase_allow" fieldId="purchase_allow" fieldValue="no"
                                                   fieldRequired="true"/>
                             </div>
-                            <div class="col-lg-4 col-md-6 mt-3">
+                            <div class="col-lg-6 col-md-6 mt-3">
                                 <x-forms.checkbox class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.downloadable')"
                                                   fieldName="downloadable" fieldId="downloadable" fieldValue="true"
                                                   fieldRequired="true" :popover="__('messages.downloadable')"/>
@@ -350,6 +388,12 @@
             $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
             $.ajaxModal(MODAL_LG, url);
         });
+
+        $('#add-brand').click(function () {
+            const url = "{{ route('productBrand.create') }}";
+            $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
+            $.ajaxModal(MODAL_LG, url);
+        })
 
         $('#add-tax').click(function () {
             const url = "{{ route('taxes.create') }}";

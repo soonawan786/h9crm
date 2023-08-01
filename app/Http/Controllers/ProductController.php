@@ -14,6 +14,7 @@ use App\Models\ProductSubCategory;
 use App\DataTables\ProductsDataTable;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
+use App\Models\ProductBrand;
 use App\Models\UnitType;
 
 class ProductController extends AccountBaseController
@@ -68,6 +69,8 @@ class ProductController extends AccountBaseController
         $this->taxes = Tax::all();
         $this->categories = ProductCategory::all();
         $this->subCategories = ProductSubCategory::all();
+        //brands
+        $this->brands = ProductBrand::all();
 
         $product = new Product();
 

@@ -927,6 +927,7 @@ return array (
     'projectCategory' => array (
         'addProjectCategory' => 'Add Project Category',
         'categoryName' => 'Category Name',
+        'brandName'=>'Brand Name'
     ),
     'paystack' => array (
         'client_name' => 'Name',
@@ -1718,6 +1719,10 @@ return array (
         'category' => 'Category',
         'productCategory' => 'Product Category',
         'productSubCategory' => 'Product Sub Category',
+    ),
+    'productBrand' => array (
+        'brand' => 'Brand',
+        'productBrand' => 'Product Brand',
     ),
     'leads' => array (
         'name' => 'Name',
