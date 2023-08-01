@@ -34,7 +34,7 @@
 
                             <div class="col-lg-2 col-md-6">
                                 <x-forms.number class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.quantity')"
-                                                fieldName="quantity" fieldId="quantity" fieldRequired="true"
+                                                fieldName="quantity" fieldId="quantity" fieldRequired="false"
                                                 :fieldPlaceholder="__('placeholders.price')"
                                                 fieldValue="0"/>
                             </div>

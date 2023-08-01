@@ -22,10 +22,17 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
                                 </x-forms.text>
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-md-2">
                                 <x-forms.number class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.price')"
                                     fieldName="price" fieldId="price" :fieldPlaceholder="__('placeholders.price')"
                                     :fieldValue="$product->price" />
+                            </div>
+
+                            <div class="col-lg-2">
+                                <x-forms.number class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.quantity')"
+                                                fieldName="quantity" fieldId="quantity" fieldRequired="true"
+                                                :fieldPlaceholder="__('placeholders.price')"
+                                                :fieldValue="$product->quantity"/>
                             </div>
 
                             <div class="col-md-4">
@@ -71,6 +78,30 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
                                             <button id="add-sub-category" type="button"
                                                 class="btn btn-outline-secondary border-grey"
                                                 data-toggle="tooltip" data-original-title="{{ __('app.add').' '.__('modules.productCategory.productSubCategory') }}">@lang('app.add')</button>
+                                        </x-slot>
+                                    @endif
+                                </x-forms.input-group>
+                            </div>
+
+                            <div class="col-lg-4 col-md-6">
+                                <x-forms.label class="my-3" fieldId=""
+                                               :fieldLabel="__('modules.productBrand.productBrand')">
+                                </x-forms.label>
+                                <x-forms.input-group>
+                                    <select class="form-control select-picker" name="brand_id"
+                                            id="product_brand_id" data-live-search="true">
+                                        <option value="">--</option>
+                                        @foreach ($brands as $brand)
+                                        <option value="{{ $brand->id }}" @if ($brand->id == $product->brand_id) selected @endif>{{ mb_ucwords($brand->brand_name) }}</option>
+                                        @endforeach
+                                    </select>
+
+                                    @if ($addProductCategoryPermission == 'all' || $addProductCategoryPermission == 'added')
+                                        <x-slot name="append">
+                                            <button id="add-brand" type="button"
+                                                    data-toggle="tooltip"
+                                                    data-original-title="{{ __('app.add').' '.__('modules.productBrand.productBrand') }}"
+                                                    class="btn btn-outline-secondary border-grey">@lang('app.add')</button>
                                         </x-slot>
                                     @endif
                                 </x-forms.input-group>
@@ -385,6 +416,12 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
             $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
             $.ajaxModal(MODAL_LG, url);
         });
+
+        $('#add-brand').click(function () {
+            const url = "{{ route('productBrand.create') }}";
+            $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
+            $.ajaxModal(MODAL_LG, url);
+        })
 
         $('#add-tax').click(function() {
             const url = "{{ route('taxes.create') }}";

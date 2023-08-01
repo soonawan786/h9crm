@@ -113,6 +113,8 @@ class ProductController extends AccountBaseController
         $product->downloadable = $request->downloadable == 'true';
         $product->category_id = ($request->category_id) ?: null;
         $product->sub_category_id = ($request->sub_category_id) ?: null;
+        $product->quantity = ($request->quantity) ?: null;
+        $product->brand_id = ($request->brand_id) ?: null;
 
         if (request()->hasFile('downloadable_file') && request()->downloadable == 'true') {
             Files::deleteFile($product->downloadable_file, ProductFiles::FILE_PATH);
@@ -204,6 +206,8 @@ class ProductController extends AccountBaseController
         $this->unit_types = UnitType::all();
         $this->subCategories = !is_null($this->product->sub_category_id) ? ProductSubCategory::where('category_id', $this->product->category_id)->get() : [];
         $this->pageTitle = __('app.update') . ' ' . __('app.menu.products');
+        //brands
+        $this->brands = ProductBrand::all();
 
 
         $images = [];
@@ -259,6 +263,8 @@ class ProductController extends AccountBaseController
         $product->downloadable = ($request->downloadable == 'true') ? true : false;
         $product->category_id = ($request->category_id) ? $request->category_id : null;
         $product->sub_category_id = ($request->sub_category_id) ? $request->sub_category_id : null;
+        $product->quantity = ($request->quantity) ? $request->quantity : null;
+        $product->brand_id = ($request->brand_id) ? $request->brand_id : null;
 
         if (request()->hasFile('downloadable_file') && request()->downloadable == 'true') {
             Files::deleteFile($product->downloadable_file, ProductFiles::FILE_PATH);
