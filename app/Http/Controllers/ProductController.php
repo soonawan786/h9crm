@@ -15,6 +15,7 @@ use App\DataTables\ProductsDataTable;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
 use App\Models\ProductBrand;
+use App\Models\ProductTags;
 use App\Models\UnitType;
 
 class ProductController extends AccountBaseController
@@ -71,6 +72,8 @@ class ProductController extends AccountBaseController
         $this->subCategories = ProductSubCategory::all();
         //brands
         $this->brands = ProductBrand::all();
+        //tags
+        $this->tags = ProductTags::all();
 
         $product = new Product();
 
@@ -122,7 +125,10 @@ class ProductController extends AccountBaseController
         }
 
         $product->save();
-
+        //store tags
+        if ($request->filled('tags')) {
+            $product->tags()->attach($request->tags);
+        }
         // To add custom fields data
         if ($request->custom_fields_data) {
             $product->updateCustomFieldData($request->custom_fields_data);
@@ -154,7 +160,7 @@ class ProductController extends AccountBaseController
      */
     public function show($id)
     {
-        $this->product = Product::with('category', 'subCategory')->findOrFail($id)->withCustomFields();
+        $this->product = Product::with('category', 'subCategory','brand')->findOrFail($id)->withCustomFields();
         $this->viewPermission = user()->permission('view_product');
         abort_403(!($this->viewPermission == 'all' || ($this->viewPermission == 'added' && $this->product->added_by == user()->id)));
 
@@ -208,6 +214,9 @@ class ProductController extends AccountBaseController
         $this->pageTitle = __('app.update') . ' ' . __('app.menu.products');
         //brands
         $this->brands = ProductBrand::all();
+        //tags
+        $this->tags = ProductTags::all();
+        $this->selectedTags = $this->product->tags->pluck('id')->toArray();
 
 
         $images = [];
@@ -280,6 +289,9 @@ class ProductController extends AccountBaseController
         }
 
         $product->save();
+        if ($request->filled('tags')) {
+            $product->tags()->sync($request->tags);
+        }
 
         // To add custom fields data
         if ($request->custom_fields_data) {

@@ -19,6 +19,7 @@ return array(
     'hours' => 'e.g. 10:00 AM',
     'category' => 'Enter a category name',
     'brand' => 'Enter a brand name',
+    'tag' => 'Enter a tag name',
     'task' => 'Enter a task title',
     'label' => 'Enter a label title',
     'leaveType' => 'E.g. Sick, Casual',

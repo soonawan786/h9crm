@@ -263,6 +263,7 @@ use App\Models\Appreciation;
 use App\Models\CurrencyFormatSetting;
 use App\Models\EstimateTemplate;
 use App\Models\ProductBrand;
+use App\Models\ProductTags;
 use App\Models\UnitType;
 use App\Models\UserActivity;
 use App\Models\UserChat;
@@ -409,6 +410,7 @@ use App\Observers\AppreciationObserver;
 use App\Observers\CurrencyFormatSettingObserver;
 use App\Observers\EstimateTemplateObserver;
 use App\Observers\ProductBrandObserver;
+use App\Observers\ProductTagsObserver;
 use App\Observers\UnitTypeObserver;
 use App\Observers\UserInvitationObserver;
 use App\Observers\UserLeadboardSettingObserver;
@@ -627,6 +629,7 @@ class EventServiceProvider extends ServiceProvider
         ClientSubCategory::class => [ClientSubCategoryObserver::class],
         ProductCategory::class => [ProductCategoryObserver::class],
         ProductBrand::class=>[ProductBrandObserver::class],
+        ProductTags::class=>[ProductTagsObserver::class],
         ProductSubCategory::class => [ProductSubCategoryObserver::class],
         AcceptEstimate::class => [AcceptEstimateObserver::class],
         ContractSign::class => [ContractSignObserver::class],

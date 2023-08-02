@@ -131,14 +131,14 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
                                 </x-forms.input-group>
                             </div>
 
-                            <div class="col-md-4">
+                            <div class="col-lg-3 col-md-4">
                                 <x-forms.text fieldId="hsn_sac_code" :fieldLabel="__('app.hsnSac')"
                                     fieldName="hsn_sac_code" :fieldPlaceholder="__('placeholders.hsnSac')"
                                     :fieldValue="$product->hsn_sac_code">
                                 </x-forms.text>
                             </div>
 
-                            <div class="col-lg-4 col-md-6">
+                            <div class="col-lg-3 col-md-4">
                                 <x-forms.label class="my-3" fieldId="" :fieldLabel="__('modules.unitType.unitType')">
                                 </x-forms.label>
                                 <x-forms.input-group>
@@ -149,6 +149,32 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
                                             </option>
                                         @endforeach
                                     </select>
+                                </x-forms.input-group>
+                            </div>
+
+                            <div class="col-lg-6 col-md-4">
+                                <x-forms.label class="my-3" fieldId=""
+                                               :fieldLabel="__('modules.productTags.productTags')">
+                                </x-forms.label>
+                                <x-forms.input-group>
+                                    <select class="form-control select-picker" multiple name="tags[]"
+                                            id="product_tags_id" data-live-search="true">
+                                        <option value="">--</option>
+                                        @foreach ($tags as $tag)
+                                        <option value="{{ $tag->id }}" @if (in_array($tag->id, $selectedTags)) selected @endif>
+                                            {{ mb_ucwords($tag->tag_name) }}
+                                        </option>
+                                        @endforeach
+                                    </select>
+
+                                    @if ($addProductCategoryPermission == 'all' || $addProductCategoryPermission == 'added')
+                                        <x-slot name="append">
+                                            <button id="add-tags" type="button"
+                                                    data-toggle="tooltip"
+                                                    data-original-title="{{ __('app.add').' '.__('modules.productTags.productTags') }}"
+                                                    class="btn btn-outline-secondary border-grey">@lang('app.add')</button>
+                                        </x-slot>
+                                    @endif
                                 </x-forms.input-group>
                             </div>
 
@@ -419,6 +445,12 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
 
         $('#add-brand').click(function () {
             const url = "{{ route('productBrand.create') }}";
+            $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
+            $.ajaxModal(MODAL_LG, url);
+        })
+
+        $('#add-tags').click(function () {
+            const url = "{{ route('productTags.create') }}";
             $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
             $.ajaxModal(MODAL_LG, url);
         })

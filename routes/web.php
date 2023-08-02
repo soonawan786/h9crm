@@ -112,6 +112,7 @@ use App\Http\Controllers\AppreciationController;
 use App\Http\Controllers\EstimateTemplateController;
 use App\Http\Controllers\LeaveFileController;
 use App\Http\Controllers\ProductBrandController;
+use App\Http\Controllers\ProductTagsController;
 use App\Http\Controllers\QuickbookController;
 use App\Http\Controllers\WooCommerceController;
 
@@ -293,6 +294,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::resource('products', ProductController::class);
     Route::resource('productCategory', ProductCategoryController::class);
     Route::resource('productBrand', ProductBrandController::class);
+    Route::resource('productTags', ProductTagsController::class);
     Route::get('getProductSubCategories/{id}', [ProductSubCategoryController::class, 'getSubCategories'])->name('get_product_sub_categories');
     Route::resource('productSubCategory', ProductSubCategoryController::class);
 

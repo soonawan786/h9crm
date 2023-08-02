@@ -118,6 +118,11 @@ class Product extends BaseModel
         return $this->belongsTo(ProductCategory::class, 'category_id');
     }
 
+    public function brand(): BelongsTo
+    {
+        return $this->belongsTo(ProductBrand::class, 'brand_id');
+    }
+
     public function unit(): BelongsTo
     {
         return $this->belongsTo(UnitType::class, 'unit_id');
@@ -163,5 +168,10 @@ class Product extends BaseModel
 
         return $taxes;
     }
+
+    public function tags(){
+        return $this->belongsToMany(ProductTags::class, 'product_tag', 'product_id', 'tag_id');
+    }
+
 
 }
