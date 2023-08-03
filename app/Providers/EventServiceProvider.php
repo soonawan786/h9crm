@@ -63,6 +63,7 @@ use App\Events\TimeTrackerReminderEvent;
 use App\Events\ClockInEvent;
 use App\Events\HolidayEvent;
 use App\Events\EstimateAcceptedEvent;
+use App\Events\NewEmployeeEvent;
 use App\Events\OrderCompletedEvent;
 use App\Listeners\AppreciationListener;
 use App\Listeners\AttendanceReminderListener;
@@ -126,6 +127,7 @@ use App\Listeners\TimeTrackerReminderListener;
 use App\Listeners\ClockInListener;
 use App\Listeners\HolidayListener;
 use App\Listeners\EstimateAcceptedListener;
+use App\Listeners\NewEmployeeListener;
 use App\Listeners\OrderCompletedListener;
 use App\Models\AcceptEstimate;
 use App\Models\Attendance;
@@ -432,6 +434,7 @@ class EventServiceProvider extends ServiceProvider
         Login::class => [LogSuccessfulLogin::class],
         SubTaskCompletedEvent::class => [SubTaskCompletedListener::class],
         NewUserEvent::class => [NewUserListener::class],
+        NewEmployeeEvent::class=>[NewEmployeeListener::class],
         NewContractEvent::class => [NewContractListener::class],
         NewEstimateEvent::class => [NewEstimateListener::class],
         NewExpenseEvent::class => [NewExpenseListener::class],

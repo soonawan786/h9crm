@@ -43,6 +43,7 @@ use App\Models\ProjectTimeLogBreak;
 use App\DataTables\ProjectsDataTable;
 use App\DataTables\TimeLogsDataTable;
 use App\DataTables\EmployeesDataTable;
+use App\Events\NewEmployeeEvent;
 use App\Http\Requests\User\InviteEmailRequest;
 use App\Http\Requests\Admin\Employee\StoreRequest;
 use App\Http\Requests\Admin\Employee\ImportRequest;
@@ -227,6 +228,7 @@ class EmployeeController extends AccountBaseController
                 $employee->user_id = $user->id;
                 $this->employeeData($request, $employee);
                 $employee->save();
+                event(new NewEmployeeEvent($user));
 
                 // To add custom fields data
                 if ($request->custom_fields_data) {
