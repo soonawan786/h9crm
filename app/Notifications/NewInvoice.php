@@ -67,8 +67,8 @@ class NewInvoice extends BaseNotification
 
                 $url = route('front.invoice', $this->invoice->hash);
                 $url = getDomainSpecificUrl($url, $this->company);
-                $content = __('email.invoice.text');
-
+                //$content = __('email.invoice.text');
+                $content = __('email.invoice.line1').PHP_EOL. PHP_EOL .__('email.invoice.line2').PHP_EOL.PHP_EOL.PHP_EOL.__('email.invoice.symbol_at').$this->company->company_name.__('email.invoice.line3').PHP_EOL.PHP_EOL.__('email.invoice.line4').PHP_EOL.PHP_EOL.__('email.invoice.line5').'. Please click on the link below to view invoice.';
                 $newInvoice = parent::build();
                 $newInvoice->subject(__('email.invoice.subject') . ' - ' . config('app.name') . '.')
                     ->markdown('mail.email', [

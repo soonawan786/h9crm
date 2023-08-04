@@ -20,6 +20,7 @@ use Illuminate\Support\Facades\Notification;
 use App\Models\User;
 use App\Models\WhatsApp;
 use App\Notifications\BirthdayReminderWhatsApp;
+use App\Notifications\NewInvoice;
 use App\Notifications\NewInvoiceWhatsApp;
 use App\Notifications\ReferralInvoiceWhatsApp;
 use App\Notifications\TwoFactorCodeWhatsApp;
@@ -125,7 +126,7 @@ class WhatsAppController extends  AccountBaseController
     }
 
     public function test(){
-        //dd('hi');
+        dd('hi whatsapp');
         //$refferalClient = User::find(3);
         //$phone = '03214518770';
         //Notification::send($phone, new ReferralInvoiceWhatsApp($refferalClient,'baqar'));
@@ -344,6 +345,17 @@ class WhatsAppController extends  AccountBaseController
     }
 
     public function emailTest(){
-        dd('hi');
+        dd('email test');
+        $user = User::find(3);
+        $invoice = Invoice::find(5);
+        $company = Company::with('currency')->where('id',1)->first();
+        $invoice_setting = InvoiceSetting::where('company_id', $company->id)->first();
+        //dd('hi',$user,$invoice,$invoice_setting->send_reminder_after);
+
+
+        // Notification::send($user, new NewInvoice($invoice));
+        //dd('after notification');
+        event(new InvoiceReminderAfterEvent($invoice, $user, $invoice_setting->send_reminder_after));
+        dd('after notification');
     }
 }

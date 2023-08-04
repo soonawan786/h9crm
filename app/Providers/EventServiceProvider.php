@@ -434,7 +434,7 @@ class EventServiceProvider extends ServiceProvider
         Login::class => [LogSuccessfulLogin::class],
         SubTaskCompletedEvent::class => [SubTaskCompletedListener::class],
         NewUserEvent::class => [NewUserListener::class],
-        NewEmployeeEvent::class=>[NewEmployeeListener::class],
+        NewEmployeeEvent::class=> [NewEmployeeListener::class],//no email function
         NewContractEvent::class => [NewContractListener::class],
         NewEstimateEvent::class => [NewEstimateListener::class],
         NewExpenseEvent::class => [NewExpenseListener::class],
@@ -481,7 +481,7 @@ class EventServiceProvider extends ServiceProvider
         AttendanceReminderEvent::class => [AttendanceReminderListener::class],
         NewOrderEvent::class => [NewOrderListener::class],
         OrderUpdatedEvent::class => [OrderUpdatedListener::class],
-        OrderCompletedEvent::class => [OrderCompletedListener::class],
+        OrderCompletedEvent::class => [OrderCompletedListener::class],//no email function
         NewUserRegistrationViaInviteEvent::class => [NewUserRegistrationViaInviteListener::class],
         AutoFollowUpReminderEvent::class => [AutoFollowUpReminderListener::class],
         ContractSignedEvent::class => [ContractSignedListener::class],
