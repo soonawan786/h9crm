@@ -345,17 +345,20 @@ class WhatsAppController extends  AccountBaseController
     }
 
     public function emailTest(){
-        dd('email test');
-        $user = User::find(3);
-        $invoice = Invoice::find(5);
-        $company = Company::with('currency')->where('id',1)->first();
-        $invoice_setting = InvoiceSetting::where('company_id', $company->id)->first();
+        return 'email test';
+        //$user = User::find(3);
+        //$order = Order::find(4);
+        //event(new OrderCompletedEvent($order, $user));
+        dd('after order notification');
+        //$invoice = Invoice::find(5);
+        //$company = Company::with('currency')->where('id',1)->first();
+        //$invoice_setting = InvoiceSetting::where('company_id', $company->id)->first();
         //dd('hi',$user,$invoice,$invoice_setting->send_reminder_after);
 
 
         // Notification::send($user, new NewInvoice($invoice));
         //dd('after notification');
-        event(new InvoiceReminderAfterEvent($invoice, $user, $invoice_setting->send_reminder_after));
+        //event(new InvoiceReminderAfterEvent($invoice, $user, $invoice_setting->send_reminder_after));
         dd('after notification');
     }
 }
