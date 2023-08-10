@@ -471,6 +471,8 @@ return array (
         'item' => 'Item',
         'qty' => 'Qty/Hrs',
         'unitPrice' => 'Unit Price',
+        'totalQuantity'=>'Total Quantity',
+        'remainingQuantity'=>'Remaining Quantity',
         'amount' => 'Amount',
         'addItem' => 'Add Item',
         'subTotal' => 'Sub Total',

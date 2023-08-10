@@ -10,8 +10,11 @@
                     @if ($invoiceSetting->hsn_sac_code_show)
                         <td width="10%" class="border-0" align="right">@lang('app.hsnSac')</td>
                     @endif
-                    <td width="10%" class="border-0" align="right">{{ isset($items->unit) ? $items->unit->unit_type : 'Qty\hrs' }}</td>
+                    <td width="10%" class="border-0" align="right">
+                        {{ isset($items->unit) ? $items->unit->unit_type : 'Qty\hrs' }}</td>
                     <td width="10%" class="border-0" align="right">@lang('modules.invoices.unitPrice')</td>
+                    <td width="10%" class="border-0" align="right">@lang('modules.invoices.remainingQuantity')</td>
+                    <td width="10%" class="border-0" align="right">@lang('modules.invoices.totalQuantity')</td>
                     <td width="13%" class="border-0" align="right">@lang('modules.invoices.tax')</td>
                     <td width="17%" class="border-0 bblr-mbl" align="right">@lang('modules.invoices.amount')</td>
                 </tr>
@@ -33,15 +36,25 @@
                         </td>
                     @endif
                     <td class="border-bottom-0">
+                        {{-- <input type="hidden" name="product_id[]" value="{{ $items->id }}-{{ $items->quantity }}"> --}}
+                        <input type="hidden" class="product_quantity" name="product_quantities[{{ $items->id }}]" value="{{ $items->quantity - 1 }}">
                         <input type="number" min="1"
                             class="form-control f-14 border-0 w-100 text-right quantity"
                             data-item-id="{{ $items->id }}" value="1" name="quantity[]">
                     </td>
+
                     <td class="border-bottom-0">
                         <input type="number" min="1"
                             class="f-14 border-0 w-100 text-right cost_per_item form-control"
                             data-item-id="{{ $items->id }}" placeholder="{{ $items->price }}"
                             value="{{ $items->price }}" name="cost_per_item[]">
+                    </td>
+
+                    <td class="border-bottom-0 total-quantity" data-initial-total="{{ $items->quantity }}">
+                        {{ $items->quantity -1 }}
+                    </td>
+                    <td class="border-bottom-0">
+                        {{ $items->quantity }}
                     </td>
                     <td class="border-bottom-0">
                         <div class="select-others height-35 rounded border-0">
@@ -96,6 +109,50 @@
             $('#sortable').find('.amount-html[data-item-id="{{ $items->id }}"]').html(amount);
 
             calculateTotal();
+        });
+
+        $(document).ready(function() {
+            $('.quantity').on('change', function() {
+                var $row = $(this).closest('tr');
+                var newQuantity = parseInt($(this).val());
+                var initialTotal = parseInt($row.find('.total-quantity').data('initial-total'));
+
+
+
+                // Calculate the running total based on entered quantities
+                var runningTotal = initialTotal;
+                $(this).each(function() {
+                    runningTotal -= parseInt($(this).val());
+                });
+                // Validate the entered quantity
+                if (newQuantity <= 0) {
+                    alert('Quantity must be greater than zero.');
+                    $(this).val(1);
+                    $row.find('.total-quantity').text(initialTotal-1);
+                    var quantity = $('#sortable').find('.quantity[data-item-id="{{ $items->id }}"]').val();
+                    var perItemCost = $('#sortable').find('.cost_per_item[data-item-id="{{ $items->id }}"]').val();
+                    var amount = (quantity * perItemCost);
+                    $('#sortable').find('.amount[data-item-id="{{ $items->id }}"]').val(amount);
+                    $('#sortable').find('.amount-html[data-item-id="{{ $items->id }}"]').html(amount);
+                    calculateTotal();
+                    return;
+                } else if (newQuantity > initialTotal) {
+                    alert('Quantity cannot be greater than the remaining total.');
+                    $(this).val(1);
+                    $row.find('.total-quantity').text(initialTotal-1);
+                    var quantity = $('#sortable').find('.quantity[data-item-id="{{ $items->id }}"]').val();
+                    var perItemCost = $('#sortable').find('.cost_per_item[data-item-id="{{ $items->id }}"]').val();
+                    var amount = (quantity * perItemCost);
+                    $('#sortable').find('.amount[data-item-id="{{ $items->id }}"]').val(amount);
+                    $('#sortable').find('.amount-html[data-item-id="{{ $items->id }}"]').html(amount);
+                    calculateTotal();
+                    return;
+                }
+                // Update the total quantity display
+
+                $row.find('.total-quantity').text(runningTotal);
+                $row.find('.product_quantity').val(runningTotal);
+            });
         });
     </script>
 

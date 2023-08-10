@@ -76,7 +76,7 @@ class Product extends BaseModel
     protected $table = 'products';
     const FILE_PATH = 'products';
 
-    protected $fillable = ['name', 'price', 'description', 'taxes'];
+    protected $fillable = ['name', 'price', 'description', 'taxes','quantity'];
 
     protected $appends = ['total_amount', 'image_url', 'download_file_url'];
 

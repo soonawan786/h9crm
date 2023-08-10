@@ -254,6 +254,18 @@ class InvoiceController extends AccountBaseController
         $invoice->referral_mobile = $request->referral_mobile;
         $invoice->referral_name = $request->referral_name;
         $invoice->save();
+        //update quantity
+        $productQuantities = $request->input('product_quantities');
+        if($productQuantities!=null){
+            foreach ($productQuantities as $productId => $quantity) {
+                if ($quantity !== null) {
+                    $product = Product::find($productId);
+                    if ($product) {
+                        $product->update(['quantity' => $quantity]);
+                    }
+                }
+            }
+        }
         // To add custom fields data
         if ($request->custom_fields_data) {
             $invoice->updateCustomFieldData($request->custom_fields_data);
