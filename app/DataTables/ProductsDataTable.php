@@ -92,6 +92,9 @@ class ProductsDataTable extends BaseDataTable
 
             return '<a href="' . route('products.show', [$row->id]) . '" class="openRightModal text-darkest-grey" >' . ucfirst($row->name) . '</a>';
         });
+        $datatables->editColumn('quantity', function ($row) {
+            return $row->quantity;
+        });
         $datatables->editColumn('default_image', function ($row) {
             return '<img src="' . $row->image_url . '" class="border rounded height-35" />';
         });
@@ -144,7 +147,7 @@ class ProductsDataTable extends BaseDataTable
     {
         $request = $this->request();
 
-        $model = $model->with('tax', 'category', 'subCategory')->select('id', 'name', 'price', 'taxes', 'allow_purchase', 'added_by', 'default_image', 'category_id', 'sub_category_id', 'description');
+        $model = $model->with('tax', 'category', 'subCategory')->select('id', 'name','quantity', 'price', 'taxes', 'allow_purchase', 'added_by', 'default_image', 'category_id', 'sub_category_id', 'description');
 
         if (!is_null($request->category_id) && $request->category_id != 'all' && $request->category_id > 0) {
             $model->where('category_id', $request->category_id);
@@ -214,6 +217,7 @@ class ProductsDataTable extends BaseDataTable
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id'), 'visible' => showId()],
             __('modules.productImage') => ['data' => 'default_image', 'name' => 'default_image', 'title' => __('modules.productImage'), 'exportable' => false,],
             __('app.menu.products') => ['data' => 'name', 'name' => 'name', 'title' => __('app.menu.products')],
+            __('app.menu.quantity') => ['data' => 'quantity', 'name' => 'quantity', 'title' => __('app.menu.quantity')],
             __('modules.productCategory.productCategory') => ['data' => 'category', 'name' => 'category', 'title' => __('modules.productCategory.productCategory'), 'visible' => false],
             __('modules.productCategory.productSubCategory') => ['data' => 'sub_category', 'name' => 'sub_category', 'title' => __('modules.productCategory.productSubCategory'), 'visible' => false],
             __('app.description') => ['data' => 'description', 'name' => 'description', 'title' => __('app.description'), 'visible' => false],

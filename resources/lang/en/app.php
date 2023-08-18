@@ -122,6 +122,7 @@ return array (
         'customFields' => 'Custom Fields',
         'Events' => 'Events',
         'products' => 'Products',
+        'quantity'=>'Quantity',
         'orders' => 'Orders',
         'woo_commerce'=>'Woo Commerce',
         'internal_orders'=>'Internal Order',
