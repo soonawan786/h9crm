@@ -332,6 +332,16 @@ class InvoicesDataTable extends BaseDataTable
 
             return '<div class="text-right">' . __('app.total') . ': ' . currency_format($row->total, $currencyId) . '<p class="my-0"><span class="text-success mt-1">' . __('app.paid') . ':</span> ' . currency_format($row->amountPaid(), $currencyId) . '</p><span class="text-danger">' . __('app.unpaid') . ':</span> ' . currency_format($row->amountDue(), $currencyId) . '</div>';
         });
+        $datatables->editColumn('quantity', function ($row) {
+            $totalQuantity = 0;
+
+            foreach ($row->items as $item) {
+                $totalQuantity += $item->quantity;
+            }
+
+            return $totalQuantity === 0 ? 'Null' : $totalQuantity;
+        });
+
         $datatables->editColumn(
             'issue_date',
             function ($row) {
@@ -339,7 +349,7 @@ class InvoicesDataTable extends BaseDataTable
             }
         );
         $datatables->orderColumn('short_code', 'invoice_number $1');
-        $datatables->rawColumns(['project_name', 'action', 'status', 'invoice_number', 'total', 'name']);
+        $datatables->rawColumns(['project_name', 'action', 'status', 'invoice_number', 'total', 'name','quantity']);
         $datatables->removeColumn('currency_symbol');
         $datatables->removeColumn('currency_code');
         $datatables->removeColumn('project_id');
@@ -373,7 +383,7 @@ class InvoicesDataTable extends BaseDataTable
                 'currency:id,currency_symbol,currency_code', 'project.client', 'client', 'payment', 'estimate', 'project.clientdetails'
             ]
         )
-            ->with('client', 'client.session', 'client.clientdetails', 'payment', 'clientdetails')
+            ->with('client', 'client.session', 'client.clientdetails', 'payment', 'clientdetails','items')
             ->select([
                 'invoices.id', 'invoices.due_amount', 'invoices.project_id', 'invoices.client_id', 'invoices.invoice_number',
                 'invoices.currency_id', 'invoices.total', 'invoices.status', 'invoices.issue_date', 'invoices.credit_note',
@@ -508,6 +518,7 @@ class InvoicesDataTable extends BaseDataTable
             __('app.customers') => ['data' => 'client_name', 'name' => 'project.client.name', 'visible' => false, 'title' => __('app.customers')],
             __('app.email') => ['data' => 'client_email', 'name' => 'project.client.email', 'visible' => false, 'title' => __('app.email')],
             __('modules.invoices.total') => ['data' => 'total', 'name' => 'total', 'class' => 'text-right', 'title' => __('modules.invoices.total')],
+            __('modules.invoices.totalQuantity') => ['data' => 'quantity', 'name' => 'quantity', 'class' => 'text-center', 'title' => __('modules.invoices.totalQuantity')],
             __('modules.invoices.invoiceDate') => ['data' => 'issue_date', 'name' => 'issue_date', 'title' => __('modules.invoices.invoiceDate')],
             __('app.status') => ['data' => 'status', 'name' => 'status', 'width' => '10%', 'title' => __('app.status')],
             Column::computed('action', __('app.action'))

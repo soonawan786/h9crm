@@ -1214,7 +1214,15 @@ class InvoiceController extends AccountBaseController
 
     public function cancelStatus(Request $request)
     {
-        $invoice = Invoice::findOrFail($request->invoiceID);
+        //$invoice = Invoice::findOrFail($request->invoiceID);
+        $invoice = Invoice::with('items')->where('id',$request->invoiceID)->first();
+        foreach($invoice->items as $item){
+            $product = Product::where('name',$item->item_name)->first();
+            $updateQuantity = $item->quantity + $product->quantity;
+            $product->update(['quantity' => $updateQuantity]);
+            //update item quantity
+            $item->update(['quantity' => 0]);
+        }
         $invoice->status = 'canceled'; // update status as canceled
         $invoice->save();
 
