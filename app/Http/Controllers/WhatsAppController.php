@@ -6,6 +6,7 @@ use App\Events\BirthdayReminderEvent;
 use App\Events\ClientBirthdayReminderEvent;
 use App\Events\InvoiceReminderAfterEvent;
 use App\Events\InvoiceReminderEvent;
+use App\Events\NewEmployeeEvent;
 use App\Events\NewUserEvent;
 use App\Events\OrderCompletedEvent;
 use App\Events\PaymentReminderEvent;
@@ -142,12 +143,12 @@ class WhatsAppController extends  AccountBaseController
 
 
         //2 test greeting message of new user
-            $user = $this->user;
-            //dd($user);
+            // $user = $this->user;
+            // //dd($user);
+            // event(new NewEmployeeEvent($user));
+            // //event(new NewUserEvent($user, session('auth_pass')));
 
-            event(new NewUserEvent($user, session('auth_pass')));
-
-            dd('after greeting new user');
+            // dd('after greeting new user');
 
         //3 payment reminder for invoice after
             // $company = Company::with('currency')->where('id',1)->first();
@@ -193,6 +194,7 @@ class WhatsAppController extends  AccountBaseController
             // ->orderBy('client_details.date_of_birth')
             // ->select('client_details.company_id', 'client_details.date_of_birth', 'users.name', 'users.image', 'users.id')
             // ->get()->toArray();
+            // // dd($clientBirthay);
             // event(new ClientBirthdayReminderEvent($this->company, $clientBirthay));
             // dd('after birthday event');
 

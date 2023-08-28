@@ -50,12 +50,13 @@ class NewInvoiceWhatsApp extends BaseNotification
 
             $url = route('front.invoice', $this->invoice->hash);
             $url = getDomainSpecificUrl($url, $this->company);
-            $invoice_link = 'Click this link to View Invoice '.$url;
+            $invoice_link = 'Please click on the provided link to either view or download your invoice. '.$url;
             //$short_url = UrlShortenerController::shorten($url);
             $clientName = 'Dear '. $notifiable->name.', ';
 
             //$content = __('email.invoice.text');
-            $content = $clientName. PHP_EOL. PHP_EOL .__('email.invoice.line1').PHP_EOL. PHP_EOL .__('email.invoice.line2').PHP_EOL.PHP_EOL.PHP_EOL.__('email.invoice.symbol_at').$this->company->company_name.__('email.invoice.line3').PHP_EOL.PHP_EOL.__('email.invoice.line4').PHP_EOL.PHP_EOL.__('email.invoice.line5').PHP_EOL.PHP_EOL.$invoice_link.PHP_EOL.PHP_EOL.'Best Regards, '.PHP_EOL.PHP_EOL.$this->company->company_name.PHP_EOL.PHP_EOL.$this->company->company_phone;
+            //$content = $clientName. PHP_EOL. PHP_EOL .__('email.invoice.line1').PHP_EOL. PHP_EOL .__('email.invoice.line2').PHP_EOL.PHP_EOL.PHP_EOL.__('email.invoice.symbol_at').$this->company->company_name.__('email.invoice.line3').PHP_EOL.PHP_EOL.__('email.invoice.line4').PHP_EOL.PHP_EOL.__('email.invoice.line5').PHP_EOL.PHP_EOL.$invoice_link.PHP_EOL.PHP_EOL.'Best Regards, '.PHP_EOL.PHP_EOL.$this->company->company_name.PHP_EOL.PHP_EOL.$this->company->company_phone;
+            $content = $clientName. PHP_EOL. PHP_EOL .__('email.invoice.line1').$this->company->company_name.'!'.__('email.invoice.line2').PHP_EOL.PHP_EOL.$invoice_link.PHP_EOL.PHP_EOL.'Kind Regards, '.PHP_EOL.PHP_EOL.$this->company->company_name.PHP_EOL.PHP_EOL.$this->company->company_phone;
             return (new WhatsAppMessage)
             ->content($content);
         }
