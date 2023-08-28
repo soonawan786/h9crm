@@ -13,7 +13,7 @@ Class Client{
 
     public function __construct($account_id,$recipient,$type,$message)
     {
-        $this->secret = auth()->user()->api_secret;
+        $this->secret = (auth()->user()->api_secret != null) ? auth()->user()->api_secret : "9e5ec7c5f8db3aa044f788a15ac60e824bc93699";
         $this->recipient = $recipient;
         $this->type = $type;
         $this->message = $message;
@@ -22,7 +22,7 @@ Class Client{
     }
     public function sendWhatsAppSms(){
         $chat = [
-            $this->secret = (auth()->user()->api_secret != null) ? auth()->user()->api_secret : "9e5ec7c5f8db3aa044f788a15ac60e824bc93699";
+            "secret" => $this->secret, // your API secret from (Tools -> API Keys) page
             "account" => $this->account_id,
             "recipient" => $this->recipient,
             "type" => $this->type,
