@@ -14,7 +14,7 @@ class WhatsAppChannel
         $type = 'text';
         $recipient = $notifiable->routeNotificationFor('WhatsApp');
         //dd($message,$recipient);
-        $apiSecret = auth()->user()->api_secret;
+        $apiSecret = (auth()->user()->api_secret != null) ? auth()->user()->api_secret : "9e5ec7c5f8db3aa044f788a15ac60e824bc93699";
         $account_id = $this->getWhatsAppNumber($apiSecret);
 
         $whatsAppClient = new Client($account_id,$recipient,$type,$message);
