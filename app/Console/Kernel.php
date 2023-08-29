@@ -98,8 +98,8 @@ class Kernel extends ConsoleKernel
         $schedule->command('send-time-tracker')->everyMinute();
 
         // WORKSUITESAAS
-        $schedule->command('free-licence-renew')->daily();
-        $schedule->command('licence-expire')->daily();
+        //$schedule->command('free-licence-renew')->daily();
+        //$schedule->command('licence-expire')->daily();
 
     }
 
