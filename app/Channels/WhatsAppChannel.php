@@ -33,7 +33,7 @@ class WhatsAppChannel
         curl_close($cURL);
 
         $result = json_decode($response, true);
-        dd($result);
+        //dd($result);
         if($result['data']===false){
             return null;
         }

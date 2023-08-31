@@ -288,7 +288,6 @@ class User extends BaseModel
         }
 
         return null;
-
     }
 
     // phpcs:ignore
@@ -474,9 +473,7 @@ class User extends BaseModel
     {
         if (!isRunningInConsoleOrSeeding() && !is_null($overRidePermission)) {
             $viewClientPermission = $overRidePermission;
-
-        }
-        elseif (!isRunningInConsoleOrSeeding() && user()) {
+        } elseif (!isRunningInConsoleOrSeeding() && user()) {
             $viewClientPermission = user()->permission('view_clients');
         }
 
@@ -494,9 +491,7 @@ class User extends BaseModel
         if (!is_null($exceptId)) {
             if (is_array($exceptId)) {
                 $clients->whereNotIn('users.id', $exceptId);
-
-            }
-            else {
+            } else {
                 $clients->where('users.id', '<>', $exceptId);
             }
         }
@@ -539,9 +534,7 @@ class User extends BaseModel
     {
         if (!isRunningInConsoleOrSeeding() && !is_null($overRidePermission)) {
             $viewEmployeePermission = $overRidePermission;
-
-        }
-        elseif (!isRunningInConsoleOrSeeding() && user()) {
+        } elseif (!isRunningInConsoleOrSeeding() && user()) {
             $viewEmployeePermission = user()->permission('view_employees');
         }
 
@@ -553,9 +546,7 @@ class User extends BaseModel
         if (!is_null($exceptId)) {
             if (is_array($exceptId)) {
                 $users->whereNotIn('users.id', $exceptId);
-
-            }
-            else {
+            } else {
                 $users->where('users.id', '<>', $exceptId);
             }
         }
@@ -575,21 +566,14 @@ class User extends BaseModel
                         $q->where('employee_details.user_id', user()->id);
                         $q->orWhere('employee_details.added_by', user()->id);
                     });
-
-
-                }
-                elseif ($viewEmployeePermission == 'owned' && !in_array('client', user_roles())) {
+                } elseif ($viewEmployeePermission == 'owned' && !in_array('client', user_roles())) {
                     $users->where('users.id', user()->id);
-
-                }
-                elseif ($viewEmployeePermission == 'both' && !in_array('client', user_roles())) {
+                } elseif ($viewEmployeePermission == 'both' && !in_array('client', user_roles())) {
                     $users->where(function ($q) {
                         $q->where('employee_details.user_id', user()->id);
                         $q->orWhere('employee_details.added_by', user()->id);
                     });
-
-                }
-                elseif (($viewEmployeePermission == 'none' || $viewEmployeePermission == '') && !in_array('client', user_roles())) {
+                } elseif (($viewEmployeePermission == 'none' || $viewEmployeePermission == '') && !in_array('client', user_roles())) {
                     $users->where('users.id', user()->id);
                 }
             }
@@ -603,12 +587,11 @@ class User extends BaseModel
 
                 $users->whereIn('users.id', $clientEmployees);
             }
-
         }
 
-        if(!isRunningInConsoleOrSeeding() && user() && in_array('client', user_roles())) {
+        if (!isRunningInConsoleOrSeeding() && user() && in_array('client', user_roles())) {
             $clientEmployess = Project::where('client_id', user()->id)->join('project_members', 'project_members.project_id', '=', 'projects.id')
-            ->select('project_members.user_id')->get()->pluck('user_id');
+                ->select('project_members.user_id')->get()->pluck('user_id');
 
             $users->whereIn('users.id', $clientEmployess);
         }
@@ -653,13 +636,11 @@ class User extends BaseModel
             if ($messageSetting->allow_client_admin == 'no') {
                 $termCnd .= "and roles.name != 'client'";
             }
-        }
-        elseif (in_array('employee', user_roles())) {
+        } elseif (in_array('employee', user_roles())) {
             if ($messageSetting->allow_client_employee == 'no') {
                 $termCnd .= "and roles.name != 'client'";
             }
-        }
-        elseif (in_array('client', user_roles())) {
+        } elseif (in_array('client', user_roles())) {
             if ($messageSetting->allow_client_admin == 'no') {
                 $termCnd .= "and roles.name != 'admin'";
             }
@@ -795,8 +776,7 @@ class User extends BaseModel
             // If we've made it this far and $requireAll is TRUE, then ALL of the perms were found.
             // Return the value of $requireAll;
             return $requireAll;
-        }
-        else {
+        } else {
             foreach ($this->cachedRoles() as $role) {
                 // Validate against the Permission table
                 foreach ($role->cachedPermissions() as $perm) {
@@ -854,7 +834,6 @@ class User extends BaseModel
 
             return $permissionType ? $permissionType->name : false;
         });
-
     }
 
     public function permissionTypeId($permission)
@@ -998,7 +977,19 @@ class User extends BaseModel
 
     public function routeNotificationForWhatsApp()
     {
-        return $this->mobile;
-    }
+        $mobileNumber = $this->mobile;
+        // Check if the number starts with '0'
+        if (substr($mobileNumber, 0, 1) === '0') {
+            // Remove the '0' and add the '+92' prefix
+            $formattedNumber = '+92' . substr($mobileNumber, 1);
+        } elseif (substr($mobileNumber, 0, 3) !== '+92') {
+            // If it doesn't start with '+92', then add the '+92' prefix
+            $formattedNumber = '+92' . $mobileNumber;
+        } else {
+            // Number already starts with '+92', no need to modify
+            $formattedNumber = $mobileNumber;
+        }
 
+        return $formattedNumber;
+    }
 }
