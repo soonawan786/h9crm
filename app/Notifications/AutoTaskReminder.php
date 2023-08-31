@@ -59,16 +59,18 @@ class AutoTaskReminder extends BaseNotification
      */
     public function toMail($notifiable)
     {
+
+        $build = parent::build();
         $url = route('tasks.show', $this->task->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $dueDate = (!is_null($this->task->due_date)) ? $this->task->due_date->format($this->company->date_format) : null;
 
-        $content = ucfirst($this->task->heading) . ' #' . $this->task->task_short_code . '<p>
+        $content = $this->task->heading . ' #' . $this->task->task_short_code . '<p>
             <b style="color: green">' . __('email.dueOn') . ': ' . $dueDate . '</b>
         </p>';
 
-        return parent::build()
+        return $build
             ->subject(__('email.reminder.subject') . ' #' . $this->task->task_short_code . ' - ' . config('app.name') . '.')
             ->markdown('mail.task.reminder', [
                 'url' => $url,
@@ -110,7 +112,7 @@ class AutoTaskReminder extends BaseNotification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content('*' . __('email.reminder.subject') . '*' . "\n" . ucfirst($this->task->heading) . "\n" . ' #' . $this->task->task_short_code . "\n" . __('app.dueDate') . ': ' . $dueDate);
+                ->content('*' . __('email.reminder.subject') . '*' . "\n" . $this->task->heading . "\n" . ' #' . $this->task->task_short_code . "\n" . __('app.dueDate') . ': ' . $dueDate);
         }
 
         return (new SlackMessage())
@@ -123,8 +125,8 @@ class AutoTaskReminder extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.reminder.subject'))
-            ->body($this->task->heading . ' #' . $this->task->task_short_code);
+            ->setSubject(__('email.reminder.subject'))
+            ->setBody($this->task->heading . ' #' . $this->task->task_short_code);
     }
 
 }

@@ -151,7 +151,7 @@ return new class extends Migration {
                 $table->string('stripe_price')->nullable();
                 $table->string('gateway_name')->nullable();
                 $table->string('trial_ends_at')->nullable();
-                $table->enum('subscription_status', ['active', 'inactive'])->nullable()->default(Null);
+                $table->enum('subscription_status', ['active', 'inactive'])->nullable()->default(null);
                 $table->dateTime('ends_at')->nullable();
                 $table->dateTime('subscribed_on_date')->nullable();
                 $table->timestamps();
@@ -488,7 +488,7 @@ return new class extends Migration {
                 'company_id' => $modal->company_id,
                 'package_id' => $modal->package_id,
                 'currency_id' => $modal->currency_id,
-                'global_subscription_id' => GlobalSubscription::where('company_id', $modal->company_id)->first()->id??null,
+                'global_subscription_id' => GlobalSubscription::where('company_id', $modal->company_id)->first()->id ?? null,
                 'transaction_id' => $modal->transaction_id,
                 'invoice_id' => $modal->invoice_id,
                 'amount' => $modal->amount,

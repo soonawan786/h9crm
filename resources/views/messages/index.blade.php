@@ -11,6 +11,27 @@
         .message_wrapper .msg-content-right .chat-box .card:hover .message-action {
             visibility: visible;
         }
+        #submitTexts {
+            border-top: 1px solid;
+        }
+        .ql-editor {
+            padding-left: 0px !important;
+        }
+
+        .ql-editor-disabled {
+        border-radius: 6px;
+        background-color: rgba(124, 0, 0, 0.2);
+        transition-duration: 0.5s;
+        }
+        .ql-toolbar{
+            display: none !important;
+        }
+        .ql-editor.ql-blank::before{
+            font-size: 14px !important;
+            font-style: inherit;
+            color: #6c757d;
+            left: 17px !important;
+        }
     </style>
 @endpush
 
@@ -93,35 +114,37 @@
                 <!-- CHAT BOX END -->
 
                 <!-- SEND MESSAGE START -->
-
                 <x-form id="sendMessageForm" class="d-none mb-0">
                     <input type="hidden" name="user_id" id="current_user_id">
-                    <div class="w-100">
-                        <textarea id="submitTexts" name="message"
-                                  class="form-control rounded-0 f-14 p-3 border-left-0 border-right-0 border-bottom-0"
-                                  rows="3"
-                                  placeholder="@lang('placeholders.message')"></textarea>
-
-                        <div class="w-100 justify-content-start attach-send bg-white">
-                            <a class="f-15 f-w-500" href="javascript:;" id="add-file"><i
-                                    class="fa fa-paperclip font-weight-bold mr-1"></i>@lang('modules.projects.uploadFile')
-                            </a>
+                    <div class="row">
+                        <div class="w-100 col-md-12">
+                             <br>
+                             <div id="submitTexts" class="form-control rounded-0 f-14 p-3 border-left-0 border-right-0 border-bottom-0" contentEditable=true data-text="@lang('messages.enterText')"></div>
+                            <textarea name="message" id="message-text" class="d-none"></textarea>
                         </div>
+                       <input type = "hidden" name = "mention_user_id" id = "mentionUserId" class ="mention_user_ids">
+                       <div class="col-md-12">
+                           <div class="w-100 justify-content-start attach-send bg-white">
+                               <a class="f-15 f-w-500" href="javascript:;" id="add-file"><i
+                                       class="fa fa-paperclip font-weight-bold mr-1"></i>@lang('modules.projects.uploadFile')
+                               </a>
+                           </div>
+                       </div>
+                        <div class="col-md-12 d-none file-container">
+                           <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2 ml-3"
+                                                  :fieldLabel="__('app.menu.addFile')" fieldName="file"
+                                                  fieldId="file-upload-dropzone"/>
+                           <input type="hidden" name="message_id" id="messageId">
+                           <input type="hidden" name="type" id="message">
+
+                           {{-- These inputs fields are used for file attchment --}}
+                           <input type="hidden" name="user_list" id="user_list">
+                           <input type="hidden" name="message_list" id="message_list">
+                           <input type="hidden" name="receiver_id" id="receiver_id">
+                        </div>
+
+
                     </div>
-
-                    <div class="col-md-12 d-none file-container">
-                        <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2"
-                                               :fieldLabel="__('app.add') . ' ' .__('app.file')" fieldName="file"
-                                               fieldId="file-upload-dropzone"/>
-                        <input type="hidden" name="message_id" id="messageId">
-                        <input type="hidden" name="type" id="message">
-
-                        {{-- These inputs fields are used for file attchment --}}
-                        <input type="hidden" name="user_list" id="user_list">
-                        <input type="hidden" name="message_list" id="message_list">
-                        <input type="hidden" name="receiver_id" id="receiver_id">
-                    </div>
-
                     <div class="col-md-12 border-top-grey p-0">
                         <div class="w-100 justify-content-start attach-send bg-white">
                             <x-forms.button-primary id="sendMessage" class="mr-1" icon="location-arrow">
@@ -130,8 +153,6 @@
                         </div>
 
                     </div>
-
-
                 </x-form>
                 <!-- SEND MESSAGE END -->
 
@@ -148,6 +169,13 @@
     <script src="{{ asset('vendor/jquery/dropzone.min.js') }}"></script>
 
     <script>
+
+        $(document).ready(function() {
+            getUserMention();
+            var atValues = @json($userData);
+            quillMention(atValues, '#submitTexts');
+
+        });
 
         var totalUnreadMessagesCount = parseInt("{{ $unreadMessagesCount }}");
 
@@ -176,11 +204,11 @@
             },
             paramName: "file",
             maxFilesize: DROPZONE_MAX_FILESIZE,
-            maxFiles: 10,
+            maxFiles: DROPZONE_MAX_FILES,
             autoProcessQueue: false,
             uploadMultiple: true,
             addRemoveLinks: true,
-            parallelUploads: 10,
+            parallelUploads: DROPZONE_MAX_FILES,
             acceptedFiles: DROPZONE_FILE_ALLOW,
             init: function () {
                 taskDropzone = this;
@@ -188,7 +216,6 @@
                     $('#chatBox').html(response.message_list);
                     showContent();
                     $.easyUnblockUI();
-                    employees
                     taskDropzone.removeAllFiles(true);
                 })
             }
@@ -205,9 +232,37 @@
         taskDropzone.on('uploadprogress', function () {
             $.easyBlockUI();
         });
+        taskDropzone.on('removedfile', function () {
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).removeClass("has-error");
+            $(label).removeClass("is-invalid");
+        });
+        taskDropzone.on('error', function (file, message) {
+            taskDropzone.removeFile(file);
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).find(".help-block").remove();
+            var helpBlockContainer = $(grp);
+
+            if (helpBlockContainer.length == 0) {
+                helpBlockContainer = $(grp);
+            }
+
+            helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+            $(grp).addClass("has-error");
+            $(label).addClass("is-invalid");
+
+        });
 
         // Submitting message
         $('body').on('click', '#sendMessage', function (e) {
+        var note = document.getElementById('submitTexts').children[0].innerHTML;
+        document.getElementById('message-text').value = note;
+        var mention_user_id = $('#submitTexts span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
+        $('#mentionUserId').val(mention_user_id.join(','));
             //getting values by input fields
             var url = "{{ route('messages.store') }}";
 
@@ -242,7 +297,7 @@
         });
 
         function showContent() {
-            $('#submitTexts').val('');
+            $('.ql-editor p').html('');
             $('#sendMessageForm').removeClass('d-none');
             scrollChat();
             $('#msgContentRight').addClass('d-block');
@@ -338,6 +393,7 @@
             });
 
         });
+
 
         $('body').on('keypress', '#submitTexts', function (e) {
             var key = e.which;
@@ -462,6 +518,20 @@
             });
         }
 
+        function getUserMention(){
+            $('.user_list_box').each(function(i, obj) {
+                var content = $(obj).find('.message-mention').html();
+                var name = $(obj).find('.message-mention p a').data('name');
+                var replacement = '<div class="card-text f-11 text-lightest d-flex justify-content-between message-mention">@' + name + '</div>';
+                if(content !== undefined && replacement !== undefined && name !== undefined){
+                    $(obj).find('.message-mention').replaceWith(replacement);
+
+                }
+
+            });
+
+        }
+
         @if (isset($client))
         let clientId = '{{ $client->id }}';
         $("a[data-user-id='" + clientId + "']").click();
@@ -473,7 +543,7 @@
                 fetchUserMessages()
 
                 if (message_setting.send_sound_notification == 1) {
-                    newMessageNotificationPlay();                    
+                    newMessageNotificationPlay();
                 }
             });
 

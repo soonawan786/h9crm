@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Company;
 use App\Scopes\ActiveScope;
 use App\Scopes\CompanyScope;
 use Carbon\Carbon;
@@ -15,7 +16,6 @@ use App\Models\Leave;
 use App\Models\Skill;
 use App\Models\Module;
 use App\Models\Ticket;
-use App\Models\Country;
 use App\Models\Passport;
 use App\Models\RoleUser;
 use App\Models\LeaveType;
@@ -43,7 +43,6 @@ use App\Models\ProjectTimeLogBreak;
 use App\DataTables\ProjectsDataTable;
 use App\DataTables\TimeLogsDataTable;
 use App\DataTables\EmployeesDataTable;
-use App\Events\NewEmployeeEvent;
 use App\Http\Requests\User\InviteEmailRequest;
 use App\Http\Requests\Admin\Employee\StoreRequest;
 use App\Http\Requests\Admin\Employee\ImportRequest;
@@ -52,6 +51,8 @@ use App\Http\Requests\User\CreateInviteLinkRequest;
 use App\Http\Requests\Admin\Employee\ImportProcessRequest;
 use App\Models\VisaDetail;
 use App\Models\UserAuth;
+use Symfony\Component\Mailer\Exception\TransportException;
+use App\Models\PackageUpdateNotify;
 
 class EmployeeController extends AccountBaseController
 {
@@ -98,7 +99,7 @@ class EmployeeController extends AccountBaseController
      */
     public function create()
     {
-        $this->pageTitle = __('app.add') . ' ' . __('app.employee');
+        $this->pageTitle = __('app.addEmployee');
 
         $addPermission = user()->permission('add_employees');
         abort_403(!in_array($addPermission, ['all', 'added']));
@@ -110,13 +111,24 @@ class EmployeeController extends AccountBaseController
         $this->skills = Skill::all()->pluck('name')->toArray();
         $this->countries = countries();
         $this->lastEmployeeID = EmployeeDetails::count();
+        $this->checkifExistEmployeeId = EmployeeDetails::select('id')->where('employee_id', ($this->lastEmployeeID + 1))->first();
         $this->employees = User::allEmployees(null, true);
         $this->languages = LanguageSetting::where('status', 'enabled')->get();
-        $this->roles = Role::where('name', '<>', 'client')->get();
+
+        $userRoles = user()->roles->pluck('name')->toArray();
+
+        if(in_array('admin', $userRoles))
+        {
+            $this->roles = Role::where('name', '<>', 'client')->get();
+        }
+        else
+        {
+            $this->roles = Role::whereNotIn('name', ['admin', 'client'])->get();
+        }
 
         $employee = new EmployeeDetails();
 
-        if (!empty($employee->getCustomFieldGroupsWithFields())) {
+        if ($employee->getCustomFieldGroupsWithFields()) {
             $this->fields = $employee->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -179,12 +191,14 @@ class EmployeeController extends AccountBaseController
         DB::beginTransaction();
         try {
 
-            $userAuth = UserAuth::createUserAuthCredentials($request->email,$request->password);
+            $userAuth = UserAuth::createUserAuthCredentials($request->email);
+
             $user = new User();
             $user->name = $request->name;
             $user->email = $request->email;
             $user->mobile = $request->mobile;
             $user->country_id = $request->country;
+            $user->country_phonecode = $request->country_phonecode;
             $user->gender = $request->gender;
             $user->locale = $request->locale;
             $user->user_auth_id = $userAuth->id;
@@ -199,7 +213,7 @@ class EmployeeController extends AccountBaseController
 
             if ($request->hasFile('image')) {
                 Files::deleteFile($user->image, 'avatar');
-                $user->image = Files::upload($request->image, 'avatar', 300);
+                $user->image = Files::uploadLocalOrS3($request->image, 'avatar', 300);
             }
 
             if ($request->has('telegram_user_id')) {
@@ -213,7 +227,7 @@ class EmployeeController extends AccountBaseController
             if (!empty($tags)) {
                 foreach ($tags as $tag) {
                     // check or store skills
-                    $skillData = Skill::firstOrCreate(['name' => strtolower($tag->value)]);
+                    $skillData = Skill::firstOrCreate(['name' => $tag->value]);
 
                     // Store user skills
                     $skill = new EmployeeSkill();
@@ -228,7 +242,6 @@ class EmployeeController extends AccountBaseController
                 $employee->user_id = $user->id;
                 $this->employeeData($request, $employee);
                 $employee->save();
-                event(new NewEmployeeEvent($user));
 
                 // To add custom fields data
                 if ($request->custom_fields_data) {
@@ -244,7 +257,7 @@ class EmployeeController extends AccountBaseController
                 $user->attachRole($otherRole);
             }
 
-            $user->insertUserRolePermission($employeeRole->id);
+            $user->assignUserRolePermission($employeeRole->id);
             $this->logSearchEntry($user->id, $user->name, 'employees.show', 'employee');
 
             // Commit Transaction
@@ -253,7 +266,7 @@ class EmployeeController extends AccountBaseController
             // WORKSUITESAAS
             session()->forget('company');
 
-        } catch (\Swift_TransportException $e) {
+        } catch (TransportException $e) {
             // Rollback Transaction
             DB::rollback();
 
@@ -289,10 +302,14 @@ class EmployeeController extends AccountBaseController
             session()->forget('company');
             return Reply::success(__('messages.deleteSuccess'));
         case 'change-status':
-            $company = company();
-            if ($request->status == 'active' && !is_null($company->employees) && $company->employees->count() >= $company->package->max_employees) {
+            $company = Company::with(['package', 'employees'])->where('id', user()->company_id)->first();
+
+            $updateIds = explode(',', str_replace('on,', '', $request->row_ids));
+
+            if ($request->status == 'active' && !is_null($company->employees) && ($company->employees->count() + count($updateIds)) > $company->package->max_employees) {
                 return Reply::error(__('superadmin.maxEmployeesLimitReached'));
             }
+
             $this->changeStatus($request);
 
             return Reply::success(__('messages.updateSuccess'));
@@ -301,11 +318,42 @@ class EmployeeController extends AccountBaseController
         }
     }
 
+    private function deleteEmployee(User $user)
+    {
+
+        $universalSearches = UniversalSearch::where('searchable_id', $user->id)->where('module_type', 'employee')->get();
+
+        if ($universalSearches) {
+            foreach ($universalSearches as $universalSearch) {
+                UniversalSearch::destroy($universalSearch->id);
+            }
+        }
+
+
+        Notification::whereNull('read_at')
+            ->where(function ($q) use ($user) {
+                $q->where('data', 'like', '{"id":' . $user->id . ',%');
+                $q->orWhere('data', 'like', '%,"name":' . $user->name . ',%');
+                $q->orWhere('data', 'like', '%,"user_one":' . $user->id . ',%');
+                $q->orWhere('data', 'like', '%,"user_id":' . $user->id . ',%');
+            })->delete();
+
+        $deleteSession = new AppSettingController();
+        $deleteSession->deleteSessions([$user->id]);
+        $user->delete();
+
+    }
+
     protected function deleteRecords($request)
     {
         abort_403(user()->permission('delete_employees') != 'all');
 
-        User::withoutGlobalScope(ActiveScope::class)->whereIn('id', explode(',', $request->row_ids))->delete();
+        $users = User::withoutGlobalScope(ActiveScope::class)->whereIn('id', explode(',', $request->row_ids))->get();
+
+        $users->each(function ($user) {
+            $this->deleteEmployee($user);
+        });
+
     }
 
     protected function changeStatus($request)
@@ -313,6 +361,7 @@ class EmployeeController extends AccountBaseController
         abort_403(user()->permission('edit_employees') != 'all');
 
         User::withoutGlobalScope(ActiveScope::class)->whereIn('id', explode(',', $request->row_ids))->update(['status' => $request->status]);
+        clearCompanyValidPackageCache(user()->company_id);
     }
 
     /**
@@ -325,7 +374,9 @@ class EmployeeController extends AccountBaseController
     {
         $this->employee = User::withoutGlobalScope(ActiveScope::class)->with('employeeDetail', 'reportingTeam')->findOrFail($id);
         $this->emailCountInCompanies = User::withoutGlobalScopes([ActiveScope::class, CompanyScope::class])
-            ->where('email', $this->employee->email)->count();
+            ->where('email', $this->employee->email)
+            ->whereNotNull('email')
+            ->count();
 
         $this->editPermission = user()->permission('edit_employees');
 
@@ -360,7 +411,7 @@ class EmployeeController extends AccountBaseController
         if (!is_null($this->employee->employeeDetail)) {
             $this->employeeDetail = $this->employee->employeeDetail->withCustomFields();
 
-            if (!empty($this->employeeDetail->getCustomFieldGroupsWithFields())) {
+            if ($this->employeeDetail->getCustomFieldGroupsWithFields()) {
                 $this->fields = $this->employeeDetail->getCustomFieldGroupsWithFields()->fields;
             }
         }
@@ -391,14 +442,12 @@ class EmployeeController extends AccountBaseController
         $emailCountInCompanies = User::withoutGlobalScopes([ActiveScope::class, CompanyScope::class])
             ->where('email', $user->email)
             ->count();
-        $userAuth = UserAuth::createUserAuthCredentials($request->email,$request->password);
-        if($request->password!=null){
-            $userAuth->update(['password' => bcrypt($request->password)]);
-        }
 
         if ($emailCountInCompanies > 1 && $request->email != $user->email) {
             return Reply::error(__('messages.emailCannotChange'));
         }
+
+        $userAuth = UserAuth::createUserAuthCredentials($request->email, null, $user->email);
 
         if(!$userAuth){
             // Update email in userauth also
@@ -410,15 +459,18 @@ class EmployeeController extends AccountBaseController
 
         $user->mobile = $request->mobile;
         $user->country_id = $request->country;
+        $user->country_phonecode = $request->country_phonecode;
         $user->gender = $request->gender;
         $user->locale = $request->locale;
 
         if (request()->has('status')) {
-            $company = company();
-            if (request()->status == 'active' && !is_null($company->employees) && $company->employees->count() >= $company->package->max_employees) {
+
+            if (request()->status == 'active' && !checkCompanyCanAddMoreEmployees(user()->company_id) && $user->status != 'active') {
                 return Reply::error(__('superadmin.maxEmployeesLimitReached'));
             }
+
             $user->status = $request->status;
+            PackageUpdateNotify::where('company_id', user()->company_id)->where('user_id', $user->id)->delete();
         }
 
         if ($id != user()->id) {
@@ -437,7 +489,7 @@ class EmployeeController extends AccountBaseController
         if ($request->hasFile('image')) {
 
             Files::deleteFile($user->image, 'avatar');
-            $user->image = Files::upload($request->image, 'avatar', 300);
+            $user->image = Files::uploadLocalOrS3($request->image, 'avatar', 300);
         }
 
         if ($request->has('telegram_user_id')) {
@@ -445,6 +497,8 @@ class EmployeeController extends AccountBaseController
         }
 
         $user->save();
+
+        cache()->forget('user_is_active_' . $user->id);
 
         $roleId = request()->role;
 
@@ -476,7 +530,7 @@ class EmployeeController extends AccountBaseController
 
             foreach ($tags as $tag) {
                 // Check or store skills
-                $skillData = Skill::firstOrCreate(['name' => strtolower($tag->value)]);
+                $skillData = Skill::firstOrCreate(['name' => $tag->value]);
 
                 // Store user skills
                 $skill = new EmployeeSkill();
@@ -531,21 +585,12 @@ class EmployeeController extends AccountBaseController
             return Reply::error(__('messages.adminCannotDelete'));
         }
 
-        $universalSearches = UniversalSearch::where('searchable_id', $id)->where('module_type', 'employee')->get();
+        PackageUpdateNotify::where('company_id', $user->company_id)->where('user_id', $user->id)->delete();
 
-        if ($universalSearches) {
-            foreach ($universalSearches as $universalSearch) {
-                UniversalSearch::destroy($universalSearch->id);
-            }
-        }
-
-        User::withoutGlobalScope(ActiveScope::class)->where('id', $id)->delete();
-        Notification::where('data', 'like', '{"user_id":' . $id . ',%')->delete();
-
-        $deleteSession = new AppSettingController();
-        $deleteSession->deleteSessions([$id]);
+        $this->deleteEmployee($user);
 
         // WORKSUITESAAS
+
         session()->forget('company');
 
         return Reply::success(__('messages.deleteSuccess'));
@@ -560,7 +605,9 @@ class EmployeeController extends AccountBaseController
      */
     public function show($id)
     {
-        $this->employee = User::with(['employeeDetail.designation', 'employeeDetail.department','appreciations', 'appreciations.award', 'appreciations.award.awardIcon', 'employeeDetail.reportingTo', 'country', 'emergencyContacts', 'reportingTeam' => function($query) {
+        $this->viewPermission = user()->permission('view_employees');
+
+        $this->employee = User::with(['employeeDetail.designation', 'employeeDetail.department','appreciations', 'appreciations.award', 'appreciations.award.awardIcon', 'employeeDetail.reportingTo', 'country', 'emergencyContacts', 'reportingTeam' => function ($query) {
             $query->join('users', 'users.id', '=', 'employee_details.user_id');
             $query->where('users.status', '=', 'active');
         }, 'reportingTeam.user', 'leaveTypes', 'leaveTypes.leaveType', 'appreciationsGrouped', 'appreciationsGrouped.award', 'appreciationsGrouped.award.awardIcon'])
@@ -570,10 +617,13 @@ class EmployeeController extends AccountBaseController
         ->findOrFail($id);
 
         $this->employeeLanguage = LanguageSetting::where('language_code', $this->employee->locale)->first();
-        $this->viewPermission = user()->permission('view_employees');
 
         if (!$this->employee->hasRole('employee')) {
             abort(404);
+        }
+
+        if ($this->employee->status == 'deactive' && !in_array('admin', user_roles())) {
+            abort(403);
         }
 
         abort_403(in_array('client', user_roles()));
@@ -633,7 +683,7 @@ class EmployeeController extends AccountBaseController
 
         }
 
-        $this->pageTitle = ucfirst($this->employee->name);
+        $this->pageTitle = $this->employee->name;
         $viewDocumentPermission = user()->permission('view_documents');
         $viewImmigrationPermission = user()->permission('view_immigration');
 
@@ -657,16 +707,31 @@ class EmployeeController extends AccountBaseController
             $this->view = 'employees.ajax.emergency-contacts';
             break;
         case 'appreciation':
+            $viewAppreciationPermission = user()->permission('view_appreciation');
+            abort_403(!in_array($viewAppreciationPermission, ['all', 'added', 'owned', 'both']));
+
             $this->appreciations = $this->appreciation($this->employee->id);
             $this->view = 'employees.ajax.appreciations';
             break;
         case 'leaves-quota':
-            $this->leaveTypes = LeaveType::byUser($this->employee);
+            $this->leaveQuota($id);
             $this->leavesTakenByUser = Leave::byUserCount($this->employee);
+            $this->leaveTypes = LeaveType::byUser($this->employee);
             $this->employeeLeavesQuotas = $this->employee->leaveTypes;
             $this->employeeLeavesQuota = clone $this->employeeLeavesQuotas;
-            $allowedLeaves = clone $this->employeeLeavesQuotas;
-            $this->allowedLeaves = $allowedLeaves->sum('no_of_leaves');
+
+            $totalLeaves = 0;
+
+            foreach($this->leaveTypes as $key => $leavesCount)
+            {
+                $leavesCountCheck = $leavesCount->leaveTypeCodition($leavesCount, $this->userRole);
+
+                if($leavesCountCheck && $this->employeeLeavesQuotas[$key]->leave_type_id == $leavesCount->id){
+                    $totalLeaves += $this->employeeLeavesQuotas[$key]->no_of_leaves;
+                }
+            }
+
+            $this->allowedLeaves = $totalLeaves;
             $this->view = 'employees.ajax.leaves_quota';
             break;
         case 'shifts':
@@ -986,6 +1051,20 @@ class EmployeeController extends AccountBaseController
         $batch = $this->importJobProcess($request, EmployeeImport::class, ImportEmployeeJob::class);
 
         return Reply::successWithData(__('messages.importProcessStart'), ['batch' => $batch]);
+    }
+
+    public function leaveQuota($id)
+    {
+        $roles = User::with('roles')->findOrFail($id);
+        $userRole = [];
+
+        $userRoles = $roles->roles->count() > 1 ? $roles->roles->where('name', '!=', 'employee') : $roles->roles;
+
+        foreach($userRoles as $role){
+            $userRole[] = $role->id;
+        }
+
+        $this->userRole = $userRole;
     }
 
 }

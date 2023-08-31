@@ -16,7 +16,7 @@ class EmergencyContactController extends AccountBaseController
      */
     public function create()
     {
-        $this->pageTitle = __('app.add') . ' ' . __('app.contact');
+        $this->pageTitle = __('app.addContact');
 
         $this->userId = request()->user_id ? request()->user_id : null;
 
@@ -81,7 +81,7 @@ class EmergencyContactController extends AccountBaseController
             )
         );
 
-        $this->pageTitle = __('app.edit') . ' ' . __('app.contact');
+        $this->pageTitle = __('app.editContact');
         $this->contact = $emergencyContact;
 
         return view('profile-settings.emergency-contacts.edit', $this->data)->render();

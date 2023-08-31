@@ -23,10 +23,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|TicketTag whereTagId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketTag whereTicketId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketTag whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|TicketTag whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class TicketTag extends BaseModel
 {

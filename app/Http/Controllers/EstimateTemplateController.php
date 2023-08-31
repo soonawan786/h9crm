@@ -8,8 +8,10 @@ use App\Helper\Reply;
 use App\Models\Product;
 use App\Models\Currency;
 use App\Models\Estimate;
+use App\Models\UnitType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use App\Models\ProductCategory;
 use App\Models\EstimateTemplate;
 use Illuminate\Support\Facades\App;
 use App\Models\EstimateTemplateItem;
@@ -17,7 +19,6 @@ use App\Models\EstimateTemplateItemImage;
 use App\DataTables\EstimateTemplateDataTable;
 use App\Http\Controllers\AccountBaseController;
 use App\Http\Requests\EstimateTemplate\StoreRequest;
-use App\Models\UnitType;
 
 class EstimateTemplateController extends AccountBaseController
 {
@@ -36,7 +37,6 @@ class EstimateTemplateController extends AccountBaseController
 
     public function index(EstimateTemplateDataTable $dataTable)
     {
-
         return $dataTable->render('estimates-templates.index', $this->data);
     }
 
@@ -52,10 +52,11 @@ class EstimateTemplateController extends AccountBaseController
         $this->taxes = Tax::all();
 
         $this->currencies = Currency::all();
-        $this->unit_types = UnitType::all();
+        $this->units = UnitType::all();
         $this->invoiceSetting = invoice_setting();
 
         $this->products = Product::all();
+        $this->categories = ProductCategory::all();
 
         if (request()->ajax()) {
             $html = view('estimates-templates.ajax.create', $this->data)->render();
@@ -73,7 +74,7 @@ class EstimateTemplateController extends AccountBaseController
         $quantity = $request->quantity;
         $amount = $request->amount;
 
-        if (trim($items[0]) == '' || trim($items[0]) == '' || trim($cost_per_item[0]) == '') {
+        if (isset($items[0]) && (trim($items[0]) == '' || trim($items[0]) == '' || isset($cost_per_item[0]) && trim($cost_per_item[0]) == '')) {
             return Reply::error(__('messages.addItem'));
         }
 
@@ -106,7 +107,6 @@ class EstimateTemplateController extends AccountBaseController
         $estimate->sub_total = $request->sub_total;
         $estimate->total = $request->total;
         $estimate->currency_id = $request->currency_id;
-        $estimate->unit_id = $request->unit_type_id;
         $estimate->discount = round($request->discount_value, 2);
         $estimate->discount_type = $request->discount_type;
         $estimate->signature_approval = ($request->require_signature) ? 1 : 0;
@@ -206,9 +206,10 @@ class EstimateTemplateController extends AccountBaseController
         $this->pageTitle = __('modules.estimates.updateEstimateTemplate');
         $this->taxes = Tax::all();
         $this->currencies = Currency::all();
-        $this->unit_types = UnitType::all();
+        $this->units = UnitType::all();
         $this->estimate = EstimateTemplate::with('items', 'clients')->findOrFail($id);
         $this->products = Product::all();
+        $this->categories = ProductCategory::all();
         $this->invoiceSetting = invoice_setting();
 
         if (request()->ajax()) {
@@ -235,7 +236,7 @@ class EstimateTemplateController extends AccountBaseController
         $quantity = $request->quantity;
         $amount = $request->amount;
 
-        if (trim($items[0]) == '' || trim($cost_per_item[0]) == '') {
+        if (isset($items[0]) && (trim($items[0]) == '' || trim($items[0]) == '' || isset($cost_per_item[0]) && trim($cost_per_item[0]) == '')) {
             return Reply::error(__('messages.addItem'));
         }
 
@@ -268,7 +269,6 @@ class EstimateTemplateController extends AccountBaseController
         $estimateTemplate->sub_total = $request->sub_total;
         $estimateTemplate->total = $request->total;
         $estimateTemplate->currency_id = $request->currency_id;
-        $estimateTemplate->unit_id = $request->unit_type_id;
         $estimateTemplate->discount = round($request->discount_value, 2);
         $estimateTemplate->discount_type = $request->discount_type;
         $estimateTemplate->signature_approval = ($request->require_signature) ? 1 : 0;
@@ -293,9 +293,13 @@ class EstimateTemplateController extends AccountBaseController
     public function deleteEstimateItemImage(Request $request)
     {
         $item = EstimateTemplateItemImage::where('estimate_template_item_id', $request->invoice_item_id)->first();
-        Files::deleteFile($item->hashname, 'estimate-files/' . $item->id . '/');
-        $item->delete();
-        return Reply::success(__('messages.updateSuccess'));
+
+        if ($item) {
+            Files::deleteFile($item->hashname, 'estimate-files/' . $item->id . '/');
+            $item->delete();
+        }
+
+        return Reply::success(__('messages.deleteSuccess'));
     }
 
     public function domPdfObjectForDownload($id)
@@ -371,6 +375,37 @@ class EstimateTemplateController extends AccountBaseController
             'pdf' => $pdf,
             'fileName' => $filename
         ];
+    }
+
+    public function addItem(Request $request)
+    {
+        $this->items = Product::findOrFail($request->id);
+        $this->invoiceSetting = invoice_setting();
+
+        $exchangeRate = Currency::findOrFail($request->currencyId);
+
+        if (!is_null($exchangeRate) && !is_null($exchangeRate->exchange_rate)) {
+            if ($this->items->total_amount != '') {
+                /** @phpstan-ignore-next-line */
+                $this->items->price = floor($this->items->total_amount * $exchangeRate->exchange_rate);
+            }
+            else {
+
+                $this->items->price = floatval($this->items->price) * floatval($exchangeRate->exchange_rate);
+            }
+        }
+        else {
+            if ($this->items->total_amount != '') {
+                $this->items->price = $this->items->total_amount;
+            }
+        }
+
+        $this->items->price = number_format((float)$this->items->price, 2, '.', '');
+        $this->taxes = Tax::all();
+        $this->units = UnitType::all();
+        $view = view('invoices.ajax.add_item', $this->data)->render();
+
+        return Reply::dataOnly(['status' => 'success', 'view' => $view]);
     }
 
 }

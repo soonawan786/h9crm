@@ -48,9 +48,16 @@ trait PaymentGatewayTrait
     {
         $paymentGateway = $this->getGateway($companyHash);
 
-        $payfast_merchant_id = ($paymentGateway->payfast_merchant_id) ?: env('PF_MERCHANT_ID');
-        $payfast_merchant_key = ($paymentGateway->payfast_merchant_key) ?: env('PF_MERCHANT_KEY');
-        $payfast_passphrase = ($paymentGateway->payfast_passphrase) ?: env('PAYFAST_PASSPHRASE');
+        if ($paymentGateway->payfast_mode == 'sandbox') {
+            $payfast_merchant_id = ($paymentGateway->test_payfast_merchant_id) ?: env('PF_MERCHANT_ID');
+            $payfast_merchant_key = ($paymentGateway->test_payfast_merchant_key) ?: env('PF_MERCHANT_KEY');
+            $payfast_passphrase = ($paymentGateway->test_payfast_passphrase) ?: env('PAYFAST_PASSPHRASE');
+        }
+        else {
+            $payfast_merchant_id = ($paymentGateway->payfast_merchant_id) ?: env('PF_MERCHANT_ID');
+            $payfast_merchant_key = ($paymentGateway->payfast_merchant_key) ?: env('PF_MERCHANT_KEY');
+            $payfast_passphrase = ($paymentGateway->payfast_passphrase) ?: env('PAYFAST_PASSPHRASE');
+        }
 
         $payfast_mode = ($paymentGateway->payfast_mode == 'sandbox');
 

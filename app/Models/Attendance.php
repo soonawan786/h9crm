@@ -45,7 +45,6 @@ use Illuminate\Support\Facades\DB;
  * @method static \Illuminate\Database\Eloquent\Builder|Attendance whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Attendance whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Attendance whereWorkingFrom($value)
- * @mixin \Eloquent
  * @property string|null $latitude
  * @property string|null $longitude
  * @method static \Illuminate\Database\Eloquent\Builder|Attendance whereLatitude($value)
@@ -56,6 +55,7 @@ use Illuminate\Support\Facades\DB;
  * @property \Illuminate\Support\Carbon|null $shift_end_time
  * @property int|null $employee_shift_id
  * @property string $work_from_type
+ * @property \Illuminate\Support\Carbon $attendance
  * @property-read \App\Models\Company|null $company
  * @property-read \App\Models\CompanyAddress|null $location
  * @property-read \App\Models\EmployeeShift|null $shift
@@ -65,13 +65,25 @@ use Illuminate\Support\Facades\DB;
  * @method static \Illuminate\Database\Eloquent\Builder|Attendance whereShiftEndTime($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Attendance whereShiftStartTime($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Attendance whereWorkFromType($value)
+ * @property string $overwrite_attendance
+ * @property string $status
+ * @property string $occassion
+ * @property string $date
+ * @property string $status
+ * @method static \Illuminate\Database\Eloquent\Builder|Attendance whereOverwriteAttendance($value)
+ * @mixin \Eloquent
  */
 class Attendance extends BaseModel
 {
 
     use HasCompany;
 
-    protected $dates = ['clock_in_time', 'clock_out_time', 'shift_end_time', 'shift_start_time'];
+    protected $casts = [
+        'clock_in_time' => 'datetime',
+        'clock_out_time' => 'datetime',
+        'shift_end_time' => 'datetime',
+        'shift_start_time' => 'datetime',
+    ];
     protected $appends = ['clock_in_date'];
     protected $guarded = ['id'];
     protected $with = ['company'];
@@ -230,7 +242,7 @@ class Attendance extends BaseModel
 
     public static function userAttendanceByDate($startDate, $endDate, $userId)
     {
-        return Attendance::with('shift')
+        return Attendance::without('company')
             ->join('users', 'users.id', '=', 'attendances.user_id')
             ->leftJoin('company_addresses', 'company_addresses.id', '=', 'attendances.location_id')
             ->where(DB::raw('DATE(attendances.clock_in_time)'), '>=', $startDate)

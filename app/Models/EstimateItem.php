@@ -36,9 +36,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|EstimateItem whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|EstimateItem whereUnitPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder|EstimateItem whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read \App\Models\EstimateItemImage|null $estimateItemImage
  * @property-read mixed $tax_list
+ * @property int|null $product_id
+ * @property int|null $unit_id
+ * @property-read \App\Models\UnitType|null $unit
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateItem whereProductId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateItem whereUnitId($value)
+ * @mixin \Eloquent
  */
 class EstimateItem extends BaseModel
 {

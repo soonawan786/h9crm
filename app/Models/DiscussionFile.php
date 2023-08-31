@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * App\Models\DiscussionFile
  *
  * @property string|null $external_link
- * @mixin \Eloquent
  * @property int $id
  * @property int $user_id
  * @property int|null $discussion_id
@@ -46,6 +45,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|DiscussionFile whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class DiscussionFile extends BaseModel
 {

@@ -12,10 +12,12 @@ use App\Models\Invoice;
 use App\Models\Product;
 use App\Models\Currency;
 use App\Models\Estimate;
+use App\Models\UnitType;
 use App\Models\EstimateItem;
 use App\Models\InvoiceItems;
 use Illuminate\Http\Request;
 use App\Models\AcceptEstimate;
+use App\Models\ProductCategory;
 use App\Events\NewEstimateEvent;
 use App\Models\EstimateTemplate;
 use App\Models\EstimateItemImage;
@@ -26,7 +28,6 @@ use App\Models\EstimateTemplateItem;
 use Illuminate\Support\Facades\File;
 use App\DataTables\EstimatesDataTable;
 use App\Http\Requests\EstimateAcceptRequest;
-use App\Models\UnitType;
 
 class EstimateController extends AccountBaseController
 {
@@ -79,8 +80,9 @@ class EstimateController extends AccountBaseController
 
         $this->taxes = Tax::all();
         $this->products = Product::all();
+        $this->categories = ProductCategory::all();
         $this->template = EstimateTemplate::all();
-        $this->unit_types = UnitType::all();
+        $this->units = UnitType::all();
 
         $this->estimateTemplate = request('template') ? EstimateTemplate::findOrFail(request('template')) : null;
 
@@ -90,17 +92,22 @@ class EstimateController extends AccountBaseController
 
         $estimate = new Estimate();
 
-        if (!empty($estimate->getCustomFieldGroupsWithFields())) {
+        if ($estimate->getCustomFieldGroupsWithFields()) {
             $this->fields = $estimate->getCustomFieldGroupsWithFields()->fields;
         }
 
         $this->client = isset(request()->default_client) ? User::findOrFail(request()->default_client) : null;
 
+        $isClient = User::isClient(user()->id);
+
+        if ($isClient) {
+            $this->client = User::findOrFail(user()->id);
+        }
+
         if (request()->ajax()) {
             $html = view('estimates.ajax.create', $this->data)->render();
             return Reply::dataOnly(['status' => 'success', 'html' => $html, 'title' => $this->pageTitle]);
         }
-
 
         $this->view = 'estimates.ajax.create';
         return view('estimates.create', $this->data);
@@ -148,7 +155,6 @@ class EstimateController extends AccountBaseController
         $estimate->sub_total = round($request->sub_total, 2);
         $estimate->total = round($request->total, 2);
         $estimate->currency_id = $request->currency_id;
-        $estimate->unit_id = $request->unit_type_id;
         $estimate->note = trim_editor($request->note);
         $estimate->discount = round($request->discount_value, 2);
         $estimate->discount_type = $request->discount_type;
@@ -186,7 +192,7 @@ class EstimateController extends AccountBaseController
             || ($this->viewPermission == 'both' && ($this->invoice->client_id == user()->id || $this->invoice->added_by == user()->id))
         ));
 
-        if (!empty($this->invoice->getCustomFieldGroupsWithFields())) {
+        if ($this->invoice->getCustomFieldGroupsWithFields()) {
             $this->fields = $this->invoice->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -274,15 +280,16 @@ class EstimateController extends AccountBaseController
 
         $this->pageTitle = $this->estimate->estimate_number;
 
-        if (!empty($this->estimate->getCustomFieldGroupsWithFields())) {
+        if ($this->estimate->getCustomFieldGroupsWithFields()) {
             $this->fields = $this->estimate->getCustomFieldGroupsWithFields()->fields;
         }
 
-        $this->unit_types = UnitType::all();
+        $this->units = UnitType::all();
         $this->clients = User::allClients();
         $this->currencies = Currency::all();
         $this->taxes = Tax::all();
         $this->products = Product::all();
+        $this->categories = ProductCategory::all();
         $this->invoiceSetting = invoice_setting();
 
         if (request()->ajax()) {
@@ -299,6 +306,8 @@ class EstimateController extends AccountBaseController
         $items = $request->item_name;
         $itemsSummary = $request->item_summary;
         $hsn_sac_code = $request->hsn_sac_code;
+        $unitId = request()->unit_id;
+        $product = request()->product_id;
         $tax = $request->taxes;
         $quantity = $request->quantity;
         $cost_per_item = $request->cost_per_item;
@@ -343,7 +352,6 @@ class EstimateController extends AccountBaseController
         $estimate->discount = round($request->discount_value, 2);
         $estimate->discount_type = $request->discount_type;
         $estimate->currency_id = $request->currency_id;
-        $estimate->unit_id = $request->unit_type_id;
         $estimate->status = $request->status;
         $estimate->note = trim_editor($request->note);
         $estimate->description = trim_editor($request->description);
@@ -377,6 +385,8 @@ class EstimateController extends AccountBaseController
                 $estimateItem->item_name = $item;
                 $estimateItem->item_summary = $itemsSummary[$key];
                 $estimateItem->type = 'item';
+                $estimateItem->unit_id = (isset($unitId[$key]) && !is_null($unitId[$key])) ? $unitId[$key] : null;
+                $estimateItem->product_id = (isset($product[$key]) && !is_null($product[$key])) ? $product[$key] : null;
                 $estimateItem->hsn_sac_code = (isset($hsn_sac_code[$key]) && !is_null($hsn_sac_code[$key])) ? $hsn_sac_code[$key] : null;
                 $estimateItem->quantity = $quantity[$key];
                 $estimateItem->unit_price = round($cost_per_item[$key], 2);
@@ -445,7 +455,7 @@ class EstimateController extends AccountBaseController
         $this->invoiceSetting = invoice_setting();
         $this->estimate = Estimate::with('unit')->findOrFail($id)->withCustomFields();
 
-        if (!empty($this->estimate->getCustomFieldGroupsWithFields())) {
+        if ($this->estimate->getCustomFieldGroupsWithFields()) {
             $this->fields = $this->estimate->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -475,7 +485,7 @@ class EstimateController extends AccountBaseController
         Carbon::setLocale($this->invoiceSetting->locale);
         $this->estimate = Estimate::findOrFail($id)->withCustomFields();
 
-        if (!empty($this->estimate->getCustomFieldGroupsWithFields())) {
+        if ($this->estimate->getCustomFieldGroupsWithFields()) {
             $this->fields = $this->estimate->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -606,10 +616,12 @@ class EstimateController extends AccountBaseController
             Files::createDirectoryIfNotExist('estimate/accept');
 
             File::put(public_path() . '/' . Files::UPLOAD_FOLDER . '/estimate/accept/' . $imageName, base64_decode($image));
+            Files::uploadLocalFile($imageName, 'estimate/accept', $estimate->company_id);
+
         }
         else {
             if ($request->hasFile('image')) {
-                $imageName = Files::upload($request->image, 'estimate/accept/', 300);
+                $imageName = Files::uploadLocalOrS3($request->image, 'estimate/accept/', 300);
             }
         }
 
@@ -679,10 +691,13 @@ class EstimateController extends AccountBaseController
     public function deleteEstimateItemImage(Request $request)
     {
         $item = EstimateItemImage::where('estimate_item_id', $request->invoice_item_id)->first();
-        Files::deleteFile($item->hashname, 'estimate-files/' . $item->id . '/');
-        $item->delete();
 
-        return Reply::success(__('messages.updateSuccess'));
+        if ($item) {
+            Files::deleteFile($item->hashname, 'estimate-files/' . $item->id . '/');
+            $item->delete();
+        }
+
+        return Reply::success(__('messages.deleteSuccess'));
     }
 
     public function getclients($id)
@@ -690,6 +705,37 @@ class EstimateController extends AccountBaseController
         $client_data = Product::where('unit_id', $id)->get();
         $unitId = UnitType::where('id', $id)->first();
         return Reply::dataOnly(['status' => 'success', 'data' => $client_data, 'type' => $unitId] );
+    }
+
+    public function addItem(Request $request)
+    {
+        $this->items = Product::findOrFail($request->id);
+        $this->invoiceSetting = invoice_setting();
+
+        $exchangeRate = Currency::findOrFail($request->currencyId);
+
+        if (!is_null($exchangeRate) && !is_null($exchangeRate->exchange_rate)) {
+            if ($this->items->total_amount != '') {
+                /** @phpstan-ignore-next-line */
+                $this->items->price = floor($this->items->total_amount * $exchangeRate->exchange_rate);
+            }
+            else {
+
+                $this->items->price = floatval($this->items->price) * floatval($exchangeRate->exchange_rate);
+            }
+        }
+        else {
+            if ($this->items->total_amount != '') {
+                $this->items->price = $this->items->total_amount;
+            }
+        }
+
+        $this->items->price = number_format((float)$this->items->price, 2, '.', '');
+        $this->taxes = Tax::all();
+        $this->units = UnitType::all();
+        $view = view('invoices.ajax.add_item', $this->data)->render();
+
+        return Reply::dataOnly(['status' => 'success', 'view' => $view]);
     }
 
 }

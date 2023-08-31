@@ -21,6 +21,7 @@
                     </td>
                     <td>
                         {{ $item->created_at->timezone(global_setting()->timezone)->translatedFormat(global_setting()->date_format.' '.global_setting()->time_format) }}
+                        ({{ $item->created_at->diffForHumans() }})
                     </td>
                 </tr>
             @empty

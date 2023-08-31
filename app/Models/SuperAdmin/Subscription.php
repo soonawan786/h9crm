@@ -3,11 +3,13 @@
 namespace App\Models\SuperAdmin;
 
 use App\Models\Company;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class Subscription extends Model
+class Subscription extends BaseModel
 {
     protected $dates = ['created_at'];
+
+    protected $casts = ['created_at'];
 
     public function company()
     {

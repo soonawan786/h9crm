@@ -86,7 +86,7 @@ class FinanceReportController extends AccountBaseController
         $incomes = array();
 
         foreach ($payments as $invoice) {
-            
+
             if((is_null($invoice->default_currency_id) && is_null($invoice->exchange_rate)) ||
             (!is_null($invoice->default_currency_id) && Company()->currency_id != $invoice->default_currency_id))
             {
@@ -102,10 +102,10 @@ class FinanceReportController extends AccountBaseController
             }
 
             if ($invoice->currency_id != $this->company->currency_id && $exchangeRate != 0) {
-                $incomes[$invoice->date] += floor(floatval($invoice->total) / floatval($exchangeRate));
+                $incomes[$invoice->date] += round(floatval($invoice->total) / floatval($exchangeRate), 2);
             }
             else {
-                $incomes[$invoice->date] += round($invoice->total, 2);
+                $incomes[$invoice->date] += round(floatval($invoice->total), 2);
             }
         }
 

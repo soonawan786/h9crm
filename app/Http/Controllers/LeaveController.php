@@ -13,6 +13,7 @@ use App\Models\Holiday;
 use App\Models\Leave;
 use App\Models\LeaveSetting;
 use App\Models\LeaveType;
+use App\Models\Permission;
 use App\Models\User;
 use App\Scopes\ActiveScope;
 use Carbon\Carbon;
@@ -69,15 +70,24 @@ class LeaveController extends AccountBaseController
 
         $this->employees = User::allEmployees(null, true, ($this->addPermission == 'all' ? 'all' : null));
 
-        if ($this->addPermission == 'added') {
-            $this->defaultAssign = User::with('leaveTypes', 'leaveTypes.leaveType')->findOrFail(user()->id);
-            $this->leaveQuotas = $this->defaultAssign->leaveTypes;
+        $this->currentDate = Carbon::now()->format('Y-m-d');
 
+        $leaveQuotas = LeaveType::select('leave_types.*', 'employee_details.notice_period_start_date', 'employee_details.probation_end_date',
+        'employee_details.department_id as employee_department', 'employee_details.designation_id as employee_designation',
+        'employee_details.marital_status as maritalStatus', 'users.gender as usergender', 'employee_details.joining_date', 'employee_leave_quotas.no_of_leaves as employeeLeave')
+            ->join('employee_leave_quotas', 'employee_leave_quotas.leave_type_id', 'leave_types.id')
+            ->join('users', 'users.id', 'employee_leave_quotas.user_id')
+            ->join('employee_details', 'employee_details.user_id', 'users.id');
+
+        if ($this->addPermission == 'added') {
+            $this->defaultAssign = user();
+            $this->leaveQuotas = $leaveQuotas->where('users.id', user()->id)->get();
+            $this->leaveTypeRole(user()->id);
         }
         else if (isset(request()->default_assign)) {
-            $this->defaultAssign = User::with('leaveTypes', 'leaveTypes.leaveType')->findOrFail(request()->default_assign);
-            $this->leaveQuotas = $this->defaultAssign->leaveTypes;
-
+            $this->defaultAssign = User::findOrFail(request()->default_assign);
+            $this->leaveQuotas = $leaveQuotas->where('users.id', request()->default_assign)->get();
+            $this->leaveTypeRole(request()->default_assign);
         }
         else {
             $this->leaveTypes = LeaveType::all();
@@ -115,7 +125,20 @@ class LeaveController extends AccountBaseController
         $employeeLeaveQuota = EmployeeLeaveQuota::whereUserId($request->user_id)->whereLeaveTypeId($request->leave_type_id)->first();
 
         $totalAllowedLeaves = ($employeeLeaveQuota) ? $employeeLeaveQuota->no_of_leaves : $leaveType->no_of_leaves;
+        $sDate = Carbon::createFromFormat(company()->date_format, $request->multiStartDate);
+        $eDate = Carbon::createFromFormat(company()->date_format, $request->multiEndDate);
+        $diffInDays = $sDate->diffInDays($eDate) + 1;
+
+        if($totalAllowedLeaves < $diffInDays) {
+            return Reply::error(__('messages.leaveLimitError'));
+        }
+
         $uniqueId = Str::random(16);
+        $employee = User::with('leaveTypes')->findOrFail($request->user_id);
+
+        $employeeLeavesQuotas = $employee->leaveTypes;
+        $allowedLeaves = clone $employeeLeavesQuotas;
+        $totalEmployeeLeave = $allowedLeaves->sum('no_of_leaves');
 
         if ($leaveType->monthly_limit > 0) {
             if ($request->duration != 'multiple') {
@@ -125,6 +148,7 @@ class LeaveController extends AccountBaseController
                 };
 
                 $leaveTaken = LeaveType::byUser($request->user_id, $request->leave_type_id, array('approved', 'pending'), $request->leave_date);
+                $leaveTaken = $leaveTaken->first();
 
                 $dateApplied = Carbon::createFromFormat($this->company->date_format, $request->leave_date);
 
@@ -148,7 +172,7 @@ class LeaveController extends AccountBaseController
                 $appliedLimit = ($currentMonthFullDay + ($currentMonthHalfDay / 2)) + (($duration == 'half day') ? 0.5 : 1);
 
                 /** @phpstan-ignore-next-line */
-                if (isset($leaveTaken[0]->leavesCount[0]) && ((($leaveTaken[0]->leavesCount[0]->count - ($leaveTaken[0]->leavesCount[0]->halfday * 0.5)) + (($duration == 'half day') ? 0.5 : 1)) > $totalAllowedLeaves)) {
+                if (!is_null($leaveTaken->leavesCount) && ((($leaveTaken->leavesCount->count - ($leaveTaken->leavesCount->halfday * 0.5)) + (($duration == 'half day') ? 0.5 : 1)) > $totalAllowedLeaves)) {
                     return Reply::error(__('messages.leaveLimitError'));
                 }
 
@@ -160,9 +184,9 @@ class LeaveController extends AccountBaseController
             }
             else {
 
-                $dates = explode(',', $request->multi_date);
-
-                $multipleDates = CarbonPeriod::create($dates[0], $dates[1]);
+                $sDate = Carbon::createFromFormat(company()->date_format, $request->multiStartDate);
+                $eDate = Carbon::createFromFormat(company()->date_format, $request->multiEndDate);
+                $multipleDates = CarbonPeriod::create($sDate, $eDate);
 
                 foreach ($multipleDates as $multipleDate) {
                     $multiDates[] = $multipleDate->format('Y-m-d');
@@ -171,12 +195,13 @@ class LeaveController extends AccountBaseController
                 /** @phpstan-ignore-next-line */
                 foreach ($multiDates as $dateData) {
                     $leaveTaken = LeaveType::byUser($request->user_id, $request->leave_type_id, array('approved', 'pending'), Carbon::parse($dateData)->format(company()->date_format));
+                    $leaveTaken = $leaveTaken->first();
 
                     /** @phpstan-ignore-next-line */
-                    if (isset($leaveTaken[0]->leavesCount[0]) && (($leaveTaken[0]->leavesCount[0]->count - ($leaveTaken[0]->leavesCount[0]->halfday * 0.5)) + count($multiDates)) > $totalAllowedLeaves) {
+                    if (!is_null($leaveTaken->leavesCount) && (($leaveTaken->leavesCount->count - ($leaveTaken->leavesCount->halfday * 0.5)) + count($multipleDates)) > $totalAllowedLeaves) {
                         return Reply::error(__('messages.leaveLimitError'));
                     }
-                    elseif (count($multiDates) > $totalAllowedLeaves) { /** @phpstan-ignore-line */
+                    elseif (count($multipleDates) > $totalAllowedLeaves) { /** @phpstan-ignore-line */
                         return Reply::error(__('messages.leaveLimitError'));
                     }
 
@@ -205,7 +230,7 @@ class LeaveController extends AccountBaseController
                         ->get()->count();
 
                     /** @phpstan-ignore-next-line */
-                    $appliedLimit = ($currentMonthFullDay + ($currentMonthHalfDay / 2)) + count($dates);
+                    $appliedLimit = ($currentMonthFullDay + ($currentMonthHalfDay / 2)) + count($multipleDates);
 
                     if ($appliedLimit > $leaveType->monthly_limit) {
                         return Reply::error(__('messages.monthlyLeaveLimitError'));
@@ -217,11 +242,12 @@ class LeaveController extends AccountBaseController
         }
 
         if ($request->duration == 'multiple') {
-
             session(['leaves_duration' => 'multiple']);
 
-            $dates = explode(',', $request->multi_date);
-            $multipleDates = CarbonPeriod::create($dates[0], $dates[1]);
+            $multipleDates = CarbonPeriod::create(Carbon::createFromFormat(company()->date_format, $request->multiStartDate)->toDateString(), Carbon::createFromFormat(company()->date_format, $request->multiEndDate)->toDateString());
+
+            $leaveTaken = LeaveType::byUser($request->user_id, $request->leave_type_id, array('approved', 'pending'), $request->leave_date);
+            $leaveTaken = $leaveTaken->first();
 
             foreach ($multipleDates as $multipleDate) {
                 $multiDates[] = $multipleDate->format('Y-m-d');
@@ -251,7 +277,7 @@ class LeaveController extends AccountBaseController
                 $dateInsert = Carbon::parse($date);
 
                 if (!in_array($dateInsert, $holidays)) {
-                    $leaveYear = Carbon::createFromFormat('m-Y', company()->year_starts_from.'-'.$dateInsert->copy()->year)->startOfMonth();
+                    $leaveYear = Carbon::createFromFormat('d-m-Y', '01-'.company()->year_starts_from.'-'.$dateInsert->copy()->year)->startOfMonth();
 
                     if ($leaveYear->gt($dateInsert)) {
                         $leaveYear = $leaveYear->subYear();
@@ -260,13 +286,18 @@ class LeaveController extends AccountBaseController
                     $userTotalLeaves = Leave::byUserCount($request->user_id, $leaveYear->year);
                     $remainingLeave = $employeeLeaveQuota->no_of_leaves - $userTotalLeaves;
 
-                    if(($userTotalLeaves + .5) == $employeeLeaveQuota->no_of_leaves) {
+                    if(!is_null($leaveTaken->leavesCount) && ($leaveTaken->leavesCount->count + .5) == $employeeLeaveQuota->no_of_leaves) {
                         return Reply::error(__('messages.multipleRemainingLeaveError', ['leaves' => $remainingLeave]));
                     }
 
-                    if ($userTotalLeaves >= $employeeLeaveQuota->no_of_leaves) {
+                    /** @phpstan-ignore-next-line */
+                    if (!is_null($leaveTaken->leavesCount) && (($leaveTaken->leavesCount->count - ($leaveTaken->leavesCount->halfday * 0.5)) + count($multiDates)) > $employeeLeaveQuota->no_of_leaves) {
                         return Reply::error(__('messages.leaveLimitError'));
                     }
+                    elseif (($userTotalLeaves + count($multiDates)) > $totalEmployeeLeave) { /** @phpstan-ignore-line */
+                        return Reply::error(__('messages.leaveLimitError'));
+                    }
+
                 }
             }
 
@@ -300,10 +331,14 @@ class LeaveController extends AccountBaseController
         }
 
         $dateInsert = Carbon::createFromFormat($this->company->date_format, $request->leave_date)->format('Y-m-d');
-        $leaveApplied = Leave::where('user_id', $request->user_id)->where('status', '!=', 'rejected')->whereDate('leave_date', $dateInsert)->first();
+        $leaveApplied = Leave::where('user_id', $request->user_id)
+        ->where('status', '!=', 'rejected')
+        ->whereDate('leave_date', $dateInsert)
+        ->first();
+
         $holiday = Holiday::select(DB::raw('DATE_FORMAT(date, "%Y-%m-%d") as holiday_date'))->where('date', $dateInsert)->first();
 
-        if (!empty($leaveApplied) && $leaveApplied->duration != 'half day') {
+        if (!empty($leaveApplied) && $request->duration == 'single') {
             return Reply::error(__('messages.leaveApplyError'));
         }
 
@@ -312,21 +347,30 @@ class LeaveController extends AccountBaseController
         }
 
         /* check leave limit for the selected leave type start */
-        $leaveYear = Carbon::createFromFormat('m-Y', company()->year_starts_from.'-'.Carbon::parse($dateInsert)->year)->startOfMonth();
+        $leaveYear = Carbon::createFromFormat('d-m-Y', '01-'.company()->year_starts_from.'-'.Carbon::parse($dateInsert)->year)->startOfMonth();
 
         if ($leaveYear->gt(Carbon::parse($dateInsert))) {
             $leaveYear = $leaveYear->subYear();
         }
 
+        $leaveTaken = LeaveType::byUser($request->user_id, $request->leave_type_id, array('approved', 'pending'), $request->leave_date);
+        $leaveTaken = $leaveTaken->first();
+
         $userTotalLeaves = Leave::byUserCount($request->user_id, $leaveYear->year);
         $remainingLeave = $employeeLeaveQuota->no_of_leaves - $userTotalLeaves;
 
-        if(($userTotalLeaves + .5) == $employeeLeaveQuota->no_of_leaves && $request->duration == 'single') {
+        if(!is_null($leaveTaken->leavesCount) && ($leaveTaken->leavesCount->count + .5) == $employeeLeaveQuota->no_of_leaves && $request->duration == 'single') {
             return Reply::error(__('messages.multipleRemainingLeaveError', ['leaves' => $remainingLeave]));
         }
 
-        if ($userTotalLeaves >= $employeeLeaveQuota->no_of_leaves && $request->duration == 'single') {
-            return Reply::error(__('messages.leaveLimitError'));
+        /** @phpstan-ignore-next-line */
+        if($request->duration == 'single'){
+            if (!is_null($leaveTaken->leavesCount) && (($leaveTaken->leavesCount->count - ($leaveTaken->leavesCount->halfday * 0.5)) + 1) > $employeeLeaveQuota->no_of_leaves) {
+                return Reply::error(__('messages.leaveLimitError'));
+            }
+            elseif (($userTotalLeaves + 1) > $totalEmployeeLeave) { /** @phpstan-ignore-line */
+                return Reply::error(__('messages.leaveLimitError'));
+            }
         }
 
         /* check leave limit for the selected leave type end */
@@ -346,19 +390,30 @@ class LeaveController extends AccountBaseController
             /* check leave limit for the selected leave type start */
             $dateInsert = Carbon::createFromFormat($this->company->date_format, $request->leave_date)->format('Y-m-d');
 
+            $leaveApplied = Leave::where('user_id', $request->user_id)
+            ->where('status', '!=', 'rejected')
+            ->whereDate('leave_date', $dateInsert)->first();
+
             $userHalfDaysLeave = Leave::where([
                 ['user_id', $request->user_id],
-                ['leave_type_id', $request->leave_type_id],
                 ['status', '!=', 'rejected'],
                 ['duration', $duration],
-                ['half_day_type', $request->duration]
-                ])->whereDate('leave_date', $dateInsert)->first();
+                ])->whereDate('leave_date', $dateInsert)->count();
 
-            if (!is_null($userHalfDaysLeave)) {
+            if($userHalfDaysLeave > 1){
+                return Reply::error(__('messages.leaveApplyError'));
+            }
+            elseif(!is_null($leaveApplied) && $leaveApplied->duration != 'half day') {
+                return Reply::error(__('messages.leaveApplyError'));
+            }
+            elseif(!is_null($leaveApplied) && $leaveApplied->half_day_type == $request->duration){
                 return Reply::error(__('messages.leaveApplyError'));
             }
 
-            if ($userTotalLeaves >= $employeeLeaveQuota->no_of_leaves) {
+            if (!is_null($leaveTaken->leavesCount) && (($leaveTaken->leavesCount->count - ($leaveTaken->leavesCount->halfday * 0.5)) + 0.5) > $employeeLeaveQuota->no_of_leaves) {
+                return Reply::error(__('messages.leaveLimitError'));
+            }
+            elseif ($userTotalLeaves + 0.5 > $totalEmployeeLeave) { /** @phpstan-ignore-line */
                 return Reply::error(__('messages.leaveLimitError'));
             }
 
@@ -407,6 +462,9 @@ class LeaveController extends AccountBaseController
 
         if($this->leave->duration == 'multiple' && !is_null($this->leave->unique_id) && (request()->type != 'single' || !request()->has('type'))){
             $this->multipleLeaves = Leave::with('type', 'user')->where('unique_id', $id)->orderBy('leave_date', 'DESC')->get();
+            $this->viewType = 'multiple';
+            $this->pendingCountLeave = $this->multipleLeaves->where('status', 'pending')->count();
+
             $this->view = 'leaves.ajax.multiple-leaves';
         }
         else {
@@ -435,16 +493,29 @@ class LeaveController extends AccountBaseController
             && ($this->leave->status == 'pending')));
 
         $this->employees = User::allEmployees();
-        $this->leaveTypes = LeaveType::all();
 
         $this->pageTitle = $this->leave->user->name;
 
+        $leaveQuotas = LeaveType::select('leave_types.*', 'employee_details.notice_period_start_date', 'employee_details.probation_end_date',
+        'employee_details.department_id as employee_department', 'employee_details.designation_id as employee_designation',
+        'employee_details.marital_status as maritalStatus', 'users.gender as usergender', 'employee_details.joining_date')
+            ->join('employee_leave_quotas', 'employee_leave_quotas.leave_type_id', 'leave_types.id')
+            ->join('users', 'users.id', 'employee_leave_quotas.user_id')
+            ->join('employee_details', 'employee_details.user_id', 'users.id');
+
         if ($this->editPermission == 'added') {
             $this->defaultAssign = user();
-
+            $this->leaveQuotas = $leaveQuotas->where('users.id', user()->id)->get();
+            $this->leaveTypeRole(user()->id);
         }
         else if (isset(request()->default_assign)) {
             $this->defaultAssign = User::findOrFail(request()->default_assign);
+            $this->leaveQuotas = $leaveQuotas->where('users.id', request()->default_assign)->get();
+            $this->leaveTypeRole(request()->default_assign);
+        }
+        else {
+            $this->leaveQuotas = $leaveQuotas->where('users.id', $this->leave->user_id)->get();
+            $this->leaveTypeRole($this->leave->user_id);
         }
 
         if (request()->ajax()) {
@@ -658,7 +729,7 @@ class LeaveController extends AccountBaseController
 
             foreach ($leaves as $key => $leave) {
                 /** @phpstan-ignore-next-line */
-                $title = ucfirst($leave->name);
+                $title = $leave->name;
 
                 $leaveArray[] = [
                     'id' => $leave->id,
@@ -734,7 +805,25 @@ class LeaveController extends AccountBaseController
 
         abort_403(!($this->reportingTo) && user()->permission('approve_or_reject_leaves') == 'none');
 
-        $leave = Leave::findOrFail($request->leaveId);
+        if($request->type == 'single'){
+            $leave = Leave::findOrFail($request->leaveId);
+            $this->leaveStore($leave, $request);
+        }
+        else {
+            $leaves = Leave::where('unique_id', $request->leaveId)->where('status', 'pending')->get();
+
+            foreach($leaves as $leave)
+            {
+                $this->leaveStore($leave, $request);
+            }
+
+        }
+
+        return Reply::success(__('messages.updateSuccess'));
+    }
+
+    public function leaveStore($leave, $request)
+    {
         $leave->status = $request->action;
 
         if (isset($request->approveReason)) {
@@ -747,10 +836,7 @@ class LeaveController extends AccountBaseController
 
         $leave->approved_by = user()->id;
         $leave->approved_at = now()->toDateTimeString();
-
         $leave->save();
-
-        return Reply::success(__('messages.updateSuccess'));
     }
 
     public function preApprove(Request $request)
@@ -773,6 +859,8 @@ class LeaveController extends AccountBaseController
 
         $this->leaveAction = $request->leave_action;
         $this->leaveID = $request->leave_id;
+        $this->type = $request->type;
+
         return view('leaves.approve.index', $this->data);
     }
 
@@ -784,6 +872,7 @@ class LeaveController extends AccountBaseController
 
         $this->leaveAction = $request->leave_action;
         $this->leaveID = $request->leave_id;
+        $this->type = $request->type;
 
         return view('leaves.reject.index', $this->data);
     }
@@ -798,10 +887,24 @@ class LeaveController extends AccountBaseController
             ->findOrFail(user()->id);
 
         $this->leaveTypes = LeaveType::byUser(user()->id);
+        $this->leaveTypeRole(user()->id);
         $this->leavesTakenByUser = Leave::byUserCount(user()->id);
-        $this->allowedLeaves = $this->employee->leaveTypes->sum('no_of_leaves');
-        $this->employeeLeavesQuota = $this->employee->leaveTypes;
         $this->employeeLeavesQuotas = $this->employee->leaveTypes;
+        $this->employeeLeavesQuota = clone $this->employeeLeavesQuotas;
+
+        $totalLeaves = 0;
+
+        foreach($this->leaveTypes as $key => $leavesCount)
+        {
+            $leavesCountCheck = $leavesCount->leaveTypeCodition($leavesCount, $this->userRole);
+
+            if($leavesCountCheck && $this->employeeLeavesQuotas[$key]->leave_type_id == $leavesCount->id){
+                $totalLeaves += $this->employeeLeavesQuotas[$key]->no_of_leaves;
+            }
+        }
+
+        $this->allowedLeaves = $totalLeaves;
+
         $this->view = 'leaves.ajax.personal';
 
         return view('leaves.create', $this->data);
@@ -822,9 +925,28 @@ class LeaveController extends AccountBaseController
 
     public function viewRelatedLeave(Request $request)
     {
+        $this->editLeavePermission = user()->permission('edit_leave');
+        $this->deleteLeavePermission = user()->permission('delete_leave');
+        $this->approveRejectPermission = user()->permission('approve_or_reject_leaves');
+        $this->deleteApproveLeavePermission = user()->permission('delete_approve_leaves');
         $this->multipleLeaves = Leave::with('type', 'user')->where('unique_id', $request->uniqueId)->orderBy('leave_date', 'DESC')->get();
+        $this->pendingCountLeave = $this->multipleLeaves->where('status', 'pending')->count();
 
+        $this->viewType = 'model';
         return view('leaves.view-multiple-related-leave', $this->data);
+    }
+
+    public function leaveTypeRole($id)
+    {
+        $roles = User::with('roles')->findOrFail($id);
+        $userRole = [];
+        $userRoles = $roles->roles->count() > 1 ? $roles->roles->where('name', '!=', 'employee') : $roles->roles;
+
+        foreach($userRoles as $role){
+            $userRole[] = $role->id;
+        }
+
+        $this->userRole = $userRole;
     }
 
 }

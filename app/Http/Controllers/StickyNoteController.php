@@ -81,7 +81,7 @@ class StickyNoteController extends AccountBaseController
     public function edit($id)
     {
         $this->stickyNote = StickyNote::where('user_id', user()->id)->where('id', $id)->firstOrFail();
-        $this->pageTitle = __('app.edit') . ' ' . __('app.note');
+        $this->pageTitle = __('app.editNote');
 
         if (request()->ajax()) {
             $html = view('sticky-notes.ajax.edit', $this->data)->render();

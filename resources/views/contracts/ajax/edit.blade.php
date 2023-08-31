@@ -234,12 +234,12 @@ $addClientPermission = user()->permission('add_clients');
             ...datepickerConfig
         });
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         $('#add-client').click(function() {
             $(MODAL_XL).modal('show');
@@ -279,13 +279,58 @@ $addClientPermission = user()->permission('add_clients');
             })
         });
 
-        quillImageLoad('#description');
+        quillMention(null, '#description');
 
         $('#createContractType').click(function() {
             const url = "{{ route('contractTypes.create') }}";
             $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
             $.ajaxModal(MODAL_LG, url);
         });
+        $('#client_list_id').change(function() {
+            var id = $(this).val();
+            if (id == '') {
+                id = 0;
+            }
+            var url = "{{ route('contracts.project_detail', ':id') }}";
+            url = url.replace(':id', id);
+            var token = "{{ csrf_token() }}";
+
+            $.easyAjax({
+                url: url,
+                container: '#save-contract-data-form',
+                type: "POST",
+                blockUI: true,
+                data: {
+                    _token: token
+                },
+                success: function(response) {
+                    if (response.status == 'success') {
+                        $('#project_id').html(response.data);
+                        $('#project_id').selectpicker('refresh');
+                    }
+                }
+            });
+        });
+        $('#save-contract-data-form').on('change', '#project_id', function () {
+            let id = $(this).val();
+            if (id === '' || id == null) {
+                id = 0;
+            }
+            let url = "{{ route('clients.client_details', ':id') }}";
+            url = url.replace(':id', id);
+            $.easyAjax({
+                url: url,
+                type: "GET",
+                container: '#save-contract-data-form',
+                blockUI: true,
+                redirect: true,
+                success: function (data) {
+                        $('#client_list_id').html(data.teamData);
+                        $('#client_list_id').selectpicker('refresh');
+                }
+            })
+        });
+        <x-forms.custom-field-filejs/>
 
         init(RIGHT_MODAL);
     });

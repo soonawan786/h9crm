@@ -4,7 +4,7 @@
             <div class="row align-items-center">
                 <div class="col-lg-6 col-12 text-lg-left text-center">
                     <div class="banner-text mr-0 mr-lg-5">
-                        <h3 class="mb-3 mb-md-4">  {{ $trFrontDetail->header_title }}</h3>
+                        <h3 class="mb-3 mb-md-4 font-weight-bold">  {{ $trFrontDetail->header_title }}</h3>
                         <p>{!! $trFrontDetail->header_description !!}</p>
                         @if( $setting->enable_register)
                             @if (isset($packageSetting) && isset($trialPackage) && $packageSetting && !is_null($trialPackage))

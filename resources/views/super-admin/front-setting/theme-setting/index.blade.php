@@ -21,6 +21,10 @@
             margin-top: 10px;
             font-weight: bolder;
         }
+
+        ul.thumbnails.image_picker_selector li .thumbnail.selected {
+            background: var(--header_color) !important;
+        }
     </style>
     <link rel="stylesheet" href="{{ asset('vendor/css/bootstrap-colorpicker.css') }}"/>
     <link rel="stylesheet" href="{{ asset('vendor/css/image-picker.min.css') }}">
@@ -44,7 +48,7 @@
             <div class="col-lg-12 col-md-12 ntfcn-tab-content-left w-100 p-4">
                 <div class="row">
                     <div class="col-lg-12">
-                        <div class="form-group">
+                        <div class="form-group cursor-pointer">
                             <x-forms.label fieldId="theme"
                                            :fieldLabel="__('superadmin.selectTheme')" fieldRequired="true">
                             </x-forms.label>
@@ -64,13 +68,16 @@
 
                     @if (!module_enabled('Subdomain'))
                         <div class="col-lg-12" id="login_ui_box">
-                            <div class="form-group">
+                            <div class="form-group cursor-pointer">
                                 <x-forms.label fieldId="login_ui"
                                                :fieldLabel="__('app.login'). ' ' .__('superadmin.theme')"
                                                fieldRequired="true">
                                 </x-forms.label>
+                                <span class="f-12">(@lang('superadmin.theme2Login')</span>
+
                                 <select name="login_ui" id="login_ui"
-                                        class="image-picker show-labels show-html login-theme" style="color: white">
+                                        class="image-picker show-labels show-html login-theme image-picker-login-theme"
+                                        style="color: white">
                                     <option data-img-src="{{ asset('img/old-login.jpg') }}"
                                             @if ($global->login_ui == 0) selected @endif value="0">
                                         @lang('superadmin.theme1')
@@ -85,27 +92,8 @@
                             </div>
                         </div>
                     @endif
-                    <div class="col-lg-4 pt-5">
-                        <x-forms.checkbox :checked="$global->frontend_disable"
-                                          :fieldLabel="__('superadmin.superadmin.disableFrontendSite')"
-                                          :popover="__('superadmin.frontDisableInfo')"
-                                          fieldName="frontend_disable" fieldId="frontend_disable"/>
-                    </div>
 
-                    <div class="col-lg-4 @if ($global->frontend_disable)  d-none @endif" id="set-homepage-div">
-                        <x-forms.select fieldId="setup_homepage" :fieldLabel="__('superadmin.superadmin.setupHomepage')"
-                                        fieldName="setup_homepage">
-                            <option @if ($global->setup_homepage == 'default') selected @endif value="default">
-                                @lang('superadmin.superadmin.defaultLanding')</option>
-                            <option @if ($global->setup_homepage == 'signup') selected @endif value="signup">
-                                @lang('app.signUp')</option>
-                            <option @if ($global->setup_homepage == 'login') selected @endif value="login">
-                                @lang('app.login')</option>
-                            <option @if ($global->setup_homepage == 'custom') selected @endif value="custom">
-                                @lang('superadmin.superadmin.loadCustomUrl')</option>
-                        </x-forms.select>
-                    </div>
-                    <div class="col-lg-6">
+                    <div class="col-lg-6 ">
                         <x-forms.select fieldId="default_language"
                                         :popover="__('superadmin.defaultLanguagePopover')"
                                         :fieldLabel="__('superadmin.frontCms.defaultLanguage')"
@@ -118,9 +106,11 @@
                             @endforeach
                         </x-forms.select>
                     </div>
-                    <div class="col-lg-6 @if ($global->front_design != 0) d-none @endif" id="primary_color_div">
-                        <div class="form-group my-3">
+
+                    <div class="col-lg-6">
+                        <div class="form-group my-3" id="primary_color_div">
                             <x-forms.label fieldId="primary_color"
+                                           :popover="__('superadmin.primaryColorTooltip')"
                                            :fieldLabel="__('superadmin.frontCms.primaryColor')">
                             </x-forms.label>
                             <x-forms.input-group class="color-picker">
@@ -135,8 +125,31 @@
                             </x-forms.input-group>
                         </div>
                     </div>
+                </div>
+                <div class="row">
+
+                    <div class="col-lg-4 pt-5">
+                        <x-forms.checkbox :checked="$global->frontend_disable"
+                                          :fieldLabel="__('superadmin.superadmin.disableFrontendSite')"
+                                          :popover="__('superadmin.frontDisableInfo')"
+                                          fieldName="frontend_disable" fieldId="frontend_disable"/>
+                    </div>
+
+                    <div class="col-lg-3 @if ($global->frontend_disable) d-none @endif" id="set-homepage-div">
+                        <x-forms.select fieldId="setup_homepage" :fieldLabel="__('superadmin.superadmin.setupHomepage')"
+                                        fieldName="setup_homepage">
+                            <option @if ($global->setup_homepage == 'default') selected @endif value="default">
+                                @lang('superadmin.superadmin.defaultLanding')</option>
+                            <option @if ($global->setup_homepage == 'signup') selected @endif value="signup">
+                                @lang('app.signUp')</option>
+                            <option @if ($global->setup_homepage == 'login') selected @endif value="login">
+                                @lang('app.login')</option>
+                            <option @if ($global->setup_homepage == 'custom') selected @endif value="custom">
+                                @lang('superadmin.superadmin.loadCustomUrl')</option>
+                        </x-forms.select>
+                    </div>
                     <div
-                        class="col-lg-6 @if ($global->frontend_disable || (!$global->frontend_disable && $global->setup_homepage != 'custom')) d-none @endif"
+                        class="col-lg-5 @if ($global->frontend_disable || ($global->setup_homepage != 'custom')) d-none @endif"
                         id="home_custom_url">
                         <x-forms.text :fieldLabel="__('superadmin.superadmin.customUrl')"
                                       fieldName="custom_homepage_url"
@@ -144,6 +157,66 @@
                                       fieldId="custom_homepage_url" fieldRequired="true"/>
                     </div>
                 </div>
+                <div class="row mt-4">
+
+                    <div class="col-lg-4 @if ($global->frontend_disable) d-none @endif" id="set-homepage-banner-bg">
+                        <x-forms.select fieldId="setup_homepage_background" :fieldLabel="__('superadmin.frontCms.setupHomepageBannerBackground')"
+                                        fieldName="homepage_background">
+                            <option @if ($frontDetail->homepage_background == 'default') selected @endif value="default">
+                                @lang('app.default')</option>
+                            <option @if ($frontDetail->homepage_background == 'color') selected @endif value="color">
+                                @lang('superadmin.frontCms.setBackgroundColor')</option>
+                            <option @if ($frontDetail->homepage_background == 'image') selected @endif value="image">
+                                @lang('superadmin.frontCms.setBackgroundImage')</option>
+                            <option @if ($frontDetail->homepage_background == 'image_and_color') selected @endif value="image_and_color">
+                                @lang('superadmin.frontCms.setBackgroundImageColor')</option>
+                        </x-forms.select>
+                    </div>
+
+
+
+                    <div
+                        @class([
+                            'form-group',
+                            'col-lg-4',
+                            'set-homepage-banner-bg-fields',
+                            'my-3',
+                            'd-none' => ($frontDetail->homepage_background == 'default' || $frontDetail->homepage_background == 'image' || $global->frontend_disable)
+                        ])
+                         id="bg_color_div">
+                            <x-forms.label fieldId="background_color"
+                                           :fieldLabel="__('superadmin.frontCms.setBackgroundColor')">
+                            </x-forms.label>
+                            <x-forms.input-group class="color-picker">
+                                <input type="text" class="form-control height-35 f-14 header_color"
+                                       autocomplete="off"
+                                       value="{{ $frontDetail->background_color }}" id="background_color"
+                                       placeholder="{{ __('placeholders.colorPicker') }}" name="background_color">
+
+                                <x-slot name="append">
+                                    <span class="input-group-text height-35 colorpicker-input-addon"><i></i></span>
+                                </x-slot>
+                            </x-forms.input-group>
+                    </div>
+
+                    <div
+
+                        @class([
+                            'form-group',
+                            'col-lg-4',
+                            'set-homepage-banner-bg-fields',
+                            'd-none' => ($frontDetail->homepage_background == 'default' || $frontDetail->homepage_background == 'color' || $global->frontend_disable)
+                        ])
+                         id="bg_image_div">
+                            <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2 cropper"
+                            :fieldLabel="__('superadmin.frontCms.setBackgroundImage')"
+                            :fieldValue="$frontDetail->background_image_url" fieldName="background_image"
+                            fieldId="background_image"
+                            :popover="__('modules.themeSettings.loginBackgroundSize')"/>
+                    </div>
+
+                </div>
+
             </div>
             <!-- LEAVE SETTING END -->
 
@@ -168,40 +241,38 @@
     <script src="{{ asset('vendor/jquery/image-picker.min.js') }}"></script>
     <script>
         $('.color-picker').colorpicker();
-        $('.image-picker').imagepicker({
-            show_label: true
-        });
 
+        // Selecting the main theme
         $(".image-picker-theme").imagepicker({
             show_label: true,
             changed: function (vale, newval) {
-                if (newval == 1) {
-                    $('#login_ui_box').removeClass('d-none');
-                    $('#primary_color_div').addClass('d-none');
-                } else {
-                    $('#login_ui_box').addClass('d-none');
-                    $('#primary_color_div').removeClass('d-none');
-                }
+                console.log(newval[0]);
+                showLoginBlock(newval[0] == 1)
             },
-            initialized: function (vale) {
-                if ($(".image-picker-theme").val() == 1) {
-                    $('#login_ui_box').removeClass('d-none');
-                    $('#primary_color_div').addClass('d-none');
-                } else {
-                    $('#login_ui_box').addClass('d-none');
-                    $('#primary_color_div').removeClass('d-none');
-                }
-
+            initialized: function (val) {
+                showLoginBlock($(".image-picker-theme").val() == '1')
             }
         });
 
+        function showLoginBlock(condition) {
+            if (condition) {
+                $('#login_ui_box,#primary_color_div').show(100);
+            } else {
+                $('#login_ui_box,#primary_color_div').hide(100);
+            }
+        }
+
+        // Selecting login theme
+        $(".image-picker-login-theme").imagepicker({
+            show_label: true
+        });
 
         $('#frontend_disable').change(function () {
             if ($(this).is(':checked')) {
-                $('#set-homepage-div').addClass('d-none');
-                $('#home_custom_url').addClass('d-none');
+                $('#set-homepage-div,#home_custom_url, #set-homepage-banner-bg, .set-homepage-banner-bg-fields').addClass('d-none');
             } else {
-                $('#set-homepage-div').removeClass('d-none');
+                $('#set-homepage-div, #set-homepage-banner-bg, .set-homepage-banner-bg-fields').removeClass('d-none');
+
                 if ($('#setup_homepage').val() == 'custom') {
                     $('#home_custom_url').removeClass('d-none');
                 }
@@ -218,19 +289,21 @@
             }
         })
 
-        @if($global->login_ui == 0)
-        $(".login-background-box").removeClass('d-none');
-        @else
-        $(".login-background-box").addClass('d-none');
-        @endif
+        $('#setup_homepage_background').change(function () {
+            const homepage = $(this).val();
+            $('#bg_image_div, #bg_color_div').addClass('d-none');
 
-        $('.login-theme').change(function () {
-            const theme = $(this).val();
-
-            if (theme == '0') {
-                $(".login-background-box").removeClass('d-none');
+            if (homepage === "default") {
+                $(".set-homepage-banner-bg-fields").addClass('d-none');
             } else {
-                $(".login-background-box").addClass('d-none');
+                if (homepage == 'image') {
+                    $('#bg_image_div').removeClass('d-none');
+                } else if (homepage == 'color') {
+                    $('#bg_color_div').removeClass('d-none');
+                } else {
+                    $('#bg_image_div').removeClass('d-none');
+                    $('#bg_color_div').removeClass('d-none');
+                }
             }
         })
 

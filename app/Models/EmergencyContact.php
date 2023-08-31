@@ -34,10 +34,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|EmergencyContact whereRelation($value)
  * @method static \Illuminate\Database\Eloquent\Builder|EmergencyContact whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|EmergencyContact whereUserId($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|EmergencyContact whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class EmergencyContact extends BaseModel
 {

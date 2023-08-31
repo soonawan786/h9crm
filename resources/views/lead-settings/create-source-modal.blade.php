@@ -1,6 +1,6 @@
 <x-form id="addLeadSource" method="POST" class="ajax-form">
     <div class="modal-header">
-        <h5 class="modal-title" id="modelHeading">@lang('app.add') @lang('modules.lead.leadSource')</h5>
+        <h5 class="modal-title" id="modelHeading">@lang('modules.lead.addLeadSource')</h5>
         <button type="button"  class="close" data-dismiss="modal" aria-label="Close"><span
                 aria-hidden="true">×</span></button>
     </div>

@@ -104,8 +104,8 @@ class TaskCalendarController extends AccountBaseController
                 $model->where('task_labels.label_id', '=', $request->label);
             }
 
-            if ($request->category_id != '' && $request->category_id != null && $request->category_id != 'all') {
-                $model->where('tasks.task_category_id', '=', $request->category_id);
+            if ($request->categoryId != '' && $request->categoryId != null && $request->categoryId != 'all') {
+                $model->where('tasks.task_category_id', '=', $request->categoryId);
             }
 
             if ($request->billable != '' && $request->billable != null && $request->billable != 'all') {

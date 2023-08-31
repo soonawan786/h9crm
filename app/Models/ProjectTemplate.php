@@ -48,13 +48,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectTemplate whereProjectSummary($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectTemplate whereUpdatedAt($value)
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\User[] $projectMembers
- * @mixin \Eloquent
  * @property-read int|null $members_many_count
  * @property int|null $company_id
  * @property int $added_by
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectTemplate whereAddedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectTemplate whereCompanyId($value)
+ * @property-read int|null $project_members_count
+ * @mixin \Eloquent
  */
 class ProjectTemplate extends BaseModel
 {
@@ -88,7 +89,7 @@ class ProjectTemplate extends BaseModel
     public function checkProjectUser()
     {
         $project = ProjectTemplateMember::where('project_template_id', $this->id)
-            ->where('user_id', auth()->user()->id)
+            ->where('user_id', user()->id)
             ->count();
 
         if ($project > 0) {
@@ -105,7 +106,7 @@ class ProjectTemplate extends BaseModel
     public function checkProjectClient()
     {
         $project = ProjectTemplateMember::where('id', $this->id)
-            ->where('client_id', auth()->user()->id)
+            ->where('client_id', user()->id)
             ->count();
 
         if ($project > 0) {

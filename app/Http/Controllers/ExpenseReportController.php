@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\ExpenseCategoryReportDataTable;
 use Illuminate\Http\Request;
 use App\DataTables\ExpenseReportDataTable;
 use App\Helper\Reply;
@@ -35,9 +36,7 @@ class ExpenseReportController extends AccountBaseController
         $this->employees = User::withRole('employee')->get();
         $this->categories = ExpensesCategory::get();
 
-
         return $dataTable->render('reports.expense.index', $this->data);
-
     }
 
     public function expenseChartData(Request $request)
@@ -208,6 +207,18 @@ class ExpenseReportController extends AccountBaseController
         $html2 = view('reports.expense.bar_chart', $this->data)->render(); /* Expense Category report view */
 
         return Reply::dataOnly(['status' => 'success', 'html' => $html,'html2' => $html2, 'title' => $this->pageTitle, 'totalExpenses' => currency_format($totalExpense, company()->currency_id)]);
+    }
+
+    public function expenseCategoryReport()
+    {
+        abort_403(user()->permission('view_expense_report') != 'all');
+        $dataTable = new ExpenseCategoryReportDataTable();
+
+        $this->fromDate = now($this->company->timezone)->startOfMonth();
+        $this->toDate = now($this->company->timezone);
+        $this->categories = ExpensesCategory::get();
+
+        return $dataTable->render('reports.expense.expense-category-report', $this->data);
     }
 
 }

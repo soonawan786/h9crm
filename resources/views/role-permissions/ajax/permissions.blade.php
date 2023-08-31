@@ -40,15 +40,16 @@
             @endif
 
             <td class="text-center bg-light border-left">
-                @if ($moduleData->custom_permissions_count > 0)
-                    <div class="p-2">
-                        <a href="javascript:;" data-module-id="{{ $moduleData->id }}"
-                           data-role-id="{{ $role->id }}"
-                           class="text-dark-grey show-custom-permission dropdown-toggle">
+                <div class="p-2">
+                    @if ($moduleData->custom_permissions_count > 0)
+                        <a href="javascript:;" data-module-id="{{ $moduleData->id }}" data-role-id="{{ $role->id }}"
+                            class="text-dark-grey show-custom-permission dropdown-toggle">
                             @lang('app.more') <i class="fa fa-chevron-down"></i>
                         </a>
-                    </div>
-                @endif
+                    @else
+                        &nbsp;
+                    @endif
+                </div>
             </td>
 
 

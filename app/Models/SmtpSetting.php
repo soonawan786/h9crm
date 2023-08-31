@@ -2,6 +2,9 @@
 
 namespace App\Models;
 
+use Symfony\Component\Mailer\Exception\TransportException;
+use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
+
 /**
  * App\Models\SmtpSetting
  *
@@ -34,9 +37,9 @@ namespace App\Models;
  * @method static \Illuminate\Database\Eloquent\Builder|SmtpSetting whereMailUsername($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SmtpSetting whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SmtpSetting whereVerified($value)
- * @mixin \Eloquent
  * @property string $mail_connection
  * @method static \Illuminate\Database\Eloquent\Builder|SmtpSetting whereMailConnection($value)
+ * @mixin \Eloquent
  */
 class SmtpSetting extends BaseModel
 {
@@ -55,12 +58,12 @@ class SmtpSetting extends BaseModel
         }
 
         try {
-            $transport = new \Swift_SmtpTransport($this->mail_host, $this->mail_port, $this->mail_encryption);
+
+            $tls = $this->mail_encryption === 'ssl';
+            $transport = new EsmtpTransport($this->mail_host, $this->mail_port, $tls);
             $transport->setUsername($this->mail_username);
             $transport->setPassword($this->mail_password);
-
-            $mailer = new \Swift_Mailer($transport);
-            $mailer->getTransport()->start();
+            $transport->start();
 
             if ($this->verified == 0) {
                 $this->verified = 1;
@@ -71,7 +74,7 @@ class SmtpSetting extends BaseModel
                 'success' => true,
                 'message' => __('messages.smtpSuccess')
             ];
-        } catch (\Swift_TransportException | \Exception $e) {
+        } catch (TransportException | \Exception $e) {
             $this->verified = 0;
             $this->save();
 

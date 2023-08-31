@@ -35,7 +35,7 @@
                         data-size="8">
                         <option value="all">@lang('app.all')</option>
                         @foreach ($departments as $department)
-                            <option value="{{ $department->id }}">{{ ucfirst($department->team_name) }}</option>
+                            <option value="{{ $department->id }}">{{ $department->team_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -47,7 +47,7 @@
                             data-size="8">
                         <option value="all">@lang('app.all')</option>
                         @foreach ($designations as $designation)
-                            <option value="{{ $designation->id }}">{{ ucfirst($designation->name) }}</option>
+                            <option value="{{ $designation->id }}">{{ $designation->name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -76,20 +76,6 @@
             </div>
         </div>
 
-        <div class="select-box d-flex py-2 px-lg-2 px-md-2 px-0 border-right-grey border-right-grey-sm-0">
-            <p class="mb-0 pr-2 f-14 text-dark-grey d-flex align-items-center">@lang('modules.attendance.late')</p>
-            <div class="select-status">
-                <select class="form-control select-picker" name="late" id="late">
-                    <option value="all">@lang('app.all')</option>
-                    <option @if (request('late') == 'yes')
-                        selected
-                        @endif value="yes">@lang('app.yes')</option>
-                    <option value="no">@lang('app.no')</option>
-                </select>
-            </div>
-        </div>
-
-
         <!-- RESET START -->
         <div class="select-box d-flex py-1 px-lg-2 px-md-2 px-0">
             <x-forms.button-secondary class="btn-xs d-none" id="reset-filters" icon="times-circle">
@@ -110,7 +96,7 @@ $addAttendancePermission = user()->permission('add_attendance');
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper px-4">
 
-        <div class="d-flex">
+        <div class="d-grid d-lg-flex d-md-flex action-bar">
 
             <div id="table-actions" class="flex-grow-1 align-items-center">
                 @if ($addAttendancePermission == 'all' || $addAttendancePermission == 'added')
@@ -126,14 +112,14 @@ $addAttendancePermission = user()->permission('add_attendance');
                 @endif
 
                 @if ($addAttendancePermission == 'all' || $addAttendancePermission == 'added')
-                    <x-forms.link-secondary :link="route('attendances.import')" class="mr-3 openRightModal float-left"
+                    <x-forms.link-secondary :link="route('attendances.import')" class="mr-3 openRightModal float-left d-none d-lg-block"
                         icon="file-upload">
                         @lang('app.importExcel')
                     </x-forms.link-secondary>
                 @endif
             </div>
 
-            <div class="btn-group" role="group">
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group">
                 <a href="{{ route('attendances.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
                     data-original-title="@lang('app.summary')"><i class="side-icon bi bi-list-ul"></i></a>
 
@@ -159,7 +145,9 @@ $addAttendancePermission = user()->permission('add_attendance');
             <div class="row">
                 <div class="col-md-12">
                     <span class="f-w-500 mr-1">@lang('app.note'):</span> <i class="fa fa-star text-warning"></i> <i
-                        class="fa fa-arrow-right text-lightest f-11 mx-1"></i> @lang('app.menu.holiday') &nbsp;|&nbsp; <i
+                        class="fa fa-arrow-right text-lightest f-11 mx-1"></i> @lang('app.menu.holiday') &nbsp;|&nbsp;<i
+                        class="fa fa-calendar-week text-red"></i> <i class="fa fa-arrow-right text-lightest f-11 mx-1"></i>
+                    @lang('modules.attendance.dayOff') &nbsp;|&nbsp; <i
                         class="fa fa-times text-lightest"></i> <i class="fa fa-arrow-right text-lightest f-11 mx-1"></i>
                     @lang('modules.attendance.absent')
                 </div>
@@ -177,7 +165,7 @@ $addAttendancePermission = user()->permission('add_attendance');
 
 @push('scripts')
     <script>
-        $('#user_id, #department, #month, #year, #late, #designation').on('change', function() {
+        $('#user_id, #department, #month, #year, #designation').on('change', function() {
             if ($('#user_id').val() != "all") {
                 $('#reset-filters').removeClass('d-none');
                 showTable();
@@ -191,9 +179,6 @@ $addAttendancePermission = user()->permission('add_attendance');
                 $('#reset-filters').removeClass('d-none');
                 showTable();
             } else if ($('#year').val() != "all") {
-                $('#reset-filters').removeClass('d-none');
-                showTable();
-            } else if ($('#late').val() != "all") {
                 $('#reset-filters').removeClass('d-none');
                 showTable();
             } else {
@@ -217,7 +202,6 @@ $addAttendancePermission = user()->permission('add_attendance');
             var userId = $('#user_id').val();
             var department = $('#department').val();
             var designation = $('#designation').val();
-            var late = $('#late').val();
 
             //refresh counts
             var url = "{{ route('attendances.by_hour') }}";
@@ -231,7 +215,6 @@ $addAttendancePermission = user()->permission('add_attendance');
                     month: month,
                     department: department,
                     designation: designation,
-                    late: late,
                     userId: userId
                 },
                 url: url,
@@ -271,7 +254,6 @@ $addAttendancePermission = user()->permission('add_attendance');
         });
 
         function editAttendance(id) {
-
             var url = "{{ route('attendances.edit', [':id']) }}";
             url = url.replace(':id', id);
 
@@ -279,23 +261,18 @@ $addAttendancePermission = user()->permission('add_attendance');
             $.ajaxModal(MODAL_LG, url);
         }
 
-
-
-
         showTable(false);
 
         $('#export-all').click(function() {
             var year = $('#year').val();
             var month = $('#month').val();
-            var late = $('#late').val();
             var department = $('#department').val();
             var designation = $('#designation').val();
             var userId = $('#user_id').val();
 
             var url =
-                "{{ route('attendances.export_all_attendance', [':year', ':month', ':userId', ':late', ':department', ':designation']) }}";
-            url = url.replace(':year', year).replace(':month', month).replace(':userId', userId).replace(':late',
-                late).replace(':department', department).replace(':designation', designation);
+                "{{ route('attendances.export_all_attendance', [':year', ':month', ':userId', ':department', ':designation']) }}";
+            url = url.replace(':year', year).replace(':month', month).replace(':userId', userId).replace(':department', department).replace(':designation', designation);
             window.location.href = url;
 
         });

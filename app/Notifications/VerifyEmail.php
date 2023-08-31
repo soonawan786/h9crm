@@ -8,6 +8,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\HtmlString;
 
 class VerifyEmail extends BaseNotification
 {
@@ -42,6 +43,7 @@ class VerifyEmail extends BaseNotification
             $this->company = $user->company;
         }
 
+        URL::forceRootUrl(getDomainSpecificUrl(request()->root(), $this->company));
         $this->verificationUrl = $this->verificationUrl($notifiable);
 
         return ['mail'];
@@ -56,11 +58,18 @@ class VerifyEmail extends BaseNotification
     public function toMail($notifiable)
     {
 
-        if (static::$toMailCallback) {
-            return call_user_func(static::$toMailCallback, $notifiable, $this->verificationUrl);
-        }
+        $this->company = $notifiable->company;
 
-        return $this->buildMailMessage($this->verificationUrl);
+        $emailVerifyCode = '<p style="color:#1d82f5"><strong>' . $notifiable->email_verification_code . '</strong></p>';
+
+        $content = __('superadmin.emailVerificationCode.line1') . '<br>' . new HtmlString($emailVerifyCode) . '<br>' . __('superadmin.emailVerificationCode.line2');
+
+        return parent::build()
+            ->subject(Lang::get('Email verification code') . ' ' . config('app.name'))
+            ->markdown('mail.email', [
+                'content' => $content,
+                'notifiableName' => $notifiable->name
+            ]);
     }
 
     /**
@@ -71,8 +80,6 @@ class VerifyEmail extends BaseNotification
      */
     protected function buildMailMessage($url)
     {
-        $url = getDomainSpecificUrl($url, $this->company);
-
         return $this->build()
             ->subject(Lang::get('Verify Email Address'))
             ->line(Lang::get('Please click the button below to verify your email address.'))

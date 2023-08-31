@@ -25,7 +25,7 @@ $addProjectCategoryPermission = user()->permission('manage_project_category');
                                         data-live-search="true">
                                     <option value="">--</option>
                                     @foreach ($categories as $category)
-                                        <option value="{{ $category->id }}">{{ mb_ucwords($category->category_name) }}
+                                        <option value="{{ $category->id }}">{{ $category->category_name }}
                                         </option>
                                     @endforeach
                                 </select>

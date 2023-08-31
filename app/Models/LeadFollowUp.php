@@ -28,7 +28,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|LeadFollowUp whereNextFollowUpDate($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadFollowUp whereRemark($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadFollowUp whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property string|null $event_id
  * @method static \Illuminate\Database\Eloquent\Builder|LeadFollowUp whereEventId($value)
  * @property string|null $send_reminder
@@ -38,12 +37,18 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|LeadFollowUp whereRemindType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadFollowUp whereSendReminder($value)
  * @property-read \App\Models\User|null $addedBy
+ * @property string|null $status
+ * @method static \Illuminate\Database\Eloquent\Builder|LeadFollowUp whereStatus($value)
+ * @mixin \Eloquent
  */
 class LeadFollowUp extends BaseModel
 {
 
     protected $table = 'lead_follow_up';
-    protected $dates = ['next_follow_up_date', 'created_at'];
+    protected $casts = [
+        'next_follow_up_date' => 'datetime',
+        'created_at' => 'datetime',
+    ];
 
     public function lead(): BelongsTo
     {

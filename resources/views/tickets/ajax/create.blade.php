@@ -2,6 +2,7 @@
     $manageTypePermission = user()->permission('manage_ticket_type');
     $manageAgentPermission = user()->permission('manage_ticket_agent');
     $manageChannelPermission = user()->permission('manage_ticket_channel');
+    $manageGroupPermission = user()->permission('manage_ticket_groups');
 @endphp
 
 <link rel="stylesheet" href="{{ asset('vendor/css/dropzone.min.css') }}">
@@ -17,7 +18,7 @@
                 <div class="row p-20">
                     @if (!in_array('client', user_roles()))
                         @if ($addPermission == 'all')
-                            @if (!(isset($client)) && !(isset($employee)))
+                            @if (!(isset($client)) && !(isset($employee)) && in_array('clients', user_modules()) && in_array('employees', user_modules()))
                                 <div class="col-md-4">
                                     <div class="form-group my-3">
                                         <x-forms.label fieldId="requester-client"
@@ -33,15 +34,19 @@
                                         </div>
                                     </div>
                                 </div>
+                            @elseif(!in_array('employees', user_modules()))
+                                <input type="hidden" name="requester_type" id="requester_type" value="client">
+                            @elseif(!in_array('clients', user_modules()))
+                                <input type="hidden" name="requester_type" id="requester_type" value="employee">
                             @endif
+                            <input type = "hidden" name = "mention_user_ids" id = "mentionUserId" class ="mention_user_ids">
 
-                            <div class="col-md-4  @if (isset($employee)) d-none @endif " id="client-requester">
+                            <div class="col-md-4  @if (isset($employee) || !in_array('clients', user_modules())) d-none @endif " id="client-requester">
                                 @if (isset($client) && !is_null($client))
-                                    <x-forms.label fieldId="requester-client"
+                                    <x-forms.label fieldId="requester-client" class="mt-3"
                                                    :fieldLabel="__('modules.tickets.requesterName')"/>
                                     <input type="hidden" name="client_id" id="client_id" value="{{ $client->id }}">
-                                    <input type="hidden" name="requester_type" id="requester_type" value="client">
-                                    <input type="text" value="{{ ucfirst($client->name) }}"
+                                    <input type="text" value="{{ $client->name }}"
                                            class="form-control height-35 f-15 readonly-background" readonly>
                                 @else
                                     <x-forms.select fieldId="client_id"
@@ -50,20 +55,19 @@
                                                     search="true" alignRight="true" fieldRequired="true">
                                         <option value="">--</option>
                                         @foreach ($clients as $client)
-                                            <x-user-option :user="$client"/>
+                                            <x-user-option :user="$client" :additionalText="$client->clientDetails->company_name" />
                                         @endforeach
                                     </x-forms.select>
                                 @endif
                             </div>
 
-                            <div class="col-md-4 @if (!(isset($employee))) d-none @endif" id="employee-requester">
+                            <div class="col-md-4 @if (!(isset($employee)) && in_array('clients', user_modules())) d-none @endif" id="employee-requester">
                                 @if(isset($employee) && !is_null($employee))
                                     <x-forms.label class="my-3" fieldId="requestuser_id"
                                                    :fieldLabel="__('modules.tickets.requesterName')"
                                                    fieldRequired="true">
                                     </x-forms.label>
                                     <input type="hidden" name="user_id" id="user_id" value="{{ $employee->id }}">
-                                    <input type="hidden" name="requester_type" id="requester_type" value="employee">
                                     <input type="text" value="{{ $employee->name }}"
                                            class="form-control height-35 f-15 readonly-background" readonly>
                                 @else
@@ -76,7 +80,7 @@
                                                 data-live-search="true" data-size="8">
                                             <option value="">--</option>
                                             @foreach ($employees as $employee)
-                                                <x-user-option :user="$employee"/>
+                                                <x-user-option :user="$employee" />
                                             @endforeach
                                         </select>
                                     </x-forms.input-group>
@@ -90,8 +94,57 @@
                         <input type="hidden" name="requester_type" value="client">
                         <input type="hidden" name="client_id" value="{{ user()->id }}">
                     @endif
+                    <div class="col-md-4 assign_group">
+                        <x-forms.label class="mt-3" fieldId="ticket_group" fieldRequired="true"
+                            :fieldLabel="__('modules.tickets.assignGroup')">
+                        </x-forms.label>
+                        <x-forms.input-group>
+                            <select class="form-control select-picker" id="ticket_group" name="group_id"
+                                data-live-search="true">
+                                @foreach ($groups as $group)
+                                    <option value="{{ $group->id }}">{{ $group->group_name }}</option>
+                                @endforeach
+                            </select>
+                            @if($manageGroupPermission == 'all')
+                                <x-slot name="append">
+                                    <button id="manage-groups" type="button"
+                                        class="btn btn-outline-secondary border-grey">@lang('app.add')</button>
+                                </x-slot>
+                            @endif
+                        </x-forms.input-group>
+                    </div>
 
+                    @if (!in_array('client', user_roles()))
+                        <div class="col-md-6 col-lg-3">
+                            <x-forms.label class="mt-3" fieldId="ticket_agent_id" :fieldLabel="__('modules.tickets.agent')">
+                            </x-forms.label>
+                            <x-forms.input-group>
+                                <select class="form-control select-picker" name="agent_id" id="ticket_agent_id"
+                                        data-live-search="true" data-size="8">
+                                    <option value="">--</option>
+                                    @foreach ($groups as $group)
+                                        @if (count($group->enabledAgents) > 0)
+                                            <optgroup label="{{ $group->group_name }}">
+                                                @foreach ($group->enabledAgents as $agent)
 
+                                                    <x-user-option :user="$agent->user" :agent="true"></x-user-option>
+
+                                                @endforeach
+                                            </optgroup>
+                                        @endif
+                                    @endforeach
+                                </select>
+                                @if ($manageAgentPermission == 'all')
+                                    <x-slot name="append">
+                                        <button id="add-agent" type="button"
+                                                class="btn btn-outline-secondary border-grey"
+                                                data-toggle="tooltip" data-original-title="{{ __('app.addNew').' '.__('modules.tickets.agent') }}">@lang('app.add')</button>
+                                    </x-slot>
+                                @endif
+                            </x-forms.input-group>
+                        </div>
+
+                    @endif
                     <div class="col-md-12">
                         <x-forms.text :fieldLabel="__('modules.tickets.ticketSubject')" fieldName="subject"
                                       fieldRequired="true" fieldId="subject"/>
@@ -116,8 +169,8 @@
                 <div class="row px-4">
                     <div class="col-md-12">
                         <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2 upload-section d-none"
-                                               :fieldLabel="__('app.add') . ' ' . __('app.file')"
-                                               fieldName="file" fieldId="task-file-upload-dropzone"/>
+                                               :fieldLabel="__('app.menu.addFile')"
+                                               fieldName="file" fieldId="ticket-file-upload-dropzone"/>
                         <input type="hidden" name="image_url" id="image_url">
                     </div>
 
@@ -130,49 +183,21 @@
 
                 <div class="row p-20 d-none" id="other-details">
 
-                    @if (!in_array('client', user_roles()))
-                        <div class="col-md-6 col-lg-3">
-                            <x-forms.label class="mt-3" fieldId="agent_id" :fieldLabel="__('modules.tickets.agent')">
-                            </x-forms.label>
-                            <x-forms.input-group>
-                                <select class="form-control select-picker" name="agent_id" id="agent_id"
-                                        data-live-search="true" data-size="8">
-                                    <option value="">--</option>
-                                    @foreach ($groups as $group)
-                                        @if (count($group->enabledAgents) > 0)
-                                            <optgroup label="{{ mb_ucwords($group->group_name) }}">
-                                                @foreach ($group->enabledAgents as $agent)
-
-                                                    <x-user-option :user="$agent->user" :agent="true"></x-user-option>
-
-                                                @endforeach
-                                            </optgroup>
-                                        @endif
-                                    @endforeach
-                                </select>
-                                @if ($manageAgentPermission == 'all')
-                                    <x-slot name="append">
-                                        <button id="add-agent" type="button"
-                                                class="btn btn-outline-secondary border-grey"
-                                                data-toggle="tooltip" data-original-title="{{ __('app.addNew').' '.__('modules.tickets.agent') }}">@lang('app.add')</button>
-                                    </x-slot>
-                                @endif
-                            </x-forms.input-group>
-                        </div>
-
-                    @endif
-
-                    <div class="col-md-6 col-lg-3">
+                    <div class="col-md-6 col-lg-4">
                         <x-forms.select fieldId="priority" :fieldLabel="__('modules.tasks.priority')"
                                         fieldName="priority">
-                            <option value="low">@lang('app.low')</option>
-                            <option value="medium">@lang('app.medium')</option>
-                            <option value="high">@lang('app.high')</option>
-                            <option value="urgent">@lang('app.urgent')</option>
+                            <option data-content="<i class='fa fa-circle mr-2 text-dark-green'></i> {{ __('app.low')}}"
+                                value="low">{{ __('app.low') }}</option>
+                            <option data-content="<i class='fa fa-circle mr-2 text-blue'></i> {{ __('app.medium')}}"
+                                value="medium">@lang('app.medium')</option>
+                            <option data-content="<i class='fa fa-circle mr-2 text-warning'></i> {{ __('app.high')}}"
+                                value="high">@lang('app.high')</option>
+                            <option data-content="<i class='fa fa-circle mr-2 text-red'></i> {{ __('app.urgent')}}"
+                                value="urgent">@lang('app.urgent')</option>
                         </x-forms.select>
                     </div>
 
-                    <div class="col-md-6 col-lg-3">
+                    <div class="col-md-6 col-lg-4">
                         <x-forms.label class="my-3" fieldId="ticket_type_id" :fieldLabel="__('modules.invoices.type')">
                         </x-forms.label>
                         <x-forms.input-group>
@@ -180,7 +205,7 @@
                                     data-live-search="true" data-size="8">
                                 <option value="">--</option>
                                 @foreach ($types as $type)
-                                    <option value="{{ $type->id }}">{{ mb_ucwords($type->type) }}</option>
+                                    <option value="{{ $type->id }}">{{ $type->type }}</option>
                                 @endforeach
                             </select>
                             @if ($manageTypePermission == 'all')
@@ -193,7 +218,7 @@
                         </x-forms.input-group>
                     </div>
 
-                    <div class="col-md-6 col-lg-3">
+                    <div class="col-md-6 col-lg-4">
                         <x-forms.label class="my-3" fieldId="ticket_channel_id"
                                        :fieldLabel="__('modules.tickets.channelName')">
                         </x-forms.label>
@@ -202,7 +227,7 @@
                                     data-live-search="true" data-size="8">
                                 <option value="">--</option>
                                 @foreach ($channels as $channel)
-                                    <option value="{{ $channel->id }}">{{ mb_ucwords($channel->channel_name) }}
+                                    <option value="{{ $channel->id }}">{{ $channel->channel_name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -249,9 +274,47 @@
             window.scrollTo(0, document.body.scrollHeight);
         });
 
-        Dropzone.autoDiscover = false;
+        getAgents($('#ticket_group').val());
+
+        function getAgents(groupId){
+            var url = "{{ route('tickets.agent_group', ':id')}}";
+            url = url.replace(':id', groupId);
+            $.easyAjax({
+                url: url,
+                type: "GET",
+                success: function(response)
+                {
+                    var userValues = (response.groupData);
+                    destory_editor('#description');
+                    quillMention(userValues, '#description');
+                    var options = [];
+                    var rData = [];
+                    if($.isArray(response.data))
+                    {
+                        rData = response.data;
+                        $.each(rData, function(index, value) {
+                            var selectData = '';
+                            options.push(value);
+                        });
+
+                        $('#ticket_agent_id').html('<option value="">--</option>' + options);
+                    }
+                    else
+                    {
+                        $('#ticket_agent_id').html(response.data);
+                    }
+                    $('#ticket_agent_id').selectpicker('refresh');
+                }
+            });
+        }
+
+        $('#ticket_group').change(function(){
+            var id = $(this).val();
+            getAgents(id)
+        })
+
         //Dropzone class
-        var taskDropzone = new Dropzone("div#task-file-upload-dropzone", {
+        var ticketDropzone = new Dropzone("div#ticket-file-upload-dropzone", {
             dictDefaultMessage: "{{ __('app.dragDrop') }}",
             url: "{{ route('ticket-files.store') }}",
             headers: {
@@ -259,34 +322,55 @@
             },
             paramName: "file",
             maxFilesize: DROPZONE_MAX_FILESIZE,
-            maxFiles: 10,
+            maxFiles: DROPZONE_MAX_FILES,
             autoProcessQueue: false,
             uploadMultiple: true,
             addRemoveLinks: true,
-            parallelUploads: 10,
+            parallelUploads: DROPZONE_MAX_FILES,
             acceptedFiles: DROPZONE_FILE_ALLOW,
             init: function () {
-                taskDropzone = this;
+                ticketDropzone = this;
             }
         });
-        taskDropzone.on('sending', function (file, xhr, formData) {
+        ticketDropzone.on('sending', function (file, xhr, formData) {
             var ids = $('#replyID').val();
             formData.append('ticket_reply_id', ids);
             $.easyBlockUI();
         });
-        taskDropzone.on('uploadprogress', function () {
+        ticketDropzone.on('uploadprogress', function () {
             $.easyBlockUI();
         });
-        taskDropzone.on('completemultiple', function () {
+        ticketDropzone.on('queuecomplete', function () {
             var msgs = "@lang('messages.addDiscussion')";
             window.location.href = "{{ route('tickets.index') }}";
+        });
+        ticketDropzone.on('removedfile', function () {
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).removeClass("has-error");
+            $(label).removeClass("is-invalid");
+        });
+        ticketDropzone.on('error', function (file, message) {
+            ticketDropzone.removeFile(file);
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).find(".help-block").remove();
+            var helpBlockContainer = $(grp);
+
+            if (helpBlockContainer.length == 0) {
+                helpBlockContainer = $(grp);
+            }
+
+            helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+            $(grp).addClass("has-error");
+            $(label).addClass("is-invalid");
+
         });
 
         var input = document.querySelector('input[name=tags]'),
             // init Tagify script on the above inputs
             tagify = new Tagify(input);
 
-        quillImageLoad('#description');
 
         $("input[name=requester_type]").click(function () {
             $('#client-requester, #employee-requester').toggleClass('d-none');
@@ -295,8 +379,8 @@
         /* open add agent modal */
         $('body').on('click', '#add-agent', function () {
             var url = "{{ route('ticket-agents.create') }}";
-            $(MODAL_XL + ' ' + MODAL_HEADING).html('...');
-            $.ajaxModal(MODAL_XL, url);
+            $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
+            $.ajaxModal(MODAL_LG, url);
         });
 
         /* open add agent modal */
@@ -316,6 +400,10 @@
         $('#save-ticket-form').click(function () {
             var note = document.getElementById('description').children[0].innerHTML;
             document.getElementById('description-text').value = note;
+            var mention_user_id = $('#description span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
+            $('#mentionUserId').val(mention_user_id.join(','));
 
             const url = "{{ route('tickets.store') }}";
 
@@ -325,13 +413,14 @@
                 type: "POST",
                 disableButton: true,
                 blockUI: true,
+                file: true,
                 buttonSelector: "#save-ticket-form",
                 data: $('#save-ticket-data-form').serialize(),
                 success: function (response) {
                     if (response.status == 'success') {
-                        if (taskDropzone.getQueuedFiles().length > 0) {
+                        if (ticketDropzone.getQueuedFiles().length > 0) {
                             $('#replyID').val(response.replyID);
-                            taskDropzone.processQueue();
+                            ticketDropzone.processQueue();
                         } else {
                             window.location.href = response.redirectUrl;
                         }
@@ -416,6 +505,12 @@
                     }
                 }
             });
+        });
+
+        $('#manage-groups').click(function() {
+            var url = "{{ route('ticket-groups.create') }}";
+            $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
+            $.ajaxModal(MODAL_LG, url);
         });
 
         init(RIGHT_MODAL);

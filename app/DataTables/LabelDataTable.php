@@ -102,14 +102,4 @@ class LabelDataTable extends BaseDataTable
         ];
     }
 
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'taskLabelList_' .now()->format('Y-m-d-H-i-s');
-    }
-
 }

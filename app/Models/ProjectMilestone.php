@@ -42,16 +42,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectMilestone whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectMilestone whereSummary($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectMilestone whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property \Illuminate\Support\Carbon|null $start_date
  * @property \Illuminate\Support\Carbon|null $end_date
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectMilestone whereEndDate($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectMilestone whereStartDate($value)
+ * @mixin \Eloquent
  */
 class ProjectMilestone extends BaseModel
 {
 
-    protected $dates = ['start_date', 'end_date'];
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+    ];
 
     public function currency(): BelongsTo
     {

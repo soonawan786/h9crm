@@ -14,7 +14,7 @@ class LeadCustomFormController extends AccountBaseController
         parent::__construct();
         $this->pageTitle = 'modules.lead.leadForm';
         $this->middleware(function ($request, $next) {
-            abort_403(!in_array('leads', $this->modules));
+            abort_403(!in_array('leads', $this->user->modules));
             return $next($request);
         });
     }

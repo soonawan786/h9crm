@@ -23,7 +23,7 @@ class TicketReplyObserver
     public function created(TicketReply $ticketReply)
     {
         $ticketReply->ticket->touch();
-        $ticketEmailSetting = TicketEmailSetting::first();
+        $ticketEmailSetting = TicketEmailSetting::where('company_id', $ticketReply->ticket->company_id)->first();
 
         if (isRunningInConsoleOrSeeding()) {
             return true;
@@ -40,22 +40,22 @@ class TicketReplyObserver
                 }
 
                 if (smtp_setting()->mail_connection == 'database') {
-                    Mail::to($toEmail)->queue(new MailTicketReply($ticketReply));
+                    Mail::to($toEmail)->queue(new MailTicketReply($ticketReply, $ticketEmailSetting));
 
                 }
                 else {
-                    Mail::to($toEmail)->send(new MailTicketReply($ticketReply));
+                    Mail::to($toEmail)->send(new MailTicketReply($ticketReply, $ticketEmailSetting));
                 }
 
             } else if(!in_array('client', user_roles())) {
                 $toEmail = $ticketReply->ticket->client->email;
 
                 if (smtp_setting()->mail_connection == 'database') {
-                    Mail::to($toEmail)->queue(new MailTicketReply($ticketReply));
+                    Mail::to($toEmail)->queue(new MailTicketReply($ticketReply, $ticketEmailSetting));
 
                 }
                 else {
-                    Mail::to($toEmail)->send(new MailTicketReply($ticketReply));
+                    Mail::to($toEmail)->send(new MailTicketReply($ticketReply, $ticketEmailSetting));
                 }
             }
 

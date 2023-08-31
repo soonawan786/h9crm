@@ -270,7 +270,7 @@
         <tbody>
             <!-- Table Row Start -->
             <tr>
-                <td><img src="{{ invoice_setting()->logo_url }}" alt="{{ mb_ucwords(global_setting()->company_name) }}"
+                <td><img src="{{ invoice_setting()->logo_url }}" alt="{{ global_setting(->company_name) }}"
                         id="logo" /></td>
                 <td align="right" class="f-21 text-black font-weight-700 text-uppercase">@lang('modules.lead.proposalTemplate')
                 </td>
@@ -280,7 +280,7 @@
             <tr>
                 <td>
                     <p class="line-height mt-1 mb-0 f-14 text-black">
-                        {{ mb_ucwords(global_setting()->company_name) }}<br>
+                        {{ global_setting()->company_name }}<br>
                         @if (!is_null($settings))
                             {!! nl2br(default_address()->address) !!}<br>
                             {{ global_setting()->company_phone }}
@@ -326,7 +326,7 @@
             @if ($invoiceSetting->hsn_sac_code_show)
                 <td align="right" width="10%">@lang("app.hsnSac")</td>
             @endif
-            <td align="right" width="10%">{{ucwords($proposalTemplate->units->unit_type)}}</td>
+            <td align="right" width="10%">@lang('modules.invoices.qty')</td>
             <td align="right">@lang("modules.invoices.unitPrice")</td>
             <td align="right">@lang("modules.invoices.tax")</td>
             <td align="right" width="{{ $invoiceSetting->hsn_sac_code_show ? '17%' : '20%' }}">@lang("modules.invoices.amount")
@@ -337,11 +337,11 @@
             @if ($item->type == 'item')
                 <!-- Table Row Start -->
                 <tr class="main-table-items text-black f-14">
-                    <td width="40%" class="border-bottom-0">{{ ucfirst($item->item_name) }}</td>
+                    <td width="40%" class="border-bottom-0">{{ $item->item_name }}</td>
                     @if ($invoiceSetting->hsn_sac_code_show)
                         <td align="right" class="border-bottom-0" width="10%">{{ $item->hsn_sac_code ? $item->hsn_sac_code : '--' }}</td>
                     @endif
-                    <td align="right" class="border-bottom-0" width="10%">{{ $item->quantity }}</td>
+                    <td align="right" class="border-bottom-0" width="10%">{{ $item->quantity }}<br><span class="f-11 text-grey">{{ $item->unit->unit_type }}</td>
                     <td align="right" class="border-bottom-0">{{ currency_format($item->unit_price, $proposalTemplate->currency_id, false) }}</td>
                     <td align="right" class="border-bottom-0">{{ $item->tax_list }}</td>
                     <td align="right" class="border-bottom-0">{{ currency_format($item->amount, $proposalTemplate->currency_id, false) }}</td>
@@ -382,7 +382,7 @@
                     @foreach ($taxes as $key => $tax)
                         <!-- Table Row Start -->
                         <tr align="right" class="text-grey">
-                            <td width="50%" class="subtotal">{{ mb_strtoupper($key) }}</td>
+                            <td width="50%" class="subtotal">{{ $key }}</td>
                         </tr>
                         <!-- Table Row End -->
                     @endforeach

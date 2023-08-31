@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\DataTables\LeadFollowupDataTable;
 use Carbon\Carbon;
 use App\Models\Lead;
 use App\Helper\Reply;
@@ -31,6 +32,7 @@ use App\Models\LeadCustomForm;
 use App\Models\LeadNote;
 use App\Models\LeadProduct;
 use App\Models\Product;
+use App\Models\User;
 use App\Traits\ImportExcel;
 
 class LeadController extends AccountBaseController
@@ -120,7 +122,7 @@ class LeadController extends AccountBaseController
             || ($this->viewPermission == 'both' && ($this->lead->added_by == user()->id || $leadAgentId == user()->id))
         ));
 
-        $this->pageTitle = ucfirst($this->lead->client_name);
+        $this->pageTitle = $this->lead->client_name;
 
         $this->categories = LeadCategory::all();
 
@@ -130,7 +132,7 @@ class LeadController extends AccountBaseController
 
         $this->leadId = $id;
 
-        if (!empty($this->lead->getCustomFieldGroupsWithFields())) {
+        if ($this->lead->getCustomFieldGroupsWithFields()) {
             $this->fields = $this->lead->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -144,8 +146,7 @@ class LeadController extends AccountBaseController
             $this->view = 'leads.ajax.files';
                 break;
         case 'follow-up':
-            $this->view = 'leads.ajax.follow-up';
-                break;
+            return $this->leadFollowup();
         case 'proposals':
                 return $this->proposals();
         case 'notes':
@@ -201,7 +202,7 @@ class LeadController extends AccountBaseController
 
         $lead = new Lead();
 
-        if (!empty($lead->getCustomFieldGroupsWithFields())) {
+        if ($lead->getCustomFieldGroupsWithFields()) {
             $this->fields = $lead->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -233,29 +234,39 @@ class LeadController extends AccountBaseController
         $this->addPermission = user()->permission('add_lead');
 
         abort_403(!in_array($this->addPermission, ['all', 'added']));
-        $lead = new Lead();
-        $lead->company_name = $request->company_name;
-        $lead->website = $request->website;
-        $lead->address = $request->address;
-        $lead->cell = $request->cell;
-        $lead->office = $request->office;
-        $lead->city = $request->city;
-        $lead->state = $request->state;
-        $lead->country = $request->country;
-        $lead->postal_code = $request->postal_code;
-        $lead->salutation = $request->salutation;
-        $lead->client_name = $request->client_name;
-        $lead->client_email = $request->client_email;
-        $lead->mobile = $request->mobile;
-        $lead->note = trim_editor($request->note);
-        $lead->next_follow_up = $request->next_follow_up;
-        $lead->agent_id = $request->agent_id;
-        $lead->source_id = $request->source_id;
-        $lead->category_id = $request->category_id;
-        $lead->status_id = $request->status;
-        $lead->value = ($request->value) ?: 0;
-        $lead->currency_id = $this->company->currency_id;
-        $lead->save();
+
+        $existingUser = User::select('id')
+            ->whereHas('roles', function ($q) {
+                        $q->where('name', 'client');
+            })->where('company_id', company()->id)
+            ->where('email', $request->client_email)
+            ->whereNotNull('email')
+            ->first();
+
+            $lead = new Lead();
+            $lead->company_name = $request->company_name;
+            $lead->website = $request->website;
+            $lead->address = $request->address;
+            $lead->cell = $request->cell;
+            $lead->office = $request->office;
+            $lead->city = $request->city;
+            $lead->state = $request->state;
+            $lead->country = $request->country;
+            $lead->postal_code = $request->postal_code;
+            $lead->salutation = $request->salutation;
+            $lead->client_name = $request->client_name;
+            $lead->client_email = $request->client_email;
+            $lead->mobile = $request->mobile;
+            $lead->note = trim_editor($request->note);
+            $lead->next_follow_up = $request->next_follow_up;
+            $lead->agent_id = $request->agent_id;
+            $lead->source_id = $request->source_id;
+            $lead->category_id = $request->category_id;
+            $lead->client_id = $existingUser?->id;
+            $lead->status_id = $request->status;
+            $lead->value = ($request->value) ?: 0;
+            $lead->currency_id = $this->company->currency_id;
+            $lead->save();
 
         if (!is_null($request->product_id)) {
 
@@ -270,26 +281,13 @@ class LeadController extends AccountBaseController
             }
         }
 
-        $lead_id = $lead->latest()->first()->id;
-
-        $note_detail = trim_editor($request->note);
-
-        if($note_detail != '') {
-            $lead_notes = new LeadNote();
-            $lead_notes->lead_id = $lead_id;
-            $lead_notes->title = 'Note';
-            $lead_notes->details = $note_detail;
-            $lead_notes->save();
-
-        }
-
         // To add custom fields data
         if ($request->custom_fields_data) {
             $lead->updateCustomFieldData($request->custom_fields_data);
         }
 
-        // Log search
-        $this->logSearchEntry($lead->id, $lead->client_name, 'leads.show', 'lead');
+            // Log search
+            $this->logSearchEntry($lead->id, $lead->client_name, 'leads.show', 'lead');
 
         if ($lead->client_email) {
             $this->logSearchEntry($lead->id, $lead->client_email, 'leads.show', 'lead');
@@ -299,7 +297,7 @@ class LeadController extends AccountBaseController
             $this->logSearchEntry($lead->id, $lead->company_name, 'leads.show', 'lead');
         }
 
-        $redirectUrl = urldecode($request->redirect_url);
+            $redirectUrl = urldecode($request->redirect_url);
 
         if($request->add_more == 'true')
         {
@@ -341,7 +339,7 @@ class LeadController extends AccountBaseController
             $q->where('status', 'active');
         })->get();
 
-        if (!empty($this->lead->getCustomFieldGroupsWithFields())) {
+        if ($this->lead->getCustomFieldGroupsWithFields()) {
             $this->fields = $this->lead->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -518,8 +516,19 @@ class LeadController extends AccountBaseController
 
         $this->leadID = $leadID;
         $this->lead = Lead::findOrFail($leadID);
+
         return view('leads.followup.create', $this->data);
 
+    }
+
+    public function leadFollowup()
+    {
+        $tab = request('tab');
+        $this->activeTab = $tab ?: 'overview';
+        $this->view = 'leads.ajax.follow-up';
+        $dataTable = new LeadFollowupDataTable();
+
+        return $dataTable->render('leads.show', $this->data);
     }
 
     /**
@@ -529,6 +538,7 @@ class LeadController extends AccountBaseController
      */
     public function followUpStore(FollowUpStoreRequest $request)
     {
+
         $this->lead = Lead::findOrFail($request->lead_id);
 
         $this->addPermission = user()->permission('add_lead_follow_up');
@@ -549,6 +559,7 @@ class LeadController extends AccountBaseController
         $followUp->send_reminder = $request->send_reminder;
         $followUp->remind_time = $request->remind_time;
         $followUp->remind_type = $request->remind_type;
+        $followUp->status = 'incomplete';
 
         $followUp->save();
 
@@ -587,6 +598,7 @@ class LeadController extends AccountBaseController
 
         $followUp->remark = $request->remark;
         $followUp->send_reminder = $request->send_reminder;
+        $followUp->status = $request->status;
         $followUp->remind_time = $request->remind_time;
         $followUp->remind_type = $request->remind_type;
 
@@ -722,8 +734,11 @@ class LeadController extends AccountBaseController
         $id = $request->id;
         $status = $request->status;
         $leadFollowUp = LeadFollowUp::find($id);
-        $leadFollowUp->status = $status;
-        $leadFollowUp->save();
+
+        if(!is_null($leadFollowUp)){
+            $leadFollowUp->status = $status;
+            $leadFollowUp->save();
+        }
 
         return Reply::success(__('messages.leadStatusChangeSuccess'));
 

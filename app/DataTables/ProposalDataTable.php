@@ -49,10 +49,12 @@ class ProposalDataTable extends BaseDataTable
 
                 $action .= '<a href="' . route('proposals.show', [$row->id]) . '" class="dropdown-item"><i class="fa fa-eye mr-2"></i>' . __('app.view') . '</a>';
 
-                $action .= '<a target="_blank" class="dropdown-item" href="' . route('front.proposal', $row->hash) . '">
-                                <i class="fa fa-link mr-2"></i>
-                                ' . __('modules.proposal.publicLink') . '
-                            </a>';
+                if ($row->send_status) {
+                    $action .= '<a target="_blank" class="dropdown-item" href="' . route('front.proposal', $row->hash) . '">
+                                    <i class="fa fa-link mr-2"></i>
+                                    ' . __('modules.proposal.publicLink') . '
+                                </a>';
+                }
 
                 $action .= '<a class="dropdown-item" href="' . route('proposals.download', [$row->id]) . '">
                                 <i class="fa fa-download mr-2"></i>
@@ -60,7 +62,7 @@ class ProposalDataTable extends BaseDataTable
                             </a>';
 
                 if (!$row->signature && $this->editProposalPermission == 'all' || ($this->editProposalPermission == 'added' && user()->id == $row->added_by)) {
-                    $action .= '<a class="dropdown-item openRightModal" href="' . route('proposals.edit', [$row->id]) . '">
+                    $action .= '<a class="dropdown-item" href="' . route('proposals.edit', [$row->id]) . '">
                                 <i class="fa fa-edit mr-2"></i>
                                 ' . trans('app.edit') . '
                             </a>';
@@ -71,6 +73,15 @@ class ProposalDataTable extends BaseDataTable
                             <i class="fa fa-paper-plane mr-2"></i>
                             ' . trans('app.send') . '
                         </a>';
+                }
+
+                if ($row->status != 'declined' && $row->send_status == 0) {
+                    $action .= '<a class="dropdown-item sendButton d-flex justify-content-between align-items-center" data-type="mark_as_send" href="javascript:;"  data-proposal-id="' . $row->id . '">
+                                    <div><i class="fa fa-check-double mr-2"></i>
+                                    ' . trans('app.markSent') . '
+                                    </div>
+                                    <i class="fa fa-question-circle" data-toggle="tooltip" data-original-title="'.__('messages.markSentInfo').'"></i>
+                                </a>';
                 }
 
                 if (($this->addInvoicePermission == 'all' || ($this->addInvoicePermission == 'added' && user()->id == $row->added_by))) {
@@ -91,22 +102,31 @@ class ProposalDataTable extends BaseDataTable
                 return $action;
             })
             ->editColumn('client_name', function ($row) {
-                return '<a href="' . route('leads.show', $row->lead_id) . '" class="text-darkest-grey">' . mb_ucwords($row->client_name) . '</a>';
+                return '<a href="' . route('leads.show', $row->lead_id) . '" class="text-darkest-grey">' . $row->client_name . '</a>';
             })
             ->addColumn('proposal_number', function ($row) {
-                return __('modules.lead.proposal').'#'.$row->id;
+                return '<a href="' . route('proposals.show', $row->id) . '" class="text-darkest-grey">' .__('modules.lead.proposal').'#'. $row->id . '</a>';
             })
             ->editColumn('status', function ($row) {
+                $status = '';
+
                 if ($row->status == 'waiting') {
-                    return ' <i class="fa fa-circle mr-1 text-yellow f-10"></i>' . __('modules.proposal.' . $row->status);
+                    $status = ' <i class="fa fa-circle mr-1 text-yellow f-10"></i>' . __('modules.proposal.' . $row->status);
                 }
 
                 if ($row->status == 'declined') {
-                    return ' <i class="fa fa-circle mr-1 text-red f-10"></i>' . __('modules.proposal.' . $row->status);
+                    $status = ' <i class="fa fa-circle mr-1 text-red f-10"></i>' . __('modules.proposal.' . $row->status);
                 }
-                else {
-                    return ' <i class="fa fa-circle mr-1 text-dark-green f-10"></i>' . __('modules.proposal.' . $row->status);
+
+                if ($row->status == 'accepted') {
+                    $status = ' <i class="fa fa-circle mr-1 text-dark-green f-10"></i>' . __('modules.proposal.' . $row->status);
                 }
+
+                if (!$row->send_status) {
+                    $status .= ' <span class="badge badge-secondary">' . __('modules.invoices.notSent') . '</span>';
+                }
+
+                return $status;
             })
             ->editColumn('total', function ($row) {
                 return currency_format($row->total, $row->currencyId);
@@ -123,14 +143,8 @@ class ProposalDataTable extends BaseDataTable
                     return Carbon::parse($row->created_at)->translatedFormat($this->company->date_format);
                 }
             )
-            ->rawColumns(['name', 'action', 'status', 'client_name'])
+            ->rawColumns(['name', 'action', 'status', 'client_name', 'proposal_number'])
             ->removeColumn('currency_symbol');
-    }
-
-    public function ajax()
-    {
-        return $this->dataTable($this->query())
-            ->make(true);
     }
 
     /**
@@ -139,7 +153,7 @@ class ProposalDataTable extends BaseDataTable
     public function query()
     {
         $request = $this->request();
-        $model = Proposal::select('proposals.id', 'proposals.hash', 'leads.client_name', 'leads.client_id', 'leads.id as lead_id', 'total', 'valid_till', 'proposals.status', 'currencies.currency_symbol', 'currencies.id as currencyId', 'leads.company_name', 'proposals.added_by')
+        $model = Proposal::select('proposals.id', 'proposals.hash', 'leads.client_name', 'proposals.send_status', 'leads.client_id', 'leads.id as lead_id', 'total', 'valid_till', 'proposals.status', 'currencies.currency_symbol', 'currencies.id as currencyId', 'leads.company_name', 'proposals.added_by', 'proposals.created_at')
             ->with('signature')
             ->join('currencies', 'currencies.id', '=', 'proposals.currency_id')
             ->join('leads', 'leads.id', 'proposals.lead_id');
@@ -199,7 +213,7 @@ class ProposalDataTable extends BaseDataTable
     protected function getColumns()
     {
         return [
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id'), 'visible' => false],
             __('modules.lead.proposal') => ['data' => 'proposal_number', 'name' => 'proposal_number', 'title' => __('modules.lead.proposal')],
             __('app.name') => ['data' => 'client_name', 'name' => 'client_name', 'title' => __('app.name')],
@@ -214,16 +228,6 @@ class ProposalDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Proposals_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

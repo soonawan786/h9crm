@@ -61,8 +61,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder|TaskSetting whereTimeEstimate($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskSetting whereTimeLogs($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskSetting whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read \App\Models\Company|null $company
+ * @mixin \Eloquent
  */
 class TaskSetting extends BaseModel
 {

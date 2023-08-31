@@ -69,7 +69,6 @@ use Illuminate\Support\Facades\DB;
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectTimeLog whereTotalMinutes($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectTimeLog whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectTimeLog whereUserId($value)
- * @mixin \Eloquent
  * @property-read \App\Models\User $user
  * @property string|null $total_break_minutes
  * @property-read \App\Models\ProjectTimeLogBreak|null $activeBreak
@@ -80,6 +79,8 @@ use Illuminate\Support\Facades\DB;
  * @property-read \App\Models\Company|null $company
  * @property-read mixed $extras
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectTimeLog whereCompanyId($value)
+ * @property-read mixed $hours_only
+ * @mixin \Eloquent
  */
 class ProjectTimeLog extends BaseModel
 {
@@ -88,7 +89,10 @@ class ProjectTimeLog extends BaseModel
     use CustomFieldsTrait;
     use HasCompany;
 
-    protected $dates = ['start_time', 'end_time'];
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+    ];
 
     protected $with = ['breaks'];
 
@@ -127,7 +131,7 @@ class ProjectTimeLog extends BaseModel
         return $this->hasOne(ProjectTimeLogBreak::class, 'project_time_log_id')->whereNull('end_time');
     }
 
-    protected $appends = ['hours', 'duration', 'timer'];
+    protected $appends = ['hours', 'duration', 'timer', 'hours_only'];
 
     public function getDurationAttribute()
     {
@@ -142,18 +146,45 @@ class ProjectTimeLog extends BaseModel
 
     public function getHoursAttribute()
     {
-        $totalMinutes = $this->total_minutes;
-        $totalMinutes = $totalMinutes - $this->breaks->sum('total_minutes');
+        if (is_null($this->end_time)) {
+
+            $totalMinutes = (($this->activeBreak) ? $this->activeBreak->start_time->diffInMinutes($this->start_time) : now()->diffInMinutes($this->start_time)) - $this->breaks->sum('total_minutes');
+
+        }
+        else {
+            $totalMinutes = $this->total_minutes - $this->breaks->sum('total_minutes');
+        }
 
         /** @phpstan-ignore-next-line */
         return CarbonInterval::formatHuman($totalMinutes);
     }
 
+    public function getHoursOnlyAttribute()
+    {
+        if (is_null($this->end_time)) {
+
+            $totalMinutes = (($this->activeBreak) ? $this->activeBreak->start_time->diffInMinutes($this->start_time) : now()->diffInMinutes($this->start_time)) - $this->breaks->sum('total_minutes');
+
+        }
+        else {
+            $totalMinutes = $this->total_minutes - $this->breaks->sum('total_minutes');
+        }
+
+        $hours = floor($totalMinutes / 60);
+        $minutes = ($totalMinutes % 60);
+
+        return sprintf('%02d'.__('app.hrs').' %02d'.__('app.mins'), $hours, $minutes);
+    }
+
     public function getTimerAttribute()
     {
         $finishTime = now();
-        $settings = company();
-        $startTime = Carbon::parse($this->start_time)->timezone($settings->timezone);
+
+        if (!is_null($this->activeBreak)) {
+            $finishTime = $this->activeBreak->start_time;
+        }
+
+        $startTime = Carbon::parse($this->start_time);
         $days = $finishTime->diff($startTime)->format('%d');
         $hours = $finishTime->diff($startTime)->format('%H');
 
@@ -161,7 +192,7 @@ class ProjectTimeLog extends BaseModel
             $hours = '0' . $hours;
         }
 
-        $minutes = $finishTime->diff($startTime)->format('%i');
+        $minutes = $finishTime->diffInMinutes($startTime);
         $minutes = $minutes - $this->breaks->sum('total_minutes');
 
         if ($minutes < 10) {
@@ -174,7 +205,10 @@ class ProjectTimeLog extends BaseModel
             $secs = '0' . $secs;
         }
 
-        return ((int)$days * 24) + (int)$hours . ':' . (int)$minutes . ':' . (int)$secs;
+        $hours = floor((int)$minutes / 60);
+        $minutes = ((int)$minutes % 60);
+
+        return sprintf('%02d:%02d:%02d', $hours, $minutes, $secs);
     }
 
     public static function dateWiseTimelogs($date, $userID = null)
@@ -230,6 +264,24 @@ class ProjectTimeLog extends BaseModel
         return ProjectTimeLog::with('project')->where('user_id', $memberId)
             ->whereNull('end_time')
             ->first();
+    }
+
+    public static function selfActiveTimer()
+    {
+        $selfActiveTimer = ProjectTimeLog::doesnthave('activeBreak')
+            ->where('user_id', user()->id)
+            ->whereNull('end_time')
+            ->first();
+
+        if (is_null($selfActiveTimer)) {
+            $selfActiveTimer = ProjectTimeLog::with('activeBreak')
+                ->where('user_id', user()->id)
+                ->whereNull('end_time')
+                ->orderBy('id', 'desc')
+                ->first();
+        }
+
+        return $selfActiveTimer;
     }
 
 }

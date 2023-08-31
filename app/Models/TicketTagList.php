@@ -19,10 +19,10 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|TicketTagList whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketTagList whereTagName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketTagList whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|TicketTagList whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class TicketTagList extends BaseModel
 {

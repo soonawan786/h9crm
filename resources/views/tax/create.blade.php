@@ -18,8 +18,8 @@
         @forelse($taxes as $key=>$tax)
             <tr id="cat-{{ $tax->id }}">
                 <td>{{ $key + 1 }}</td>
-                <td data-row-id="{{ $tax->id }}" data-row-type="tax_name" contenteditable="true">{{ strtoupper($tax->tax_name) }}</td>
-                <td data-row-id="{{ $tax->id }}" data-row-type="rate_percent" contenteditable="true">{{ mb_ucwords($tax->rate_percent) }}</td>
+                <td data-row-id="{{ $tax->id }}" data-row-type="tax_name" contenteditable="true">{{ $tax->tax_name }}</td>
+                <td data-row-id="{{ $tax->id }}" data-row-type="rate_percent" contenteditable="true">{{ $tax->rate_percent }}</td>
             </tr>
         @empty
             <x-cards.no-record-found-list />

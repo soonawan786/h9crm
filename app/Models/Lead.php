@@ -90,13 +90,17 @@ use Illuminate\Notifications\Notifiable;
  * @method static \Illuminate\Database\Eloquent\Builder|Lead whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Lead whereValue($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Lead whereWebsite($value)
- * @mixin \Eloquent
  * @property string|null $hash
  * @property-read \App\Models\LeadCategory|null $category
  * @method static \Illuminate\Database\Eloquent\Builder|Lead whereHash($value)
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Lead whereCompanyId($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Product> $products
+ * @property-read int|null $products_count
+ * @property-read int|null $follow_up_date_next
+ * @property-read int|null $follow_up_date_past
+ * @mixin \Eloquent
  */
 class Lead extends BaseModel
 {
@@ -133,6 +137,11 @@ class Lead extends BaseModel
     public function leadAgent(): BelongsTo
     {
         return $this->belongsTo(LeadAgent::class, 'agent_id');
+    }
+
+    public function note(): BelongsTo
+    {
+        return $this->belongsTo(LeadNote::class, 'lead_id');
     }
 
     public function leadSource(): BelongsTo

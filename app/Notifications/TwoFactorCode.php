@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\HtmlString;
 
 class TwoFactorCode extends BaseNotification
@@ -29,13 +30,14 @@ class TwoFactorCode extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $this->company = $notifiable->company;
 
         $twoFaCode = '<p style="color:#1d82f5"><strong>' . $notifiable->userAuth->two_factor_code . '</strong></p>';
 
         $content = __('email.twoFactor.line1') . '<br>' . new HtmlString($twoFaCode) . '<br>' . __('email.twoFactor.line2') . '<br>' . __('email.twoFactor.line3');
 
-        return parent::build()
+        return $build
             ->markdown('mail.email', [
                 'content' => $content,
                 'notifiableName' => $notifiable->name

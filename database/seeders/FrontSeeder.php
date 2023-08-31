@@ -26,7 +26,7 @@ class FrontSeeder extends Seeder
     private function frontDetailsInsert()
     {
         $frontDetails = new FrontDetail();
-        $frontDetails->primary_color = '#e94033';
+        $frontDetails->primary_color = '#453130';
         $frontDetails->get_started_show = 'yes';
         $frontDetails->sign_in_show = 'yes';
         $frontDetails->address = '4868  Ben Street Lansing Michigan 48906';

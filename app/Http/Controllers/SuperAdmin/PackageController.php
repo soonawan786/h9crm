@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers\SuperAdmin;
 
-use App\Helper\Reply;
-use App\Models\Module;
-use App\Models\Company;
-use App\Models\GlobalSetting;
-use App\Models\ModuleSetting;
-use App\Models\SuperAdmin\Package;
-use App\Models\SuperAdmin\GlobalCurrency;
-use App\Models\SuperAdmin\PackageSetting;
 use App\DataTables\SuperAdmin\PackageDataTable;
+use App\Helper\Reply;
 use App\Http\Controllers\AccountBaseController;
 use App\Http\Requests\SuperAdmin\Packages\StoreRequest;
 use App\Http\Requests\SuperAdmin\Packages\UpdateRequest;
+use App\Models\Company;
+use App\Models\GlobalSetting;
+use App\Models\Module;
+use App\Models\SuperAdmin\GlobalCurrency;
+use App\Models\SuperAdmin\GlobalInvoice;
 use App\Models\SuperAdmin\GlobalPaymentGatewayCredentials;
+use App\Models\SuperAdmin\GlobalSubscription;
+use App\Models\SuperAdmin\Package;
+use App\Models\SuperAdmin\PackageSetting;
 
 class PackageController extends AccountBaseController
 {
@@ -34,6 +35,10 @@ class PackageController extends AccountBaseController
      */
     public function index(PackageDataTable $dataTable)
     {
+        $this->viewPermission = user()->permission('view_packages');
+
+        abort_403(!($this->viewPermission == 'all'));
+
         return $dataTable->render('super-admin.packages.index', $this->data);
     }
 
@@ -44,16 +49,23 @@ class PackageController extends AccountBaseController
      */
     public function create()
     {
+        $this->addPermission = user()->permission('add_packages');
+
+        abort_403(!($this->addPermission == 'all'));
+
         $this->global = GlobalSetting::first();
         $this->paymentGateway = GlobalPaymentGatewayCredentials::first();
         $this->pageTitle = __('superadmin.packages.create');
         $this->position = Package::count();
         $this->packageModules = Module::where('module_name', '<>', 'settings')
             ->where('module_name', '<>', 'dashboards')
+            ->where('module_name', '<>', 'restApi')
             ->whereNotIn('module_name', Module::disabledModuleArray())
             ->get();
 
         $this->currencies = GlobalCurrency::all();
+
+        $this->packageCount = Package::select('id', 'sort')->whereNot('default', 'trial')->orderBy('sort', 'asc')->count();
 
         if (request()->ajax()) {
             $html = view('super-admin.packages.ajax.create', $this->data)->render();
@@ -74,6 +86,10 @@ class PackageController extends AccountBaseController
      */
     public function store(StoreRequest $request)
     {
+        $this->addPermission = user()->permission('add_packages');
+
+        abort_403(!($this->addPermission == 'all'));
+
         if ($request->module_in_package == null) {
             return Reply::error(__('superadmin.messages.moduleBlank'));
 
@@ -97,11 +113,16 @@ class PackageController extends AccountBaseController
      */
     public function edit($id)
     {
+        $this->editPermission = user()->permission('edit_packages');
+
+        abort_403(!($this->editPermission == 'all'));
+
         $this->pageTitle = __('superadmin.packages.edit');
         $this->package = Package::findOrFail($id);
 
         $this->packageModules = Module::where('module_name', '<>', 'settings')
             ->where('module_name', '<>', 'dashboards')
+            ->where('module_name', '<>', 'restApi')
             ->whereNotIn('module_name', Module::disabledModuleArray())
             ->get();
 
@@ -111,6 +132,8 @@ class PackageController extends AccountBaseController
         if ($this->package->default == 'trial') {
             $this->trial = PackageSetting::first();
         }
+
+        $this->packageCount = Package::select('id', 'sort')->whereNot('default', 'trial')->orderBy('sort', 'asc')->count();
 
         if (request()->ajax()) {
             $html = view('super-admin.packages.ajax.edit', $this->data)->render();
@@ -132,8 +155,12 @@ class PackageController extends AccountBaseController
      */
     public function update(UpdateRequest $request, $id)
     {
+        $this->editPermission = user()->permission('edit_packages');
+
+        abort_403(!($this->editPermission == 'all'));
+
         if ($request->module_in_package == null) {
-            return Reply::error(__('messages.moduleBlank'));
+            return Reply::error(__('superadmin.messages.moduleBlank'));
 
         }
 
@@ -148,18 +175,7 @@ class PackageController extends AccountBaseController
         // Update if trial package is modified
         $this->updateTrialPackage($package, $request);
 
-        ModuleSetting::whereNull('company_id')->delete();
-
-        if ($request->has('module_in_package')) {
-            $moduleInPackage = (array)json_decode($package->module_in_package);
-
-            foreach ($package->companies as $company) {
-                $this->packageModify($moduleInPackage, $company);
-            }
-        }
-
         return Reply::redirect(route('superadmin.packages.index'), __('messages.updateSuccess'));
-
     }
 
     private function updateTrialPackage($package, $request)
@@ -174,38 +190,6 @@ class PackageController extends AccountBaseController
         }
     }
 
-    private function packageModify($moduleInPackage, $company)
-    {
-        ModuleSetting::where('company_id', $company->id)->delete();
-
-        $clientModules = ['projects', 'tickets', 'invoices', 'estimates', 'events', 'messages', 'tasks', 'timelogs', 'contracts', 'notices', 'payments', 'Zoom', 'orders', 'knowledgebase'];
-
-        foreach ($moduleInPackage as $module) {
-            if (in_array($module, $clientModules)) {
-                $moduleSetting = new ModuleSetting();
-                $moduleSetting->company_id = $company->id;
-                $moduleSetting->module_name = $module;
-                $moduleSetting->status = 'active';
-                $moduleSetting->type = 'client';
-                $moduleSetting->save();
-            }
-
-            $moduleSetting = new ModuleSetting();
-            $moduleSetting->company_id = $company->id;
-            $moduleSetting->module_name = $module;
-            $moduleSetting->status = 'active';
-            $moduleSetting->type = 'employee';
-            $moduleSetting->save();
-
-            $moduleSetting = new ModuleSetting();
-            $moduleSetting->company_id = $company->id;
-            $moduleSetting->module_name = $module;
-            $moduleSetting->status = 'active';
-            $moduleSetting->type = 'admin';
-            $moduleSetting->save();
-        }
-    }
-
     /**
      * Remove the specified resource from storage.
      *
@@ -214,6 +198,9 @@ class PackageController extends AccountBaseController
      */
     public function destroy($id)
     {
+        $this->deletePermission = user()->permission('delete_packages');
+        abort_403(!($this->deletePermission == 'all'));
+
         $package = Package::findOrFail($id);
 
         if ($package->default != 'no') {
@@ -227,40 +214,10 @@ class PackageController extends AccountBaseController
 
             if ($defaultPackage) {
                 foreach ($companies as $company) {
-                    ModuleSetting::where('company_id', $company->id)->delete();
-
-                    $moduleInPackage = (array)json_decode($defaultPackage->module_in_package);
-
-                    $clientModules = ['projects', 'tickets', 'invoices', 'estimates', 'events', 'messages', 'tasks', 'timelogs', 'contracts', 'notices', 'payments', 'Zoom', 'orders', 'knowledgebase'];
-
-                    foreach ($moduleInPackage as $module) {
-
-                        if (in_array($module, $clientModules)) {
-                            $moduleSetting = new ModuleSetting();
-                            $moduleSetting->company_id = $company->id;
-                            $moduleSetting->module_name = $module;
-                            $moduleSetting->status = 'active';
-                            $moduleSetting->type = 'client';
-                            $moduleSetting->save();
-                        }
-
-                        $moduleSetting = new ModuleSetting();
-                        $moduleSetting->company_id = $company->id;
-                        $moduleSetting->module_name = $module;
-                        $moduleSetting->status = 'active';
-                        $moduleSetting->type = 'employee';
-                        $moduleSetting->save();
-
-                        $moduleSetting = new ModuleSetting();
-                        $moduleSetting->company_id = $company->id;
-                        $moduleSetting->module_name = $module;
-                        $moduleSetting->status = 'active';
-                        $moduleSetting->type = 'admin';
-                        $moduleSetting->save();
-                    }
-
                     $company->package_id = $defaultPackage->id;
                     $company->save();
+
+                    $this->updateSubscription($company, $defaultPackage);
                 }
             }
         }
@@ -276,7 +233,6 @@ class PackageController extends AccountBaseController
         $data['module_in_package'] = json_encode($request->module_in_package);
         $data['is_private'] = $request->has('is_private') && $request->is_private == 'true' ? 1 : 0;
         $data['is_recommended'] = $request->has('is_recommended') && $request->is_recommended == 'on' ? 1 : 0;
-        $data['is_free'] = $request->has('is_free') && $request->is_free == 'true' ? 1 : 0;
 
         $data['monthly_status'] = $request->has('monthly_status') && $request->monthly_status == 'true' ? 1 : 0;
         $data['annual_status'] = $request->has('annual_status') && $request->annual_status == 'true' ? 1 : 0;
@@ -284,12 +240,58 @@ class PackageController extends AccountBaseController
         $data['sort'] = $request->sort;
         $data['currency_id'] = $request->currency_id;
 
-        if ($request->has('is_free') && $request->is_free == 'true') {
-            $data['monthly_price'] = 0;
-            $data['annual_price'] = 0;
+        if ($request->has('package_type')) {
+            $data['is_free'] = (($request->package_type == 'free') ? 1 : 0);
+
+            if ($request->package_type == 'free')
+            {
+                $data['monthly_price'] = 0;
+                $data['annual_price'] = 0;
+            }
         }
 
         return $data;
+    }
+
+    public function updateSubscription(Company $company, Package $package)
+    {
+        $packageType = $package->annual_status ? 'annual' : 'monthly';
+        $currencyId = $package->currency_id ?: global_setting()->currency_id;
+        $planExpireDate = $company->licence_expire_on;
+
+        if (!$planExpireDate){
+            $planExpireDate = $packageType == 'annual' ? now()->addYear() : now()->addMonth();
+        }
+
+        GlobalSubscription::where('company_id', $company->id)
+        ->where('subscription_status', 'active')
+        ->update(['subscription_status' => 'inactive']);
+
+        $subscription = new GlobalSubscription();
+        $subscription->company_id = $company->id;
+        $subscription->package_id = $package->id;
+        $subscription->currency_id = $currencyId;
+        $subscription->package_type = $packageType;
+        $subscription->quantity = 1;
+        $subscription->gateway_name = 'offline';
+        $subscription->subscription_status = 'active';
+        $subscription->subscribed_on_date = now();
+        $subscription->ends_at = $planExpireDate;
+        $subscription->transaction_id = str(str()->random(15))->upper();
+        $subscription->save();
+
+        $offlineInvoice = new GlobalInvoice();
+        $offlineInvoice->global_subscription_id = $subscription->id;
+        $offlineInvoice->company_id = $company->id;
+        $offlineInvoice->currency_id = $currencyId;
+        $offlineInvoice->package_id = $company->package_id;
+        $offlineInvoice->package_type = $packageType;
+        $offlineInvoice->total = 0.00;
+        $offlineInvoice->pay_date = now();
+        $offlineInvoice->next_pay_date = $planExpireDate;
+        $offlineInvoice->gateway_name = 'offline';
+        $offlineInvoice->transaction_id = $subscription->transaction_id;
+        $offlineInvoice->save();
     }
 
 }

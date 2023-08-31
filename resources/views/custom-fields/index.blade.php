@@ -16,7 +16,7 @@
     <!-- SETTINGS START -->
     <div class="w-100 d-flex">
 
-        <x-setting-sidebar :activeMenu="$activeSettingMenu"/>
+        @include('sections.setting-sidebar')
 
         <x-setting-card>
 
@@ -47,6 +47,9 @@
                         <th>@lang('modules.invoices.type')</th>
                         <th>@lang('app.value')</th>
                         <th>@lang('app.required')</th>
+                        <th>@lang('modules.customFields.showInTable')</th>
+                        <th>@lang('modules.customFields.export')</th>
+
                         <th class="text-right">@lang('app.action')</th>
                     </x-slot>
                 </x-table>
@@ -94,6 +97,8 @@
                     {data: 'type', name: 'type', orderable: true, searchable: true},
                     {data: 'values', name: 'values', orderable: true, searchable: true},
                     {data: 'required', name: 'required', orderable: true, searchable: true},
+                    {data: 'visible', name: 'visible', orderable: true, searchable: true},
+                    {data: 'export', name: 'export', orderable: true, searchable: true},
                     {
                         data: 'action',
                         name: 'action',

@@ -14,7 +14,7 @@ $addTaskPermission = user()->permission('add_tasks');
                         <option value="not finished">@lang('modules.tasks.hideCompletedTask')</option>
                         <option value="all">@lang('app.all')</option>
                         @foreach ($taskBoardStatus as $status)
-                            <option value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : mb_ucwords($status->column_name) }}</option>
+                            <option value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : $status->column_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -68,7 +68,7 @@ $addTaskPermission = user()->permission('add_tasks');
                 <div class="select-status mr-3 d-none quick-action-field" id="change-status-action">
                     <select name="status" class="form-control select-picker">
                         @foreach ($taskBoardStatus as $status)
-                            <option value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : mb_ucwords($status->column_name) }}</option>
+                            <option value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : $status->column_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -292,7 +292,7 @@ $addTaskPermission = user()->permission('add_tasks');
                     } else {
                         $('#show-active-timer .active-timer-count').addClass('d-none');
                     }
-                    
+
                     $('#timer-clock').html(response.clockHtml);
                     if ($('#allTasks-table').length) {
                         window.LaravelDataTables["allTasks-table"].draw(false);
@@ -322,8 +322,8 @@ $addTaskPermission = user()->permission('add_tasks');
                 } else {
                     $('#show-active-timer .active-timer-count').addClass('d-none');
                 }
-                
-                $('#timer-clock').html(response.clockHtml);
+
+                $('#timer-clock').html('');
                 if ($('#allTasks-table').length) {
                     window.LaravelDataTables["allTasks-table"].draw(false);
                 }
@@ -351,7 +351,7 @@ $addTaskPermission = user()->permission('add_tasks');
                     } else {
                         $('#show-active-timer .active-timer-count').addClass('d-none');
                     }
-                    
+
                     $('#timer-clock').html(response.clockHtml);
                     if ($('#allTasks-table').length) {
                         window.LaravelDataTables["allTasks-table"].draw(false);
@@ -383,7 +383,7 @@ $addTaskPermission = user()->permission('add_tasks');
                     } else {
                         $('#show-active-timer .active-timer-count').addClass('d-none');
                     }
-                    
+
                     $('#timer-clock').html(response.clockHtml);
                     if ($('#allTasks-table').length) {
                         window.LaravelDataTables["allTasks-table"].draw(false);

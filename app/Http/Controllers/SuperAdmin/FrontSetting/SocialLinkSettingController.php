@@ -3,13 +3,11 @@
 namespace App\Http\Controllers\SuperAdmin\FrontSetting;
 
 use App\Helper\Reply;
-use Illuminate\Http\Request;
 use App\Http\Controllers\AccountBaseController;
-use App\Models\LanguageSetting;
 use App\Models\SuperAdmin\FrontDetail;
-use App\Models\SuperAdmin\TrFrontDetail;
 use Illuminate\Support\Arr;
 use App\Http\Requests\SuperAdmin\FrontSetting\UpdateFrontSettings;
+use App\Models\GlobalSetting;
 
 class SocialLinkSettingController extends AccountBaseController
 {
@@ -19,6 +17,12 @@ class SocialLinkSettingController extends AccountBaseController
         parent::__construct();
         $this->pageTitle = 'superadmin.frontCms.socialLinks';
         $this->activeSettingMenu = 'social_link';
+
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_front_settings'));
+
+            return $next($request);
+        });
     }
 
     /**

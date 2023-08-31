@@ -33,17 +33,24 @@ class KnowledgeBaseController extends AccountBaseController
         $viewPermission = user()->permission('view_knowledgebase');
         abort_403(!in_array($viewPermission, ['all', 'added']));
 
-        $this->categories = KnowledgeBaseCategory::all();
+        $this->categories = KnowledgeBaseCategory::with('knowledgebase')->get();
+        $this->knowledgebases = KnowledgeBase::with('knowledgebasecategory');
+
+        if (!in_array('admin', user_roles()))
+        {
+            $this->knowledgebases = $this->knowledgebases->where('to', in_array('client', user_roles()) ? 'client' : 'employee');
+        }
 
         if (request()->id != '') {
             $category = KnowledgeBaseCategory::findOrFail(request('id'));
-            $this->activeMenu = strtolower(str_replace(' ', '_', $category->name));
-            $this->knowledgebases = KnowledgeBase::with('knowledgebasecategory')->where('category_id', request('id'))->get();
+            $this->activeMenu = str_replace(' ', '_', $category->name);
+            $this->knowledgebases = $this->knowledgebases->where('category_id', request('id'));
 
         } else {
             $this->activeMenu = 'all_category';
-            $this->knowledgebases = KnowledgeBase::with('knowledgebasecategory')->get();
         }
+
+        $this->knowledgebases = $this->knowledgebases->get();
 
         return view('knowledge-base.index', $this->data);
 

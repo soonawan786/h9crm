@@ -20,6 +20,7 @@ class InvoicesDataTable extends BaseDataTable
     private $deleteInvoicePermission;
     private $editInvoicePermission;
     private $addPaymentPermission;
+    private $addInvoicesPermission;
     private $viewProjectInvoicePermission;
 
     public function __construct()
@@ -81,7 +82,16 @@ class InvoicesDataTable extends BaseDataTable
                             </a>';
             }
 
-            $edit = '<a class="dropdown-item openRightModal" href="' . route('invoices.edit', $row->id) . '" >
+            if ($row->status != 'canceled' && !in_array('client', user_roles()) && $row->credit_note == 0 && $row->send_status == 0) {
+                $action .= '<a class="dropdown-item sendButton d-flex justify-content-between align-items-center" data-type="mark_as_send" href="javascript:;"  data-invoice-id="' . $row->id . '">
+                                <div><i class="fa fa-check-double mr-2"></i>
+                                ' . trans('app.markSent') . '
+                                </div>
+                                <i class="fa fa-question-circle" data-toggle="tooltip" data-original-title="'.__('messages.markSentInfo').'"></i>
+                            </a>';
+            }
+
+            $edit = '<a class="dropdown-item" href="' . route('invoices.edit', $row->id) . '" >
                         <i class="fa fa-edit mr-2"></i>
                         ' . trans('app.edit') . '
                     </a>';
@@ -172,9 +182,9 @@ class InvoicesDataTable extends BaseDataTable
             }
 
             if ($row->credit_note == 0 && $row->status != 'draft' && $row->status != 'canceled' && $row->send_status) {
-                $action .= '<a class="dropdown-item btn-copy" href="javascript:;" data-clipboard-text="' . route('front.invoice', $row->hash) . '"><i class="fa fa-copy mr-2"></i>' . trans('modules.invoices.copyPaymentLink') . '</a>';
+                $action .= '<a class="dropdown-item btn-copy" href="javascript:;" data-clipboard-text="' . url()->signedRoute('front.invoice', $row->hash) . '"><i class="fa fa-copy mr-2"></i>' . trans('modules.invoices.copyPaymentLink') . '</a>';
 
-                $action .= '<a class="dropdown-item" href="' . route('front.invoice', $row->hash) . '" target="_blank"><i class="fa fa-external-link-alt mr-2"></i>' . trans('modules.payments.paymentLink') . '</a>';
+                $action .= '<a class="dropdown-item" href="' . url()->signedRoute('front.invoice', $row->hash) . '" target="_blank"><i class="fa fa-external-link-alt mr-2"></i>' . trans('modules.payments.paymentLink') . '</a>';
             }
 
             if ($row->credit_note == 0 && $row->status != 'draft' && $row->status != 'canceled' && $row->status != 'unpaid' && !in_array('client', user_roles())) {
@@ -198,12 +208,12 @@ class InvoicesDataTable extends BaseDataTable
                 || ($this->deleteInvoicePermission == 'owned' && $row->client_id == user()->id)
                 || ($this->deleteInvoicePermission == 'both' && ($row->client_id == user()->id || $row->added_by == user()->id))
             ) {
-                //if ($firstInvoice->id == $row->id) {
+                if ($firstInvoice->id == $row->id) {
                     $action .= '<a class="dropdown-item delete-table-row" href="javascript:;" data-toggle="tooltip"  data-invoice-id="' . $row->id . '">
                         <i class="fa fa-trash mr-2"></i>
                         ' . trans('app.delete') . '
                     </a>';
-               // }
+                }
             }
 
             if ($this->addInvoicesPermission == 'all' || $this->addInvoicesPermission == 'added') {
@@ -219,7 +229,7 @@ class InvoicesDataTable extends BaseDataTable
         });
         $datatables->editColumn('project_name', function ($row) {
             if ($row->project_id != null) {
-                return '<a href="' . route('projects.show', $row->project_id) . '" class="text-darkest-grey">' . ucfirst($row->project->project_name) . '</a>';
+                return '<a href="' . route('projects.show', $row->project_id) . '" class="text-darkest-grey">' . $row->project->project_name . '</a>';
             }
 
             return '--';
@@ -233,14 +243,14 @@ class InvoicesDataTable extends BaseDataTable
             }
         });
         $datatables->addColumn('client_name', function ($row) {
-            if ($row->project && $row->project->client) {
-                return ucfirst($row->project->client->name);
+            if ($row->client) {
+                return $row->client->name;
             }
-            else if ($row->client) {
-                return ucfirst($row->client->name);
+            else if ($row->project && $row->project->client) {
+                return $row->project->client->name;
             }
             else if ($row->estimate && $row->estimate->client) {
-                return ucfirst($row->estimate->client->name);
+                return $row->estimate->client->name;
             }
             else {
                 return '--';
@@ -248,13 +258,13 @@ class InvoicesDataTable extends BaseDataTable
         });
         $datatables->addColumn('client_email', function ($row) {
             if ($row->project && $row->project->client) {
-                return ucfirst($row->project->client->email);
+                return $row->project->client->email;
             }
             else if ($row->client) {
-                return ucfirst($row->client->email);
+                return $row->client->email;
             }
             else if ($row->estimate && $row->estimate->client) {
-                return ucfirst($row->estimate->client->email);
+                return $row->estimate->client->email;
             }
             else {
                 return '--';
@@ -262,11 +272,11 @@ class InvoicesDataTable extends BaseDataTable
         });
 
         $datatables->editColumn('name', function ($row) {
-            if ($row->project && $row->project->client) {
-                $client = $row->project->client;
-            }
-            else if ($row->client) {
+            if ($row->client) {
                 $client = $row->client;
+
+            } else if ($row->project && $row->project->client) {
+                $client = $row->project->client;
             }
             else if ($row->estimate && $row->estimate->client) {
                 $client = $row->estimate->client;
@@ -292,7 +302,7 @@ class InvoicesDataTable extends BaseDataTable
 
             return '<div class="media align-items-center">
                         <div class="media-body">
-                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('invoices.show', [$row->id]) . '">' . ucfirst($row->invoice_number) . '</a></h5>
+                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('invoices.show', [$row->id]) . '">' . $row->invoice_number . '</a></h5>
                     <p class="mb-0">' . $recurring . '</p>
                     </div>
                   </div>';
@@ -332,16 +342,6 @@ class InvoicesDataTable extends BaseDataTable
 
             return '<div class="text-right">' . __('app.total') . ': ' . currency_format($row->total, $currencyId) . '<p class="my-0"><span class="text-success mt-1">' . __('app.paid') . ':</span> ' . currency_format($row->amountPaid(), $currencyId) . '</p><span class="text-danger">' . __('app.unpaid') . ':</span> ' . currency_format($row->amountDue(), $currencyId) . '</div>';
         });
-        $datatables->editColumn('quantity', function ($row) {
-            $totalQuantity = 0;
-
-            foreach ($row->items as $item) {
-                $totalQuantity += $item->quantity;
-            }
-
-            return $totalQuantity === 0 ? 'Null' : $totalQuantity;
-        });
-
         $datatables->editColumn(
             'issue_date',
             function ($row) {
@@ -349,21 +349,16 @@ class InvoicesDataTable extends BaseDataTable
             }
         );
         $datatables->orderColumn('short_code', 'invoice_number $1');
-        $datatables->rawColumns(['project_name', 'action', 'status', 'invoice_number', 'total', 'name','quantity']);
         $datatables->removeColumn('currency_symbol');
         $datatables->removeColumn('currency_code');
         $datatables->removeColumn('project_id');
 
         // Custom Fields For export
-        CustomField::customFieldData($datatables, Invoice::CUSTOM_FIELD_MODEL);
+        $customFieldColumns = CustomField::customFieldData($datatables, Invoice::CUSTOM_FIELD_MODEL);
+
+        $datatables->rawColumns(array_merge(['project_name', 'action', 'status', 'invoice_number', 'total', 'name'], $customFieldColumns));
 
         return $datatables;
-    }
-
-    public function ajax()
-    {
-        return $this->dataTable($this->query())
-            ->make(true);
     }
 
     /**
@@ -383,7 +378,7 @@ class InvoicesDataTable extends BaseDataTable
                 'currency:id,currency_symbol,currency_code', 'project.client', 'client', 'payment', 'estimate', 'project.clientdetails'
             ]
         )
-            ->with('client', 'client.session', 'client.clientdetails', 'payment', 'clientdetails','items')
+            ->with('client', 'client.session', 'client.clientdetails', 'payment', 'clientdetails')
             ->select([
                 'invoices.id', 'invoices.due_amount', 'invoices.project_id', 'invoices.client_id', 'invoices.invoice_number',
                 'invoices.currency_id', 'invoices.total', 'invoices.status', 'invoices.issue_date', 'invoices.credit_note',
@@ -518,9 +513,11 @@ class InvoicesDataTable extends BaseDataTable
             __('app.customers') => ['data' => 'client_name', 'name' => 'project.client.name', 'visible' => false, 'title' => __('app.customers')],
             __('app.email') => ['data' => 'client_email', 'name' => 'project.client.email', 'visible' => false, 'title' => __('app.email')],
             __('modules.invoices.total') => ['data' => 'total', 'name' => 'total', 'class' => 'text-right', 'title' => __('modules.invoices.total')],
-            __('modules.invoices.totalQuantity') => ['data' => 'quantity', 'name' => 'quantity', 'class' => 'text-center', 'title' => __('modules.invoices.totalQuantity')],
             __('modules.invoices.invoiceDate') => ['data' => 'issue_date', 'name' => 'issue_date', 'title' => __('modules.invoices.invoiceDate')],
-            __('app.status') => ['data' => 'status', 'name' => 'status', 'width' => '10%', 'title' => __('app.status')],
+            __('app.status') => ['data' => 'status', 'name' => 'status', 'width' => '10%', 'title' => __('app.status')]
+        ];
+
+        $action = [
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -529,18 +526,8 @@ class InvoicesDataTable extends BaseDataTable
                 ->addClass('text-right pr-20')
         ];
 
-        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Invoice()));
+        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Invoice()), $action);
 
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Invoices_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

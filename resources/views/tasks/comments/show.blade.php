@@ -7,12 +7,12 @@
     <div class="card w-100 rounded-1 border-2 mb-3 p-2 comment">
         <div class="card-horizontal">
             <div class="card-img my-1 ml-0 mx-1">
-                <img src="{{ $comment->user->image_url }}" alt="{{ mb_ucwords($comment->user->name) }}">
+                <img src="{{ $comment->user->image_url }}" alt="{{ $comment->user->name }}">
             </div>
             <div class="card-body border-0 pl-0 py-1 ml-3">
                 <div class="row">
                     <div class="col-md-6 d-inline-flex">
-                        <h4 class="card-title f-15 f-w-500 text-dark mr-3">{{ mb_ucwords($comment->user->name) }}</h4>
+                        <h4 class="card-title f-15 f-w-500 text-dark mr-3">{{ $comment->user->name }}</h4>
                         <span class="cursor-pointer card-date f-11 text-lightest mb-0 comment-time" data-toggle="tooltip"
                         data-original-title="{{ $comment->created_at->timezone(company()->timezone)->translatedFormat(company()->date_format . ' ' . company()->time_format) }}">
                         {{$comment->created_at->timezone(company()->timezone)->diffForHumans()}}
@@ -57,7 +57,10 @@
                         $dislikeUserList = implode(', ', $dislikeUsers);
                     }
                 @endphp
-                <div class="card-text f-14 text-dark-grey">{!! ucfirst($comment->comment) !!}
+                <div class="card-text f-14 text-dark-grey">
+                    <div class="card-text f-14 text-dark-grey text-justify ql-editor">
+                        {!! $comment->comment !!}
+                    </div>
                     <div id="emoji-{{$comment->id}}">
                         <button class="btn cursor-pointer comment-like mr-2 f-12 btn-sm" data-toggle="tooltip" data-comment-id="{{ $comment->id }}"
                             data-emoji="thumbs-up" @if($comment->like->count() != 0) data-original-title="{{ trans('modules.tasks.likeUser', [ 'user' => $likeUserList ]) }}" style="background-color: #f7f2f2;" @else data-original-title="@lang('modules.tasks.like')" @endif>

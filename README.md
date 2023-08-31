@@ -1,3 +1,6 @@
+# Readme for worksuite
+### Plugins used in the app
+
 <ol>
     <li>
         <strong>Bootstrap 4 </strong> - <a href="https://getbootstrap.com/">https://getbootstrap.com/</a>

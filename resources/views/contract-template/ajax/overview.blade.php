@@ -36,7 +36,7 @@
         <div class="invoice-table-wrapper">
             <table width="100%" class="">
                 <tr class="inv-logo-heading">
-                    <td><img src="{{ invoice_setting()->logo_url }}" alt="{{ mb_ucwords(company()->company_name) }}"
+                    <td><img src="{{ invoice_setting()->logo_url }}" alt="{{ company()->company_name }}"
                             class="logo" /></td>
                     <td align="right" class="font-weight-bold f-21 text-dark text-uppercase mt-4 mt-lg-0 mt-md-0">
                         @lang('app.menu.contractTemplate')</td>
@@ -44,7 +44,7 @@
                 <tr class="inv-num">
                     <td class="f-14 text-dark">
                         <p class="mt-3 mb-0">
-                            {{ mb_ucwords(company()->company_name) }}<br>
+                            {{ company()->company_name }}<br>
                             {!! nl2br(default_address()->address) !!}<br>
                             {{ company()->company_phone }}
                         </p><br>

@@ -7,7 +7,7 @@
 
         @forelse($channels as $key => $channel)
             <tr class="row{{ $channel->id }}">
-                <td>{{ mb_ucwords($channel->channel_name) }}</td>
+                <td>{{ $channel->channel_name }}</td>
                 <td class="text-right">
                     <div class="task_view">
                         <a class="task_view_more d-flex align-items-center justify-content-center edit-channel" href="javascript:;" data-channel-id="{{ $channel->id }}" >

@@ -3,13 +3,13 @@
 
 <div class="row">
     <div class="col-sm-12">
-        <x-form id="save-event-data-form" method="put">
+        <x-form id="save-event-data-form" method="PUT">
             <div class="add-client bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
                     {{ $event->event_name }}
                 </h4>
                 <div class="row p-20">
-
+                    <input type = "hidden" name = "mention_user_ids" id = "mentionUserId" class ="mention_user_ids">
                     <div class="col-lg-4 col-md-4">
                         <x-forms.text :fieldLabel="__('modules.events.eventName')" fieldName="event_name"
                             fieldRequired="true" fieldId="event_name" fieldPlaceholder=""
@@ -170,7 +170,7 @@
                     </div>
                     <div class="col-lg-6 col-md-6">
                         <x-forms.text :fieldLabel="__('modules.events.eventLink')" fieldName="event_link"
-                            fieldId="event_link" :fieldValue="$event->event_link" fieldPlaceholder="https://www.example.com/" />
+                            fieldId="event_link" :fieldValue="$event->event_link" :fieldPlaceholder="__('placeholders.website')" />
                     </div>
                     <div class="col-md-12 mt-3">
                         <a class="f-15 f-w-500" href="javascript:;" id="add-file"><i
@@ -178,7 +178,7 @@
                     </div>
                     <div class="col-md-12 d-none" id="event-file">
                             <x-forms.file-multiple class="mr-0"
-                            :fieldLabel="__('app.add') . ' ' .__('app.file')" fieldName="file"
+                            :fieldLabel="__('app.menu.addFile')" fieldName="file"
                             fieldId="file-upload-dropzone" />
 
                             <div class="w-100 justify-content-end d-flex mt-2">
@@ -256,11 +256,11 @@
                 },
                 paramName: "file",
                 maxFilesize: DROPZONE_MAX_FILESIZE,
-                maxFiles: 10,
+                maxFiles: DROPZONE_MAX_FILES,
                 autoProcessQueue: false,
                 uploadMultiple: true,
                 addRemoveLinks: true,
-                parallelUploads: 10,
+                parallelUploads: DROPZONE_MAX_FILES,
                 acceptedFiles: DROPZONE_FILE_ALLOW,
                 init: function() {
                     eventDropzone = this;
@@ -275,9 +275,31 @@
             eventDropzone.on('uploadprogress', function() {
                 $.easyBlockUI();
             });
-            eventDropzone.on('completemultiple', function() {
+            eventDropzone.on('queuecomplete', function() {
                 var msgs = "@lang('messages.recordSaved')";
                 window.location.href = "{{ route('events.index') }}"
+            });
+            eventDropzone.on('removedfile', function () {
+                var grp = $('div#file-upload-dropzone').closest(".form-group");
+                var label = $('div#file-upload-box').siblings("label");
+                $(grp).removeClass("has-error");
+                $(label).removeClass("is-invalid");
+            });
+            eventDropzone.on('error', function (file, message) {
+                eventDropzone.removeFile(file);
+                var grp = $('div#file-upload-dropzone').closest(".form-group");
+                var label = $('div#file-upload-box').siblings("label");
+                $(grp).find(".help-block").remove();
+                var helpBlockContainer = $(grp);
+
+                if (helpBlockContainer.length == 0) {
+                    helpBlockContainer = $(grp);
+                }
+
+                helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+                $(grp).addClass("has-error");
+                $(label).addClass("is-invalid");
+
             });
 
             $('#add-file').click(function() {
@@ -364,7 +386,10 @@
             }
         });
 
-        quillImageLoad('#description');
+        // quillImageLoad('#description');
+        const atValues = @json($userData);
+
+        quillMention(atValues, '#description');
 
         const dp1 = datepicker('#start_date', {
             position: 'bl',
@@ -394,6 +419,13 @@
         $('#save-event-form').click(function() {
             var note = document.getElementById('description').children[0].innerHTML;
             document.getElementById('description-text').value = note;
+
+            var mention_user_id = $('#description span[data-id]').map(function(){
+                return $(this).attr('data-id')
+            }).get();
+            console.log(mention_user_id);
+
+            $('#mentionUserId').val(mention_user_id.join(','));
 
             const url = "{{ route('events.update', $event->id) }}";
 

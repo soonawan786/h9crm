@@ -5,8 +5,11 @@ namespace App\Http\Controllers;
 use App\Helper\Reply;
 use App\Http\Requests\LeaveType\StoreLeaveType;
 use App\Models\BaseModel;
+use App\Models\Designation;
 use App\Models\LeaveSetting;
 use App\Models\LeaveType;
+use App\Models\Role;
+use App\Models\Team;
 use Illuminate\Http\Request;
 
 class LeaveTypeController extends AccountBaseController
@@ -26,7 +29,11 @@ class LeaveTypeController extends AccountBaseController
      */
     public function create()
     {
-        return view('leave-settings.create-leave-setting-type-modal');
+        $this->teams = Team::all();
+        $this->designations = Designation::allDesignations();
+        $this->roles = Role::where('name', '<>', 'client')->get();
+
+        return view('leave-settings.create-leave-setting-type-modal', $this->data);
     }
 
     /**
@@ -42,6 +49,17 @@ class LeaveTypeController extends AccountBaseController
         $leaveType->paid = $request->paid;
         $leaveType->no_of_leaves = $request->leave_number;
         $leaveType->monthly_limit = $request->monthly_limit;
+        $leaveType->effective_after = $request->effective_after;
+        $leaveType->effective_type = $request->effective_type;
+        $leaveType->unused_leave = $request->unused_leave;
+        $leaveType->encashed = $request->has('encashed') ? 1 : 0;
+        $leaveType->allowed_probation = $request->has('allowed_probation') ? 1 : 0;
+        $leaveType->allowed_notice = $request->has('allowed_notice') ? 1 : 0;
+        $leaveType->gender = $request->gender ? json_encode($request->gender) : null;
+        $leaveType->marital_status = $request->marital_status ? json_encode($request->marital_status) : null;
+        $leaveType->department = $request->department ? json_encode($request->department) : null;
+        $leaveType->designation = $request->designation ? json_encode($request->designation) : null;
+        $leaveType->role = $request->role ? json_encode($request->role) : null;
         $leaveType->save();
 
         $leaveTypes = LeaveType::get();
@@ -60,6 +78,17 @@ class LeaveTypeController extends AccountBaseController
     public function edit($id)
     {
         $this->leaveType = LeaveType::findOrFail($id);
+        $this->allTeams = Team::all();
+        $this->allDesignations = Designation::allDesignations();
+        $this->allRoles = Role::where('name', '<>', 'client')->get();
+        $this->allGenders = ['male', 'female', 'others'];
+        $this->allMaritalStatus = ['married', 'unmarried'];
+        $this->gender = json_decode($this->leaveType->gender);
+        $this->maritalStatus = json_decode($this->leaveType->marital_status);
+        $this->department = json_decode($this->leaveType->department);
+        $this->designation = json_decode($this->leaveType->designation);
+        $this->role = json_decode($this->leaveType->role);
+
         return view('leave-settings.edit-leave-setting-type-modal', $this->data);
     }
 
@@ -75,6 +104,17 @@ class LeaveTypeController extends AccountBaseController
         $leaveType->paid = $request->paid;
         $leaveType->no_of_leaves = $request->leave_number;
         $leaveType->monthly_limit = $request->monthly_limit;
+        $leaveType->effective_after = $request->effective_after;
+        $leaveType->effective_type = $request->effective_type;
+        $leaveType->unused_leave = $request->unused_leave;
+        $leaveType->encashed = $request->encashed;
+        $leaveType->allowed_probation = $request->allowed_probation;
+        $leaveType->allowed_notice = $request->allowed_notice;
+        $leaveType->gender = $request->gender ? json_encode($request->gender) : null;
+        $leaveType->marital_status = $request->marital_status ? json_encode($request->marital_status) : null;
+        $leaveType->department = $request->department ? json_encode($request->department) : null;
+        $leaveType->designation = $request->designation ? json_encode($request->designation) : null;
+        $leaveType->role = $request->role ? json_encode($request->role) : null;
         $leaveType->save();
 
         return Reply::success(__('messages.leaveTypeAdded'));

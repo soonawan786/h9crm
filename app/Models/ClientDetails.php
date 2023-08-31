@@ -61,18 +61,23 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|ClientDetails whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientDetails whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientDetails whereWebsite($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\User|null $addedBy
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ClientDetails whereCompanyId($value)
+ * @property string|null $company_logo
+ * @property int|null $quickbooks_client_id
+ * @property-read mixed $image_url
+ * @method static \Illuminate\Database\Eloquent\Builder|ClientDetails whereCompanyLogo($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ClientDetails whereQuickbooksClientId($value)
+ * @mixin \Eloquent
  */
 class ClientDetails extends BaseModel
 {
 
     use CustomFieldsTrait, HasCompany;
 
-    protected $fillable = ['company_name', 'user_id', 'address', 'postal_code', 'state', 'city', 'office', 'cell', 'website', 'note', 'skype', 'facebook', 'twitter', 'linkedin', 'gst_number', 'shipping_address', 'category_id', 'sub_category_id', 'company_logo','date_of_birth'];
+    protected $fillable = ['company_name', 'user_id', 'address', 'postal_code', 'state', 'city', 'office', 'cell', 'website', 'note', 'skype', 'facebook', 'twitter', 'linkedin', 'gst_number', 'shipping_address', 'category_id', 'sub_category_id', 'company_logo'];
 
     protected $default = ['id', 'company_name', 'address', 'website', 'note', 'skype', 'facebook', 'twitter', 'linkedin', 'gst_number', 'name', 'email', 'company_logo'];
 
@@ -96,7 +101,7 @@ class ClientDetails extends BaseModel
 
     public function getImageUrlAttribute()
     {
-        return ($this->company_logo) ? asset_url('client-logo/' . $this->company_logo) : $this->company->logo_url;
+        return ($this->company_logo) ? asset_url_local_s3('client-logo/' . $this->company_logo) : $this->company->logo_url;
     }
 
 }

@@ -42,6 +42,7 @@ $approveExpensePermission = user()->permission('approve_expenses');
                             @endforeach
                         </x-forms.select>
                     </div>
+                    <input type = "hidden" name = "mention_user_ids" id = "mentionUserId" class ="mention_user_ids">
 
                     <div class="col-md-6 col-lg-3">
                         <x-forms.number fieldId="exchange_rate" :fieldLabel="__('modules.currencySettings.exchangeRate')"
@@ -71,7 +72,7 @@ $approveExpensePermission = user()->permission('approve_expenses');
                                 <option value="">--</option>
                                 @foreach ($projects as $project)
                                     <option data-currency-id="{{ $project->currency_id }}" @if ($project->id == $expense->project_id) selected @endif value="{{ $project->id }}">
-                                        {{ mb_ucwords($project->project_name) }}
+                                        {{ $project->project_name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -106,7 +107,7 @@ $approveExpensePermission = user()->permission('approve_expenses');
                                 <option value="">--</option>
                                 @foreach ($categories as $category)
                                     <option @if ($category->id == $expense->category_id) selected @endif value="{{ $category->id }}">
-                                        {{ mb_ucwords($category->category_name) }}
+                                        {{ $category->category_name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -125,7 +126,7 @@ $approveExpensePermission = user()->permission('approve_expenses');
                         <x-forms.text :fieldLabel="__('modules.expenses.purchaseFrom')" fieldName="purchase_from"
                             fieldId="purchase_from" :fieldPlaceholder="__('placeholders.expense.vendor')"
                             :fieldValue="$expense->purchase_from" />
-                        <ul id="searchResults"></ul>
+<ul id="searchResults"></ul>
                     </div>
 
                     @if (
@@ -157,7 +158,7 @@ $approveExpensePermission = user()->permission('approve_expenses');
                                     @foreach ($bankDetails as $bankDetail)
                                         <option value="{{ $bankDetail->id }}" @if($bankDetail->id == $expense->bank_account_id) selected @endif>@if($bankDetail->type == 'bank')
                                             {{ $bankDetail->bank_name }} | @endif
-                                            {{ mb_ucwords($bankDetail->account_name) }}
+                                            {{ $bankDetail->account_name }}
                                         </option>
                                     @endforeach
                                 @endif
@@ -295,12 +296,14 @@ $approveExpensePermission = user()->permission('approve_expenses');
             $('#currency').prop('disabled', true);
         }
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
+
+        quillMention(null, '#description');
 
         const dp1 = datepicker('#purchase_date', {
             position: 'bl',
@@ -312,7 +315,6 @@ $approveExpensePermission = user()->permission('approve_expenses');
         let userId = $('#user_id').val();
         getExpenseCategoryEmp(userId, categoryId);
 
-        quillImageLoad('#description');
 
         $('#user_id').change(function() {
             let userId = $(this).val();
@@ -361,6 +363,11 @@ $approveExpensePermission = user()->permission('approve_expenses');
         $('#save-expense-form').click(function() {
             let note = document.getElementById('description').children[0].innerHTML;
             document.getElementById('description-text').value = note;
+            var user = $('#description span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
+            var mention_user_id  =  $.makeArray(user);
+            $('#mentionUserId').val(mention_user_id.join(','));
             const url = "{{ route('expenses.update', $expense->id) }}";
             var data = $('#save-expense-data-form').serialize();
 
@@ -386,6 +393,8 @@ $approveExpensePermission = user()->permission('approve_expenses');
             $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
             $.ajaxModal(MODAL_LG, url);
         });
+
+        <x-forms.custom-field-filejs/>
 
         init(RIGHT_MODAL);
     });

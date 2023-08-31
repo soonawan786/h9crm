@@ -19,10 +19,10 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|ContractType whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ContractType whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ContractType whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ContractType whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ContractType extends BaseModel
 {

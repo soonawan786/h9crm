@@ -2,7 +2,7 @@
 
 namespace App\Models\SuperAdmin;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\SuperAdmin\SupportTicketType
@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\SuperAdmin\SupportTicket[] $tickets
  * @property-read int|null $tickets_count
  */
-class SupportTicketType extends Model
+class SupportTicketType extends BaseModel
 {
 
     public function tickets()

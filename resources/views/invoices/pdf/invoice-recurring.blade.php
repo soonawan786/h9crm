@@ -3,66 +3,8 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>@lang('app.invoice')</title>
+    @includeIf('invoices.pdf.invoice_pdf_css')
     <style>
-         @font-face {
-        font-family: 'THSarabunNew';
-        font-style: normal;
-        font-weight: normal;
-        src: url("{{ storage_path('fonts/THSarabunNew.ttf') }}") format('truetype');
-    }
-    @font-face {
-        font-family: 'THSarabunNew';
-        font-style: normal;
-        font-weight: bold;
-        src: url("{{ storage_path('fonts/THSarabunNew_Bold.ttf') }}") format('truetype');
-    }
-    @font-face {
-        font-family: 'THSarabunNew';
-        font-style: italic;
-        font-weight: bold;
-        src: url("{{ storage_path('fonts/THSarabunNew_Bold_Italic.ttf') }}") format('truetype');
-    }
-    @font-face {
-        font-family: 'THSarabunNew';
-        font-style: italic;
-        font-weight: bold;
-        src: url("{{ storage_path('fonts/THSarabunNew_Italic.ttf') }}") format('truetype');
-    }
-
-    @if($invoiceSetting->is_chinese_lang)
-    @font-face {
-        font-family: SimHei;
-        /*font-style: normal;*/
-        font-weight: bold;
-        src: url('{{ asset('fonts/simhei.ttf') }}') format('truetype');
-    }
-    @endif
-
-    @php
-        $font = '';
-        if($invoiceSetting->locale == 'ja') {
-            $font = 'ipag';
-        } else if($invoiceSetting->locale == 'hi') {
-            $font = 'hindi';
-        } else if($invoiceSetting->locale == 'th') {
-            $font = 'THSarabun';
-        } else if($invoiceSetting->is_chinese_lang) {
-            $font = 'SimHei';
-        }else {
-            $font = 'noto-sans';
-        }
-    @endphp
-
-    @if($invoiceSetting->is_chinese_lang)
-        body
-    {
-        font-weight: normal !important;
-    }
-    @endif
-    * {
-        font-family: {{$font}}, DejaVu Sans , sans-serif;
-    }
-
         .clearfix:after {
             content: "";
             display: table;
@@ -344,7 +286,7 @@
                             <small>@lang('modules.invoices.billedTo'):</small>
 
                             @if ($invoice->project->client->name && $invoiceSetting->show_client_name == 'yes')
-                                <h3 class="name">{{ mb_ucwords($invoice->project->client->name) }}</h3>
+                                <h3 class="name">{{ $invoice->project->client->name }}</h3>
                             @endif
 
                             @if ($invoice->project->client->email && $invoiceSetting->show_client_email == 'yes')
@@ -360,7 +302,7 @@
                             @endif
                             @if ($invoice->project->client->clientDetails->company_name && $invoiceSetting->show_client_company_name == 'yes')
                                 <h3 class="name">
-                                    {{ mb_ucwords($invoice->project->client->clientDetails->company_name) }}</h3>
+                                    {{ $invoice->project->client->clientDetails->company_name }}</h3>
                             @endif
 
                             @if ($invoice->project->client->clientDetails->address && $invoiceSetting->show_client_company_address == 'yes')
@@ -385,7 +327,7 @@
                             <small>@lang('modules.invoices.billedTo'):</small>
 
                             @if ($invoice->client->name && $invoiceSetting->show_client_name == 'yes')
-                                <h3 class="name">{{ mb_ucwords($invoice->client->name) }}</h3>
+                                <h3 class="name">{{ $invoice->client->name }}</h3>
                             @endif
 
                             @if ($invoice->client->email && $invoiceSetting->show_client_email == 'yes')
@@ -401,7 +343,7 @@
                             @endif
 
                             @if ($invoice->clientDetails->company_name && $invoiceSetting->show_client_company_name == 'yes')
-                                <h3 class="name">{{ mb_ucwords($invoice->clientDetails->company_name) }}</h3>
+                                <h3 class="name">{{ $invoice->clientDetails->company_name }}</h3>
                             @endif
 
                             @if ($invoice->clientDetails->address && $invoiceSetting->show_client_company_address == 'yes')
@@ -426,7 +368,7 @@
                         @if (is_null($invoice->project) && $invoice->estimate && $invoice->estimate->client && $invoice->estimate->client->clientDetails && ($invoiceSetting->show_client_name == 'yes' || $invoiceSetting->show_client_email == 'yes' || $invoiceSetting->show_client_phone == 'yes' || $invoiceSetting->show_client_company_name == 'yes' || $invoiceSetting->show_client_company_address == 'yes'))
                             <small>@lang('modules.invoices.billedTo'):</small>
                             @if ($invoice->estimate->client->name && $invoiceSetting->show_client_name == 'yes')
-                                <h3 class="name">{{ mb_ucwords($invoice->estimate->client->name) }}</h3>
+                                <h3 class="name">{{ $invoice->estimate->client->name }}</h3>
                             @endif
 
                             @if ($invoice->estimate->client->email && $invoiceSetting->show_client_email == 'yes')
@@ -443,7 +385,7 @@
 
                             @if ($invoice->estimate->client->clientDetails->company_name && $invoiceSetting->show_client_company_name == 'yes')
                                 <h3 class="name">
-                                    {{ mb_ucwords($invoice->estimate->client->clientDetails->company_name) }}</h3>
+                                    {{ $invoice->estimate->client->clientDetails->company_name }}</h3>
                             @endif
 
                             @if ($invoice->estimate->client->clientDetails->address && $invoiceSetting->show_client_company_address == 'yes')
@@ -474,16 +416,10 @@
                 <td>
                     <div id="company">
                         <div class="logo">
-                            @if ($invoiceSetting->logo)
-                                <img src="{{ asset_url('app-logo/' . $invoiceSetting->logo) }}" alt="home"
-                                    class="dark-logo" />
-                            @else
-                                <img src="{{ asset_url('app-logo/' . $company->logo) }}" alt="home"
-                                    class="dark-logo" />
-                            @endif
+                            <img src="{{ $invoiceSetting->logo_url }}" alt="home" class="dark-logo" />
                         </div>
                         <small>@lang('modules.invoices.generatedBy'):</small>
-                        <h3 class="name">{{ mb_ucwords($company->company_name) }}</h3>
+                        <h3 class="name">{{ $company->company_name }}</h3>
                         @if (!is_null($company))
                             <div>{!! nl2br($defaultAddress->address) !!}</div>
                             <div>{{ $company->company_phone }}</div>
@@ -510,7 +446,7 @@
                     <div class="date">@lang('app.dueDate'):
                         {{ $invoice->due_date->translatedFormat($company->date_format) }}</div>
                 @endif
-                <div class="">@lang('app.status'): {{ mb_ucwords($invoice->status) }}</div>
+                <div class="">@lang('app.status'): {{ $invoice->status }}</div>
             </div>
 
         </div>
@@ -531,7 +467,7 @@
                         <tr style="page-break-inside: avoid;">
                             <td class="no">{{ ++$count }}</td>
                             <td class="desc">
-                                <h3>{{ ucfirst($item->item_name) }}</h3>
+                                <h3>{{ $item->item_name }}</h3>
                                 @if (!is_null($item->item_summary))
                                     <p class="item-summary">{!! nl2br(strip_tags($item->item_summary, ['p', 'b', 'strong', 'a'])) !!}</p>
                                 @endif
@@ -567,7 +503,7 @@
                         <td class="no">&nbsp;</td>
                         <td class="qty">&nbsp;</td>
                         <td class="qty">&nbsp;</td>
-                        <td class="desc">{{ mb_strtoupper($key) }}</td>
+                        <td class="desc">{{ $key }}</td>
                         <td class="unit">{{ number_format((float) $tax, 2, '.', '') }}</td>
                     </tr>
                 @endforeach

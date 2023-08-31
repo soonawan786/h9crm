@@ -7,19 +7,20 @@ use App\Models\SuperAdmin\SupportTicket;
 use App\Scopes\ActiveScope;
 use App\Scopes\CompanyScope;
 use App\Traits\HasCompany;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
+use App\Notifications\ResetPassword;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Builder;
+use Trebol\Entrust\Traits\EntrustUserTrait;
 use Illuminate\Database\Eloquent\Collection;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Notifications\Notifiable;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
-use Laravel\Fortify\TwoFactorAuthenticatable;
-use Trebol\Entrust\Traits\EntrustUserTrait;
 
 /**
  * App\Models\User
@@ -128,7 +129,6 @@ use Trebol\Entrust\Traits\EntrustUserTrait;
  * @method static Builder|User whereTwoFactorSecret($value)
  * @method static Builder|User whereUpdatedAt($value)
  * @method static Builder|User withRole(string $role)
- * @mixin \Eloquent
  * @property int $two_factor_confirmed
  * @property int $two_factor_email_confirmed
  * @property string|null $salutation
@@ -175,6 +175,44 @@ use Trebol\Entrust\Traits\EntrustUserTrait;
  * @property-read int|null $support_tickets_count
  * @property-read \App\Models\UserAuth|null $userAuth
  * @property-read Collection|\App\Models\ProjectTimeLog[] $projectTimeLog
+ * @property string|null $stripe_id
+ * @property string|null $pm_type
+ * @property string|null $pm_last_four
+ * @property string|null $trial_ends_at
+ * @property-read Collection<int, \App\Models\ProjectTimeLog> $timeLogs
+ * @property-read int|null $time_logs_count
+ * @property-read Collection<int, \App\Models\VisaDetail> $visa
+ * @property-read int|null $visa_count
+ * @method static Builder|User onlyEmployee()
+ * @method static Builder|User wherePmLastFour($value)
+ * @method static Builder|User wherePmType($value)
+ * @method static Builder|User whereStripeId($value)
+ * @method static Builder|User whereTelegramUserId($value)
+ * @method static Builder|User whereTrialEndsAt($value)
+ * @property-read Collection<int, \App\Models\ProjectTimeLog> $timeLogs
+ * @property-read Collection<int, \App\Models\VisaDetail> $visa
+ * @property-read Collection<int, \App\Models\ProjectTimeLog> $timeLogs
+ * @property-read Collection<int, \App\Models\VisaDetail> $visa
+ * @property-read Collection<int, \App\Models\ProjectTimeLog> $timeLogs
+ * @property-read Collection<int, \App\Models\VisaDetail> $visa
+ * @property-read Collection<int, \App\Models\ProjectTimeLog> $timeLogs
+ * @property-read Collection<int, \App\Models\VisaDetail> $visa
+ * @property-read Collection<int, \App\Models\ProjectTimeLog> $timeLogs
+ * @property-read Collection<int, \App\Models\VisaDetail> $visa
+ * @property int|null $country_phonecode
+ * @property-read Collection<int, \App\Models\TicketGroup> $agentGroup
+ * @property-read int|null $agent_group_count
+ * @property-read mixed $mobile_with_phone_code
+ * @property-read Collection<int, \App\Models\ProjectTimeLog> $timeLogs
+ * @property-read Collection<int, \App\Models\VisaDetail> $visa
+ * @method static Builder|User whereCountryPhonecode($value)
+ * @property-read Collection<int, \App\Models\TicketGroup> $agentGroup
+ * @property-read Collection<int, \App\Models\ProjectTimeLog> $timeLogs
+ * @property-read Collection<int, \App\Models\VisaDetail> $visa
+ * @property-read Collection<int, \App\Models\TicketGroup> $agentGroup
+ * @property-read Collection<int, \App\Models\ProjectTimeLog> $timeLogs
+ * @property-read Collection<int, \App\Models\VisaDetail> $visa
+ * @mixin \Eloquent
  */
 class User extends BaseModel
 {
@@ -212,13 +250,20 @@ class User extends BaseModel
 
     public $dates = ['created_at', 'updated_at', 'last_login'];
 
-    protected $appends = ['image_url', 'modules'];
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+        'last_login' => 'datetime',
+        'two_factor_expires_at	' => 'array'
+    ];
+
+    protected $appends = ['image_url', 'modules', 'mobile_with_phonecode'];
 
     public function getImageUrlAttribute()
     {
         $gravatarHash = md5(strtolower(trim($this->email)));
 
-        return ($this->image) ? asset_url('avatar/' . $this->image) : 'https://www.gravatar.com/avatar/' . $gravatarHash . '.png?s=200&d=mp';
+        return ($this->image) ? asset_url_local_s3('avatar/' . $this->image, true, 'image') : 'https://www.gravatar.com/avatar/' . $gravatarHash . '.png?s=200&d=mp';
     }
 
     public function hasGravatar($email)
@@ -242,6 +287,15 @@ class User extends BaseModel
         return $has_valid_avatar;
     }
 
+    public function getMobileWithPhoneCodeAttribute()
+    {
+        if (!is_null($this->mobile) && !is_null($this->country_phonecode)) {
+            return '+' . $this->country_phonecode . $this->mobile;
+        }
+
+        return '--';
+    }
+
     /**
      * Route notifications for the Slack channel.
      *
@@ -261,8 +315,8 @@ class User extends BaseModel
 
     public function routeNotificationForTwilio()
     {
-        if (!is_null($this->mobile) && !is_null($this->country_id)) {
-            return '+' . $this->country->phonecode . $this->mobile;
+        if (!is_null($this->mobile) && !is_null($this->country_phonecode)) {
+            return '+' . $this->country_phonecode . $this->mobile;
         }
 
         return null;
@@ -283,8 +337,8 @@ class User extends BaseModel
     // phpcs:ignore
     public function routeNotificationForNexmo($notification)
     {
-        if (!is_null($this->mobile) && !is_null($this->country_id)) {
-            return $this->country->phonecode . $this->mobile;
+        if (!is_null($this->mobile) && !is_null($this->country_phonecode)) {
+            return $this->country_phonecode . $this->mobile;
         }
 
         return null;
@@ -294,8 +348,8 @@ class User extends BaseModel
     // phpcs:ignore
     public function routeNotificationForMsg91($notification)
     {
-        if (!is_null($this->mobile) && !is_null($this->country_id)) {
-            return $this->country->phonecode . $this->mobile;
+        if (!is_null($this->mobile) && !is_null($this->country_phonecode)) {
+            return $this->country_phonecode . $this->mobile;
         }
 
         return null;
@@ -369,6 +423,11 @@ class User extends BaseModel
     public function agent(): HasMany
     {
         return $this->hasMany(TicketAgentGroups::class, 'agent_id');
+    }
+
+    public function agentGroup(): BelongsToMany
+    {
+        return $this->belongsToMany(TicketGroup::class, 'ticket_agent_groups', 'agent_id', 'group_id');
     }
 
     public function agents(): HasMany
@@ -575,7 +634,6 @@ class User extends BaseModel
                         $q->where('employee_details.user_id', user()->id);
                         $q->orWhere('employee_details.added_by', user()->id);
                     });
-
 
                 }
                 elseif ($viewEmployeePermission == 'owned' && !in_array('client', user_roles())) {
@@ -820,7 +878,7 @@ class User extends BaseModel
             60 * 60 * 24,
             function () {
                 return Role::where('name', '<>', 'client')
-                    ->orderBy('id')->get();
+                    ->orderBy('id', 'asc')->get();
             }
         );
 
@@ -899,15 +957,20 @@ class User extends BaseModel
     public function assignUserRolePermission($roleId)
     {
         $rolePermissions = PermissionRole::where('role_id', $roleId)->get();
+        $data = [];
 
-        foreach ($rolePermissions as $key => $value) {
-            $userPermission = UserPermission::where('permission_id', $value->permission_id)
-                ->where('user_id', $this->id)
-                ->firstOrNew();
-            $userPermission->permission_id = $value->permission_id;
-            $userPermission->user_id = $this->id;
-            $userPermission->permission_type_id = $value->permission_type_id;
-            $userPermission->save();
+        UserPermission::where('user_id', $this->id)->delete();
+
+        foreach ($rolePermissions as $permission) {
+            $data[] = [
+                'permission_id' => $permission->permission_id,
+                'user_id' => $this->id,
+                'permission_type_id' => $permission->permission_type_id,
+            ];
+        }
+
+        foreach (array_chunk($data, 100) as $item) {
+            UserPermission::insert($item);
         }
     }
 
@@ -935,24 +998,6 @@ class User extends BaseModel
         }
     }
 
-    public function insertUserRolePermission($roleId)
-    {
-        $rolePermissions = PermissionRole::where('role_id', $roleId)->get();
-        $data = [];
-
-        foreach ($rolePermissions as $permission) {
-            $data[] = [
-                'permission_id' => $permission->permission_id,
-                'user_id' => $this->id,
-                'permission_type_id' => $permission->permission_type_id,
-            ];
-        }
-
-        foreach (array_chunk($data, 100) as $item) {
-            UserPermission::insert($item);
-        }
-    }
-
     public function unreadMessages(): HasMany
     {
         return $this->hasMany(UserChat::class, 'from')->where('to', user()->id)->where('message_seen', 'no');
@@ -973,10 +1018,10 @@ class User extends BaseModel
         $itsYou = ' <span class="ml-2 badge badge-secondary pr-1">' . __('app.itsYou') . '</span>';
 
         if (user() && user()->id == $this->id) {
-            return mb_ucfirst($this->name) . $itsYou;
+            return $this->name . $itsYou;
         }
 
-        return mb_ucfirst($this->name);
+        return $this->name;
     }
 
     public function estimates(): HasMany
@@ -996,9 +1041,15 @@ class User extends BaseModel
         })->whereHas('employeeDetail');
     }
 
-    public function routeNotificationForWhatsApp()
+    /**
+     * Send the password reset notification.
+     *
+     * @param  string  $token
+     * @return void
+     */
+    public function sendPasswordResetNotification($token)
     {
-        return $this->mobile;
+        $this->notify(new ResetPassword($token));
     }
 
 }

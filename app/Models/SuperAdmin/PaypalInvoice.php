@@ -3,7 +3,7 @@
 namespace App\Models\SuperAdmin;
 
 use App\Models\Company;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\SuperAdmin\PaypalInvoice
@@ -54,9 +54,14 @@ use Illuminate\Database\Eloquent\Model;
  * @mixin \Eloquent
  * @property \Illuminate\Support\Carbon|null $paid_on
  */
-class PaypalInvoice extends Model
+class PaypalInvoice extends BaseModel
 {
     protected $dates = ['paid_on', 'next_pay_date'];
+
+    protected $casts = [
+        'paid_on' => 'datetime',
+        'next_pay_date' => 'datetime',
+    ];
 
     public function company()
     {

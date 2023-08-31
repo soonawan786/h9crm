@@ -102,7 +102,7 @@ class LeadGDPRDataTable extends BaseDataTable
     protected function getColumns()
     {
         return [
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('modules.gdpr.purpose') => ['data' => 'name', 'name' => 'purpose_consent.name', 'title' => __('modules.gdpr.purpose')],
             __('app.date') => ['data' => 'created_at', 'name' => 'purpose_consent.created_at', 'title' => __('app.date')],
             __('modules.gdpr.ipAddress') => ['data' => 'ip', 'name' => 'purpose_consent.ip', 'title' => __('modules.gdpr.ipAddress')],
@@ -115,16 +115,6 @@ class LeadGDPRDataTable extends BaseDataTable
                 ->width(150)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'leadsGDPR_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

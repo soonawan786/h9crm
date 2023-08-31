@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * App\Models\KnowledgeBaseCategory
  *
  * @property int $id
- * @mixin \Eloquent
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\KnowledgeBase[] $knowledgebase
  * @property-read int|null $knowledgebase_count
  * @property string $name
@@ -26,6 +25,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|KnowledgeBaseCategory whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class KnowledgeBaseCategory extends BaseModel
 {

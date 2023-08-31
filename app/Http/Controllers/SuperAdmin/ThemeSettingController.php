@@ -19,8 +19,7 @@ class ThemeSettingController extends AccountBaseController
         $this->pageTitle = 'app.menu.themeSettings';
         $this->activeSettingMenu = 'theme_settings';
         $this->middleware(function ($request, $next) {
-            abort_403(!user()->is_superadmin);
-
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_theme_settings'));
             return $next($request);
         });
     }
@@ -43,7 +42,9 @@ class ThemeSettingController extends AccountBaseController
             ->where('panel', 'superadmin')
             ->first();
 
-        $this->themeUpdate($superAdminTheme, $request->sidebar_theme, $request->primary_color);
+        $restrictAdminThemeChange = ($request->has('set_customer_theme') ? 1 : 0);
+
+        $this->themeUpdate($superAdminTheme, $request->sidebar_theme, $request->primary_color, $restrictAdminThemeChange);
 
         $globalSetting = GlobalSetting::first();
         $globalSetting->logo_background_color = $request->logo_background_color;
@@ -58,12 +59,12 @@ class ThemeSettingController extends AccountBaseController
 
         if ($request->hasFile('logo_front')) {
             Files::deleteFile($globalSetting->logo_front, 'app-logo');
-            $globalSetting->logo_front = Files::upload($request->logo_front, 'app-logo');
+            $globalSetting->logo_front = Files::uploadLocalOrS3($request->logo_front, 'app-logo');
         }
 
         if ($request->hasFile('logo')) {
             Files::deleteFile($globalSetting->logo, 'app-logo');
-            $globalSetting->logo = Files::upload($request->logo, 'app-logo');
+            $globalSetting->logo = Files::uploadLocalOrS3($request->logo, 'app-logo');
         }
 
         if ($request->light_logo_delete == 'yes') {
@@ -73,7 +74,7 @@ class ThemeSettingController extends AccountBaseController
 
         if ($request->hasFile('light_logo')) {
             Files::deleteFile($globalSetting->light_logo, 'app-logo');
-            $globalSetting->light_logo = Files::upload($request->light_logo, 'app-logo');
+            $globalSetting->light_logo = Files::uploadLocalOrS3($request->light_logo, 'app-logo');
         }
 
         if ($request->login_background_delete == 'yes') {
@@ -83,7 +84,7 @@ class ThemeSettingController extends AccountBaseController
 
         if ($request->hasFile('login_background')) {
             Files::deleteFile($globalSetting->login_background, 'login-background');
-            $globalSetting->login_background = Files::upload($request->login_background, 'login-background');
+            $globalSetting->login_background = Files::uploadLocalOrS3($request->login_background, 'login-background');
         }
 
         if ($request->favicon_delete == 'yes') {
@@ -92,7 +93,7 @@ class ThemeSettingController extends AccountBaseController
         }
 
         if ($request->hasFile('favicon')) {
-            $globalSetting->favicon = Files::upload($request->favicon, 'favicon');
+            $globalSetting->favicon = Files::uploadLocalOrS3($request->favicon, 'favicon');
         }
 
         $globalSetting->sidebar_logo_style = $request->sidebar_logo_style;
@@ -105,11 +106,13 @@ class ThemeSettingController extends AccountBaseController
         return Reply::redirect(route('superadmin.settings.super-admin-theme-settings.index'), __('messages.updateSuccess'));
     }
 
-    private function themeUpdate($updateObject, $sidebarTheme, $primaryColor)
+    private function themeUpdate($updateObject, $sidebarTheme, $primaryColor, $restrictAdminThemeChange)
     {
         $updateObject->header_color = $primaryColor;
         $updateObject->sidebar_theme = $sidebarTheme;
         $updateObject->save();
+
+        ThemeSetting::withoutGlobalScope(CompanyScope::class)->update(['restrict_admin_theme_change' => $restrictAdminThemeChange]);
     }
 
 }

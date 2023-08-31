@@ -25,7 +25,7 @@ class StoreTicketGroup extends CoreRequest
     public function rules()
     {
         return [
-            'group_name' => 'required|unique:ticket_groups,group_name,null,id,company_id,' . company()->id
+            'group_name' => 'required|unique:ticket_groups,group_name,' . $this->route('ticket_group').',id,company_id,' . company()->id
         ];
     }
 

@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\DiscussionEvent;
+use App\Models\User;
 use App\Notifications\NewDiscussion;
 use Illuminate\Support\Facades\Notification;
 
@@ -18,7 +19,9 @@ class DiscussionListener
 
     public function handle(DiscussionEvent $event)
     {
-        Notification::send($event->discussion->project->projectMembers, new NewDiscussion($event->discussion));
+        $unmentionUser = $event->project_member;
+
+        Notification::send($unmentionUser, new NewDiscussion($event->discussion));
     }
 
 }

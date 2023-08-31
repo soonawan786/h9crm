@@ -45,7 +45,6 @@ $editImmigrationPermission = user()->permission('edit_immigration');
 
                     </p>
                 </div>
-                <x-cards.data-row :label="__('app.country')" :value="$visa->country->name ?? '--'" />
                 <x-cards.data-row :label="__('modules.employees.issueDate')" :value=" $visa ? $visa->issue_date->format(company()->date_format) : '--'" />
                 <x-cards.data-row :label="__('modules.employees.expiryDate')" :value=" $visa  ? $visa->expiry_date->format(company()->date_format) : '--'" />
                 <div class="col-12 px-0 pb-3 d-block d-lg-flex d-md-flex">
@@ -53,8 +52,8 @@ $editImmigrationPermission = user()->permission('edit_immigration');
                         @lang('modules.employees.scanCopy')</p>
                     <p class="mb-0 text-dark-grey f-14 w-70">
                         @if($visa->file)
-                            <img data-toggle="tooltip" style="height:50px;"
-                            src="{{ $visa->image_url }}">
+                            <a target="_blank" class="text-dark-grey"
+                                href="{{ $visa->image_url }}"><i class="fa fa-external-link-alt"></i> <u>@lang('app.view') @lang('modules.employees.scanCopy')</u></a>
                         @else
                         --
                         @endif

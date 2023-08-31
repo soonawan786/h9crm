@@ -17,6 +17,7 @@ class NewProjectMemberEvent
     public function __construct(ProjectMember $projectMember)
     {
         $this->projectMember = $projectMember;
+
     }
 
 }

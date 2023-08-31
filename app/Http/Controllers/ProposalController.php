@@ -13,6 +13,7 @@ use App\Models\Proposal;
 use App\Models\UnitType;
 use App\Models\ProposalItem;
 use Illuminate\Http\Request;
+use App\Models\ProductCategory;
 use App\Events\NewProposalEvent;
 use App\Models\ProposalTemplate;
 use App\Models\ProposalItemImage;
@@ -62,15 +63,17 @@ class ProposalController extends AccountBaseController
             $this->leads = Lead::allLeads();
         }
 
-        $this->unit_types = UnitType::all();
+        $this->units = UnitType::all();
         $this->template = ProposalTemplate::all();
         $this->products = Product::all();
+        $this->categories = ProductCategory::all();
         $this->currencies = Currency::all();
         $this->invoiceSetting = invoice_setting();
 
         $this->template = ProposalTemplate::all();
         $this->proposalTemplate = request('template') ? ProposalTemplate::findOrFail(request('template')) : null;
         $this->proposalTemplateItem = request('template') ? ProposalTemplateItem::with('proposalTemplateItemImage')->where('proposal_template_id', request('template'))->get() : null;
+
 
         if (request()->ajax()) {
             $html = view('proposals.ajax.create', $this->data)->render();
@@ -83,6 +86,7 @@ class ProposalController extends AccountBaseController
 
     public function store(StoreRequest $request)
     {
+
         $items = $request->item_name;
         $cost_per_item = $request->cost_per_item;
         $quantity = $request->quantity;
@@ -111,7 +115,6 @@ class ProposalController extends AccountBaseController
         $proposal->valid_till = Carbon::createFromFormat($this->company->date_format, $request->valid_till)->format('Y-m-d');
         $proposal->sub_total = $request->sub_total;
         $proposal->total = $request->total;
-        $proposal->unit_id = $request->unit_type_id;
         $proposal->currency_id = $request->currency_id;
         $proposal->note = trim_editor($request->note);
         $proposal->discount = round($request->discount_value, 2);
@@ -155,6 +158,7 @@ class ProposalController extends AccountBaseController
 
         $taxList = array();
 
+        $this->firstProposal = Proposal::orderBy('id', 'desc')->first();
         $items = ProposalItem::whereNotNull('taxes')
             ->where('proposal_id', $this->invoice->id)
             ->get();
@@ -200,8 +204,9 @@ class ProposalController extends AccountBaseController
         $this->currencies = Currency::all();
         $this->proposal = Proposal::with('items', 'lead')->findOrFail($id);
 
-        $this->unit_types = UnitType::all();
+        $this->units = UnitType::all();
         $this->products = Product::all();
+        $this->categories = ProductCategory::all();
         $this->invoiceSetting = invoice_setting();
 
         if (request()->ajax()) {
@@ -223,31 +228,39 @@ class ProposalController extends AccountBaseController
         $itemsSummary = $request->item_summary;
         $tax = $request->taxes;
 
-        if (trim($items[0]) == '' || trim($cost_per_item[0]) == '') {
+        if ($request->has('item_name') && (trim($items[0]) == '' || trim($cost_per_item[0]) == '')) {
             return Reply::error(__('messages.addItem'));
         }
 
-        foreach ($quantity as $qty) {
-            if (!is_numeric($qty)) {
-                return Reply::error(__('messages.quantityNumber'));
+        if ($request->has('quantity')) {
+            foreach ($quantity as $qty) {
+                if (!is_numeric($qty)) {
+                    return Reply::error(__('messages.quantityNumber'));
+                }
             }
         }
 
-        foreach ($cost_per_item as $rate) {
-            if (!is_numeric($rate)) {
-                return Reply::error(__('messages.unitPriceNumber'));
+        if ($request->has('cost_per_item')) {
+            foreach ($cost_per_item as $rate) {
+                if (!is_numeric($rate)) {
+                    return Reply::error(__('messages.unitPriceNumber'));
+                }
             }
         }
 
-        foreach ($amount as $amt) {
-            if (!is_numeric($amt)) {
-                return Reply::error(__('messages.amountNumber'));
+        if ($request->has('amount')) {
+            foreach ($amount as $amt) {
+                if (!is_numeric($amt)) {
+                    return Reply::error(__('messages.amountNumber'));
+                }
             }
         }
 
-        foreach ($items as $itm) {
-            if (is_null($itm)) {
-                return Reply::error(__('messages.itemBlank'));
+        if ($request->has('item_name')) {
+            foreach ($items as $itm) {
+                if (is_null($itm)) {
+                    return Reply::error(__('messages.itemBlank'));
+                }
             }
         }
 
@@ -257,7 +270,6 @@ class ProposalController extends AccountBaseController
         $proposal->sub_total = $request->sub_total;
         $proposal->total = $request->total;
         $proposal->currency_id = $request->currency_id;
-        $proposal->unit_id = $request->unit_type_id;
         $proposal->status = $request->status;
         $proposal->note = trim_editor($request->note);
         $proposal->discount = round($request->discount_value, 2);
@@ -283,8 +295,21 @@ class ProposalController extends AccountBaseController
     public function sendProposal($id)
     {
         $proposal = Proposal::findOrFail($id);
-        event(new NewProposalEvent($proposal, 'new'));
+        
+        if (request()->data_type != 'mark_as_send') {
+            event(new NewProposalEvent($proposal, 'new'));
+        }
+
+        $proposal->send_status = 1;
+
+        $proposal->save();
+
+        if(request()->data_type == 'mark_as_send'){
+            return Reply::success(__('messages.proposalMarkAsSent'));
+        }
+
         return Reply::success(__('messages.proposalSendSuccess'));
+
     }
 
     public function download($id)
@@ -378,11 +403,14 @@ class ProposalController extends AccountBaseController
 
     public function deleteProposalItemImage(Request $request)
     {
-            $item = ProposalItemImage::where('proposal_item_id', $request->invoice_item_id)->first();
+        $item = ProposalItemImage::where('proposal_item_id', $request->invoice_item_id)->first();
+
+        if ($item) {
             Files::deleteFile($item->hashname, 'proposal-files/' . $item->id . '/');
             $item->delete();
+        }
 
-            return Reply::success(__('messages.updateSuccess'));
+        return Reply::success(__('messages.deleteSuccess'));
     }
 
     public function getclients($id)
@@ -391,5 +419,36 @@ class ProposalController extends AccountBaseController
         $unitId = UnitType::where('id', $id)->first();
         return Reply::dataOnly(['status' => 'success', 'data' => $client_data, 'type' => $unitId] );
     }
-    
+
+    public function addItem(Request $request)
+    {
+        $this->items = Product::findOrFail($request->id);
+        $this->invoiceSetting = invoice_setting();
+
+        $exchangeRate = Currency::findOrFail($request->currencyId);
+
+        if (!is_null($exchangeRate) && !is_null($exchangeRate->exchange_rate)) {
+            if ($this->items->total_amount != '') {
+                /** @phpstan-ignore-next-line */
+                $this->items->price = floor($this->items->total_amount * $exchangeRate->exchange_rate);
+            }
+            else {
+
+                $this->items->price = floatval($this->items->price) * floatval($exchangeRate->exchange_rate);
+            }
+        }
+        else {
+            if ($this->items->total_amount != '') {
+                $this->items->price = $this->items->total_amount;
+            }
+        }
+
+        $this->items->price = number_format((float)$this->items->price, 2, '.', '');
+        $this->taxes = Tax::all();
+        $this->units = UnitType::all();
+        $view = view('invoices.ajax.add_item', $this->data)->render();
+
+        return Reply::dataOnly(['status' => 'success', 'view' => $view]);
+    }
+
 }

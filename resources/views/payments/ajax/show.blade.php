@@ -13,7 +13,6 @@
                 <x-cards.data-row :label="__('app.order')"
                 :value="$payment->order->order_number" />
             @endif
-
             <x-cards.data-row :label="__('app.project')"
                 :value="(!is_null($payment->project_id)) ? $payment->project->project_name : '--'" />
 
@@ -21,11 +20,15 @@
                 $bankName = isset($payment->transactions[0]) && $payment->transactions[0]->bankAccount->bank_name ? $payment->transactions[0]->bankAccount->bank_name.' |' : ''
             @endphp
             <x-cards.data-row :label="__('app.menu.bankaccount')"
-            :value="(count($payment->transactions) > 0 ? $bankName.' '.mb_ucwords($payment->transactions[0]->bankAccount->account_name) : '--')" />
+            :value="(count($payment->transactions) > 0 ? $bankName.' '.$payment->transactions[0]->bankAccount->account_name : '--')" />
 
             <x-cards.data-row :label="__('app.transactionId')" :value="$payment->transaction_id ?? '--'" />
 
-            <x-cards.data-row :label="__('app.gateway')" :value="$payment->gateway   ?  $payment->gateway  .'('. $payment->offlineMethods?->name .')' : '--' "/>
+            @if ($payment->gateway == 'Offline' && $payment->offlineMethods && $payment->offlineMethods->name)
+                <x-cards.data-row :label="__('app.gateway')" :value="$payment->gateway  ?  $payment->gateway .  ' ('. $payment->offlineMethods->name.')' : '--' "/>
+            @else
+                <x-cards.data-row :label="__('app.gateway')" :value="$payment->gateway   ?  $payment->gateway : '--' "/>
+            @endif
 
             <div class="col-12 px-0 pb-3 d-block d-lg-flex d-md-flex">
                 <p class="mb-0 text-lightest f-14 w-30 d-inline-block text-capitalize">

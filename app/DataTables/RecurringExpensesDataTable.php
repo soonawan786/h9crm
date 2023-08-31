@@ -92,7 +92,7 @@ class RecurringExpensesDataTable extends BaseDataTable
                 ]);
             })
             ->addColumn('employee_name', function ($row) {
-                return ucfirst($row->user->name);
+                return $row->user_id ? $row->user->name : '--';
             })
             ->addColumn('status', function ($row) {
 
@@ -109,7 +109,7 @@ class RecurringExpensesDataTable extends BaseDataTable
                 return $role;
             })
             ->addColumn('status_export', function ($row) {
-                return ucfirst($row->status);
+                return $row->status;
             })
             ->addIndexColumn()
             ->rawColumns(['action', 'status', 'user_id', 'next_expense_date'])
@@ -199,18 +199,8 @@ class RecurringExpensesDataTable extends BaseDataTable
                 ->orderable(false)
                 ->searchable(false)
                 ->width(150)
-                ->addClass('text-center')
+                ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Recurring_Expenses_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

@@ -29,11 +29,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|ContractDiscussion whereLastUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ContractDiscussion whereMessage($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ContractDiscussion whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read \App\Models\Contract $contract
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ContractDiscussion whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ContractDiscussion extends BaseModel
 {

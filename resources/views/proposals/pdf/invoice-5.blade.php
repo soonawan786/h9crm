@@ -8,6 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- Template CSS -->
     <title>@lang('modules.lead.proposal') - {{ $proposal->id }}</title>
+    @includeIf('invoices.pdf.invoice_pdf_css')
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="{{ $company->favicon_url }}">
     <meta name="theme-color" content="#ffffff">
@@ -16,7 +17,7 @@
         <style>
             body {
                 margin: 0;
-                font-family: dejavu sans;
+                /*font-family: dejavu sans;*/
                 font-size: 13px;
             }
         </style>
@@ -31,66 +32,6 @@
     @endif
 
     <style>
-
-@font-face {
-        font-family: 'THSarabunNew';
-        font-style: normal;
-        font-weight: normal;
-        src: url("{{ storage_path('fonts/THSarabunNew.ttf') }}") format('truetype');
-    }
-    @font-face {
-        font-family: 'THSarabunNew';
-        font-style: normal;
-        font-weight: bold;
-        src: url("{{ storage_path('fonts/THSarabunNew_Bold.ttf') }}") format('truetype');
-    }
-    @font-face {
-        font-family: 'THSarabunNew';
-        font-style: italic;
-        font-weight: bold;
-        src: url("{{ storage_path('fonts/THSarabunNew_Bold_Italic.ttf') }}") format('truetype');
-    }
-    @font-face {
-        font-family: 'THSarabunNew';
-        font-style: italic;
-        font-weight: bold;
-        src: url("{{ storage_path('fonts/THSarabunNew_Italic.ttf') }}") format('truetype');
-    }
-
-    @if($invoiceSetting->is_chinese_lang)
-    @font-face {
-        font-family: SimHei;
-        /*font-style: normal;*/
-        font-weight: bold;
-        src: url('{{ asset('fonts/simhei.ttf') }}') format('truetype');
-    }
-    @endif
-
-    @php
-        $font = '';
-        if($invoiceSetting->locale == 'ja') {
-            $font = 'ipag';
-        } else if($invoiceSetting->locale == 'hi') {
-            $font = 'hindi';
-        } else if($invoiceSetting->locale == 'th') {
-            $font = 'THSarabunNew';
-        } else if($invoiceSetting->is_chinese_lang) {
-            $font = 'SimHei';
-        }else {
-            $font = 'noto-sans';
-        }
-    @endphp
-
-    @if($invoiceSetting->is_chinese_lang)
-        body
-    {
-        font-weight: normal !important;
-    }
-    @endif
-    * {
-        font-family: {{$font}}, DejaVu Sans , sans-serif;
-    }
-
         .bg-grey {
             background-color: #F2F4F7;
         }
@@ -344,7 +285,7 @@
         <tbody>
             <!-- Table Row Start -->
             <tr>
-                <td><img src="{{ $invoiceSetting->logo_url }}" alt="{{ mb_ucwords($company->company_name) }}"
+                <td><img src="{{ $invoiceSetting->logo_url }}" alt="{{ $company->company_name }}"
                         id="logo" /></td>
                 <td align="right" class="f-21 text-black font-weight-700 text-uppercase">@lang('modules.lead.proposal')
                 </td>
@@ -354,7 +295,7 @@
             <tr>
                 <td>
                     <p class="line-height mt-1 mb-0 f-14 text-black description">
-                        {{ mb_ucwords($company->company_name) }}<br>
+                        {{ $company->company_name }}<br>
                         @if (!is_null($company))
                             {!! nl2br($company->defaultAddress->address) !!}<br>
                             {{ $company->company_phone }}
@@ -394,16 +335,16 @@
                                 <p class="line-height mb-0">
                                     <span class="text-grey text-capitalize">@lang("modules.invoices.billedTo")</span><br>
                                     @if ($proposal->lead && $proposal->lead->client_name && $invoiceSetting->show_client_name == 'yes')
-                                       {{ mb_ucwords($proposal->lead->client_name) }}<br>
+                                       {{ $proposal->lead->client_name }}<br>
                                     @endif
                                     @if ($proposal->lead && $proposal->lead->client_email && $invoiceSetting->show_client_email == 'yes')
-                                        {{ mb_ucwords($proposal->lead->client_email) }}<br>
+                                        {{ $proposal->lead->client_email }}<br>
                                     @endif
                                     @if ($proposal->lead && $proposal->lead->mobile && $invoiceSetting->show_client_phone == 'yes')
                                         {{ $proposal->lead->mobile }}<br>
                                     @endif
                                     @if ($proposal->lead && $proposal->lead->company_name && $invoiceSetting->show_client_company_name == 'yes')
-                                        {{ mb_ucwords($proposal->lead->company_name) }}<br>
+                                        {{ $proposal->lead->company_name }}<br>
                                     @endif
                                     @if ($proposal->lead && $proposal->lead->address && $invoiceSetting->show_client_company_address == 'yes')
                                         {!! nl2br($proposal->lead->address) !!}
@@ -441,7 +382,7 @@
                 @if ($invoiceSetting->hsn_sac_code_show)
                     <td align="right" width="10%">@lang("app.hsnSac")</td>
                 @endif
-                <td align="right" width="10%">{{ isset($proposal->unit) ? $proposal->unit->unit_type : 'Qty\hrs' }}</td>
+                <td align="right" width="10%">@lang('modules.invoices.qty')</td>
                 <td align="right">@lang("modules.invoices.unitPrice")</td>
                 <td align="right">@lang("modules.invoices.tax")</td>
                 <td align="right" width="{{ $invoiceSetting->hsn_sac_code_show ? '17%' : '20%' }}">@lang("modules.invoices.amount")
@@ -452,11 +393,11 @@
                 @if ($item->type == 'item')
                     <!-- Table Row Start -->
                     <tr class="main-table-items text-black f-14">
-                        <td width="40%" class="border-bottom-0">{{ ucfirst($item->item_name) }}</td>
+                        <td width="40%" class="border-bottom-0">{{ $item->item_name }}</td>
                         @if ($invoiceSetting->hsn_sac_code_show)
                             <td align="right" class="border-bottom-0" width="10%">{{ $item->hsn_sac_code ? $item->hsn_sac_code : '--' }}</td>
                         @endif
-                        <td align="right" class="border-bottom-0" width="10%">{{ $item->quantity }}</td>
+                        <td align="right" class="border-bottom-0" width="10%">{{ $item->quantity }}<br><span class="f-11 text-grey">{{ $item->unit->unit_type }}</td>
                         <td align="right" class="border-bottom-0">{{ currency_format($item->unit_price, $proposal->currency_id, false) }}</td>
                         <td align="right" class="border-bottom-0">{{ $item->tax_list }}</td>
                         <td align="right" class="border-bottom-0">{{ currency_format($item->amount, $proposal->currency_id, false) }}</td>
@@ -497,7 +438,7 @@
                         @foreach ($taxes as $key => $tax)
                             <!-- Table Row Start -->
                             <tr align="right" class="text-grey">
-                                <td width="50%" class="subtotal">{{ mb_strtoupper($key) }}</td>
+                                <td width="50%" class="subtotal">{{ $key }}</td>
                             </tr>
                             <!-- Table Row End -->
                         @endforeach
@@ -553,16 +494,7 @@
                 <tr>
                     <td height="10"></td>
                 </tr>
-                <tr>
-                    <td class="f-11">
-                        @lang('modules.invoiceSettings.invoiceTerms')</td>
-                </tr>
-                <!-- Table Row End -->
-                <!-- Table Row Start -->
-                <tr class="text-grey">
-                    <td class="f-11 line-height">{!! nl2br($invoiceSetting->invoice_terms) !!}</td>
-                </tr>
-                @if ($proposal->note != '')
+            @if ($proposal->note != '')
                     <tr>
                         <td height="10"></td>
                     </tr>
@@ -609,6 +541,12 @@
                 <!-- Table Row End -->
             </tbody>
         </table>
+    <p>
+    <div style="margin-top: 10px;" class="f-11 line-height text-grey">
+        <b>@lang('modules.invoiceSettings.invoiceTerms')</b><br>{!! nl2br($invoiceSetting->invoice_terms) !!}
+    </div>
+    </p>
+
     @endif
 
 </body>

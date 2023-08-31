@@ -20,7 +20,7 @@ class TicketSettingController extends AccountBaseController
         $this->pageTitle = 'app.menu.ticketSettings';
         $this->activeSettingMenu = 'ticket_settings';
         $this->middleware(function ($request, $next) {
-            abort_403(!(user()->permission('manage_ticket_setting') == 'all'));
+            abort_403(!(user()->permission('manage_ticket_setting') == 'all' && in_array('tickets', user_modules())));
             return $next($request);
         });
     }
@@ -32,7 +32,7 @@ class TicketSettingController extends AccountBaseController
      */
     public function index()
     {
-        $this->agents = TicketAgentGroups::with('user')->get();
+        $this->agents = User::whereHas('agent')->with('agentGroup', 'agent')->get();
         $this->employees = User::doesntHave('agent')
             ->join('role_user', 'role_user.user_id', '=', 'users.id')
             ->join('roles', 'roles.id', '=', 'role_user.role_id')
@@ -67,6 +67,10 @@ class TicketSettingController extends AccountBaseController
         case 'email-sync':
             $this->pageTitle = 'app.menu.emailSync';
             $this->view = 'ticket-settings.ajax.email-sync';
+            break;
+        case 'group-manage':
+            $this->pageTitle = 'app.menu.groupManage';
+            $this->view = 'ticket-settings.ajax.group-manage';
             break;
         default:
             $this->pageTitle = 'app.menu.ticketAgents';

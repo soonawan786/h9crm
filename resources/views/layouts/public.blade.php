@@ -160,7 +160,7 @@
     const RIGHT_MODAL_CONTENT = '#right-modal-content';
     const RIGHT_MODAL_TITLE = '#right-modal-title';
     const company = @json($company??global_setting());
-
+    document.loading = '@lang('app.loading')';
 
     const datepickerConfig = {
         formatter: (input, date, instance) => {

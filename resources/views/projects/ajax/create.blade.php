@@ -8,7 +8,6 @@
 @endphp
 
 <link rel="stylesheet" href="{{ asset('vendor/css/dropzone.min.css') }}">
-
 <div class="row">
     <div class="col-sm-12">
         <x-form id="save-project-data-form">
@@ -27,8 +26,7 @@
                         <x-forms.text class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.projects.projectName')"
                                       fieldName="project_name" fieldRequired="true" fieldId="project_name"
                                       :fieldPlaceholder="__('placeholders.project')"
-                                      {{-- :fieldValue="$projectTemplate->project_name ?? '' --}}
-                                      :fieldValue="$project ? $project->project_name : '' "/>
+                                      :fieldValue="($project ? $project->project_name : (($projectTemplate) ? $projectTemplate->project_name : ''))"/>
                     </div>
 
                     <div class="col-md-6 col-lg-4">
@@ -66,7 +64,7 @@
                                         @if (($projectTemplate && $projectTemplate->category_id == $category->id) || ($project && $project->category_id == $category->id)) selected
                                         @endif
                                         value="{{ $category->id }}">
-                                        {{ mb_ucwords($category->category_name) }}
+                                        {{ $category->category_name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -93,7 +91,7 @@
                                         data-live-search="true">
                                     <option value="">--</option>
                                     @foreach ($teams as $team)
-                                        <option @if ($project && $project->team_id === $team->id) selected @endif value="{{ $team->id }}">{{ mb_ucfirst($team->team_name) }}</option>
+                                        <option @if ($project && $project->team_id === $team->id) selected @endif value="{{ $team->id }}">{{ $team->team_name }}</option>
                                     @endforeach
                                 </select>
                             </x-forms.input-group>
@@ -106,7 +104,7 @@
                             </x-forms.label>
 
                             <input type="hidden" name="client_id" id="client_id" value="{{ $client->id }}">
-                            <input type="text" value="{{ ucfirst($client->name) }}"
+                            <input type="text" value="{{ $client->name }}"
                                    class="form-control height-35 f-15 readonly-background" readonly>
                         @else
                             <x-client-selection-dropdown :clients="$clients" fieldRequired="false"
@@ -208,7 +206,7 @@
                     @if ($addProjectFilePermission == 'all' || $addProjectFilePermission == 'added')
                         <div class="col-lg-12">
                             <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2"
-                                                   :fieldLabel="__('app.add') . ' ' . __('app.file')" fieldName="file"
+                                                   :fieldLabel="__('app.menu.addFile')" fieldName="file"
                                                    fieldId="file-upload-dropzone"/>
                             <input type="hidden" name="projectID" id="projectID">
                         </div>
@@ -242,7 +240,7 @@
                     <div class="col-md-6 col-lg-3">
                         <div class="form-group">
                             <div class="d-flex mt-5">
-                                <x-forms.checkbox fieldId="manual_timelog" :checked="($project ?$project->manual_timelog == 'enable' : '')" :fieldLabel="__('modules.projects.manualTimelog')"  fieldName="manual_timelog"/>
+                                <x-forms.checkbox fieldId="manual_timelog" :checked="($project ? $project->manual_timelog == 'enable' : ($projectTemplate ? $projectTemplate->manual_timelog == 'enable' : ''))" :fieldLabel="__('modules.projects.manualTimelog')"  fieldName="manual_timelog"/>
                             </div>
                         </div>
                     </div>
@@ -279,6 +277,7 @@
                         </div>
                     </div>
 
+                    <input type = "hidden" name = "mention_user_ids" id = "mentionUserId" class ="mention_user_ids">
 
                     <div class="col-md-6 col-lg-4" id="clientNotification">
                         <div class="form-group">
@@ -308,18 +307,20 @@
 
 
 <script src="{{ asset('vendor/jquery/dropzone.min.js') }}"></script>
+
 <script>
+
     var add_project_files = "{{ $addProjectFilePermission }}";
     var add_project_note_permission = "{{ $addProjectNotePermission }}";
 
     $(document).ready(function () {
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         $('#without_deadline').click(function() {
             var check = $('#without_deadline').is(":checked") ? true : false;
@@ -332,7 +333,9 @@
 
         if (add_project_files == "all") {
 
+            let checkSize = true;
             Dropzone.autoDiscover = false;
+
             //Dropzone class
             myDropzone = new Dropzone("div#file-upload-dropzone", {
                 dictDefaultMessage: "{{ __('app.dragDrop') }}",
@@ -342,33 +345,59 @@
                 },
                 paramName: "file",
                 maxFilesize: DROPZONE_MAX_FILESIZE,
-                maxFiles: 10,
+                maxFiles: DROPZONE_MAX_FILES,
                 autoProcessQueue: false,
                 uploadMultiple: true,
                 addRemoveLinks: true,
-                parallelUploads: 10,
+                parallelUploads: DROPZONE_MAX_FILES,
                 acceptedFiles: DROPZONE_FILE_ALLOW,
                 init: function () {
                     myDropzone = this;
                 }
             });
             myDropzone.on('sending', function (file, xhr, formData) {
+                checkSize = true;
                 var ids = $('#projectID').val();
                 formData.append('project_id', ids);
             });
             myDropzone.on('uploadprogress', function () {
                 $.easyBlockUI();
             });
-            myDropzone.on('completemultiple', function () {
+            myDropzone.on('queuecomplete', function () {
                 var msgs = "@lang('messages.updateSuccess')";
                 var redirect_url = $('#redirect_url').val();
-                if (redirect_url != '') {
+                if (redirect_url != '' && checkSize == true) {
                     window.location.href = decodeURIComponent(redirect_url);
                 }
-                window.location.href = "{{ route('projects.index') }}"
+
+                if (checkSize == true) {
+                    window.location.href = "{{ route('projects.index') }}"
+                }
+            });
+            myDropzone.on('removedfile', function () {
+                var grp = $('div#file-upload-dropzone').closest(".form-group");
+                var label = $('div#file-upload-box').siblings("label");
+                $(grp).removeClass("has-error");
+                $(label).removeClass("is-invalid");
+            });
+            myDropzone.on('error', function (file, message) {
+                myDropzone.removeFile(file);
+                var grp = $('div#file-upload-dropzone').closest(".form-group");
+                var label = $('div#file-upload-box').siblings("label");
+                $(grp).find(".help-block").remove();
+                var helpBlockContainer = $(grp);
+
+                if (helpBlockContainer.length == 0) {
+                    helpBlockContainer = $(grp);
+                }
+
+                checkSize = false;
+
+                helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+                $(grp).addClass("has-error");
+                $(label).addClass("is-invalid");
             });
         }
-
 
         $("#selectEmployee").selectpicker({
             actionsBox: true,
@@ -380,8 +409,8 @@
                 return selected + " {{ __('app.membersSelected') }} ";
             }
         });
-
-        quillImageLoad('#project_summary');
+        var userValues = @json($userData);
+        quillMention(userValues, '#project_summary');
 
         if (add_project_note_permission == 'all' || add_project_note_permission == 'added') {
 
@@ -421,15 +450,18 @@
         $('#save-project-form').click(function () {
             let note = document.getElementById('project_summary').children[0].innerHTML;
             document.getElementById('project_summary-text').value = note;
+            var mention_user_id = $('#project_summary span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
+            $('#mentionUserId').val(mention_user_id.join(','));
 
             if (add_project_note_permission == 'all' || add_project_note_permission == 'added') {
 
                 note = document.getElementById('notes').children[0].innerHTML;
                 document.getElementById('notes-text').value = note;
             }
-
             const url = "{{ route('projects.store') }}";
-            const data = $('#save-project-data-form').serialize() + "&projectID={{$project ? $project->id : ''}}";
+            var data = $('#save-project-data-form').serialize() + "&projectID={{$project ? $project->id : ''}}";
 
             $.easyAjax({
                 url: url,
@@ -437,6 +469,7 @@
                 type: "POST",
                 disableButton: true,
                 blockUI: true,
+                file: true,
                 buttonSelector: "#save-project-form",
                 data: data,
                 success: function (response) {
@@ -525,9 +558,13 @@
             blockUI: true,
             redirect: true,
             success: function (data) {
+                var atValues = data.userData;
+                destory_editor('#project_summary');
+                quillMention(atValues, '#project_summary');
                 $('#selectEmployee').html(data.data);
                 $('#selectEmployee').selectpicker('refresh');
             }
         })
     });
+
 </script>

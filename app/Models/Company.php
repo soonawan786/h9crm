@@ -122,7 +122,6 @@ use Laravel\Cashier\Billable;
  * @method static \Illuminate\Database\Eloquent\Builder|Setting whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Setting whereWeatherKey($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Setting whereWebsite($value)
- * @mixin \Eloquent
  * @property int $ticket_form_google_captcha
  * @property int $lead_form_google_captcha
  * @property string|null $last_cron_run
@@ -233,6 +232,21 @@ use Laravel\Cashier\Billable;
  * @property-read int|null $tasks_count
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Ticket[] $tickets
  * @property-read int|null $tickets_count
+ * @method static \Illuminate\Database\Eloquent\Builder|Company whereYearStartsFrom($value)
+ * @property string $header_color
+ * @property int $datatable_row_limit
+ * @property int $show_new_webhook_alert
+ * @property string|null $pm_type
+ * @property string|null $pm_last_four
+ * @property-read \App\Models\CompanyAddress|null $defaultAddress
+ * @method static \Illuminate\Database\Eloquent\Builder|Company whereDatatableRowLimit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Company whereHeaderColor($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Company wherePmLastFour($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Company wherePmType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Company whereShowNewWebhookAlert($value)
+ * @property string $auth_theme_text
+ * @method static \Illuminate\Database\Eloquent\Builder|Company whereAuthThemeText($value)
+ * @mixin \Eloquent
  * @property-read \App\Models\User|null $user
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\User[] $users
  * @property-read int|null $users_count
@@ -258,7 +272,8 @@ class Company extends BaseModel
 
     public $dates = [
         'last_login',
-        'subscription_updated_at' // WORKSUITESAAS
+        'subscription_updated_at', // WORKSUITESAAS
+        'licence_expire_on' // WORKSUITESAAS
     ];
 
     protected $casts = [
@@ -322,7 +337,7 @@ class Company extends BaseModel
             return global_setting()->light_logo_url;
         }
 
-        return asset_url('app-logo/' . $this->light_logo);
+        return asset_url_local_s3('app-logo/' . $this->light_logo, true, 'image');
 
     }
 
@@ -332,7 +347,7 @@ class Company extends BaseModel
             return global_setting()->dark_logo_url;
         }
 
-        return asset_url('app-logo/' . $this->logo);
+        return asset_url_local_s3('app-logo/' . $this->logo, true, 'image');
     }
 
     public function getLightLogoUrlAttribute()
@@ -341,7 +356,7 @@ class Company extends BaseModel
             return global_setting()->light_logo_url;
         }
 
-        return asset_url('app-logo/' . $this->light_logo);
+        return asset_url_local_s3('app-logo/' . $this->light_logo, true, 'image');
     }
 
     public function getDarkLogoUrlAttribute()
@@ -351,7 +366,7 @@ class Company extends BaseModel
             return asset('img/worksuite-logo.png');
         }
 
-        return asset_url('app-logo/' . $this->logo);
+        return asset_url_local_s3('app-logo/' . $this->logo, true, 'image');
     }
 
     public function getLoginBackgroundUrlAttribute()
@@ -361,7 +376,7 @@ class Company extends BaseModel
             return null;
         }
 
-        return asset_url('login-background/' . $this->login_background);
+        return asset_url_local_s3('login-background/' . $this->login_background);
     }
 
     public function getMomentDateFormatAttribute()
@@ -376,7 +391,7 @@ class Company extends BaseModel
             return global_setting()->favicon_url;
         }
 
-        return asset_url('favicon/' . $this->favicon);
+        return asset_url_local_s3('favicon/' . $this->favicon);
     }
 
     public function paymentGatewayCredentials(): HasOne

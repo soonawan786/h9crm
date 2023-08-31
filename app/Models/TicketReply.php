@@ -37,7 +37,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|TicketReply whereUserId($value)
  * @method static \Illuminate\Database\Query\Builder|TicketReply withTrashed()
  * @method static \Illuminate\Database\Query\Builder|TicketReply withoutTrashed()
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property string|null $imap_message_id
  * @property string|null $imap_message_uid
@@ -45,13 +44,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|TicketReply whereImapInReplyTo($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketReply whereImapMessageId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketReply whereImapMessageUid($value)
+ * @mixin \Eloquent
  */
 class TicketReply extends BaseModel
 {
 
     use SoftDeletes;
 
-    protected $dates = ['deleted_at'];
+    protected $casts = [
+        'deleted_at' => 'datetime',
+    ];
 
     public function user(): BelongsTo
     {

@@ -1,3 +1,12 @@
+@push('styles')
+    @foreach ($frontWidgets as $item)
+    @if(!is_null($item->header_script))
+        {!! $item->header_script !!}
+    @endif
+
+    @endforeach
+@endpush
+
 <x-auth>
     <form id="login-form" action="{{ route('login') }}" class="ajax-form" method="POST">
         {{ csrf_field() }}
@@ -24,7 +33,7 @@
             <label for="email">@lang('auth.email') <sup class="f-14 mr-1">*</sup></label>
             <input tabindex="2" type="email" name="email"
                    class="form-control height-50 f-15 light_text"
-                   placeholder="e.g. admin@example.com" id="email">
+                   placeholder="@lang('placeholders.email')" id="email">
             <input type="hidden" id="g_recaptcha" name="g_recaptcha">
         </div>
 
@@ -60,6 +69,14 @@
             </div>
         @endif
 
+        @if ($globalSetting->sign_up_terms == 'yes')
+            <div class="form-group text-left" >
+                <input autocomplete="off" id="read_agreement"
+                    name="terms_and_conditions" type="checkbox" >
+                <label for="read_agreement">@lang('app.acceptTerms') <a href="{{ $globalSetting->terms_link }}" target="_blank" id="terms_link" >@lang('app.termsAndCondition')</a></label>
+            </div>
+        @endif
+
         <button type="button" id="submit-register"
                 class="btn-primary f-w-500 rounded w-100 height-50 f-18">
             @lang('app.signUp') <i class="fa fa-arrow-right pl-1"></i>
@@ -72,6 +89,38 @@
     </form>
 
     <x-slot name="scripts">
+        @if ($globalSetting->google_recaptcha_status == 'active' && $globalSetting->google_recaptcha_v2_status == 'active')
+            <script src="https://www.google.com/recaptcha/api.js?onload=onloadCallback&render=explicit" async
+                    defer></script>
+            <script>
+                var gcv3;
+                var onloadCallback = function () {
+                    // Renders the HTML element with id 'captcha_container' as a reCAPTCHA widget.
+                    // The id of the reCAPTCHA widget is assigned to 'gcv3'.
+                    gcv3 = grecaptcha.render('captcha_container', {
+                        'sitekey': '{{ $globalSetting->google_recaptcha_v2_site_key }}',
+                        'theme': 'light',
+                        'callback': function (response) {
+                            if (response) {
+                                $('#g_recaptcha').val(response);
+                            }
+                        },
+                    });
+                };
+            </script>
+        @endif
+        @if ($globalSetting->google_recaptcha_status == 'active' && $globalSetting->google_recaptcha_v3_status == 'active')
+            <script
+                src="https://www.google.com/recaptcha/api.js?render={{ $globalSetting->google_recaptcha_v3_site_key }}"></script>
+            <script>
+                grecaptcha.ready(function () {
+                    grecaptcha.execute('{{ $globalSetting->google_recaptcha_v3_site_key }}').then(function (token) {
+                        // Add your logic to submit to your backend server here.
+                        $('#g_recaptcha').val(token);
+                    });
+                });
+            </script>
+        @endif
 
         <script>
             $(document).ready(function () {
@@ -111,6 +160,13 @@
 
             });
         </script>
+
+        @foreach ($frontWidgets as $item)
+        @if(!is_null($item->footer_script))
+            {!! $item->footer_script !!}
+        @endif
+
+        @endforeach
     </x-slot>
 
 </x-auth>

@@ -7,7 +7,6 @@ use App\Http\Requests\Tasks\StoreTaskComment;
 use App\Models\TaskCommentEmoji;
 use App\Models\Task;
 use App\Models\TaskComment;
-use App\Models\User;
 use Illuminate\Http\Request;
 
 class TaskCommentController extends AccountBaseController
@@ -30,6 +29,7 @@ class TaskCommentController extends AccountBaseController
      */
     public function store(StoreTaskComment $request)
     {
+
         $this->addPermission = user()->permission('add_task_comments');
         $task = Task::findOrFail($request->taskId);
         $taskUsers = $task->users->pluck('id')->toArray();
@@ -40,7 +40,6 @@ class TaskCommentController extends AccountBaseController
             || ($this->addPermission == 'owned' && in_array(user()->id, $taskUsers))
             || ($this->addPermission == 'added' && (in_array(user()->id, $taskUsers) || $task->added_by == user()->id))
         ));
-
         $comment = new TaskComment();
         $comment->comment = $request->comment;
         $comment->task_id = $request->taskId;
@@ -85,6 +84,18 @@ class TaskCommentController extends AccountBaseController
     public function edit($id)
     {
         $this->comment = TaskComment::with('user', 'task')->findOrFail($id);
+        $taskuserData = [];
+        $usersData = $this->comment->task->users;
+
+        foreach ($usersData as $user) {
+            $url = route('employees.show', [$user->id]);
+
+            $taskuserData[] = ['id' => $user->id, 'value' => $user->name, 'image' => $user->image_url, 'link' => $url];
+
+        }
+
+        $this->taskuserData = $taskuserData;
+
         $this->editPermission = user()->permission('edit_task_comments');
 
         abort_403(!($this->editPermission == 'all' || ($this->editPermission == 'added' && $this->comment->added_by == user()->id)));

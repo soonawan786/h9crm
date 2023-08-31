@@ -31,12 +31,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|KnowledgeBase whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|KnowledgeBase whereTo($value)
  * @method static \Illuminate\Database\Eloquent\Builder|KnowledgeBase whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\KnowledgeBaseFile[] $files
  * @property-read int|null $files_count
  * @method static \Illuminate\Database\Eloquent\Builder|KnowledgeBase whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class KnowledgeBase extends BaseModel
 {

@@ -8,18 +8,25 @@
 
             <div class="row">
 
-                <div class="col-sm-4 col-md-4">
-                    <x-forms.text class="" :fieldLabel="__('modules.customFields.label')" fieldName="label" fieldId="label" :fieldValue="$field->label" fieldRequired="true" />
+                <div class="col-md-4">
+                    <div class="form-group my-3">
+                        <label class="control-label required" for="display_name">@lang('app.module')</label>
+                        <p class="mt-2 form-control-static">{{ $field->fieldGroup->name }}</p>
+                    </div>
                 </div>
 
                 <div class="col-md-4">
                     <div class="form-group my-3">
-                        <label class="col-sm-2 control-label required" for="display_name">@lang('modules.invoices.type')</label>
-                        <p class="col-sm-10 mt-2 form-control-static">{{ $field->type }}</p>
+                        <label class="control-label required" for="display_name">@lang('modules.customFields.fieldType')</label>
+                        <p class="mt-2 form-control-static">{{ $field->type }}</p>
                     </div>
                 </div>
 
-                <div class="col-md-6">
+                <div class="col-md-4">
+                    <x-forms.text class="" :fieldLabel="__('modules.customFields.label')" fieldName="label" fieldId="label" :fieldValue="$field->label" fieldRequired="true" />
+                </div>
+
+                <div class="col-md-4">
                     <div class="form-group my-3">
                         <label class="f-14 text-dark-grey mb-12 w-100" for="usr">@lang('app.required')</label>
                         <div class="d-flex">
@@ -29,6 +36,13 @@
                             <x-forms.radio fieldId="optionsRadios2" :fieldLabel="__('app.no')" fieldValue="no"
                                 fieldName="required" :checked="$field->required == 'no'"></x-forms.radio>
                         </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="form-group my-5">
+                        <x-forms.checkbox fieldId="visible"
+                        :fieldLabel="__('modules.customFields.showInTable')" fieldName="visible" fieldValue="true"
+                        :checked="$field->visible == 'true'"/>
                     </div>
                 </div>
                 <div class="col-lg-6">

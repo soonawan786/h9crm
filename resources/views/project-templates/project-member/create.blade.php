@@ -44,8 +44,8 @@
                             data-size="8">
                             @foreach ($groups as $group)
                                 <option
-                                    data-content="<span class='badge badge-pill badge-light border p-2'>{{ ucfirst($group->team_name) }}</span>"
-                                    value="{{ $group->id }}">{{ mb_ucwords($group->team_name) }} </option>
+                                    data-content="<span class='badge badge-pill badge-light border p-2'>{{ $group->team_name }}</span>"
+                                    value="{{ $group->id }}">{{ $group->team_name }} </option>
                             @endforeach
                         </select>
                     </x-forms.input-group>

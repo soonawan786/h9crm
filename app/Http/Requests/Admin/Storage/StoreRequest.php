@@ -53,6 +53,15 @@ class StoreRequest extends CoreRequest
             ];
         }
 
+        if ($this->storage == 'minio') {
+            $rules = [
+                'minio_key' => 'required|min:3|max:50',
+                'minio_region' => 'required',
+                'minio_secret' => 'required|min:10|max:80',
+                'minio_bucket' => 'required',
+            ];
+        }
+
         return $rules;
     }
 

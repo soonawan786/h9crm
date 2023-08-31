@@ -3,15 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Helper\Reply;
-use App\Models\Module;
-use App\Models\Project;
 use App\Models\CustomField;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use App\Models\ClientDetails;
-use App\Models\EmployeeDetails;
 use App\Models\CustomFieldGroup;
-use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
 use App\Http\Requests\CustomField\StoreCustomField;
 use App\Http\Requests\CustomField\UpdateCustomField;
@@ -41,7 +34,7 @@ class CustomFieldController extends AccountBaseController
 
         if (\request()->ajax()) {
             $permissions = CustomField::join('custom_field_groups', 'custom_field_groups.id', '=', 'custom_fields.custom_field_group_id')
-                ->select('custom_fields.id', 'custom_field_groups.name as module', 'custom_fields.label', 'custom_fields.type', 'custom_fields.values', 'custom_fields.required')
+                ->select('custom_fields.id', 'custom_field_groups.name as module', 'custom_fields.label', 'custom_fields.type', 'custom_fields.values', 'custom_fields.required', 'custom_fields.export', 'custom_fields.visible')
                 ->get();
 
             $data = DataTables::of($permissions)
@@ -82,6 +75,40 @@ class CustomFieldController extends AccountBaseController
                         return $string;
                     }
                 )
+                ->editColumn(
+                    'export',
+                    function ($row) {
+                        $class = 'badge  badge-danger disabled color-palette';
+
+                        if($row->export == 1) {
+                            $string = '<span class="' . $class . '">' . __('app.yes') . '</span>';
+                        }
+                        else {
+                            $class = 'badge  badge-secondary disabled color-palette';
+                            $string = '<span class="' . $class . '">' . __('app.no') . '</span>';
+                        }
+
+                        return $string;
+                    }
+                )
+                ->addColumn(
+                    'visible',
+                    function ($row) {
+                        $class = 'badge  badge-danger disabled color-palette';
+                        // dd($row->visible == 'false');
+                        if($row->visible == 'true') {
+                            $string = '<span class="' . $class . '">' . __('app.yes') . '</span>';
+                        }
+                        else {
+                            // dump('false');
+                            $class = 'badge  badge-secondary disabled color-palette';
+                            $string = '<span class="' . $class . '">' . __('app.no') . '</span>';
+                        }
+
+                        return $string;
+                    }
+                )
+
                 ->addColumn(
                     'action',
                     function ($row) {
@@ -91,7 +118,7 @@ class CustomFieldController extends AccountBaseController
                             <i class="fa fa-trash icons mr-2"></i> ' . __('app.delete') . ' </a> </div>';
                     }
                 )
-                ->rawColumns(['values', 'action', 'required'])
+                ->rawColumns(['values', 'action', 'required', 'export', 'visible'])
                 ->make(true);
 
             return $data;
@@ -130,6 +157,7 @@ class CustomFieldController extends AccountBaseController
                     'required' => $request->get('required'),
                     'values' => $request->get('value'),
                     'export' => $request->get('export'),
+                    'visible' => $request->get('visible'),
                 ]
             ],
 
@@ -169,6 +197,7 @@ class CustomFieldController extends AccountBaseController
         $field->values = json_encode($request->value);
         $field->required = $request->required;
         $field->export = $request->export;
+        $field->visible = $request->visible;
         $field->save();
 
         return Reply::success('messages.updateSuccess');
@@ -196,10 +225,11 @@ class CustomFieldController extends AccountBaseController
                 'label' => $field['label'],
                 'name' => $field['name'],
                 'type' => $field['type'],
-                'export' => $field['export']
+                'export' => $field['export'],
+                'visible' => $field['visible']
             ];
 
-            if (isset($field['required']) && (in_array(strtolower($field['required']), ['yes', 'on', 1]))) {
+            if (isset($field['required']) && (in_array($field['required'], ['yes', 'on', 1]))) {
                 $insertData['required'] = 'yes';
 
             }

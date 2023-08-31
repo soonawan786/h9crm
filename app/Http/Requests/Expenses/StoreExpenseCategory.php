@@ -25,7 +25,7 @@ class StoreExpenseCategory extends CoreRequest
     public function rules()
     {
         return [
-            'category_name' => 'unique:expenses_category,category_name,null,id,company_id,' . company()->id
+            'category_name' => 'required|unique:expenses_category,category_name,null,id,company_id,' . company()->id
         ];
     }
 

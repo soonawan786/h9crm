@@ -111,7 +111,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Project whereUpdatedAt($value)
  * @method static \Illuminate\Database\Query\Builder|Project withTrashed()
  * @method static \Illuminate\Database\Query\Builder|Project withoutTrashed()
- * @mixin \Eloquent
  * @property string|null $hash
  * @method static \Illuminate\Database\Eloquent\Builder|Project whereHash($value)
  * @property int $public
@@ -127,6 +126,20 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Project whereEnableMiroboard($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Project whereMiroBoardId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Project whereProjectShortCode($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Contract> $contracts
+ * @property-read int|null $contracts_count
+ * @property-read int|null $project_members_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionNote
+ * @property-read int|null $mention_note_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @property-read int|null $mention_user_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ProjectMilestone> $incompleteMilestones
+ * @property-read int|null $incomplete_milestones_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionProject
+ * @property-read int|null $mention_project_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @property-read \App\Models\Project|null $due_date
+ * @mixin \Eloquent
  */
 class Project extends BaseModel
 {
@@ -135,10 +148,14 @@ class Project extends BaseModel
     use SoftDeletes;
     use HasCompany;
 
-    protected $dates = ['start_date', 'deadline'];
+    protected $casts = [
+        'start_date' => 'datetime',
+        'deadline' => 'datetime',
+        'created_at' => 'datetime',
+    ];
 
     protected $guarded = ['id'];
-
+    protected $with = ['members'];
     protected $appends = ['isProjectAdmin'];
 
     const CUSTOM_FIELD_MODEL = 'App\Models\Project';
@@ -203,6 +220,11 @@ class Project extends BaseModel
         return $this->hasMany(ProjectMilestone::class, 'project_id')->orderBy('id', 'desc');
     }
 
+    public function incompleteMilestones(): HasMany
+    {
+        return $this->hasMany(ProjectMilestone::class, 'project_id')->whereNot('status', 'complete')->orderBy('id', 'desc');
+    }
+
     public function expenses(): HasMany
     {
         return $this->hasMany(Expense::class, 'project_id')->orderBy('id', 'desc');
@@ -238,16 +260,9 @@ class Project extends BaseModel
      */
     public function checkProjectUser()
     {
-        $project = ProjectMember::where('project_id', $this->id)
-            ->where('user_id', auth()->user()->id)
-            ->count();
-
-        if ($project > 0) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        return ProjectMember::where('project_id', $this->id)
+            ->where('user_id', user()->id)
+            ->exists();
     }
 
     /**
@@ -255,16 +270,10 @@ class Project extends BaseModel
      */
     public function checkProjectClient()
     {
-        $project = Project::where('id', $this->id)
-            ->where('client_id', auth()->user()->id)
-            ->count();
+        return Project::where('id', $this->id)
+            ->where('client_id', user()->id)
+            ->exists();
 
-        if ($project > 0) {
-            return true;
-        }
-        else {
-            return false;
-        }
     }
 
     public static function clientProjects($clientId)
@@ -273,7 +282,7 @@ class Project extends BaseModel
     }
 
     /**
-     * @param string $search
+     * @param  string $search
      * Search Parameter is passed the get only search results and 20
      * @return \Illuminate\Support\Collection
      */
@@ -287,6 +296,10 @@ class Project extends BaseModel
 
             if (user()->permission('view_projects') == 'added') {
                 $projects->where('projects.added_by', user()->id);
+            }
+
+            if (user()->permission('view_projects') == 'both') {
+                $projects->where('projects.added_by', user()->id)->orWhere('project_members.user_id', user()->id);
             }
 
             if (user()->permission('view_projects') == 'owned' && in_array('employee', user_roles())) {
@@ -382,7 +395,7 @@ class Project extends BaseModel
 
     public function getIsProjectAdminAttribute()
     {
-        if (auth()->user() && $this->project_admin == auth()->user()->id) {
+        if (auth()->user() && $this->project_admin == user()->id) {
             return true;
         }
 
@@ -398,6 +411,16 @@ class Project extends BaseModel
         }
 
         return false;
+    }
+
+    public function mentionUser(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'mention_users')->withoutGlobalScope(ActiveScope::class)->using(MentionUser::class);
+    }
+
+    public function mentionProject(): HasMany
+    {
+        return $this->hasMany(MentionUser::class, 'project_id');
     }
 
 }

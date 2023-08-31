@@ -15,7 +15,7 @@
                         {{ $key + 1 }}
                     </td>
                     <td><i class="fa fa-circle mr-1 f-15"
-                           style="color:{{$status->color}}"></i> {{ ucfirst($status->status_name) }}
+                           style="color:{{$status->color}}"></i> {{ $status->status_name }}
                     </td>
                     @if ($status->status == 'active')
                         <td>

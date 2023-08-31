@@ -356,13 +356,14 @@
                     errorMsg += "</ul>";
 
                     var errorElement = $(opt.container).find("#alert");
+
                     var html =
                         '<div class="alert alert-danger">' +
                         errorMsg +
                         "</div>";
                     if (errorElement.length == 0) {
                         $(opt.container)
-                            .find(".form-group:first")
+                            .find("div:first")
                             .before('<div id="alert">' + html + "</div>");
                     } else {
                         errorElement.html(html);
@@ -375,7 +376,7 @@
             var button = $(opt.container).find(selector);
 
             var text =
-                '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...';
+                '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>' + (document.loading ? document.loading : 'Loading...');
 
             if (button.width() < 20) {
                 text = "...";
@@ -407,13 +408,13 @@
 
     $.easyBlockUI = function (container, message) {
         if (message == undefined) {
-            message = "Loading...";
+            message = (document.loading ? document.loading : 'Loading...');
         }
 
         var html =
             '<div class="d-flex justify-content-center">' +
             '<div class="spinner-border" role="status">' +
-            '<span class="sr-only">Loading...</span>' +
+            '<span class="sr-only">'+ (document.loading ? document.loading : 'Loading...') +'</span>' +
             "</div>" +
             "</div>";
 
@@ -518,7 +519,7 @@
 
         // Reset modal when it hides
         $(selector).on("hidden.bs.modal", function () {
-            $(this).find(".modal-body").html("Loading...");
+            $(this).find(".modal-body").html((document.loading ? document.loading : 'Loading...'));
             $(this)
                 .find(".modal-footer")
                 .html(

@@ -107,7 +107,7 @@ class LeadDataRemovalDataTable extends BaseDataTable
     {
         return [
             __('app.id') => ['data' => 'id', 'name' => 'id', 'visible' => false, 'exportable' => false, 'title' => __('app.id')],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.name') => ['data' => 'name', 'name' => 'name', 'title' => __('app.name')],
             __('app.description') => ['data' => 'description', 'name' => 'description', 'title' => __('app.description')],
             __('app.createdOn') => ['data' => 'created_at', 'name' => 'created_at', 'title' => __('app.createdOn')],
@@ -120,16 +120,6 @@ class LeadDataRemovalDataTable extends BaseDataTable
                 ->width(200)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'leads_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

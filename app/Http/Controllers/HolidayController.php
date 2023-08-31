@@ -26,28 +26,36 @@ class HolidayController extends AccountBaseController
         $this->pageTitle = 'app.menu.holiday';
     }
 
-    public function index(HolidayDataTable $dataTable)
+    public function index()
     {
-        $viewPermission = user()->permission('view_holiday');
-        abort_403(!in_array($viewPermission, ['all', 'added']));
+        $this->viewPermission = user()->permission('view_holiday');
+        abort_403(!in_array($this->viewPermission, ['all', 'added']));
 
-        $this->currentYear = now()->format('Y');
-        $this->currentMonth = now()->month;
+        if (request('start') && request('end')) {
+            $holidayArray = array();
 
-        /* year range from last 5 year to next year */
-        $years = [];
-        $latestFifthYear = (int)now()->subYears(5)->format('Y');
-        $nextYear = (int)now()->addYear()->format('Y');
+            $holidays = Holiday::orderBy('date', 'ASC');
 
-        for ($i = $latestFifthYear; $i <= $nextYear; $i++) {
-            $years[] = $i;
+            if (request()->searchText != '') {
+                $holidays->where('holidays.occassion', 'like', '%' . request()->searchText . '%');
+            }
+
+            $holidays = $holidays->get();
+
+            foreach ($holidays as $key => $holiday) {
+
+                $holidayArray[] = [
+                    'id' => $holiday->id,
+                    'title' => $holiday->occassion,
+                    'start' => $holiday->date->format('Y-m-d'),
+                    'end' => $holiday->date->format('Y-m-d'),
+                ];
+            }
+
+            return $holidayArray;
         }
 
-        $this->years = $years;
-
-
-        return $dataTable->render('holiday.index', $this->data);
-
+        return view('holiday.calendar.index', $this->data);
     }
 
     /**
@@ -57,6 +65,9 @@ class HolidayController extends AccountBaseController
     {
         $this->addPermission = user()->permission('add_holiday');
         abort_403(!in_array($this->addPermission, ['all', 'added']));
+
+        $this->redirectUrl = request()->date ? route('holidays.index') : route('holidays.table_view');
+        $this->date = request()->date ? Carbon::parse(request()->date)->timezone(company()->timezone)->translatedFormat(company()->date_format) : '';
 
         if (request()->ajax()) {
             $this->pageTitle = __('app.menu.holiday');
@@ -89,7 +100,7 @@ class HolidayController extends AccountBaseController
             if ($value != '') {
 
                 $holiday = new Holiday();
-                $holiday->date = Carbon::createFromFormat($this->company->date_format, $value)->format('Y-m-d');
+                $holiday->date = Carbon::createFromFormat($this->company->date_format, $value);
                 $holiday->occassion = $occassions[$index];
                 $holiday->save();
 
@@ -201,40 +212,27 @@ class HolidayController extends AccountBaseController
 
     }
 
-    public function calendar(Request $request)
+    public function tableView(HolidayDataTable $dataTable)
     {
-        $this->viewPermission = user()->permission('view_holiday');
+        $viewPermission = user()->permission('view_holiday');
+        abort_403(!in_array($viewPermission, ['all', 'added']));
 
-        abort_403(!($this->viewPermission == 'all' || $this->viewPermission == 'added'));
+        $this->pageTitle = __('app.menu.listView');
+        $this->currentYear = now()->format('Y');
+        $this->currentMonth = now()->month;
 
-        $this->pageTitle = 'app.menu.calendar';
+        /* year range from last 5 year to next year */
+        $years = [];
+        $latestFifthYear = (int)now()->subYears(5)->format('Y');
+        $nextYear = (int)now()->addYear()->format('Y');
 
-        if (request('start') && request('end')) {
-            $holidayArray = array();
-
-            $holidays = Holiday::orderBy('date', 'ASC');
-
-            if (request()->searchText != '') {
-                $holidays->where('holidays.occassion', 'like', '%' . request()->searchText . '%');
-            }
-
-            $holidays = $holidays->get();
-
-            foreach ($holidays as $key => $holiday) {
-
-                $holidayArray[] = [
-                    'id' => $holiday->id,
-                    'title' => $holiday->occassion,
-                    'start' => $holiday->date->format('Y-m-d'),
-                    'end' => $holiday->date->format('Y-m-d'),
-                ];
-            }
-
-            return $holidayArray;
+        for ($i = $latestFifthYear; $i <= $nextYear; $i++) {
+            $years[] = $i;
         }
 
-        return view('holiday.calendar.index', $this->data);
+        $this->years = $years;
 
+        return $dataTable->render('holiday.index', $this->data);
     }
 
     public function applyQuickAction(Request $request)
@@ -282,12 +280,9 @@ class HolidayController extends AccountBaseController
             $year = $request->has('year');
         }
 
-        $dayss = [];
-        $this->days = AttendanceSetting::WEEKDAYS;
 
         if ($request->office_holiday_days != null && count($request->office_holiday_days) > 0) {
             foreach ($request->office_holiday_days as $holiday) {
-                $dayss[] = $this->days[($holiday)];
                 $day = $holiday;
 
                 $dateArray = $this->getDateForSpecificDayBetweenDates($year . '-01-01', $year . '-12-31', ($day));
@@ -295,16 +290,22 @@ class HolidayController extends AccountBaseController
                 foreach ($dateArray as $date) {
                     Holiday::firstOrCreate([
                         'date' => $date,
-                        'occassion' => now()->weekday($day)->translatedFormat('l')
+                        'occassion' => $request->occassion ? $request->occassion : now()->weekday($day)->translatedFormat('l')
                     ]);
                 }
 
-                $this->googleCalendarEventMulti($day, $year, $this->days);
+                $this->googleCalendarEventMulti($day, $year);
 
             }
         }
 
-        return Reply::successWithData(__('messages.recordSaved'), ['redirectUrl' => route('holidays.index')]);
+        $redirectUrl = 'table-view';
+
+        if (url()->previous() == route('holidays.index')) {
+            $redirectUrl = route('holidays.index');
+        }
+
+        return Reply::successWithData(__('messages.recordSaved'), ['redirectUrl' => $redirectUrl]);
     }
 
     public function getDateForSpecificDayBetweenDates($startDate, $endDate, $weekdayNumber)
@@ -338,65 +339,64 @@ class HolidayController extends AccountBaseController
 
             $google = new Google();
 
-            $description = __('messages.invoiceDueOn');
+            if ($event->date) {
+                $date = \Carbon\Carbon::parse($event->date)->shiftTimezone($googleAccount->timezone);
 
-            // Create event
-            $google = $google->connectUsing($googleAccount->token);
+                // Create event
+                $google = $google->connectUsing($googleAccount->token);
 
-            $eventData = new \Google_Service_Calendar_Event(array(
-                'summary' => $event->occassion,
-                'location' => $googleAccount->address,
-                'description' => $description,
-                'colorId' => 1,
-                'start' => array(
-                    'dateTime' => $event->date,
-                    'timeZone' => $googleAccount->timezone,
-                ),
-                'end' => array(
-                    'dateTime' => $event->date,
-                    'timeZone' => $googleAccount->timezone,
-                ),
-                'reminders' => array(
-                    'useDefault' => false,
-                    'overrides' => array(
-                        array('method' => 'email', 'minutes' => 24 * 60),
-                        array('method' => 'popup', 'minutes' => 10),
+                $eventData = new \Google_Service_Calendar_Event(array(
+                    'summary' => $event->occassion,
+                    'location' => $googleAccount->address,
+                    'colorId' => 1,
+                    'start' => array(
+                        'dateTime' => $date->copy()->startOfDay(),
+                        'timeZone' => $googleAccount->timezone,
                     ),
-                ),
-            ));
+                    'end' => array(
+                        'dateTime' => $date->copy()->endOfDay(),
+                        'timeZone' => $googleAccount->timezone,
+                    ),
+                    'reminders' => array(
+                        'useDefault' => false,
+                        'overrides' => array(
+                            array('method' => 'email', 'minutes' => 24 * 60),
+                            array('method' => 'popup', 'minutes' => 10),
+                        ),
+                    ),
+                ));
 
-            try {
-                if ($event->event_id) {
-                    $results = $google->service('Calendar')->events->patch('primary', $event->event_id, $eventData);
-                }
-                else {
-                    $results = $google->service('Calendar')->events->insert('primary', $eventData);
-                }
+                try {
+                    if ($event->event_id) {
+                        $results = $google->service('Calendar')->events->patch('primary', $event->event_id, $eventData);
+                    }
+                    else {
+                        $results = $google->service('Calendar')->events->insert('primary', $eventData);
+                    }
 
-                return $results->id;
-            } catch (\Google\Service\Exception $error) {
-                if (is_null($error->getErrors())) {
-                    // Delete google calendar connection data i.e. token, name, google_id
-                    $googleAccount->name = null;
-                    $googleAccount->token = null;
-                    $googleAccount->google_id = null;
-                    $googleAccount->google_calendar_verification_status = 'non_verified';
-                    $googleAccount->save();
+                    return $results->id;
+                } catch (\Google\Service\Exception $error) {
+                    if (is_null($error->getErrors())) {
+                        // Delete google calendar connection data i.e. token, name, google_id
+                        $googleAccount->name = null;
+                        $googleAccount->token = null;
+                        $googleAccount->google_id = null;
+                        $googleAccount->google_calendar_verification_status = 'non_verified';
+                        $googleAccount->save();
+                    }
                 }
             }
-
         }
 
         return $event->event_id;
     }
 
-    protected function googleCalendarEventMulti($day, $year, $days)
+    protected function googleCalendarEventMulti($day, $year)
     {
         $googleAccount = company();
         $module = GoogleCalendarModule::first();
 
         if ($googleAccount->google_calendar_status == 'active' && $googleAccount->google_calendar_verification_status == 'verified' && $googleAccount->token && $module->holiday_status == 1) {
-            $this->days = $days;
             $google = new Google();
 
             $allDays = $this->getDateForSpecificDayBetweenDates($year . '-01-01', $year . '-12-31', $day);
@@ -408,7 +408,7 @@ class HolidayController extends AccountBaseController
             $frequency = 'WEEKLY';
 
             $eventData = new \Google_Service_Calendar_Event();
-            $eventData->setSummary($this->days[$day]);
+            $eventData->setSummary(now()->startOfWeek($day)->translatedFormat('l'));
             $eventData->setColorId(7);
             $eventData->setLocation('');
 
@@ -424,7 +424,7 @@ class HolidayController extends AccountBaseController
 
             $eventData->setEnd($end);
 
-            $dy = mb_strtoupper(substr($this->days[$day], 0, 2));
+            $dy = substr(now()->startOfWeek($day)->translatedFormat('l'), 0, 2);
 
             $eventData->setRecurrence(array('RRULE:FREQ=' . $frequency . ';COUNT=' . count($allDays) . ';BYDAY=' . $dy));
 
@@ -440,7 +440,7 @@ class HolidayController extends AccountBaseController
                     $results = $google->service('Calendar')->events->insert('primary', $eventData);
                 }
 
-                $holidays = Holiday::where('occassion', $this->days[$day])->get();
+                $holidays = Holiday::where('occassion', now()->startOfWeek($day)->translatedFormat('l'))->get();
 
                 foreach ($holidays as $holiday) {
                     $holiday->event_id = $results->id;

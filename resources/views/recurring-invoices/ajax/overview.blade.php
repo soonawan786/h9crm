@@ -55,7 +55,7 @@
                     <table width="100%" class="">
                         <tr class="inv-logo-heading">
                             <td><img src="{{ invoice_setting()->logo_url }}"
-                                    alt="{{ mb_ucwords(company()->company_name) }}" id="logo" /></td>
+                                    alt="{{ company()->company_name }}" id="logo" /></td>
                             <td align="right"
                                 class="font-weight-bold f-21 text-dark text-uppercase mt-4 mt-lg-0 mt-md-0">
                                 @lang('app.invoice')</td>
@@ -63,7 +63,7 @@
                         <tr class="inv-num">
                             <td class="f-14 text-dark">
                                 <p class="mt-3 mb-0">
-                                    {{ mb_ucwords(company()->company_name) }}<br>
+                                    {{ company()->company_name }}<br>
                                     @if (!is_null($settings))
                                         {!! nl2br(default_address()->address) !!}<br>
                                         {{ company()->company_phone }}
@@ -111,8 +111,8 @@
                                         }
                                     @endphp
 
-                                    {{ mb_ucwords($client->name) }}<br>
-                                    {{ mb_ucwords($client->clientDetails->company_name) }}<br>
+                                    {{ $client->name }}<br>
+                                    {{ $client->clientDetails->company_name }}<br>
                                     {!! nl2br($client->clientDetails->address) !!}</p>
                             </td>
                             @if ($invoice->shipping_address)
@@ -136,7 +136,7 @@
                                         @if ($invoiceSetting->hsn_sac_code_show)
                                             <td class="border-right-0 border-left-0" align="right">@lang('app.hsnSac')
                                         @endif
-                                        <td class="border-right-0 border-left-0" align="right">{{ ucwords($invoice->units->unit_type) }}
+                                        <td class="border-right-0 border-left-0" align="right">@lang('modules.invoices.qty')
                                         </td>
                                         <td class="border-right-0 border-left-0" align="right">
                                             @lang('modules.invoices.unitPrice') ({{ $invoice->currency->currency_code }})
@@ -148,11 +148,11 @@
                                     @foreach ($invoice->items as $item)
                                         @if ($item->type == 'item')
                                             <tr class="text-dark">
-                                                <td>{{ ucfirst($item->item_name) }}</td>
+                                                <td>{{ $item->item_name }}</td>
                                                 @if ($invoiceSetting->hsn_sac_code_show)
                                                     <td align="right">{{ $item->hsn_sac_code }}</td>
                                                 @endif
-                                                <td align="right">{{ $item->quantity }}</td>
+                                                <td align="right">{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                                                 <td align="right">
                                                     {{ number_format((float) $item->unit_price, 2, '.', '') }}</td>
                                                 <td align="right">
@@ -207,7 +207,7 @@
                                                 @foreach ($taxes as $key => $tax)
                                                     <tr class="text-dark-grey" align="right">
                                                         <td class="w-50 border-top-0 border-left-0">
-                                                            {{ mb_strtoupper($key) }}</td>
+                                                            {{ $key }}</td>
                                                         <td class="border-top-0 border-right-0">
                                                             {{ number_format((float) $tax, 2, '.', '') }}</td>
                                                     </tr>
@@ -238,7 +238,7 @@
                                         <table>
                                             <tr width="100%">
                                                 <td class="border-left-0 border-right-0 border-top-0">
-                                                    {{ ucfirst($item->item_name) }}</td>
+                                                    {{ $item->item_name }}</td>
                                             </tr>
                                             @if ($item->item_summary != '')
                                                 <tr>
@@ -251,8 +251,9 @@
                                 </tr>
                                 <tr>
                                     <th width="50%" class="bg-light-grey text-dark-grey font-weight-bold">
-                                        {{ ucwords($invoice->units->unit_type) }}</th>
-                                    <td width="50%">{{ $item->quantity }}</td>
+                                        @lang('modules.invoices.qty')
+                                    </th>
+                                    <td width="50%">{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                                 </tr>
                                 <tr>
                                     <th width="50%" class="bg-light-grey text-dark-grey font-weight-bold">
@@ -289,7 +290,7 @@
 
                         @foreach ($taxes as $key => $tax)
                             <tr>
-                                <th width="50%" class="text-dark-grey font-weight-normal">{{ mb_strtoupper($key) }}</th>
+                                <th width="50%" class="text-dark-grey font-weight-normal">{{ $key }}</th>
                                 <td width="50%" class="text-dark-grey font-weight-normal">
                                     {{ number_format((float) $tax, 2, '.', '') }}</td>
                             </tr>

@@ -1,9 +1,9 @@
 <div class="row">
     <div class="col-sm-12">
-        <x-form id="save-lead-data-form" method="put">
+        <x-form id="save-lead-data-form" method="PUT">
             <div class="add-client bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
-                    @lang('app.edit') @lang('app.menu.designation')</h4>
+                    @lang('app.menu.editdesignation')</h4>
                     <div class="row p-20">
                         <div class="col-md-6">
                             <x-forms.text fieldId="designation_name" :fieldLabel="__('app.name')" fieldName="designation_name"

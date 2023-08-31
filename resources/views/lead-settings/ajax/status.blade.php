@@ -11,7 +11,7 @@
             <tr class="row{{ $status->id }}">
                 <td>{{ $key + 1 }}</td>
                 <td>
-                    <x-status :value="ucfirst($status->type)" :style="'color:'.$status->label_color" />
+                    <x-status :value="$status->type" :style="'color:'.$status->label_color" />
                 </td>
                 <td>
                     <x-forms.radio fieldId="status_id_{{ $status->id }}" class="set_default_status"

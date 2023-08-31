@@ -31,13 +31,13 @@
           href="{{ asset('saas/vendor/material-design-iconic-font/css/material-design-iconic-font.min.css') }}">
 
     @if($global->google_recaptcha_status  && $global->google_captcha_version=="v3")
-        <script src="https://www.google.com/recaptcha/api.js?render={{ $global->google_recaptcha_key }}"></script>
+        <script src="https://www.google.com/recaptcha/api.js?render={{ $global->google_recaptcha_v3_site_key }}"></script>
 
         <script>
             setInterval(function () {
 
                 grecaptcha.ready(function () {
-                    grecaptcha.execute('{{ $global->google_recaptcha_key }}', {action: 'submit'}).then(function (token) {
+                    grecaptcha.execute('{{ $global->google_recaptcha_v3_site_key }}', {action: 'submit'}).then(function (token) {
                         document.getElementById("recaptcha_token").value = token;
                     });
                 });
@@ -142,7 +142,7 @@
                             <input id="checkbox-signup" type="checkbox" name="remember" {{ old('remember') ? 'checked' : '' }}>
                             <label for="checkbox-signup" class="text-dark"> @lang('app.rememberMe') </label>
                         </div>
-                        <a href="{{ route('password.request') }}"  class="text-dark pull-right"><i class="fa fa-lock m-r-5"></i> @lang('app.forgotPassword')?</a> </div>
+                        <a href="{{ route('password.request') }}"  class="text-dark pull-right"><i class="fa fa-lock m-r-5"></i> @lang('app.forgotPassword')</a> </div>
                 </div>
                 <div class="form-group text-center m-t-20">
                     <div class="col-xs-12">

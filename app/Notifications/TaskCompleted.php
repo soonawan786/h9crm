@@ -68,12 +68,15 @@ class TaskCompleted extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $url = route('tasks.show', $this->task->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('email.taskComplete.subject') . '<br>' . __('email.taskComplete.completedBy') . ': ' . ucfirst($this->completedBy->name) . '<br>' . __('app.task') . ': ' . ucfirst($this->task->heading) . '<br>' . (!is_null($this->task->project)) ? __('app.project') . ' - ' . ucfirst($this->task->project->project_name) : '';
+        $projectTitle = (!is_null($this->task->project)) ? __('app.project') . ' - ' . $this->task->project->project_name : '';
 
-        return parent::build()
+        $content = __('email.taskComplete.subject') . '<br>' . __('email.taskComplete.completedBy') . ': ' . $this->completedBy->name . '<br>' . __('app.task') . ': ' . $this->task->heading . '<br>' . $projectTitle;
+
+        return $build
             ->subject(__('email.taskComplete.subject') . ' #' . $this->task->task_short_code . ' - ' . config('app.name') . '.')
             ->markdown('mail.email', [
                 'url' => $url,
@@ -116,7 +119,7 @@ class TaskCompleted extends BaseNotification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content('*' . __('email.taskComplete.subject') . '*' . "\n" . '<' . route('tasks.show', $this->task->id) . '|' . ucfirst($this->task->heading) . '>' . "\n" . ' #' . $this->task->task_short_code . (!is_null($this->task->project) ? "\n" . __('app.project') . ' - ' . ucfirst($this->task->project->project_name) : ''));
+                ->content('*' . __('email.taskComplete.subject') . '*' . "\n" . '<' . route('tasks.show', $this->task->id) . '|' . $this->task->heading . '>' . "\n" . ' #' . $this->task->task_short_code . (!is_null($this->task->project) ? "\n" . __('app.project') . ' - ' . $this->task->project->project_name : ''));
         }
 
         return (new SlackMessage())
@@ -129,8 +132,8 @@ class TaskCompleted extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.taskComplete.subject'))
-            ->body(ucfirst($this->task->heading) . ' ' . __('email.taskComplete.subject') . ' #' . $this->task->task_short_code);
+            ->setSubject(__('email.taskComplete.subject'))
+            ->setBody($this->task->heading . ' ' . __('email.taskComplete.subject') . ' #' . $this->task->task_short_code);
     }
 
 }

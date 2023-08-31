@@ -1,5 +1,5 @@
 <div class="modal-header">
-    <h5 class="modal-title" id="modelHeading">@lang('modules.estimates.signatureAndConfirmation')</h5>
+    <h5 class="modal-title" id="modelHeading">@lang('modules.estimates.cpatureAndConfirmation')</h5>
     <button type="button"  class="close" data-dismiss="modal" aria-label="Close"><span
             aria-hidden="true">×</span></button>
 </div>
@@ -21,6 +21,10 @@
                 <x-forms.text fieldId="email" :fieldLabel="__('app.email')" fieldName="email" fieldRequired="true">
                 </x-forms.text>
             </div>
+            <div class="col-md-4">
+                <x-forms.text fieldId="place" :fieldLabel="__('app.place')" fieldName="place" fieldRequired="true">
+                </x-forms.text>
+            </div>
             <div class="col-sm-12 bg-grey p-4 signature">
                 <x-forms.label fieldId="signature-pad" fieldRequired="true" :fieldLabel="__('modules.estimates.signature')" />
                 <div class="signature_wrap wrapper border-0 form-control">
@@ -28,7 +32,7 @@
                 </div>
             </div>
             <div class="col-sm-12 p-4 d-none upload-image">
-                <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.estimates.signature')" fieldName="image"
+                <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.estimates.signature')" fieldName="image"
                     fieldId="image" :popover="__('messages.fileFormat.ImageFile')" fieldRequired="true" />
             </div>
             <div class="col-sm-12 mt-3">

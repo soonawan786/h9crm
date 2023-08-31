@@ -1,7 +1,7 @@
 <script src="{{ asset('vendor/jquery/frappe-charts.min.iife.js') }}"></script>
 
 <div class="row">
-    @if (in_array('clients', $modules) && in_array('total_clients', $activeWidgets))
+    @if (in_array('clients', user_modules()) && in_array('total_clients', $activeWidgets))
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
             <a href="{{ route('clients.index') }}">
                 <x-cards.widget :title="__('modules.dashboard.totalClients')" :value="$counts->totalClients"
@@ -11,7 +11,7 @@
         </div>
     @endif
 
-    @if (in_array('employees', $modules) && in_array('total_employees', $activeWidgets))
+    @if (in_array('employees', user_modules()) && in_array('total_employees', $activeWidgets))
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
             <a href="{{ route('employees.index') }}">
                 <x-cards.widget :title="__('modules.dashboard.totalEmployees')" :value="$counts->totalEmployees"
@@ -21,9 +21,9 @@
         </div>
     @endif
 
-    @if (in_array('projects', $modules) && in_array('total_projects', $activeWidgets))
+    @if (in_array('projects', user_modules()) && in_array('total_projects', $activeWidgets))
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <a href="{{ route('projects.index') }}">
+            <a href="{{ route('projects.index'). '?projects=all' }}">
                 <x-cards.widget :title="__('modules.dashboard.totalProjects')" :value="$counts->totalProjects"
                     icon="layer-group">
                 </x-cards.widget>
@@ -31,7 +31,7 @@
         </div>
     @endif
 
-    @if (in_array('invoices', $modules) && in_array('total_unpaid_invoices', $activeWidgets))
+    @if (in_array('invoices', user_modules()) && in_array('total_unpaid_invoices', $activeWidgets))
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
             <a href="{{ route('invoices.index') . '?status=pending' }}">
                 <x-cards.widget :title="__('modules.dashboard.totalUnpaidInvoices')"
@@ -41,7 +41,7 @@
         </div>
     @endif
 
-    @if (in_array('timelogs', $modules) && in_array('total_hours_logged', $activeWidgets))
+    @if (in_array('timelogs', user_modules()) && in_array('total_hours_logged', $activeWidgets))
         <div class="col-xl-3 col-lg-6 col-md-6">
             <a href="{{ route('time-log-report.index') }}">
                 <x-cards.widget :title="__('modules.dashboard.totalHoursLogged')" :value="$counts->totalHoursLogged"
@@ -51,7 +51,7 @@
         </div>
     @endif
 
-    @if (in_array('tasks', $modules) && in_array('total_pending_tasks', $activeWidgets))
+    @if (in_array('tasks', user_modules()) && in_array('total_pending_tasks', $activeWidgets))
         <div class="col-xl-3 col-lg-6 col-md-6">
             <a href="{{ route('tasks.index') }}?status=pending_task&type=public">
                 <x-cards.widget :title="__('modules.dashboard.totalPendingTasks')" :value="$counts->totalPendingTasks"
@@ -61,7 +61,7 @@
         </div>
     @endif
 
-    @if (in_array('attendance', $modules) && in_array('total_today_attendance', $activeWidgets))
+    @if (in_array('attendance', user_modules()) && in_array('total_today_attendance', $activeWidgets))
         <div class="col-xl-3 col-lg-6 col-md-6">
             <a href="{{ route('attendances.index') }}">
                 <x-cards.widget :title="__('modules.dashboard.totalTodayAttendance')"
@@ -71,7 +71,7 @@
         </div>
     @endif
 
-    @if (in_array('tickets', $modules) && in_array('total_unresolved_tickets', $activeWidgets))
+    @if (in_array('tickets', user_modules()) && in_array('total_unresolved_tickets', $activeWidgets))
         <div class="col-xl-3 col-lg-6 col-md-6">
             <a href="{{ route('tickets.index') . '?status=open' }}">
                 <x-cards.widget :title="__('modules.tickets.totalUnresolvedTickets')"
@@ -84,7 +84,7 @@
 </div>
 
 <div class="row">
-    @if (in_array('payments', $modules) && in_array('recent_earnings', $activeWidgets))
+    @if (in_array('payments', user_modules()) && in_array('recent_earnings', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('app.income').' <i class=\'fa fa-question-circle\' data-toggle=\'popover\' data-placement=\'top\' data-content=\''.__('app.from').' '.$startDate->translatedFormat(company()->date_format).' '.__('app.to').' '.$endDate->translatedFormat(company()->date_format).'\' data-trigger=\'hover\'></i>'">
                 <x-bar-chart id="task-chart1" :chartData="$earningChartData" height="300"></x-bar-chart>
@@ -92,7 +92,7 @@
         </div>
     @endif
 
-    @if (in_array('timelogs', $modules) && in_array('timelogs', $activeWidgets))
+    @if (in_array('timelogs', user_modules()) && in_array('timelogs', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('app.menu.timeLogs').' <i class=\'fa fa-question-circle\' data-toggle=\'popover\' data-placement=\'top\' data-content=\''.__('app.from').' '.$startDate->translatedFormat(company()->date_format).' '.__('app.to').' '.$endDate->translatedFormat(company()->date_format).'\' data-trigger=\'hover\'></i>'">
                 <x-line-chart id="task-chart2" :chartData="$timlogChartData" height="300"></x-line-chart>
@@ -100,7 +100,7 @@
         </div>
     @endif
 
-    @if (in_array('leaves', $modules) && in_array('settings_leaves', $activeWidgets))
+    @if (in_array('leaves', user_modules()) && in_array('settings_leaves', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.leaves.pendingLeaves').' <i class=\'fa fa-question-circle\' data-toggle=\'popover\' data-placement=\'top\' data-content=\''.__('app.from').' '.$startDate->translatedFormat(company()->date_format).' '.__('app.to').' '.$endDate->translatedFormat(company()->date_format).'\' data-trigger=\'hover\'></i>'" padding="false" otherClasses="h-200">
                 <x-table>
@@ -153,7 +153,7 @@
         </div>
     @endif
 
-    @if (in_array('tickets', $modules) && in_array('new_tickets', $activeWidgets))
+    @if (in_array('tickets', user_modules()) && in_array('new_tickets', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.openTickets').' <i class=\'fa fa-question-circle\' data-toggle=\'popover\' data-placement=\'top\' data-content=\''.__('app.from').' '.$startDate->translatedFormat(company()->date_format).' '.__('app.to').' '.$endDate->translatedFormat(company()->date_format).'\' data-trigger=\'hover\'></i>'" padding="false" otherClasses="h-200">
                 <x-table>
@@ -165,8 +165,8 @@
                                         alt="{{ $item->requester->name }}" title="{{ $item->requester->name }}">
                                 </div>
                             </td>
-                            <td><a href="{{ route('tickets.show', $item->id) }}"
-                                    class="text-darkest-grey">{{ ucfirst($item->subject) }}</a>
+                            <td><a href="{{ route('tickets.show', $item->ticket_number) }}"
+                                    class="text-darkest-grey">{{ $item->subject }}</a>
                                 <br />
                                 <span class="f-10 text-lightest mt-1">{{ $item->requester->name }}</span>
                             </td>
@@ -198,7 +198,7 @@
         </div>
     @endif
 
-    @if (in_array('tasks', $modules) && in_array('overdue_tasks', $activeWidgets))
+    @if (in_array('tasks', user_modules()) && in_array('overdue_tasks', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.totalPendingTasks').' <i class=\'fa fa-question-circle\' data-toggle=\'popover\' data-placement=\'top\' data-content=\''.__('app.from').' '.$startDate->translatedFormat(company()->date_format).' '.__('app.to').' '.$endDate->translatedFormat(company()->date_format).'\' data-trigger=\'hover\'></i>'" padding="false" otherClasses="h-200">
                 <x-table>
@@ -214,7 +214,7 @@
                                     <div class="taskEmployeeImg rounded-circle mr-1">
                                         <a href="{{ route('employees.show', $item->id) }}">
                                             <img data-toggle="tooltip"
-                                                data-original-title="{{ mb_ucwords($item->name) }}"
+                                                data-original-title="{{ $item->name }}"
                                                 src="{{ $item->image_url }}">
                                         </a>
                                     </div>
@@ -238,7 +238,7 @@
         </div>
     @endif
 
-    @if (in_array('leads', $modules) && in_array('pending_follow_up', $activeWidgets))
+    @if (in_array('leads', user_modules()) && in_array('pending_follow_up', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.pendingFollowUp').' <i class=\'fa fa-question-circle\' data-toggle=\'popover\' data-placement=\'top\' data-content=\''.__('app.from').' '.$startDate->translatedFormat(company()->date_format).' '.__('app.to').' '.$endDate->translatedFormat(company()->date_format).'\' data-trigger=\'hover\'></i>'" padding="false" otherClasses="h-200">
                 <x-table>
@@ -271,7 +271,7 @@
         </div>
     @endif
 
-    @if (in_array('projects', $modules) && in_array('project_activity_timeline', $activeWidgets))
+    @if (in_array('projects', user_modules()) && in_array('project_activity_timeline', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.projectActivityTimeline').' <i class=\'fa fa-question-circle\' data-toggle=\'popover\' data-placement=\'top\' data-content=\''.__('app.from').' '.$startDate->translatedFormat(company()->date_format).' '.__('app.to').' '.$endDate->translatedFormat(company()->date_format).'\' data-trigger=\'hover\'></i>'" padding="false"
                 otherClasses="h-200 p-activity-detail cal-info">
@@ -289,7 +289,7 @@
                                 </h4>
                                 <p class="card-text f-12 text-dark-grey">
                                     <a href="{{ route('projects.show', $activity->project_id) }}"
-                                        class="text-lightest font-weight-normal text-capitalize f-12">{{ mb_ucwords($activity->project->project_name) }}
+                                        class="text-lightest font-weight-normal text-capitalize f-12">{{ $activity->project->project_name }}
                                     </a>
                                     <br>
                                     {{ $activity->created_at->timezone(company()->timezone)->translatedFormat(company()->time_format) }}
@@ -306,7 +306,7 @@
         </div>
     @endif
 
-    @if (in_array('employees', $modules) && in_array('user_activity_timeline', $activeWidgets))
+    @if (in_array('employees', user_modules()) && in_array('user_activity_timeline', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.userActivityTimeline').' <i class=\'fa fa-question-circle\' data-toggle=\'popover\' data-placement=\'top\' data-content=\''.__('app.from').' '.$startDate->translatedFormat(company()->date_format).' '.__('app.to').' '.$endDate->translatedFormat(company()->date_format).'\' data-trigger=\'hover\'></i>'" padding="false"
                 otherClasses="h-200 p-activity-detail cal-info">
@@ -324,7 +324,7 @@
                                 </h4>
                                 <p class="card-text f-12 text-dark-grey">
                                     <a href="{{ route('employees.show', $activity->user_id) }}"
-                                        class="text-lightest font-weight-normal text-capitalize f-12">{{ mb_ucwords($activity->user->name) }}
+                                        class="text-lightest font-weight-normal text-capitalize f-12">{{ $activity->user->name }}
                                     </a>
                                     <br>
                                     {{ $activity->created_at->timezone(company()->timezone)->translatedFormat(company()->time_format) }}
@@ -346,7 +346,11 @@
     $('body').on('click', '.leave-action-approved', function() {
         let action = $(this).data('leave-action');
         let leaveId = $(this).data('leave-id');
-        let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId;
+        var type = $(this).data('type');
+            if(type == undefined){
+                var type = 'single';
+            }
+        let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId + "&type=" + type;
         let url = "{{ route('leaves.show_approved_modal') }}" + searchQuery;
 
         $(MODAL_LG + ' ' + MODAL_HEADING).html('...');

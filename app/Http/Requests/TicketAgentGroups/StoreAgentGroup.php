@@ -25,7 +25,7 @@ class StoreAgentGroup extends CoreRequest
     public function rules()
     {
         return [
-            'user_id.0' => 'required',
+            'user_id' => 'required',
             'group_id' => 'required'
         ];
     }
@@ -33,7 +33,7 @@ class StoreAgentGroup extends CoreRequest
     public function messages()
     {
         return [
-            'user_id.0.required' => __('messages.atleastOneValidation').' '.__('modules.tickets.agent'),
+            'user_id.required' => __('messages.atleastOneValidation').' '.__('modules.tickets.agent'),
             'group_id.required' => __('modules.tickets.groupName').' '.__('app.required')
         ];
     }

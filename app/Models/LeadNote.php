@@ -35,7 +35,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|ClientNote whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientNote whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientNote whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read \App\Models\User|null $client
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\ClientUserNote[] $members
  * @property-read int|null $members_count
@@ -43,6 +42,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $is_lead_show
  * @method static \Illuminate\Database\Eloquent\Builder|LeadNote whereIsLeadShow($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadNote whereLeadId($value)
+ * @mixin \Eloquent
  */
 class LeadNote extends BaseModel
 {

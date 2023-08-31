@@ -2,7 +2,7 @@
 
 namespace App\Models\SuperAdmin;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\SuperAdmin\FrontDetail
@@ -43,14 +43,19 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|FrontDetail whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class FrontDetail extends Model
+class FrontDetail extends BaseModel
 {
 
-    protected $appends = ['image_url', 'light_color'];
+    protected $appends = ['image_url', 'light_color', 'background_image_url'];
+
+    public function getBackgroundImageUrlAttribute()
+    {
+        return ($this->background_image) ? asset_url_local_s3('front/homepage-background/' . $this->background_image) : null;
+    }
 
     public function getImageUrlAttribute()
     {
-        return ($this->image) ? asset_url('front/' . $this->image) : asset('saas/img/home/home-crm.png');
+        return ($this->image) ? asset_url_local_s3('front/' . $this->image) : asset('saas/img/home/home-crm.png');
     }
 
     public function getLightColorAttribute()

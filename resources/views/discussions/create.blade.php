@@ -16,9 +16,8 @@
                                         fieldName="discussion_category" search="true" fieldRequired="true">
                             @foreach ($categories as $item)
                                 <option
-                                    data-content="<i class='fa fa-circle mr-2' style='color: {{ $item->color }}'></i> {{ mb_ucwords($item->name) }}"
-                                    value="{{ $item->id }}">
-                                    {{ mb_ucwords($item->name) }}
+                                    data-content="<i class='fa fa-circle mr-2' style='color: {{ $item->color }}'></i>{{ $item->name }}"
+                                    value="{{ $item->id }}">{{ $item->name }}
                                 </option>
                             @endforeach
                         </x-forms.select>
@@ -39,7 +38,7 @@
                 </div>
                 <div class="col-md-12">
                     <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2"
-                                           :fieldLabel="__('app.add') . ' ' .__('app.file')" fieldName="file"
+                                           :fieldLabel="__('app.menu.addFile')" fieldName="file"
                                            fieldId="discussion-file-upload-dropzone"/>
                     <input type="hidden" name="discussion_id" id="discussion_id">
                     <input type="hidden" name="type" id="discussion">
@@ -55,7 +54,10 @@
 </x-form>
 <script src="{{ asset('vendor/jquery/dropzone.min.js') }}"></script>
 <script>
-    quillImageLoad('#description');
+     var atValues = @json($userData);
+
+    quillMention(atValues, '#description');
+
     var discussion_reply_id;
     /* Upload images */
     Dropzone.autoDiscover = false;
@@ -68,11 +70,11 @@
         },
         paramName: "file",
         maxFilesize: DROPZONE_MAX_FILESIZE,
-        maxFiles: 10,
+        maxFiles: DROPZONE_MAX_FILES,
         autoProcessQueue: false,
         uploadMultiple: true,
         addRemoveLinks: true,
-        parallelUploads: 10,
+        parallelUploads: DROPZONE_MAX_FILES,
         acceptedFiles: DROPZONE_FILE_ALLOW,
         init: function () {
             taskDropzone = this;
@@ -88,15 +90,44 @@
     taskDropzone.on('uploadprogress', function () {
         $.easyBlockUI();
     });
-    taskDropzone.on('completemultiple', function () {
+    taskDropzone.on('queuecomplete', function () {
         window.location.href = "{{ route('projects.show', $projectId) }}?tab=discussion";
     });
+     taskDropzone.on('removedfile', function () {
+         var grp = $('div#file-upload-dropzone').closest(".form-group");
+         var label = $('div#file-upload-box').siblings("label");
+         $(grp).removeClass("has-error");
+         $(label).removeClass("is-invalid");
+     });
+     taskDropzone.on('error', function (file, message) {
+         taskDropzone.removeFile(file);
+         var grp = $('div#file-upload-dropzone').closest(".form-group");
+         var label = $('div#file-upload-box').siblings("label");
+         $(grp).find(".help-block").remove();
+         var helpBlockContainer = $(grp);
 
+         if (helpBlockContainer.length == 0) {
+             helpBlockContainer = $(grp);
+         }
+
+         helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+         $(grp).addClass("has-error");
+         $(label).addClass("is-invalid");
+
+     });
     // Save discussion
     $('#save-discussion').click(function () {
         var note = document.getElementById('description').children[0].innerHTML;
         document.getElementById('description-text').value = note;
+        var mentionUser = $('#description span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
 
+       var mention_user_id  =  $.makeArray(mentionUser);
+
+       var discussionData = $('#createMethods').serialize();
+
+        var data = discussionData+='&mention_user_id=' + mention_user_id;
         $.easyAjax({
             url: "{{ route('discussion.store') }}",
             container: '#createMethods',
@@ -104,7 +135,7 @@
             blockUI: true,
             disableButton: true,
             buttonSelector: "#save-discussion",
-            data: $('#createMethods').serialize(),
+            data: data,
             success: function (response) {
                 if (response.status === 'success') {
                     if (taskDropzone.getQueuedFiles().length > 0) {

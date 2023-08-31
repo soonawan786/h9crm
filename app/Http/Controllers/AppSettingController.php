@@ -27,8 +27,7 @@ class AppSettingController extends AccountBaseController
         $this->activeSettingMenu = 'app_settings';
 
         $this->middleware(function ($request, $next) {
-
-            abort_403(user()->permission('manage_app_setting') !== 'all' && !user()->is_superadmin);
+            abort_403(user()->permission('manage_app_setting') !== 'all' && GlobalSetting::validateSuperAdmin('manage_superadmin_app_settings'));
 
             return $next($request);
         });
@@ -44,7 +43,8 @@ class AppSettingController extends AccountBaseController
         switch ($tab) {
 
         case 'file-upload-setting':
-            GlobalSetting::validateAdmin();
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_app_settings'));
+
             $this->view = 'app-settings.ajax.file-upload-setting';
             break;
         case 'client-signup-setting':
@@ -52,7 +52,8 @@ class AppSettingController extends AccountBaseController
             $this->view = 'app-settings.ajax.client-signup-setting';
             break;
         case 'google-map-setting':
-            GlobalSetting::validateAdmin();
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_app_settings'));
+
             $this->view = 'app-settings.ajax.map-setting';
             break;
         default:
@@ -96,8 +97,6 @@ class AppSettingController extends AccountBaseController
     // phpcs:ignore
     public function update(UpdateAppSetting $request, $id)
     {
-        config(['filesystems.default' => 'local']);
-
         $tab = request('page');
 
         switch ($tab) {
@@ -127,8 +126,6 @@ class AppSettingController extends AccountBaseController
         $globalSetting = GlobalSetting::first();
 
         $globalSetting->currency_id = $request->currency_id;
-        $globalSetting->date_format = $request->date_format;
-        $globalSetting->time_format = $request->time_format;
         $globalSetting->moment_format = $this->momentFormat($globalSetting->date_format);
 
         $globalSetting->app_debug = $request->has('app_debug') && $request->app_debug == 'on' ? 1 : 0;
@@ -136,6 +133,8 @@ class AppSettingController extends AccountBaseController
         $globalSetting->session_driver = $request->session_driver;
         $globalSetting->timezone = $request->timezone;
         $globalSetting->locale = $request->locale;
+        $globalSetting->date_format = $request->date_format;
+        $globalSetting->time_format = $request->time_format;
 
         // WORKSUITESAAS
         if (user()->is_superadmin) {
@@ -164,16 +163,24 @@ class AppSettingController extends AccountBaseController
             $setting->save();
         }
 
-        user()->is_superadmin? $this->globalSettingSave($request) : '';
+        user()->is_superadmin ? $this->globalSettingSave($request) : '';
         // Doing this is going to change the locale for self profile also. So as customer do not have to visit
         // Profile to change the locale
         $user = user();
         $user->locale = $request->locale;
         $user->saveQuietly();
 
-        \session(['user' => User::find($user->id)]);
+        \session()->forget('user');
+        // WORKSUITESAAS
+        if(!user()->is_superadmin){
+            if ($request->currency_id) {
+                \session()->forget('currency_format_setting');
+                currency_format_setting($setting->currency_id);
+            }
+        }
 
-//        $this->globalSettingSave($request);
+        $this->globalSettingSave($request);
+        \session(['user' => User::find($user->id)]);
 
         $this->resetCache();
     }
@@ -193,6 +200,7 @@ class AppSettingController extends AccountBaseController
         $globalSetting = GlobalSetting::first();
         $globalSetting->allowed_file_types = !empty($fileTypeArray) ? implode(',', $fileTypeArray) : '';
         $globalSetting->allowed_file_size = $request->allowed_file_size;
+        $globalSetting->allow_max_no_of_files = $request->allow_max_no_of_files;
         $globalSetting->save();
     }
 
@@ -206,7 +214,7 @@ class AppSettingController extends AccountBaseController
 
     public function updateGoogleMapSetting(UpdateAppSetting $request)
     {
-        $globalSetting = global_setting();
+        $globalSetting = \global_setting();
         $globalSetting->google_map_key = $request->google_map_key;
         $globalSetting->save();
         cache()->forget('global_setting');

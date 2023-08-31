@@ -90,10 +90,7 @@ class ProductsDataTable extends BaseDataTable
 
         $datatables->editColumn('name', function ($row) {
 
-            return '<a href="' . route('products.show', [$row->id]) . '" class="openRightModal text-darkest-grey" >' . ucfirst($row->name) . '</a>';
-        });
-        $datatables->editColumn('quantity', function ($row) {
-            return $row->quantity;
+            return '<a href="' . route('products.show', [$row->id]) . '" class="openRightModal text-darkest-grey" >' . $row->name . '</a>';
         });
         $datatables->editColumn('default_image', function ($row) {
             return '<img src="' . $row->image_url . '" class="border rounded height-35" />';
@@ -131,10 +128,11 @@ class ProductsDataTable extends BaseDataTable
         $datatables->setRowId(function ($row) {
             return 'row-' . $row->id;
         });
-        $datatables->rawColumns(['action', 'price', 'allow_purchase', 'check', 'name', 'default_image']);
 
         // Custom Fields For export
-        CustomField::customFieldData($datatables, Product::CUSTOM_FIELD_MODEL);
+        $customFieldColumns = CustomField::customFieldData($datatables, Product::CUSTOM_FIELD_MODEL);
+
+        $datatables->rawColumns(array_merge(['action', 'price', 'allow_purchase', 'check', 'name', 'default_image'], $customFieldColumns));
 
         return $datatables;
     }
@@ -147,10 +145,14 @@ class ProductsDataTable extends BaseDataTable
     {
         $request = $this->request();
 
-        $model = $model->with('tax', 'category', 'subCategory')->select('id', 'name','quantity', 'price', 'taxes', 'allow_purchase', 'added_by', 'default_image', 'category_id', 'sub_category_id', 'description');
+        $model = $model->with('tax', 'category', 'subCategory')->select('id', 'name', 'price', 'taxes', 'allow_purchase', 'added_by', 'default_image', 'category_id', 'sub_category_id', 'description');
 
         if (!is_null($request->category_id) && $request->category_id != 'all' && $request->category_id > 0) {
             $model->where('category_id', $request->category_id);
+        }
+
+        if (!is_null($request->unit_type_id) && $request->unit_type_id != 'all') {
+            $model->where('unit_id', $request->unit_type_id);
         }
 
         if (!is_null($request->sub_category_id) && $request->sub_category_id != 'all' && $request->sub_category_id > 0) {
@@ -213,17 +215,19 @@ class ProductsDataTable extends BaseDataTable
                 'searchable' => false,
                 'visible' => !in_array('client', user_roles())
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id'), 'visible' => showId()],
             __('modules.productImage') => ['data' => 'default_image', 'name' => 'default_image', 'title' => __('modules.productImage'), 'exportable' => false,],
             __('app.menu.products') => ['data' => 'name', 'name' => 'name', 'title' => __('app.menu.products')],
-            __('app.menu.quantity') => ['data' => 'quantity', 'name' => 'quantity', 'title' => __('app.menu.quantity')],
             __('modules.productCategory.productCategory') => ['data' => 'category', 'name' => 'category', 'title' => __('modules.productCategory.productCategory'), 'visible' => false],
             __('modules.productCategory.productSubCategory') => ['data' => 'sub_category', 'name' => 'sub_category', 'title' => __('modules.productCategory.productSubCategory'), 'visible' => false],
             __('app.description') => ['data' => 'description', 'name' => 'description', 'title' => __('app.description'), 'visible' => false],
             __('app.menu.products') => ['data' => 'name', 'name' => 'name', 'title' => __('app.menu.products')],
             __('app.price') . ' (' . __('app.inclusiveAllTaxes') . ')' => ['data' => 'price', 'name' => 'price', 'title' => __('app.price') . ' (' . __('app.inclusiveAllTaxes') . ')'],
-            __('app.purchaseAllow') => ['data' => 'allow_purchase', 'name' => 'allow_purchase', 'visible' => !in_array('client', user_roles()), 'title' => __('app.purchaseAllow')],
+            __('app.purchaseAllow') => ['data' => 'allow_purchase', 'name' => 'allow_purchase', 'visible' => !in_array('client', user_roles()), 'title' => __('app.purchaseAllow')]
+        ];
+
+        $action = [
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -232,18 +236,7 @@ class ProductsDataTable extends BaseDataTable
                 ->addClass('text-right pr-20')
         ];
 
-
-        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Product()));
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Products_' .now()->format('Y-m-d-H-i-s');
+        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Product()), $action);
     }
 
 }

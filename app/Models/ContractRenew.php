@@ -34,19 +34,19 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|ContractRenew whereRenewedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ContractRenew whereStartDate($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ContractRenew whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ContractRenew whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ContractRenew extends BaseModel
 {
 
     use HasCompany;
 
-    protected $dates = [
-        'start_date',
-        'end_date'
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
     ];
 
     public function contract(): BelongsTo

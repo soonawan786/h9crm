@@ -4,6 +4,8 @@ namespace App\Models;
 
 use App\Scopes\ActiveScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * App\Models\TaskNote
@@ -30,6 +32,12 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|TaskNote whereTaskId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskNote whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskNote whereUserId($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionNote
+ * @property-read int|null $mention_note_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @property-read int|null $mention_user_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionNote
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
  * @mixin \Eloquent
  */
 class TaskNote extends BaseModel
@@ -45,6 +53,16 @@ class TaskNote extends BaseModel
     public function task(): BelongsTo
     {
         return $this->belongsTo(Task::class, 'task_id');
+    }
+
+    public function mentionUser(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'mention_users')->withoutGlobalScope(ActiveScope::class)->using(MentionUser::class);
+    }
+
+    public function mentionNote(): HasMany
+    {
+        return $this->hasMany(MentionUser::class, 'task_note_id');
     }
 
 }

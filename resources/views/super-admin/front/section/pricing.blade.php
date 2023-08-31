@@ -2,9 +2,9 @@
     <div class="container">
 
         <header class="section-header">
-            <h2>{{ $detail->price_title }}</h2>
+            <h2>{{ $trFrontDetail->price_title }}</h2>
             <hr>
-            <p class="lead">{{ $detail->price_description }}</p>
+            <p class="lead">{{ $trFrontDetail->price_description }}</p>
         </header>
 
         @if (isset($packageSetting) && isset($trialPackage) && $packageSetting && !is_null($trialPackage))

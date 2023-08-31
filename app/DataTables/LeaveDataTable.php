@@ -62,7 +62,7 @@ class LeaveDataTable extends BaseDataTable
                 return $row->type->paid == 1 ? __('app.yes') : __('app.no');
             })
             ->addColumn('leave_date', function ($row) {
-                return Carbon::parse($row->leave_date)->translatedFormat($this->company->date_format);
+                return Carbon::parse($row->leave_date)->translatedFormat($this->company->date_format) .' ('.Carbon::parse($row->leave_date)->translatedFormat('l').')';
             })
             ->addColumn('status', function ($row) {
                 if ($row->status == 'approved') {
@@ -91,14 +91,19 @@ class LeaveDataTable extends BaseDataTable
                 }
                 else{
                     $leaveStatus = '<i class="fa fa-circle mr-1 ' . $class . ' f-10"></i> ' . $status;
+
+                    if($row->manager_status_permission === 'pre-approve'){
+                        $leaveStatus .= '<div><span class="badge badge-success">'.__('modules.leaves.preApproved').'</span></div>';
+                    }
+
                 }
 
                 $leaveStatus .= ' </div>';
                 return $leaveStatus;
             })
             ->addColumn('duration', function ($row) {
-                $leave = ' <div class="media-bod1y">
-                        <span class="mb-0 f-13 ">'.mb_ucwords($row->duration).'</span></br>';
+                $leave = ' <div class="media-body">
+                    <span class="mb-0 f-13 "> '.(($row->duration == 'half day') ? __('modules.leaves.halfDay') : (($row->duration == 'multiple') ? __('modules.leaves.multiple') : __('app.'.$row->duration))) .' </span></br>';
 
                 if($row->count_multiple_leaves != 0){
                     $leave .= '<span class="badge badge-secondary">' . $row->count_multiple_leaves .' '.__('app.leave').'</span>';
@@ -153,7 +158,7 @@ class LeaveDataTable extends BaseDataTable
                         </a>';
                 }
 
-                if ($row->duration == 'multiple' && !is_null($row->unique_id)) {
+                if (($row->duration == 'multiple' && !is_null($row->unique_id)) && $this->approveRejectPermission == 'all') {
                     $actions .= '<a class="dropdown-item view-related-leave" data-leave-id=' . $row->id . '
                              data-unique-id="' . $row->unique_id . '" data-leave-type-id="' . $row->leave_type_id . '" href="javascript:;">
                                 <i class="fa fa-eye mr-2"></i>
@@ -181,7 +186,7 @@ class LeaveDataTable extends BaseDataTable
                     }
                     elseif ($this->reportingPermission == 'pre-approve' && !$row->manager_status_permission) {
                         $actions .= '<a data-leave-id=' . $row->id . '
-                             data-leave-action="pre approved" data-user-id="' . $row->user_id . '" data-leave-type-id="' . $row->leave_type_id . '" class="dropdown-item leave-action-preapprove" href="javascript:;">
+                             data-leave-action="pre-approve" data-user-id="' . $row->user_id . '" data-leave-type-id="' . $row->leave_type_id . '" class="dropdown-item leave-action-preapprove" href="javascript:;">
                                <i class="fa fa-check mr-2"></i>
                                 ' . __('app.preApprove') . '
                         </a>';
@@ -252,7 +257,6 @@ class LeaveDataTable extends BaseDataTable
             )
             ->groupByRaw('ifnull(leaves.unique_id, leaves.id)');
 
-        // dd($leavesList->get());
         if (!is_null(request()->startDate)) {
             $startDate = Carbon::createFromFormat($this->company->date_format, request()->startDate)->toDateString();
 
@@ -354,10 +358,10 @@ class LeaveDataTable extends BaseDataTable
                 'searchable' => false,
                 'visible' => ($this->viewLeavePermission == 'all')
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id'), 'visible' => false],
             __('app.employee') => ['data' => 'employee', 'name' => 'user.name', 'exportable' => false, 'title' => __('app.employee')],
-            __('app.employee' . ' ') => ['data' => 'employee_name', 'name' => 'user.name', 'visible' => false, 'title' => __('app.employee')],
+            __('app.employee') . ' ' => ['data' => 'employee_name', 'name' => 'user.name', 'visible' => false, 'title' => __('app.employee')],
             __('app.leaveDate') => ['data' => 'leave_date', 'name' => 'leaves.leave_date', 'title' => __('app.leaveDate')],
             __('app.duration') => ['data' => 'duration', 'name' => 'duration', 'title' => __('app.duration')],
             __('app.leaveStatus') => ['data' => 'status', 'name' => 'leaves.status', 'title' => __('app.leaveStatus')],
@@ -370,16 +374,6 @@ class LeaveDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'leaves_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

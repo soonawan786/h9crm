@@ -6,6 +6,10 @@ use App\Models\Expense;
 use Carbon\Carbon;
 use DB;
 use Yajra\DataTables\Html\Button;
+use Yajra\DataTables\Html\Column;
+use Yajra\DataTables\Html\Editor\Editor;
+use Yajra\DataTables\Html\Editor\Fields;
+use Yajra\DataTables\Services\DataTable;
 
 class ExpenseReportDataTable extends BaseDataTable
 {
@@ -21,9 +25,6 @@ class ExpenseReportDataTable extends BaseDataTable
     {
         return datatables()
             ->eloquent($query)
-            ->addColumn('bank_name', function (Expense $expense) {
-                return $expense->bankAccount ? $expense->bankAccount->bank_name : 'Cash';
-            })
             ->addColumn('check', function ($row) {
                 return '<input type="checkbox" class="select-table-row" id="datatable-row-' . $row->id . '"  name="datatable_ids[]" value="' . $row->id . '" onclick="dataTableRowCheck(' . $row->id . ')">';
             })
@@ -39,15 +40,24 @@ class ExpenseReportDataTable extends BaseDataTable
                 <p class="mb-0"><span class="badge badge-primary"> ' . __('app.recurring') . ' </span></p>';
             })
             ->addColumn('export_item_name', function ($row) {
-                return ucfirst($row->item_name);
+                return $row->item_name;
             })
             ->addColumn('employee_name', function ($row) {
-                return ucfirst($row->user->name);
+                return $row->user->name;
+            })
+            ->addColumn('bank_account', function ($row) {
+                return !is_null($row->bank_name) ? $row->bank_name : '--';
             })
             ->editColumn('user_id', function ($row) {
                 return view('components.employee', [
                     'user' => $row->user
                 ]);
+            })
+            ->addColumn('export_bill', function($row){
+                return !is_null($row->bill) ? $row->bill_url : '';
+            })
+            ->addColumn('bill', function($row){
+                return !is_null($row->bill) ? $row->bill : '--';
             })
             ->addColumn('status', function ($row) {
                 return '<i class="fa fa-circle mr-1 text-dark-green f-10"></i>' . __('app.' . $row->status);
@@ -83,19 +93,19 @@ class ExpenseReportDataTable extends BaseDataTable
     /**
      * Get query source of dataTable.
      *
-     * @param \App\Models\ExpenseReportDataTable $model
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function query()
     {
         $request = $this->request();
-        $model = Expense::with('currency', 'user', 'user.employeeDetail', 'user.employeeDetail.designation', 'user.session','bankAccount')
-            ->select('expenses.id', 'expenses.item_name', 'expenses.user_id', 'expenses.price', 'users.name', 'expenses.purchase_date', 'expenses.currency_id', 'currencies.currency_symbol', 'expenses.status', 'expenses.purchase_from', 'expenses.expenses_recurring_id', 'designations.name as designation_name', 'expenses.added_by','expenses.bank_account_id')
+        $model = Expense::with('currency', 'user', 'user.employeeDetail', 'user.employeeDetail.designation', 'user.session')
+            ->select('expenses.id', 'expenses.item_name', 'expenses.user_id', 'expenses.price', 'users.name', 'expenses.purchase_date', 'expenses.currency_id', 'currencies.currency_symbol', 'expenses.status', 'expenses.purchase_from', 'expenses.expenses_recurring_id', 'designations.name as designation_name', 'expenses.added_by', 'bank_accounts.bank_name', 'expenses.bill')
             ->join('users', 'users.id', 'expenses.user_id')
             ->leftJoin('employee_details', 'employee_details.user_id', '=', 'users.id')
             ->leftJoin('designations', 'employee_details.designation_id', '=', 'designations.id')
             ->leftJoin('project_members', 'project_members.id', '=', 'expenses.user_id')
-            ->join('currencies', 'currencies.id', 'expenses.currency_id');
+            ->join('currencies', 'currencies.id', 'expenses.currency_id')
+            ->leftJoin('bank_accounts', 'bank_accounts.id', 'expenses.bank_account_id');
 
         if ($request->startDate !== null && $request->startDate != 'null' && $request->startDate != '') {
             $startDate = Carbon::createFromFormat($this->company->date_format, $request->startDate)->toDateString();
@@ -162,28 +172,20 @@ class ExpenseReportDataTable extends BaseDataTable
     protected function getColumns()
     {
         return [
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('modules.expenses.itemName') => ['data' => 'item_name', 'name' => 'item_name', 'exportable' => false, 'title' => __('modules.expenses.itemName')],
             __('app.menu.itemName') => ['data' => 'export_item_name', 'name' => 'export_item_name', 'visible' => false, 'title' => __('modules.expenses.itemName')],
             __('app.price') => ['data' => 'price', 'name' => 'price', 'title' => __('app.price')],
             __('app.menu.employees') => ['data' => 'user_id', 'name' => 'user_id', 'exportable' => false, 'title' => __('app.menu.employees')],
             __('app.employee') => ['data' => 'employee_name', 'name' => 'user_id', 'visible' => false, 'title' => __('app.employee')],
             __('modules.expenses.purchaseFrom') => ['data' => 'purchase_from', 'name' => 'purchase_from', 'title' => __('modules.expenses.purchaseFrom')],
+            __('app.bankaccount') => ['data' => 'bank_account', 'name' => 'bank_account', 'title' => __('app.bankaccount')],
             __('modules.expenses.purchaseDate') => ['data' => 'purchase_date', 'name' => 'purchase_date', 'title' => __('modules.expenses.purchaseDate')],
-            __('modules.expenses.bankName') => ['data' => 'bank_name', 'name' => 'bank_name', 'title' => __('modules.expenses.bankName')],
+            __('modules.expenses.expenseBill') => ['data' => 'export_bill', 'name' => 'export_bill', 'visible' => false, 'title' => __('modules.expenses.expenseBill')],
+            __('app.bill') => ['data' => 'bill', 'name' => 'bill', 'exportable' => false, 'title' => __('app.bill')],
             __('app.status') => ['data' => 'status', 'name' => 'status', 'exportable' => false, 'title' => __('app.status')],
-            __('app.status') . ' ' . __('app.status') => ['data' => 'status', 'name' => 'status', 'visible' => false, 'title' => __('app.expense')]
+            __('app.status') . ' ' . __('app.status') => ['data' => 'status', 'name' => 'status', 'visible' => false, 'title' => __('app.status')]
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'ExpenseReport_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

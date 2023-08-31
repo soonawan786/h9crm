@@ -5,13 +5,7 @@
     <!-- SETTINGS START -->
     <div class="w-100 d-flex ">
 
-
-        {{-- WORKSUITESAAS --}}
-        @if(user()->is_superadmin)
-            <x-super-admin.setting-sidebar :activeMenu="$activeSettingMenu"/>
-        @else
-            <x-setting-sidebar :activeMenu="$activeSettingMenu"/>
-        @endif
+        @include('sections.setting-sidebar')
 
         <x-setting-card>
 
@@ -41,18 +35,23 @@
                             <option value="local"
                                     @if (isset($localCredentials) && $localCredentials->status == 'enabled') selected @endif>@lang('app.storageSetting.local')</option>
                             <option value="aws_s3"
-                                    data-content="<img src='{{ asset('img/aws_s3.svg') }}' width='20' height='20' /> @lang('app.storageSetting.aws')"
-                                    @if (isset($awsCredentials) && $awsCredentials->status == 'enabled') selected @endif>@lang('app.storageSetting.aws')</option>
+                                    data-content="<img src='{{ asset('img/aws_s3.svg') }}' width='20' height='20' /> @lang('app.storageSetting.aws_s3')"
+                                    @if (isset($awsCredentials) && $awsCredentials->status == 'enabled') selected @endif>@lang('app.storageSetting.aws_s3')</option>
                             <option value="digitalocean"
-                                data-content="<img src='{{ asset('img/digitalocean.svg') }}' width='20' height='20' /> DigitalOcean Spaces"
-                                @if (isset($digitalOceanCredentials) && $digitalOceanCredentials->status == 'enabled') selected @endif>
-                                DigitalOcean Spaces
+                                    data-content="<img src='{{ asset('img/digitalocean.svg') }}' width='20' height='20' /> @lang('app.storageSetting.digitalocean')"
+                                    @if (isset($digitalOceanCredentials) && $digitalOceanCredentials->status == 'enabled') selected @endif>
+                                    @lang('app.storageSetting.digitalocean')
                             </option>
 
                             <option value="wasabi"
-                                data-content="<img src='{{ asset('img/wasabi.svg') }}' width='20' height='20' /> Wasabi"
-                            @if (isset($wasabiCredentials) && $wasabiCredentials->status == 'enabled') selected @endif>
-                                Wasabi
+                                    data-content="<img src='{{ asset('img/wasabi.svg') }}' width='20' height='20' /> @lang('app.storageSetting.wasabi')"
+                                    @if (isset($wasabiCredentials) && $wasabiCredentials->status == 'enabled') selected @endif>
+                                    @lang('app.storageSetting.wasabi')
+                            </option>
+                            <option value="minio"
+                                    data-content="<img src='{{ asset('img/minio.svg') }}' width='20' height='10px' /> @lang('app.storageSetting.minio')"
+                                    @if (isset($minioCredentials) && $minioCredentials->status == 'enabled') selected @endif>
+                                    @lang('app.storageSetting.minio')
                             </option>
                         </x-forms.select>
 
@@ -61,6 +60,7 @@
                     @include('storage-settings.aws_s3')
                     @include('storage-settings.digitalocean')
                     @include('storage-settings.wasabi')
+                    @include('storage-settings.minio')
 
                 </div>
             </div>
@@ -84,10 +84,13 @@
                         <x-forms.button-secondary id="test-aws" icon="location-arrow" class="wasabi-form mr-3">
                             @lang('app.storageSetting.testWasabi')
                         </x-forms.button-secondary>
+                        <x-forms.button-secondary id="test-aws" icon="location-arrow" class="minio-form mr-3">
+                            @lang('app.storageSetting.testMinio')
+                        </x-forms.button-secondary>
 
                         @if($localFilesCount>0)
-                            <x-forms.button-secondary id="local-to-aws" icon="location-arrow" class="aws-form">
-                                @lang('app.moveAws')
+                            <x-forms.button-secondary id="local-to-aws" icon="location-arrow" class="move-form">
+                                @lang('app.moveFilesToCloud')
                             </x-forms.button-secondary>
                         @endif
                     </x-setting-form-actions>
@@ -124,15 +127,18 @@
             if (type === 'aws_s3') {
                 $('.aws-form').css('display', 'block');
                 $('.digitalocean-form').css('display', 'none');
-                $('.wasabi-form,.wasabi-form').css('display', 'none');
+                $('.wasabi-form,.wasabi-form,.minio-form').css('display', 'none');
             } else if (type === 'digitalocean') {
                 $('.digitalocean-form').css('display', 'block');
-                $('.aws-form,.wasabi-form').css('display', 'none');
+                $('.aws-form,.wasabi-form,.minio-form').css('display', 'none');
             } else if (type === 'wasabi') {
                 $('.wasabi-form').css('display', 'block');
-                $('.aws-form,.digitalocean-form').css('display', 'none');
-            } else if (type === 'local') {
+                $('.aws-form,.digitalocean-form,.minio-form').css('display', 'none');
+            } else if (type === 'minio') {
+                $('.minio-form').css('display', 'block');
                 $('.aws-form,.digitalocean-form,.wasabi-form').css('display', 'none');
+            } else if (type === 'local') {
+                $('.aws-form,.digitalocean-form,.wasabi-form,.move-form,.minio-form').css('display', 'none');
             }
         }
 

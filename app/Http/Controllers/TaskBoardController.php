@@ -303,140 +303,18 @@ class TaskBoardController extends AccountBaseController
                                 ->orWhere('projects.project_name', 'like', '%' . request('searchText') . '%');
                         });
                     }
-                }])->with('userSetting')->orderBy('priority', 'asc')->get();
+                }])->with('userSetting')->orderBy('priority', 'asc');
+
+                $boardColumns = $boardColumns->get()->map(function ($query) {
+                    $query->setRelation('tasks', $query->tasks->take($this->taskBoardColumnLength));
+                    return $query;
+                });
+
             $result = array();
 
             foreach ($boardColumns as $key => $boardColumn) {
                 $result['boardColumns'][] = $boardColumn;
-
-                $tasks = Task::with(['users', 'project', 'labels'])
-                    ->withCount(['subtasks', 'completedSubtasks', 'comments'])
-                    ->leftJoin('projects', 'projects.id', '=', 'tasks.project_id')
-                    ->leftJoin('users as client', 'client.id', '=', 'projects.client_id');
-
-
-
-                if (($this->viewUnassignedTasksPermission == 'all' && !in_array('client', user_roles()) && ($request->assignedTo == 'unassigned' || $request->assignedTo == 'all' || $request->assignedTo == null)) || ($request->has('project_admin') && $request->project_admin == 1)) {
-                    $tasks->leftJoin('task_users', 'task_users.task_id', '=', 'tasks.id')
-                        ->leftJoin('users', 'task_users.user_id', '=', 'users.id');
-                }
-                else {
-                    $tasks->leftJoin('task_users', 'task_users.task_id', '=', 'tasks.id')
-                        ->leftJoin('users', 'task_users.user_id', '=', 'users.id');
-                }
-
-                $tasks->leftJoin('task_labels', 'task_labels.task_id', '=', 'tasks.id')
-                    ->leftJoin('users as creator_user', 'creator_user.id', '=', 'tasks.created_by')
-                    ->select('tasks.*')
-                    ->where('tasks.board_column_id', $boardColumn->id)
-                    ->orderBy('column_priority', 'asc')
-                    ->groupBy('tasks.id');
-
-                if (!in_array('admin', user_roles())) {
-                    $tasks->where(
-                        function ($q) {
-                            $q->where('tasks.is_private', 0);
-                            $q->orWhere(
-                                function ($q2) {
-                                    $q2->where('tasks.is_private', 1);
-                                    $q2->where(
-                                        function ($q4) {
-                                            $q4->where('task_users.user_id', user()->id);
-                                            $q4->orWhere('tasks.added_by', user()->id);
-                                        }
-                                    );
-                                }
-                            );
-                        }
-                    );
-                }
-
-                if ($startDate && $endDate) {
-                    $tasks->where(function ($task) use ($startDate, $endDate) {
-                        $task->whereBetween(DB::raw('DATE(tasks.`due_date`)'), [$startDate, $endDate]);
-
-                        $task->orWhereBetween(DB::raw('DATE(tasks.`start_date`)'), [$startDate, $endDate]);
-                    });
-                }
-
-                $tasks->whereNull('projects.deleted_at');
-
-                if ($request->projectID != 0 && $request->projectID != null && $request->projectID != 'all') {
-                    $tasks->where('tasks.project_id', '=', $request->projectID);
-                }
-
-                if ($request->clientID != '' && $request->clientID != null && $request->clientID != 'all') {
-                    $tasks->where('projects.client_id', '=', $request->clientID);
-                }
-
-                if ($request->assignedTo != '' && $request->assignedTo != null && $request->assignedTo != 'all') {
-                    $tasks->where('task_users.user_id', '=', $request->assignedTo);
-                }
-
-                if ($request->assignedBY != '' && $request->assignedBY != null && $request->assignedBY != 'all') {
-                    $tasks->where('creator_user.id', '=', $request->assignedBY);
-                }
-
-                if ($request->category_id != '' && $request->category_id != null && $request->category_id != 'all') {
-                    $tasks->where('tasks.task_category_id', '=', $request->category_id);
-                }
-
-                if ($request->label_id != '' && $request->label_id != null && $request->label_id != 'all') {
-                    $tasks->where('task_labels.label_id', '=', $request->label_id);
-                }
-
-                if ($request->billable != '' && $request->billable != null && $request->billable != 'all') {
-                    $tasks->where('tasks.billable', '=', $request->billable);
-                }
-
-                if (($request->has('project_admin') && $request->project_admin != 1) || !$request->has('project_admin')) {
-                    if ($this->viewTaskPermission == 'owned') {
-                        $tasks->where(function ($q1) use ($request) {
-                            $q1->where('task_users.user_id', '=', user()->id);
-
-                            if (in_array('client', user_roles())) {
-                                $q1->orWhere('projects.client_id', '=', user()->id);
-                            }
-
-                            if ($this->viewUnassignedTasksPermission == 'all' && !in_array('client', user_roles()) && ($request->assignedTo == 'unassigned' || $request->assignedTo == 'all')) {
-                                $q1->orWhereDoesntHave('users');
-                            }
-                        });
-                    }
-
-                    if ($this->viewTaskPermission == 'added') {
-                        $tasks->where('tasks.added_by', '=', user()->id);
-                    }
-
-                    if ($this->viewTaskPermission == 'both') {
-                        $tasks->where(function ($q1) use ($request) {
-                            $q1->where('task_users.user_id', '=', user()->id);
-
-                            $q1->orWhere('tasks.added_by', '=', user()->id);
-
-                            if (in_array('client', user_roles())) {
-                                $q1->orWhere('projects.client_id', '=', user()->id);
-                            }
-
-                            if ($this->viewUnassignedTasksPermission == 'all' && !in_array('client', user_roles()) && ($request->assignedTo == 'unassigned' || $request->assignedTo == 'all')) {
-                                $q1->orWhereDoesntHave('users');
-                            }
-                        });
-                    }
-                }
-
-                if ($request->searchText != '') {
-                    $tasks->where(function ($query) {
-                        $query->where('tasks.heading', 'like', '%' . request('searchText') . '%')
-                            ->orWhere('users.name', 'like', '%' . request('searchText') . '%')
-                            ->orWhere('projects.project_name', 'like', '%' . request('searchText') . '%');
-                    });
-                }
-
-                $tasks->skip(0)->take($this->taskBoardColumnLength);
-                $tasks = $tasks->get();
-
-                $result['boardColumns'][$key]['tasks'] = $tasks;
+                $result['boardColumns'][$key]['tasks'] = $boardColumn->tasks;
             }
 
             if (request()->projectID != 'all') {

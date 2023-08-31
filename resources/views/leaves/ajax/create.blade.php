@@ -44,16 +44,21 @@
                                 <option value="">--</option>
                                 @if (isset($leaveTypes))
                                     @foreach ($leaveTypes as $leaveType)
-                                        <option value="{{ $leaveType->id }}">{{ mb_ucwords($leaveType->type_name) }}
+                                        <option value="{{ $leaveType->id }}">{{ $leaveType->type_name }}
                                         </option>
                                     @endforeach
                                 @endif
+
                                 @if (isset($leaveQuotas))
-                                    @foreach ($leaveQuotas as $leaveQuota)
-                                        @if ($leaveQuota->no_of_leaves > 0)
-                                            <option value="{{ $leaveQuota->leaveType->id }}">
-                                                {{ mb_ucwords($leaveQuota->leaveType->type_name) }}
-                                            </option>
+                                    @foreach ($leaveQuotas as $leave)
+                                        @php
+                                            $leaveType = new \App\Models\LeaveType();
+                                        @endphp
+
+                                        @if ($leave->employeeLeave > 0)
+                                            @if($leaveType->leaveTypeCodition($leave, $userRole))
+                                                    <option value="{{ $leave->id }}">{{ $leave->type_name }}</option>
+                                            @endif
                                         @endif
                                     @endforeach
                                 @endif
@@ -72,8 +77,8 @@
                     @if ($approveRejectPermission == 'all')
                         <div class="col-lg-4 col-md-6">
                             <x-forms.select fieldId="status" :fieldLabel="__('app.status')" fieldName="status" search="true">
-                                <option value="approved">@lang('app.approved')</option>
                                 <option value="pending">@lang('app.pending')</option>
+                                <option value="approved">@lang('app.approved')</option>
                             </x-forms.select>
                         </div>
                     @endif
@@ -99,18 +104,17 @@
 
                     <div class="col-lg-4 col-md-6 single_date_div">
                         <x-forms.text :fieldLabel="__('app.date')" fieldName="leave_date" fieldId="single_date" :fieldPlaceholder="__('app.date')"
-                            :fieldValue="Carbon\Carbon::today()->translatedFormat(company()->date_format)" />
+                            :fieldValue="now(company()->timezone)->translatedFormat(company()->date_format)" />
                     </div>
 
                     <div class="col-lg-4 col-md-6 d-none multi_date_div">
                         <x-forms.text :fieldLabel="__('messages.selectMultipleDates')" fieldName="multi_date" fieldId="multi_date" :fieldPlaceholder="__('messages.selectMultipleDates')"
-                            :fieldValue="Carbon\Carbon::today()->translatedFormat(company()->date_format)" />
+                            :fieldValue="now(company()->timezone)->translatedFormat(company()->date_format)" />
                     </div>
-
-                    <div class="col-lg-2 col-md-6 mt-5">
+                    <div class="col-lg-4 col-md-6 date-range-days mt-5">
                         <p id="users" class="mt-2 badge badge-secondary"></p>
-                    </div>
 
+                    </div>
                     <div class="col-md-12">
                         <div class="form-group my-3">
                             <x-forms.textarea class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.leaves.reason')" fieldName="reason"
@@ -120,7 +124,7 @@
                     </div>
 
                     <div class="col-lg-12">
-                        <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.add') . ' ' . __('app.file')" fieldName="file" :popover="__('messages.leaveFileMessage')" fieldId="leave-file-upload-dropzone" />
+                        <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.menu.addFile')" fieldName="file" :popover="__('messages.leaveFileMessage')" fieldId="leave-file-upload-dropzone" />
                         <input type="hidden" name="leaveID" id="leaveID">
                     </div>
 
@@ -158,11 +162,11 @@
             },
             paramName: "file",
             maxFilesize: DROPZONE_MAX_FILESIZE,
-            maxFiles: 10,
+            maxFiles: DROPZONE_MAX_FILES,
             autoProcessQueue: false,
             uploadMultiple: true,
             addRemoveLinks: true,
-            parallelUploads: 10,
+            parallelUploads: DROPZONE_MAX_FILES,
             acceptedFiles: DROPZONE_FILE_ALLOW,
             init: function() {
                 myDropzone = this;
@@ -175,13 +179,36 @@
         myDropzone.on('uploadprogress', function() {
             $.easyBlockUI();
         });
-        myDropzone.on('completemultiple', function() {
+        myDropzone.on('queuecomplete', function() {
             var redirect_url = $('#redirect_url').val();
             if (redirect_url != '') {
                 window.location.href = decodeURIComponent(redirect_url);
             }
             window.location.href = "{{ route('leaves.index') }}"
         });
+        myDropzone.on('removedfile', function () {
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).removeClass("has-error");
+            $(label).removeClass("is-invalid");
+        });
+        myDropzone.on('error', function (file, message) {
+            myDropzone.removeFile(file);
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).find(".help-block").remove();
+            var helpBlockContainer = $(grp);
+
+            if (helpBlockContainer.length == 0) {
+                helpBlockContainer = $(grp);
+            }
+
+            helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+            $(grp).addClass("has-error");
+            $(label).addClass("is-invalid");
+
+        });
+
 
         getDate();
         const dp1 = datepicker('#single_date', {
@@ -199,6 +226,16 @@
             format: 'yyyy-mm-d'
 
         });
+
+        $('#multi_date').change(function() {
+            var dates = $(this).val();
+
+            var startDate = moment(new Date(dates.split(' - ')[0]));
+            var endDate = moment(new Date(dates.split(' - ')[1]));
+            var totalDays = endDate.diff(startDate, 'days')+1;
+
+            $('.date-range-days').html(totalDays +' Days Selected');
+        })
 
         $('input[type=radio][name=duration]').change(function() {
             if (this.value == 'multiple') {
@@ -237,7 +274,7 @@
             var dateRange = $('#multi_date').data('daterangepicker');
             startDate = dateRange.startDate.format('{{ company()->moment_date_format }}');
             endDate = dateRange.endDate.format('{{ company()->moment_date_format }}');
-            
+
             var multiDate = [];
             multiDate = [startDate, endDate];
             $('#multi_date').val(multiDate);
@@ -251,7 +288,7 @@
                 disableButton: true,
                 blockUI: true,
                 buttonSelector: "#save-leave-form",
-                data: $('#save-lead-data-form').serialize(),
+                data: $('#save-lead-data-form').serialize()+'&multiStartDate='+startDate + '&multiEndDate='+endDate,
                 success: function(response) {
                     if (response.status == 'success') {
                         $('#leaveID').val(response.leaveID);
@@ -264,8 +301,8 @@
 
         $('body').on('click', '.add-lead-type2', function() {
             var url = "{{ route('leaveType.create') }}";
-            $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
-            $.ajaxModal(MODAL_LG, url);
+            $(MODAL_XL + ' ' + MODAL_HEADING).html('...');
+            $.ajaxModal(MODAL_XL, url);
         });
 
         $("input[name=duration]").click(function() {

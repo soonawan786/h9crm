@@ -34,7 +34,6 @@ use Trebol\Entrust\EntrustRole;
  * @method static \Illuminate\Database\Eloquent\Builder|Role whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Role whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Role whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\Permission[] $rolePermissions
  * @property-read int|null $role_permissions_count
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\User[] $unsyncedUsers
@@ -42,6 +41,7 @@ use Trebol\Entrust\EntrustRole;
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Role whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class Role extends EntrustRole
 {
@@ -58,7 +58,7 @@ class Role extends EntrustRole
     protected function name(): Attribute
     {
         return Attribute::make(
-            set: fn($value) => str_slug(strtolower($value)),
+            set: fn($value) => str_slug($value),
         );
     }
 

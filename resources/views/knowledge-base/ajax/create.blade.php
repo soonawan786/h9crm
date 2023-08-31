@@ -42,7 +42,7 @@
                                         <option
                                         {{ isset($selected_category_id) && $selected_category_id == $category->id ? 'selected' : '' }}
                                          value="{{ $category->id }}">
-                                            {{ mb_ucwords($category->name) }}</option>
+                                            {{ $category->name }}</option>
                                     @endforeach
                                 </select>
 
@@ -89,8 +89,8 @@
 <script src="{{ asset('vendor/jquery/dropzone.min.js') }}"></script>
 <script>
     $(document).ready(function() {
+        quillMention(null, '#description');
 
-        quillImageLoad('#description');
         // show/hide project detail
         $(document).on('change', 'input[type=radio][name=to]', function() {
             $('.department').toggleClass('d-none');
@@ -106,11 +106,11 @@
                 },
                 paramName: "file",
                 maxFilesize: DROPZONE_MAX_FILESIZE,
-                maxFiles: 10,
+                maxFiles: DROPZONE_MAX_FILES,
                 autoProcessQueue: false,
                 uploadMultiple: true,
                 addRemoveLinks: true,
-                parallelUploads: 10,
+                parallelUploads: DROPZONE_MAX_FILES,
                 acceptedFiles: DROPZONE_FILE_ALLOW,
                 init: function () {
                     knowledgeBaseDropzone = this;
@@ -125,8 +125,30 @@
             knowledgeBaseDropzone.on('uploadprogress', function () {
                 $.easyBlockUI();
             });
-            knowledgeBaseDropzone.on('completemultiple', function () {
+            knowledgeBaseDropzone.on('queuecomplete', function () {
                 window.location.href = "{{ route('knowledgebase.index') }}"
+            });
+            knowledgeBaseDropzone.on('removedfile', function () {
+                var grp = $('div#file-upload-dropzone').closest(".form-group");
+                var label = $('div#file-upload-box').siblings("label");
+                $(grp).removeClass("has-error");
+                $(label).removeClass("is-invalid");
+            });
+            knowledgeBaseDropzone.on('error', function (file, message) {
+                knowledgeBaseDropzone.removeFile(file);
+                var grp = $('div#file-upload-dropzone').closest(".form-group");
+                var label = $('div#file-upload-box').siblings("label");
+                $(grp).find(".help-block").remove();
+                var helpBlockContainer = $(grp);
+
+                if (helpBlockContainer.length == 0) {
+                    helpBlockContainer = $(grp);
+                }
+
+                helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+                $(grp).addClass("has-error");
+                $(label).addClass("is-invalid");
+
             });
 
 
@@ -172,5 +194,9 @@
         })
 
         init(RIGHT_MODAL);
+    });
+
+    $('#close-settings').click(function() {
+        closeTaskDetail()
     });
 </script>

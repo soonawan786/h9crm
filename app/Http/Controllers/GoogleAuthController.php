@@ -18,23 +18,45 @@ class GoogleAuthController extends Controller
             return redirect($google->createAuthUrl());
         }
 
-        /** @phpstan-ignore-next-line */
-        $google->authenticate($request->code);
-        $account = $google->service('Oauth2')->userinfo->get();
+        // WORKSUITESAAS
+        if ($request->state) {
+            /** @phpstan-ignore-next-line */
+            $google->authenticate($request->code);
+            $account = $google->service('Oauth2')->userinfo->get();
+            return redirect($request->state . '?google_id=' . $account->id . '&userName=' . $account->name . '&access_token=' . json_encode($google->getAccessToken()) . '&code=' . $request->code);
+        }
+
+        if(isWorksuite()) {
+            /** @phpstan-ignore-next-line */
+            $google->authenticate($request->code);
+            $account = $google->service('Oauth2')->userinfo->get();
+        }
+
         $googleAccount = companyOrGlobalSetting();
 
         if (empty($googleAccount->user_id) && empty($googleAccount->google_id) && empty($googleAccount->name) && empty($googleAccount->token)) {
-            Session::flash('message', __('app.googleCalendar').' '. __('app.account').' '. __('app.connected').' '. __('app.successfully'));
+            Session::flash('message', __('messages.googleCalendar.verifiedSuccess'));
         }
         else {
-            Session::flash('message', __('menu.googleCalendar').' '. __('app.account').' '. __('app.update').' '. __('app.successfully'));
+            Session::flash('message', __('messages.googleCalendar.updatedSuccess'));
         }
 
         $googleAccount->google_calendar_verification_status = 'verified';
-        $googleAccount->google_id = $account->id;
-        $googleAccount->name = $account->name;
-        /** @phpstan-ignore-next-line */
-        $googleAccount->token = $google->getAccessToken();
+
+        if(isWorksuite()){
+            $googleAccount->google_id = $account->id;
+            $googleAccount->name = $account->name;
+            /** @phpstan-ignore-next-line */
+            $googleAccount->token = $google->getAccessToken();
+        }
+        else{
+            // WORKSUITESAAS
+            $googleAccount->google_id = $request->google_id;
+            $googleAccount->name = $request->userName;
+            /** @phpstan-ignore-next-line */
+            $googleAccount->token = $request->access_token;
+        }
+
         $googleAccount->update();
 
         cache()->forget('global_setting');

@@ -48,7 +48,7 @@
                             data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($projects as $project)
-                                <option value="{{ $project->id }}">{{ mb_ucwords($project->project_name) }}</option>
+                                <option value="{{ $project->id }}">{{ $project->project_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -110,15 +110,7 @@ $addTimelogPermission = user()->permission('add_timelogs');
             </div>
 
             <div class="btn-group" role="group">
-                <a href="{{ route('timelogs.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
-                    data-original-title="@lang('app.menu.timeLogs')"><i class="side-icon bi bi-list-ul"></i></a>
-
-                <a href="{{ route('timelog-calendar.index') }}" class="btn btn-secondary f-14 btn-active"
-                    data-toggle="tooltip" data-original-title="@lang('app.menu.calendar')"><i class="side-icon bi bi-calendar"></i></a>
-
-                <a href="{{ route('timelogs.by_employee') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
-                    data-original-title="@lang('app.employee') @lang('app.menu.timeLogs')"><i class="side-icon bi bi-person"></i></a>
-
+                @include('timelogs.timelog-menu')
             </div>
         </div>
 

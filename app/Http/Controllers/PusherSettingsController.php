@@ -6,6 +6,7 @@ use App\Helper\Reply;
 use App\Http\Requests\PusherSetting\UpdateRequest;
 use App\Models\PusherSetting;
 use App\Traits\pusherConfigTrait;
+use Pusher\Pusher;
 
 class PusherSettingsController extends AccountBaseController
 {
@@ -27,6 +28,24 @@ class PusherSettingsController extends AccountBaseController
     // phpcs:ignore
     public function update(UpdateRequest $request, $id)
     {
+        if ($request->status == 'active') {
+            $checkPusher = new Pusher(
+                $request->pusher_app_key,
+                $request->pusher_app_secret,
+                $request->pusher_app_id,
+                [
+                    'cluster' => $request->pusher_cluster,
+                    'useTLS' => $request->force_tls
+                ]
+            );
+
+            try {
+                $checkPusher->trigger('test-pusher-channel', 'test-pusher-message', ['message' => 'done']);
+            } catch(\Exception $e) {
+                return Reply::dataOnly(['error' => $e->getMessage()]);
+            }
+        }
+
         $pusher = pusher_settings();
         $pusher->pusher_app_id = $request->pusher_app_id;
         $pusher->pusher_app_key = $request->pusher_app_key;
@@ -40,9 +59,7 @@ class PusherSettingsController extends AccountBaseController
 
         session(['pusher_settings' => PusherSetting::first()]);
 
-        $this->triggerPusher('test-pusher-channel', 'test-pusher-message', ['message' => 'done']);
-
-        return Reply::successWithData(__('messages.updateSuccess'), ['status' => $pusher->status,'pusherStatus' => $pusher->status]);
+        return Reply::successWithData(__('messages.updateSuccess'), ['status' => $pusher->status]);
     }
 
 }

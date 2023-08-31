@@ -74,7 +74,6 @@ class FetchTicketEmails extends Command
 
                 $client = \Webklex\IMAP\Facades\Client::account('default'); /* @phpstan-ignore-line */
                 $client->connect();
-                // dd($client->getFolders());
                 $oFolder = $client->getFolder('INBOX');
                 $messages = $oFolder->query()->since(today())->get();
                 /** @var \Webklex\PHPIMAP\Message $message */
@@ -149,7 +148,7 @@ class FetchTicketEmails extends Command
             $clientDetail->user_id = $client->id;
             $clientDetail->save();
 
-            $client->insertUserRolePermission($role->id);
+            $client->assignUserRolePermission($role->id);
 
             $newUser = $client;
         }
@@ -199,7 +198,7 @@ class FetchTicketEmails extends Command
             $clientDetail->user_id = $client->id;
             $clientDetail->save();
 
-            $client->insertUserRolePermission($role->id);
+            $client->assignUserRolePermission($role->id);
 
             $newUser = $client;
         }
@@ -239,7 +238,7 @@ class FetchTicketEmails extends Command
                 $toEmail = $ticketReply->ticket->agent->email;
             }
 
-            Mail::to($toEmail)->send(new MailTicketReply($ticketReply));
+            Mail::to($toEmail)->send(new MailTicketReply($ticketReply, $this->ticketEmailSetting));
 
         }
     }

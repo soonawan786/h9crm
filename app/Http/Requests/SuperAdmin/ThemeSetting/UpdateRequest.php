@@ -24,9 +24,15 @@ class UpdateRequest extends FormRequest
      */
     public function rules()
     {
-        return [
-            'custom_homepage_url' => 'nullable|required_if:setup_homepage,custom|url'
-        ];
+        $rules = [];
+
+        if(!$this->has('frontend_disable')) {
+            $rules = [
+                'custom_homepage_url' => 'nullable|required_if:setup_homepage,custom|url'
+            ];
+        }
+
+        return $rules;
     }
 
 }

@@ -4,17 +4,14 @@ namespace App\Http\Controllers\SuperAdmin\FrontSetting;
 
 use App\Helper\Files;
 use App\Helper\Reply;
-use Illuminate\Support\Arr;
 use Illuminate\Http\Request;
 use App\Models\GlobalSetting;
-use App\Models\SuperAdmin\GlobalCurrency;
 use App\Models\LanguageSetting;
 use App\Models\SuperAdmin\FrontDetail;
 use App\Models\SuperAdmin\TrFrontDetail;
 use App\Http\Controllers\AccountBaseController;
 use App\Http\Requests\SuperAdmin\FrontSetting\UpdateDetail;
 use App\Http\Requests\SuperAdmin\FrontSetting\UpdatePriceSetting;
-use App\Http\Requests\SuperAdmin\FrontSetting\UpdateFrontSettings;
 use App\Http\Requests\SuperAdmin\ContactSetting\ContactSettingRequest;
 
 class FrontSettingController extends AccountBaseController
@@ -25,6 +22,11 @@ class FrontSettingController extends AccountBaseController
         parent::__construct();
         $this->pageTitle = 'superadmin.menu.frontSettings';
         $this->activeSettingMenu = 'front_settings';
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_front_settings'));
+
+            return $next($request);
+        });
     }
 
     /**
@@ -80,7 +82,7 @@ class FrontSettingController extends AccountBaseController
                 Files::deleteFile($row->image, 'front');
             }
 
-            $data['image'] = Files::upload($request->image, 'front');
+            $data['image'] = Files::uploadLocalOrS3($request->image, 'front');
         }
 
         if ($row) {

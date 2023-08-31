@@ -3,7 +3,7 @@
 namespace App\Models\SuperAdmin;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\StripeSetting
@@ -78,7 +78,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|StripeSetting whereWebhookKey($value)
  * @mixin \Eloquent
  */
-class GlobalPaymentGatewayCredentials extends Model
+class GlobalPaymentGatewayCredentials extends BaseModel
 {
 
     use HasFactory;

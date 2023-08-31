@@ -7,11 +7,11 @@
     <div class="card w-100 rounded-0 border-0 comment">
         <div class="card-horizontal">
             <div class="card-img my-1 ml-0">
-                <img src="{{ $comment->user->image_url }}" alt="{{ mb_ucwords($comment->user->name) }}">
+                <img src="{{ $comment->user->image_url }}" alt="{{ $comment->user->name }}">
             </div>
             <div class="card-body border-0 pl-0 py-1">
                 <div class="d-flex flex-grow-1">
-                    <h4 class="card-title f-15 f-w-500 text-dark mr-3">{{ mb_ucwords($comment->user->name) }}</h4>
+                    <h4 class="card-title f-15 f-w-500 text-dark mr-3">{{ $comment->user->name }}</h4>
                     <p class="card-date f-11 text-lightest mb-0">
                         {{ $comment->created_at->timezone($company->timezone)->translatedFormat($company->date_format . ' ' . $company->time_format) }}
                     </p>
@@ -35,7 +35,7 @@
                         </div>
                     </div>
                 </div>
-                <div class="card-text f-14 text-dark-grey text-justify ql-editor">{!! ucfirst($comment->comment) !!}
+                <div class="card-text f-14 text-dark-grey text-justify ql-editor">{!! $comment->comment !!}
                 </div>
             </div>
         </div>

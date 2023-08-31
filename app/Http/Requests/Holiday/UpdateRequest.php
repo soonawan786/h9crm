@@ -30,13 +30,7 @@ class UpdateRequest extends FormRequest
     {
         return [
             'date'  => 'required',
-        ];
-    }
-
-    public function messages()
-    {
-        return [
-            'date.required' => 'Date is a require field;'
+            'occassion' => 'required',
         ];
     }
 

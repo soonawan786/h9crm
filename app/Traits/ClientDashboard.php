@@ -187,7 +187,14 @@ trait ClientDashboard
         $leadStatus = LeadStatus::withCount(['leads' => function ($query) use ($startDate, $endDate) {
             return $query->whereBetween(DB::raw('DATE(`created_at`)'), [$startDate, $endDate]);
         }])->get();
-        $data['labels'] = $leadStatus->pluck('type')->toArray();
+
+        $labelVal = [];
+
+        foreach ($leadStatus->pluck('type') as $key => $value) {
+            $labelVal[] = $value;
+        }
+
+        $data['labels'] = $labelVal;
         $data['colors'] = $leadStatus->pluck('label_color')->toArray();
         $data['values'] = $leadStatus->pluck('leads_count')->toArray();
 
@@ -200,7 +207,12 @@ trait ClientDashboard
             return $query->whereBetween(DB::raw('DATE(`created_at`)'), [$startDate, $endDate]);
         }])->get();
 
-        $data['labels'] = $leadStatus->pluck('type')->toArray();
+        $data['labels'] = [];
+
+        foreach ($leadStatus->pluck('type') as $key => $value) {
+            $labelName = current(explode(' ', $value));
+            $data['labels'][] = __('app.'.$labelName).''.strstr($value, ' ');
+        }
 
         foreach ($data['labels'] as $key => $value) {
             $data['colors'][] = '#' . substr(md5($value), 0, 6);

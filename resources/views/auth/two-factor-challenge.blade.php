@@ -1,3 +1,11 @@
+@push('styles')
+    @foreach ($frontWidgets as $item)
+    @if(!is_null($item->header_script))
+        {!! $item->header_script !!}
+    @endif
+
+    @endforeach
+@endpush
 <x-auth>
     <form id="two-factor-challenge-form"
         action="{{ Session::get('login.authenticate_via') == 'email' ? route('check_code') : route('two-factor.login') }}"
@@ -126,6 +134,12 @@
 
         </script>
 
+        @foreach ($frontWidgets as $item)
+        @if(!is_null($item->footer_script))
+            {!! $item->footer_script !!}
+        @endif
+
+        @endforeach
     </x-slot>
 
 </x-auth>

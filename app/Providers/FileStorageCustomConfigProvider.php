@@ -62,6 +62,22 @@ class FileStorageCustomConfigProvider extends ServiceProvider
                 config(['filesystems.disks.wasabi.bucket' => $bucket]);
                 config(['filesystems.disks.wasabi.endpoint' => 'https://s3.' . $region . '.wasabisys.com']);
                 break;
+            case 'minio':
+                $authKeys = json_decode($setting->auth_keys);
+                $driver = $authKeys->driver;
+                $key = $authKeys->key;
+                $secret = $authKeys->secret;
+                $region = $authKeys->region;
+                $bucket = $authKeys->bucket;
+                $endpoint = $authKeys->endpoint;
+                config(['filesystems.default' => 'minio']);
+                config(['filesystems.cloud' => 'minio']);
+                config(['filesystems.disks.minio.key' => $key]);
+                config(['filesystems.disks.minio.secret' => $secret]);
+                config(['filesystems.disks.minio.region' => $region]);
+                config(['filesystems.disks.minio.bucket' => $bucket]);
+                config(['filesystems.disks.minio.endpoint' => $endpoint]);
+                break;
 
                 // For local storage
             default :

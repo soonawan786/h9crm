@@ -1,3 +1,8 @@
+<style>
+    .two-factor-bg {
+        background-color: #ffffff !important;
+    }
+</style>
 <!-- SETTINGS START -->
 <div class="col-lg-12 col-md-12 ntfcn-tab-content-left w-100 p-4 ">
 
@@ -16,7 +21,7 @@
                             <i class="fa fa-info-circle"></i> @lang('modules.twofactor.verifySmtp')
                         </div>
 
-                        @if (user()->permission('manage_notification_setting') == 'all' || user()->is_superadmin)
+                        @if (user()->permission('manage_notification_setting') == 'all' || ( user()->is_superadmin && user()->permission('manage_superadmin_notification_settings') == 'all'))
                             <div>
                                 <x-forms.link-primary :link="route('notifications.index')">
                                     @lang('app.verify')
@@ -86,7 +91,7 @@
 
                                 @if ($user->userAuth->two_factor_secret)
                                     <p class="f-w-500">@lang('modules.twofactor.2faBarcode')</p>
-                                    <span class="p-2 border rounded w-100 d-table-cell">
+                                    <span class="p-2 border rounded w-100 d-table-cell two-factor-bg">
                                         {!! $user->userAuth->twoFactorQrCodeSvg() !!}
                                     </span>
                                     <div class="my-4 f-12 text-lightest">

@@ -5,7 +5,7 @@
     <!-- SETTINGS START -->
     <div class="w-100 d-flex ">
 
-        <x-setting-sidebar :activeMenu="$activeSettingMenu"/>
+        @include('sections.setting-sidebar')
 
         <x-setting-card>
 

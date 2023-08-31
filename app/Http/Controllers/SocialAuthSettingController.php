@@ -16,8 +16,7 @@ class SocialAuthSettingController extends AccountBaseController
         $this->pageTitle = 'app.menu.socialLogin';
         $this->activeSettingMenu = 'social_auth_settings';
         $this->middleware(function ($request, $next) {
-            GlobalSetting::validateAdmin();
-            abort_403(!user()->is_superadmin && user()->permission('manage_social_login_setting') != 'all');
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_social_settings') && user()->permission('manage_social_login_setting') != 'all');
             return $next($request);
         });
     }

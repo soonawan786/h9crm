@@ -13,7 +13,7 @@
                     <td>
                         {{ $key + 1 }}
                     </td>
-                    <td> {{ ucfirst($category->category_name) }} </td>
+                    <td> {{ $category->category_name }} </td>
                     <td class="text-right">
                         <div class="task_view">
                             <a href="javascript:;" data-category-id="{{ $category->id }}"

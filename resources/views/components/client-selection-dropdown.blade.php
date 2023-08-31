@@ -14,7 +14,7 @@ $addClientPermission = user()->permission('add_clients');
         @endif
         data-content="
         <x-client-search-option :user='$clientOpt' />"
-        value="{{ $clientOpt->id }}">{{ mb_ucwords($clientOpt->name) }} </option>
+        value="{{ $clientOpt->id }}">{{ $clientOpt->name }} </option>
         @endforeach
     </select>
 

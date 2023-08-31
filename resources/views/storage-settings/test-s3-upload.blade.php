@@ -73,7 +73,7 @@
             data: $('#StorageUploadForm').serialize(),
             success: function (response) {
                 if (response.status === "success") {
-                    $('.alert-success').append(` <a href="${response.fileurl}" target="_blank">@lang('app.storageSetting.viewFile')</a>`);
+                    $('.alert-success').append(` <a href="${response.fileurl}" target="_blank">@lang('app.storageSetting.viewFile') </a>`);
                     $('#file_url').val(response.fileurl);
                     $('#show-file').removeClass('d-none');
                 }

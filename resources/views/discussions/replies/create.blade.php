@@ -1,12 +1,13 @@
 <link rel="stylesheet" href="{{ asset('vendor/css/dropzone.min.css') }}">
 <div class="modal-header">
-    <h5 class="modal-title">@lang('app.add') @lang('app.reply')</h5>
+    <h5 class="modal-title">@lang('app.menu.addReply')</h5>
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 </div>
 <div class="modal-body">
     <div class="portlet-body">
         <x-form id="createMethods" method="POST" class="ajax-form">
             <input type="hidden" name="discussion_id" value="{{ $discussionId }}">
+
             <div class="row">
                 <div class="col-md-12">
                     <div class="form-group my-3">
@@ -18,7 +19,7 @@
                 </div>
                 <div class="col-md-12">
                     <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2"
-                        :fieldLabel="__('app.add') . ' ' .__('app.file')" fieldName="file"
+                        :fieldLabel="__('app.menu.addFile')" fieldName="file"
                         fieldId="discussion-file-upload-dropzone" />
                 </div>
             </div>
@@ -46,11 +47,11 @@
             },
             paramName: "file",
             maxFilesize: DROPZONE_MAX_FILESIZE,
-            maxFiles: 10,
+            maxFiles: DROPZONE_MAX_FILES,
             autoProcessQueue: false,
             uploadMultiple: true,
             addRemoveLinks: true,
-            parallelUploads: 10,
+            parallelUploads: DROPZONE_MAX_FILES,
             acceptedFiles: DROPZONE_FILE_ALLOW,
             init: function () {
                 taskDropzone = this;
@@ -63,6 +64,28 @@
         });
         taskDropzone.on('uploadprogress', function () {
             $.easyBlockUI();
+        });
+        taskDropzone.on('removedfile', function () {
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).removeClass("has-error");
+            $(label).removeClass("is-invalid");
+        });
+        taskDropzone.on('error', function (file, message) {
+            taskDropzone.removeFile(file);
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).find(".help-block").remove();
+            var helpBlockContainer = $(grp);
+
+            if (helpBlockContainer.length == 0) {
+                helpBlockContainer = $(grp);
+            }
+
+            helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+            $(grp).addClass("has-error");
+            $(label).addClass("is-invalid");
+
         });
         taskDropzone.on('completemultiple', function () {
             $.easyAjax({

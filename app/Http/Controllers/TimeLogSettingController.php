@@ -18,7 +18,8 @@ class TimeLogSettingController extends AccountBaseController
         $this->pageTitle = 'app.menu.timeLogSettings';
         $this->activeSettingMenu = 'timelog_settings';
         $this->middleware(function ($request, $next) {
-            abort_403(user()->permission('manage_time_log_setting') !== 'all');
+            abort_403(!(user()->permission('manage_time_log_setting') == 'all' && in_array('timelogs', user_modules())));
+
             return $next($request);
         });
     }

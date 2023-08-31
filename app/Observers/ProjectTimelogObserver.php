@@ -25,12 +25,14 @@ class ProjectTimelogObserver
             if ($projectId != '') {
                 $member = ProjectMember::where('user_id', $userId)->where('project_id', $projectId)->first();
                 $projectTimeLog->hourly_rate = ($member && !is_null($member->hourly_rate) ? $member->hourly_rate : 0);
+                $projectTimeLog->project_id = $projectId;
             }
             else {
                 $task = $projectTimeLog->task;
 
                 if (!is_null($task) && !is_null($task->project_id)) {
                     $projectId = $task->project_id;
+                    $projectTimeLog->project_id = $task->project_id;
                 }
 
                 $member = EmployeeDetails::where('user_id', $userId)->first();

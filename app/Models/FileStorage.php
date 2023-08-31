@@ -28,7 +28,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder|FileStorage whereStorageLocation($value)
  * @method static \Illuminate\Database\Eloquent\Builder|FileStorage whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|FileStorage whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @property-read mixed $file_url
@@ -36,6 +35,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property-read mixed $size_format
  * @method static \Illuminate\Database\Eloquent\Builder|FileStorage whereCompanyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|FileStorage whereFilename($value)
+ * @mixin \Eloquent
  */
 class FileStorage extends BaseModel
 {
@@ -48,7 +48,7 @@ class FileStorage extends BaseModel
 
     public function getFileUrlAttribute()
     {
-        return asset_url($this->path . '/' . $this->filename);
+        return asset_url_local_s3($this->path . '/' . $this->filename);
     }
 
     public function getSizeFormatAttribute(): string

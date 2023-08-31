@@ -38,13 +38,13 @@ $addLeadCategoryPermission = user()->permission('add_lead_category');
             <x-slot name="buttons">
                 <div class="row">
                     <div class="col-md-12 mb-2">
-                        @if ($addLeadAgentPermission != 'none')                            
+                        @if ($addLeadAgentPermission != 'none')
                             <x-forms.button-primary icon="plus" id="addAgent" class="agent-btn mb-2 d-none actionBtn">
                                 @lang('app.addNew') @lang('modules.lead.leadAgent')
                             </x-forms.button-primary>
                         @endif
 
-                        @if ($addLeadSourcesPermission != 'none')                            
+                        @if ($addLeadSourcesPermission != 'none')
                             <x-forms.button-primary icon="plus" id="addSource" class="source-btn mb-2 d-none actionBtn">
                                 @lang('app.addNew') @lang('app.menu.leadSource')
                             </x-forms.button-primary>
@@ -54,7 +54,7 @@ $addLeadCategoryPermission = user()->permission('add_lead_category');
                             @lang('app.addNew') @lang('app.menu.leadStatus')
                         </x-forms.button-primary>
 
-                        @if ($addLeadCategoryPermission != 'none')                            
+                        @if ($addLeadCategoryPermission != 'none')
                             <x-forms.button-primary icon="plus" id="addCategory" class="category-btn mb-2 d-none actionBtn">
                                 @lang('app.addNew') @lang('modules.lead.leadCategory')
                             </x-forms.button-primary>

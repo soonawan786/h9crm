@@ -64,7 +64,7 @@ return new class extends Migration {
         foreach ($companies as $company) {
 
             $units = [
-                'unit_type' => 'Qty\hrs',
+                'unit_type' => 'Pcs',
                 'default' => 1,
                 'company_id' => $company->id
             ];

@@ -2,11 +2,9 @@
 
 namespace App\Observers\SuperAdmin;
 
+use App\Models\PackageUpdateNotify;
 use App\Models\SuperAdmin\Package;
-use App\Models\User;
 use App\Observers\CompanyObserver;
-use App\Scopes\ActiveScope;
-use App\Scopes\CompanyScope;
 
 class PackageObserver
 {
@@ -21,18 +19,19 @@ class PackageObserver
 
     public function updated(Package $package)
     {
-        if ($package->isDirty('module_in_package')) {
+        $package->companies->each(function ($company) use ($package) {
+            if ($package->isDirty('module_in_package')) {
+                (new CompanyObserver())->updateModuleSettings($company);
+            }
 
-            $package->companies->each(function ($company) {
-                (new CompanyObserver())->moduleSettings($company);
+            $companyEmployeesCount = $company->employees()->count();
 
-                User::withoutGlobalScopes([ActiveScope::class, CompanyScope::class])
-                    ->where('company_id', $company->id)->each(function ($user) {
-                        cache()->forget('user_modules_' . $user->id);
-                    });
-            });
+            if ($companyEmployeesCount <= $package->max_employees) {
+                PackageUpdateNotify::where('company_id', $company->id)->delete();
+            }
 
-        }
+            clearCompanyValidPackageCache($company->id);
+        });
 
     }
 

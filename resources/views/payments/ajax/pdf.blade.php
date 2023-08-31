@@ -290,7 +290,7 @@
         </tr>
         <tr class="main-table-items">
             <td class="text-grey">@lang("app.amount")</td>
-            <td >{{ currency_format($payment->amount, '') }} {{ ($payment->currency ? $payment->currency->currency_code : company()->currency->currency_code) }}</td>
+            <td >{{ currency_format($payment->amount, $payment->currency_id) }} {{ ($payment->currency ? $payment->currency->currency_code : company()->currency->currency_code) }}</td>
         </tr>
         <tr class="main-table-items">
             <td class="text-grey">@lang("modules.invoices.paymentMethod")</td>

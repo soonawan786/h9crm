@@ -2,19 +2,16 @@
 
 namespace App\Http\Controllers\SuperAdmin;
 
-use App\Models\Company;
 use App\Models\SuperAdmin\GlobalInvoice;
 use App\Models\SuperAdmin\GlobalSubscription;
 use App\Notifications\SuperAdmin\CompanyUpdatedPlan;
 use App\Models\SuperAdmin\Package;
-use App\Models\SuperAdmin\PaystackInvoice;
 use App\Traits\SuperAdmin\PaystackSettings;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Facades\Session;
 use Unicodeveloper\Paystack\Paystack;
 use URL;
 
@@ -131,7 +128,7 @@ class PaystackController extends Controller
             $company->save();
 
              // Send superadmin notification
-             $generatedBy = $generatedBy = User::allSuperAdmin();
+             $generatedBy = User::allSuperAdmin();
              $allAdmins = User::allAdmins($company->id);
              Notification::send($generatedBy, new CompanyUpdatedPlan($company, $globalSubscription->package_id));
              Notification::send($allAdmins, new CompanyUpdatedPlan($company, $globalSubscription->package_id));

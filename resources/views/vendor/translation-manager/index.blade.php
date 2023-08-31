@@ -71,6 +71,11 @@
                 window.location.reload();
             });
 
+            $('.form-fix-translation').on('ajax:success', function (e, data) {
+                alert(data.message);
+                window.location.reload();
+            });
+
             $('.form-find').on('ajax:success', function (e, data) {
                 $('div.success-find strong.counter').text(data.counter);
                 $('div.success-find').slideDown();
@@ -156,6 +161,12 @@
             <div class="form-group">
                 <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
                 <button type="submit" class="btn btn-info" data-disable-with="Searching.." >Find translations in files</button>
+            </div>
+        </form>
+        <form class="form-fix-translation" method="POST" action="{{ route('language_settings.fix_translation')}}" data-remote="true" role="form" data-confirm="@lang('modules.languageSettings.fixTranslationInfo')">
+            <div class="form-group">
+                <input type="hidden" name="_token" value="<?php echo csrf_token(); ?>">
+                <button type="submit" class="btn btn-info" data-disable-with="@lang('app.processing')..." >@lang('modules.languageSettings.fixTranslation')</button>
             </div>
         </form>
         <?php endif; ?>

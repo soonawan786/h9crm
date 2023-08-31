@@ -3,72 +3,13 @@
 <head>
     <meta charset="utf-8">
     <title>@lang('app.credit-note')</title>
-
+    @includeIf('invoices.pdf.invoice_pdf_css')
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <meta name="description" content="creditNote">
 
     <style>
-
-@font-face {
-            font-family: 'THSarabunNew';
-            font-style: normal;
-            font-weight: normal;
-            src: url("{{ storage_path('fonts/THSarabunNew.ttf') }}") format('truetype');
-        }
-        @font-face {
-            font-family: 'THSarabunNew';
-            font-style: normal;
-            font-weight: bold;
-            src: url("{{ storage_path('fonts/THSarabunNew_Bold.ttf') }}") format('truetype');
-        }
-        @font-face {
-            font-family: 'THSarabunNew';
-            font-style: italic;
-            font-weight: bold;
-            src: url("{{ storage_path('fonts/THSarabunNew_Bold_Italic.ttf') }}") format('truetype');
-        }
-        @font-face {
-            font-family: 'THSarabunNew';
-            font-style: italic;
-            font-weight: bold;
-            src: url("{{ storage_path('fonts/THSarabunNew_Italic.ttf') }}") format('truetype');
-        }
-
-        @if($invoiceSetting->is_chinese_lang)
-        @font-face {
-            font-family: SimHei;
-            /*font-style: normal;*/
-            font-weight: bold;
-            src: url('{{ asset('fonts/simhei.ttf') }}') format('truetype');
-        }
-        @endif
-
-        @php
-            $font = '';
-            if($invoiceSetting->locale == 'ja') {
-                $font = 'ipag';
-            } else if($invoiceSetting->locale == 'hi') {
-                $font = 'hindi';
-            } else if($invoiceSetting->locale == 'th') {
-                $font = 'THSarabunNew';
-            } else if($invoiceSetting->is_chinese_lang) {
-                $font = 'SimHei';
-            }else {
-                $font = 'Verdana';
-            }
-        @endphp
-
-        @if($invoiceSetting->is_chinese_lang)
-            body
-        {
-            font-weight: normal !important;
-        }
-        @endif
-        * {
-            font-family: {{$font}}, DejaVu Sans , sans-serif;
-        }
 
         /* Reset styles */
         html, body, div, span, applet, object, iframe,
@@ -406,7 +347,7 @@
 
             <div class="company-info">
                 <span class="company-name">
-                    {{ mb_ucwords(company()->company_name) }}
+                    {{ company()->company_name }}
                 </span>
 
                 <span class="spacer"></span>
@@ -441,7 +382,7 @@
                 @endif
                 <tr>
                     <td>@lang('app.status'):</td>
-                    <td>{{ mb_ucwords($creditNote->status) }}</td>
+                    <td>{{ $creditNote->status }}</td>
                 </tr>
             </table>
 
@@ -459,11 +400,11 @@
                 @if(!is_null($creditNote->project->client))
                     <span>@lang('modules.credit-notes.billedTo'):</span>
                     <div>
-                        <span class="bold">{{ mb_ucwords($creditNote->project->client->name) }}</span>
+                        <span class="bold">{{ $creditNote->project->client->name }}</span>
                     </div>
 
                     <div>
-                        <span>{{ mb_ucwords($creditNote->project->clientDetails->company_name) }}</span>
+                        <span>{{ $creditNote->project->clientDetails->company_name }}</span>
                     </div>
 
                     <div>
@@ -500,7 +441,7 @@
                     @if($invoiceSetting->hsn_sac_code_show)
                         <th>@lang("app.hsnSac")</th>
                     @endif
-                    <th>{{ isset($creditNote->unit) ? $creditNote->unit->unit_type : 'Qty\hrs' }}</th>
+                    <th>@lang('modules.invoices.qty')</th>
                     <th>@lang("modules.credit-notes.unitPrice")</th>
                     <th>@lang("modules.invoices.tax")</th>
                     <th>@lang("modules.credit-notes.price") ({!! htmlentities($creditNote->currency->currency_code)  !!})</th>
@@ -512,7 +453,7 @@
                 <tr data-iterate="item">
                     <td>{{ ++$count }}</td> <!-- Don't remove this column as it's needed for the row commands -->
                     <td>
-                        {{ ucfirst($item->item_name) }}
+                        {{ $item->item_name }}
                         @if (!is_null($item->item_summary))
                             <p class="item-summary">{!! nl2br(strip_tags($item->item_summary, ['p', 'b', 'strong', 'a'])) !!}</p>
                         @endif
@@ -525,9 +466,9 @@
                     @if($invoiceSetting->hsn_sac_code_show)
                         <td>{{ $item->hsn_sac_code ? $item->hsn_sac_code : '--' }}</td>
                     @endif
-                    <td>{{ $item->quantity }}</td>
+                    <td>{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                     <td>{{ currency_format($item->unit_price, $creditNote->currency_id, false) }}</td>
-                    <td>{{ strtoupper($item->tax_list) }}</td>
+                    <td>{{ $item->tax_list }}</td>
                     <td>{{ currency_format($item->amount, $creditNote->currency_id, false) }}</td>
                 </tr>
                     @endif
@@ -548,7 +489,7 @@
                 @endif
                 @foreach($taxes as $key=>$tax)
                 <tr data-iterate="tax">
-                    <td colspan="{{ $creditNoteSetting->hsn_sac_code_show ? '5': '4' }}">{{ mb_strtoupper($key) }}:</td>
+                    <td colspan="{{ $creditNoteSetting->hsn_sac_code_show ? '5': '4' }}">{{ $key }}:</td>
                     <td>{{ currency_format($tax, $creditNote->currency_id, false) }}</td>
                 </tr>
                 @endforeach

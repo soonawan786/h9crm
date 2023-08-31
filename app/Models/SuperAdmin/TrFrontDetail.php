@@ -3,7 +3,7 @@
 namespace App\Models\SuperAdmin;
 
 use App\Models\LanguageSetting;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
@@ -72,13 +72,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @mixin \Eloquent
  * @property-read LanguageSetting|null $language
  */
-class TrFrontDetail extends Model
+class TrFrontDetail extends BaseModel
 {
     protected $guarded = ['id'];
 
     public function getImageUrlAttribute()
     {
-        return ($this->image) ? asset_url('front/' . $this->image) : asset('saas/img/home/home-crm.png');
+        return ($this->image) ? asset_url_local_s3('front/' . $this->image) : asset('saas/img/home/home-crm.png');
     }
 
     public function language()

@@ -45,11 +45,12 @@ class TimerStarted extends BaseNotification
     // phpcs:ignore
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $url = route('login');
         $url = getDomainSpecificUrl($url, $this->company);
         $content = __('email.notificationIntro');
 
-        return parent::build()
+        return $build
             ->markdown('mail.email', [
                 'url' => $url,
                 'content' => $content,

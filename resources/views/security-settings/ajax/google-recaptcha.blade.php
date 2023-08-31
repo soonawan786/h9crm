@@ -15,7 +15,7 @@
                     <div class="col-lg-12">
                         <div class="form-group my-3">
                             <label class="f-14 text-dark-grey mb-12 w-100"
-                                   for="usr">Choose Google Recaptcha Version</label>
+                                   for="usr">@lang('modules.accountSettings.chooseGoogleRecaptcha')</label>
                             <div class="d-flex">
                                 <x-forms.radio fieldId="send_reminder_admin" fieldLabel="V2"
                                                fieldName="version" fieldValue="v2"
@@ -34,8 +34,8 @@
                         <div class="row">
                             <div class="col-lg-5">
                                 <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                                              fieldLabel="Google Recaptcha V2 Key"
-                                              fieldPlaceholder="e.g. 6LeL_s8ZAAAAAMVC2clQdxxxXXXxxxxxXXX"
+                                              :fieldLabel="__('app.googleRecaptchaV2Key')"
+                                              :fieldPlaceholder="__('placeholders.recaptchaV2')"
                                               fieldName="google_recaptcha_v2_site_key"
                                               fieldId="google_recaptcha_v2_site_key"
                                               :fieldValue="global_setting()->google_recaptcha_v2_site_key"
@@ -43,14 +43,14 @@
                             </div>
                             <div class="col-lg-5">
                                 <x-forms.label class="mt-3" fieldId="google_recaptcha_secret"
-                                               fieldLabel="Google Recaptcha V2 Secret" fieldRequired="true">
+                                               :fieldLabel="__('app.googleRecaptchaKeyV2Secret')" fieldRequired="true">
                                 </x-forms.label>
                                 <x-forms.input-group>
 
 
                                     <input type="password"
                                            value="{{ global_setting()->google_recaptcha_v2_secret_key }}"
-                                           placeholder="e.g. XXXXXXxxxxxXXXXXXxxxxx"
+                                           placeholder="@lang('placeholders.recaptchaSecret')"
                                            name="google_recaptcha_v2_secret_key"
                                            id="google_recaptcha_v2_secret_key" class="form-control height-35 f-14">
                                     <x-slot name="append">
@@ -75,8 +75,8 @@
                         <div class="row">
                             <div class="col-lg-5">
                                 <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                                              fieldLabel="Google Recaptcha V3 Key"
-                                              fieldPlaceholder="e.g. 6LeL_s8ZAAAAAMVC2clQdxxxXXXxxxxxXXX"
+                                              :fieldLabel="__('app.googleRecaptchaV3Key')"
+                                              :fieldPlaceholder="__('placeholders.recaptchaV3')"
                                               fieldName="google_recaptcha_v3_site_key"
                                               fieldId="google_recaptcha_v3_site_key"
                                               :fieldValue="global_setting()->google_recaptcha_v3_site_key"
@@ -84,12 +84,12 @@
                             </div>
                             <div class="col-lg-5">
                                 <x-forms.label class="mt-3" fieldId="google_recaptcha_secret"
-                                               fieldLabel="Google Recaptcha V3 Secret" fieldRequired="true">
+                                               :fieldLabel="__('app.googleRecaptchaKeyV2Secret')" fieldRequired="true">
                                 </x-forms.label>
                                 <x-forms.input-group>
                                     <input type="password"
                                            value="{{ global_setting()->google_recaptcha_v3_secret_key }}"
-                                           placeholder="e.g. XXXXXXxxxxxXXXXXXxxxxx"
+                                           placeholder="@lang('placeholders.recaptchaSecret')"
                                            name="google_recaptcha_v3_secret_key"
                                            id="google_recaptcha_v3_secret_key" class="form-control height-35 f-14">
                                     <x-slot name="append">

@@ -7,6 +7,7 @@ use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\App;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Routing\Exceptions\InvalidSignatureException;
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -51,11 +52,15 @@ class Handler extends ExceptionHandler
                 return redirect()->route('login');
             }
         });
+
+        $this->renderable(function (InvalidSignatureException $e) {
+            return response()->view('errors.link-expired', [], 403);
+        });
     }
 
     public function report(Throwable $exception)
     {
-        if (app()->bound('sentry') && $this->shouldReport($exception) && App::environment('demo')) {
+        if (app()->bound('sentry') && $this->shouldReport($exception) && config('services.sentry.enabled')) {
             app('sentry')->captureException($exception);
         }
 

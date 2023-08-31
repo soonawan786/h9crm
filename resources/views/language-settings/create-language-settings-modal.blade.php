@@ -1,5 +1,5 @@
 <div class="modal-header">
-    <h5 class="modal-title">@lang('app.add') @lang('app.language')</h5>
+    <h5 class="modal-title">@lang('app.addLanguage')</h5>
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 </div>
 <div class="modal-body">
@@ -8,11 +8,11 @@
             <div class="row">
 
                 <div class="col-lg-6">
-                    <x-forms.text :fieldLabel="__('app.name')" fieldPlaceholder="Enter Language Name" fieldName="language_name" fieldId="language_name" fieldValue="" fieldRequired="true"/>
+                    <x-forms.text :fieldLabel="__('app.name')" :fieldPlaceholder="__('placeholders.language.languageName')" fieldName="language_name" fieldId="language_name" fieldValue="" fieldRequired="true"/>
                 </div>
 
                 <div class="col-lg-6">
-                    <x-forms.text :fieldLabel="__('app.language_code')" fieldPlaceholder="Enter Language Code" fieldName="language_code" fieldId="language_code" fieldValue="" fieldRequired="true"/>
+                    <x-forms.text :fieldLabel="__('app.language_code')" :fieldPlaceholder="__('placeholders.language.languageCode')" fieldName="language_code" fieldId="language_code" fieldValue="" fieldRequired="true"/>
                 </div>
 
                 <div class="col-lg-6">
@@ -20,7 +20,7 @@
                         <option value="">--</option>
 
                         @foreach ($flags as $flag)
-                            <option data-content="<span class='flag-icon flag-icon-{{ strtolower($flag->code) }} flag-icon-squared'></span> {{ $flag->name }}"
+                            <option data-content="<span class='flag-icon flag-icon-{{ $flag->code }} flag-icon-squared'></span> {{ $flag->name }}"
                             value="{{ $flag->code }}">{{ $flag->name }}</option>
                         @endforeach
                     </x-forms.select>

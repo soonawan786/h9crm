@@ -36,7 +36,7 @@
             @php
                 $fileValue = '--';
                 if(!is_null($model->custom_fields_data['field_'.$field->id]) && $model->custom_fields_data['field_'.$field->id] != ''){
-                    $fileValue = '<a href="'.asset_url_local_s3('custom_fields/' .$model->custom_fields_data['field_'.$field->id]).'" download>'.$model->custom_fields_data['field_'.$field->id].' <i class="fa fa-question-circle" data-toggle="popover" data-placement="top" data-content="' . __('app.downloadableFile') .'" data-html="true" data-trigger="hover"></i></a>';
+                    $fileValue = '<a href="'.asset_url_local_s3('custom_fields/' .$model->custom_fields_data['field_'.$field->id]).'" class="text-dark-grey" download>'.__('app.storageSetting.downloadFile').' <i class="fa fa-question-circle" data-toggle="tooltip" data-placement="top" data-original-title="' . __('app.downloadableFile') .'" data-html="true" data-trigger="hover"></i></a>';
                 }
             @endphp
 
@@ -45,5 +45,6 @@
             :value="$fileValue">
             </x-cards.data-row>
         @endif
+        {{-- @dd($model->custom_fields_data) --}}
     @endforeach
 @endif

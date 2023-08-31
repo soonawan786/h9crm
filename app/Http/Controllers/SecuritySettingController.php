@@ -41,7 +41,7 @@ class SecuritySettingController extends AccountBaseController
 
         switch ($tab) {
         case 'recaptcha':
-            abort_403(!user()->is_superadmin);
+            abort_403(user()->permission('manage_superadmin_security_settings') != 'all' && !user()->is_superadmin);
             $this->view = 'security-settings.ajax.google-recaptcha';
                 break;
         default:
@@ -73,31 +73,31 @@ class SecuritySettingController extends AccountBaseController
     //phpcs:ignore
     public function update(UpdateGoogleCaptchaSetting $request, $id)
     {
-        $google_capcha_setting = GlobalSetting::first();
+        $google_captcha_setting = GlobalSetting::first();
 
         if ($request->version == 'v3') {
-            $google_capcha_setting->google_recaptcha_v3_site_key = $request->google_recaptcha_v3_site_key;
-            $google_capcha_setting->google_recaptcha_v3_secret_key = $request->google_recaptcha_v3_secret_key;
-            $google_capcha_setting->google_recaptcha_v3_status = 'active';
-            $google_capcha_setting->google_recaptcha_v2_status = 'deactive';
+            $google_captcha_setting->google_recaptcha_v3_site_key = $request->google_recaptcha_v3_site_key;
+            $google_captcha_setting->google_recaptcha_v3_secret_key = $request->google_recaptcha_v3_secret_key;
+            $google_captcha_setting->google_recaptcha_v3_status = 'active';
+            $google_captcha_setting->google_recaptcha_v2_status = 'deactive';
         }
         elseif ($request->version == 'v2') {
-            $google_capcha_setting->google_recaptcha_v2_site_key = $request->google_recaptcha_v2_site_key;
-            $google_capcha_setting->google_recaptcha_v2_secret_key = $request->google_recaptcha_v2_secret_key;
-            $google_capcha_setting->google_recaptcha_v2_status = 'active';
-            $google_capcha_setting->google_recaptcha_v3_status = 'deactive';
+            $google_captcha_setting->google_recaptcha_v2_site_key = $request->google_recaptcha_v2_site_key;
+            $google_captcha_setting->google_recaptcha_v2_secret_key = $request->google_recaptcha_v2_secret_key;
+            $google_captcha_setting->google_recaptcha_v2_status = 'active';
+            $google_captcha_setting->google_recaptcha_v3_status = 'deactive';
         }
 
         if (!$request->google_recaptcha_status) {
-            $google_capcha_setting->google_recaptcha_v2_status = 'deactive';
-            $google_capcha_setting->google_recaptcha_v3_status = 'deactive';
-            $google_capcha_setting->google_recaptcha_status = 'deactive';
+            $google_captcha_setting->google_recaptcha_v2_status = 'deactive';
+            $google_captcha_setting->google_recaptcha_v3_status = 'deactive';
+            $google_captcha_setting->google_recaptcha_status = 'deactive';
         }
         elseif ($request->google_recaptcha_status) {
-            $google_capcha_setting->google_recaptcha_status = 'active';
+            $google_captcha_setting->google_recaptcha_status = 'active';
         }
 
-        $google_capcha_setting->save();
+        $google_captcha_setting->save();
 
         cache()->forget('global_setting');
 

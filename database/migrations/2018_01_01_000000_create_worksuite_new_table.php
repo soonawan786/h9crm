@@ -1748,6 +1748,7 @@ return new class extends Migration {
                 $table->increments('id');
                 $table->string('module_name');
                 $table->string('description')->nullable();
+                $table->boolean('is_superadmin')->default(0);
                 $table->timestamps();
             });
 

@@ -18,7 +18,9 @@
 
     <title>@lang($pageTitle)</title>
     <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="msapplication-TileImage" content="{{ $company->favicon_url }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ $company->favicon_url ?? '' }}">
+    <meta name="msapplication-TileImage" content="{{ $company->favicon ?? '' }}">
+
     <meta name="theme-color" content="#ffffff">
 
     @include('sections.theme_css')
@@ -106,14 +108,14 @@
                                                 :fieldName="$item->field_name" search="true" alignRight="true"
                                                 :fieldRequired="$item->required == 1">
                                                 @forelse($types as $type)
-                                                    <option value="{{ $type->id }}">{{ mb_ucwords($type->type) }}
+                                                    <option value="{{ $type->id }}">{{ $type->type }}
                                                     </option>
                                                 @empty
                                                     <option value="">@lang('messages.noTicketTypeAdded')</option>
                                                 @endforelse
                                             </x-forms.select>
                                         </div>
-                                    @else
+                                    @elseif ($item->field_name == 'priority')
                                         <div class="col-lg-12">
                                             <x-forms.select :fieldId="$item->field_name"
                                                 :fieldLabel="__('modules.tickets.'.$item->field_name)"
@@ -125,6 +127,17 @@
                                                 <option value="urgent">@lang('app.urgent')</option>
                                             </x-forms.select>
                                         </div>
+                                    @else
+                                    <div class="col-lg-12">
+                                        <x-forms.select :fieldId="$item->field_name"
+                                            :fieldLabel="__('modules.tickets.'.$item->field_name)"
+                                            :fieldName="$item->field_name" search="true" alignRight="true"
+                                            :fieldRequired="$item->required == 1">
+                                            @foreach($groups as $group)
+                                                <option value="{{ $group->id }}">{{ $group->group_name }}</option>
+                                            @endforeach
+                                        </x-forms.select>
+                                    </div>
                                     @endif
                                 @else
                                     <div class="col-md-12">
@@ -140,7 +153,7 @@
                                 <div class="col-md-6">
                                     <x-forms.text
                                     fieldId="custom_fields_data[{{ $item->field_name . '_' . $item->customField->id }}]"
-                                    :fieldLabel="mb_ucwords($item->field_display_name)"
+                                    :fieldLabel="$item->field_display_name"
                                     fieldName="custom_fields_data[{{ $item->field_name . '_' . $item->customField->id }}]"
                                     :fieldRequired="($item->required === 1) ? true : false">>
                                     </x-forms.text>
@@ -149,7 +162,7 @@
                                 <div class="col-md-6">
                                     <x-forms.password
                                     fieldId="custom_fields_data[{{ $item->field_name . '_' . $item->customField->id }}]"
-                                    :fieldLabel="mb_ucwords($item->field_display_name)"
+                                    :fieldLabel="$item->field_display_name"
                                     fieldName="custom_fields_data[{{ $item->name . '_' . $item->id }}]"
                                     :fieldPlaceholder="$item->label"
                                     :fieldRequired="($item->required === 1) ? true : false">
@@ -159,7 +172,7 @@
                                 <div class="col-md-6">
                                     <x-forms.number
                                     fieldId="custom_fields_data[{{ $item->field_name . '_' . $item->customField->id }}]"
-                                    :fieldLabel="mb_ucwords($item->field_display_name)"
+                                    :fieldLabel="$item->field_display_name"
                                     fieldName="custom_fields_data[{{ $item->name . '_' . $item->id }}]"
                                     :fieldPlaceholder="$item->label"
                                     :fieldRequired="($item->required === 1) ? true : false">
@@ -168,7 +181,7 @@
                             @elseif($item->field_type == 'textarea')
                                 <div class="col-md-6">
                                     <x-forms.textarea
-                                    :fieldLabel="mb_ucwords($item->field_display_name)"
+                                    :fieldLabel="$item->field_display_name"
                                     fieldName="custom_fields_data[{{ $item->name . '_' . $item->id }}]"
                                     fieldId="custom_fields_data[{{ $item->field_name . '_' . $item->customField->id }}]"
                                     :fieldRequired="($item->required === 1) ? true : false"
@@ -180,7 +193,7 @@
                                     <div class="form-group my-3">
                                         <x-forms.label
                                         fieldId="custom_fields_data[{{ $item->field_name . '_' . $item->customField->id }}]"
-                                        :fieldLabel="mb_ucwords($item->field_display_name)"
+                                        :fieldLabel="$item->field_display_name"
                                         :fieldRequired="($item->required === 1) ? true : false">
                                         </x-forms.label>
                                         <div class="d-flex">
@@ -198,7 +211,7 @@
                                     <div class="form-group my-3">
                                         <x-forms.select
                                         fieldId="custom_fields_data[{{ $item->field_name . '_' . $item->customField->id }}]"
-                                        :fieldLabel="mb_ucwords($item->field_display_name)"
+                                        :fieldLabel="$item->field_display_name"
                                         fieldName="custom_fields_data[{{ $item->field_name . '_' . $item->customField->id }}]"
                                         :fieldRequired="$item->required == 1"
                                         search="true">
@@ -224,7 +237,7 @@
                                     <div class="form-group my-3">
                                         <x-forms.label
                                         fieldId="custom_fields_data[{{ $item->field_name . '_' . $item->customField->id }}]"
-                                        :fieldLabel="mb_ucwords($item->field_display_name)"
+                                        :fieldLabel="$item->field_display_name"
                                         :fieldRequired="($item->required === 1) ? true : false">
                                         </x-forms.label>
                                         <div class="d-flex checkbox-{{$item->id}}">
@@ -244,7 +257,7 @@
                                     <div class="col-md-6">
                                         <input type="hidden" name="custom_fields_data[{{$item->field_name.'_'.$item->customField->id}}]" >
                                         <x-forms.file
-                                            :fieldLabel="mb_ucwords($item->field_display_name)"
+                                            :fieldLabel="$item->field_display_name"
                                             :fieldRequired="($item->required === 1) ? true : false"
                                             :fieldName="'custom_fields_data[' . $item->field_name . '_' . $item->customField->id . ']'"
                                             :fieldId="'custom_fields_data[' . $item->field_name . '_' . $item->customField->id . ']'"
@@ -270,8 +283,8 @@
                     </div>
                 </div>
                 <input type="hidden" name="company_id" value="{{ $company->id }}">
-                <div class="form-actions mt-4">
-                    <button type="submit" id="save-form" class="btn btn-primary mr-3"> <i class="fa fa-check"></i>
+                <div class="form-actions mt-4 mb-4">
+                    <button type="button" id="save-form" class="btn btn-primary mr-3"> <i class="fa fa-check"></i>
                         @lang('app.save')</button>
                     <button type="reset" class="btn btn-secondary">@lang('app.reset')</button>
                 </div>
@@ -304,7 +317,7 @@
 <script>
     const MODAL_LG = '#myModal';
     const MODAL_XL = '#myModalXl';
-
+    document.loading = '@lang('app.loading')';
     const dropifyMessages = {
         default: "@lang('app.dragDrop')",
         replace: "@lang('app.dragDropReplace')",
@@ -336,12 +349,12 @@
 
 <script>
 
-    if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+    $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
     $(".select-picker").selectpicker();
 
     $('#save-form').click(function() {

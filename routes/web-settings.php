@@ -37,6 +37,8 @@ use App\Http\Controllers\SecuritySettingController;
 use App\Http\Controllers\LeadAgentSettingController;
 use App\Http\Controllers\PushNotificationController;
 use App\Http\Controllers\AttendanceSettingController;
+use App\Http\Controllers\ContractSettingController;
+use App\Http\Controllers\CustomLinkSettingController;
 use App\Http\Controllers\LeadSourceSettingController;
 use App\Http\Controllers\LeadStatusSettingController;
 use App\Http\Controllers\SocialAuthSettingController;
@@ -48,11 +50,15 @@ use App\Http\Controllers\OfflinePaymentSettingController;
 use App\Http\Controllers\PaymentGatewayCredentialController;
 use App\Http\Controllers\NotificationSettingController;
 use App\Http\Controllers\QuickbookSettingsController;
+use App\Http\Controllers\SignUpSettingController;
+use App\Http\Controllers\TaxSettingController;
 use App\Http\Controllers\UnitTypeController;
 use App\Http\Controllers\UpdateAppController;
 use App\Http\Controllers\WhatsAppController;
 use App\Http\Controllers\WooCommerceController;
 use Illuminate\Support\Facades\Route;
+
+Route::get('account/settings/google-auth', [GoogleAuthController::class, 'index'])->name('googleAuth');
 
 Route::group(['middleware' => 'auth', 'prefix' => 'account/settings'], function () {
 
@@ -100,6 +106,10 @@ Route::group(['middleware' => 'auth', 'prefix' => 'account/settings'], function 
     /* End Currency Settings routes */
 
     Route::resource('offline-payment-setting', OfflinePaymentSettingController::class);
+
+    /* Invoice Setting Routes */
+    Route::post('invoice-settings/update-template/{id}', [InvoiceSettingController::class, 'updateTemplate'])->name('invoice_settings.update_template');
+    Route::post('invoice-settings/update-prefix/{id}', [InvoiceSettingController::class, 'updatePrefix'])->name('invoice_settings.update_prefix');
     Route::resource('invoice-settings', InvoiceSettingController::class);
 
     /* unitType */
@@ -109,6 +119,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'account/settings'], function 
     /* Start Ticket settings routes */
     Route::post('ticket-agents/update-group/{id}', [TicketAgentController::class, 'updateGroup'])->name('ticket_agents.update_group');
     Route::resource('ticket-agents', TicketAgentController::class);
+    Route::get('agent-groups', [TicketAgentController::class, 'agentGroups'])->name('ticket_agents.agent_groups');
 
     Route::resource('ticket-settings', TicketSettingController::class);
     Route::resource('ticket-groups', TicketGroupController::class);
@@ -136,6 +147,9 @@ Route::group(['middleware' => 'auth', 'prefix' => 'account/settings'], function 
     // Custom Fields Settings
     Route::resource('custom-fields', CustomFieldController::class);
 
+    // Tax Settings
+    Route::resource('taxes', TaxSettingController::class);
+
     // Message settings
     Route::resource('message-settings', MessageSettingController::class);
 
@@ -150,6 +164,7 @@ Route::group(['middleware' => 'auth', 'prefix' => 'account/settings'], function 
     Route::get('language-settings/auto-translate', [LanguageSettingController::class, 'autoTranslate'])->name('language_settings.auto_translate');
     Route::post('language-settings/auto-translate', [LanguageSettingController::class, 'autoTranslateUpdate'])->name('language_settings.auto_translate_update');
     Route::post('language-settings/update-data/{id?}', [LanguageSettingController::class, 'updateData'])->name('language_settings.update_data');
+    Route::post('language-settings/fix-translation', [LanguageSettingController::class, 'fixTranslation'])->name('language_settings.fix_translation');
     Route::resource('language-settings', LanguageSettingController::class);
 
     // Task Settings
@@ -170,7 +185,8 @@ Route::group(['middleware' => 'auth', 'prefix' => 'account/settings'], function 
 
     Route::resource('lead-agent-settings', LeadAgentSettingController::class);
 
-    /* Lead Settings */
+    /* Contract Setting */
+    Route::resource('contract-settings', ContractSettingController::class);
 
     // Security Settings
     Route::get('verify-google-recaptcha-v3', [SecuritySettingController::class, 'verify'])->name('verify_google_recaptcha_v3');
@@ -178,7 +194,6 @@ Route::group(['middleware' => 'auth', 'prefix' => 'account/settings'], function 
 
     // Google Calendar Settings
     Route::resource('google-calendar-settings', GoogleCalendarSettingController::class);
-    Route::get('google-auth', [GoogleAuthController::class, 'index'])->name('googleAuth');
     Route::delete('google-auth', [GoogleAuthController::class, 'destroy'])->name('googleAuth.destroy');
 
 
@@ -213,19 +228,21 @@ Route::group(['middleware' => 'auth', 'prefix' => 'account/settings'], function 
     Route::resource('employee-shifts', EmployeeShiftController::class);
 
     Route::resource('quickbooks-settings', QuickbookSettingsController::class);
-    //woocommerce integration
-    Route::get('woocommerce',[WooCommerceController::class, 'wooCreate'])->name('woo.create');
-    //store woocommerce
-    Route::post('woocommerce/store',[WooCommerceController::class, 'wooStore'])->name('woo.store');
-    //whatsapp integration
-    Route::get('whatsapp',[WhatsAppController::class, 'whatsapp'])->name('whatsapp');
-    Route::post('whatsapp/store',[WhatsAppController::class, 'whatsappStore'])->name('whatsapp.store');
-    Route::post('whatsapp/status-change',[WhatsAppController::class, 'whatsappStatusChange'])->name('whatsapp.status.change');
-    //test
-    Route::get('test',[WhatsAppController::class, 'test']);
-    //email test
-    Route::get('etest',[WhatsAppController::class, 'emailTest']);
+   //woocommerce integration
+   Route::get('woocommerce',[WooCommerceController::class, 'wooCreate'])->name('woo.create');
+   //store woocommerce
+   Route::post('woocommerce/store',[WooCommerceController::class, 'wooStore'])->name('woo.store');
+   //whatsapp integration
+   Route::get('whatsapp',[WhatsAppController::class, 'whatsapp'])->name('whatsapp');
+   Route::post('whatsapp/store',[WhatsAppController::class, 'whatsappStore'])->name('whatsapp.store');
+   Route::post('whatsapp/status-change',[WhatsAppController::class, 'whatsappStatusChange'])->name('whatsapp.status.change');
+   //test
+   Route::get('test',[WhatsAppController::class, 'test']);
+   //email test
+   Route::get('etest',[WhatsAppController::class, 'emailTest']);
+    Route::resource('custom-link-settings', CustomLinkSettingController::class);
 
+    Route::resource('sign-up-settings', SignUpSettingController::class)->only(['index', 'update']);
 
 });
 

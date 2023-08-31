@@ -105,7 +105,6 @@ use Illuminate\Support\Facades\DB;
  * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereSubTotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereTotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $order_id
  * @property string|null $hash
  * @property-read \App\Models\Order|null $order
@@ -119,11 +118,38 @@ use Illuminate\Support\Facades\DB;
  * @property string|null $event_id
  * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereEventId($value)
  * @property int|null $company_id
- * @property int|null $unit_id
+* @property int|null $unit_id
  * @property string|null $custom_invoice_number
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereCompanyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereCustomInvoiceNumber($value)
+ * @property int|null $bank_account_id
+ * @property \Illuminate\Support\Carbon|null $last_viewed
+ * @property string|null $ip_address
+ * @property-read \App\Models\UnitType|null $unit
+ * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereBankAccountId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereDefaultCurrencyId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereExchangeRate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereIpAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereLastViewed($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereQuickbooksInvoiceId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereUnitId($value)
+ * @property string $payment_status
+ * @property string|null $downloadable_file
+ * @property string|null $default_image
+ * @property int|null $offline_method_id
+ * @property string|null $transaction_id
+ * @property string|null $gateway
+ * @property-read \App\Models\BankAccount|null $bankAccount
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\InvoiceFiles> $files
+ * @property-read int|null $files_count
+ * @property-read mixed $download_file_url
+ * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereGateway($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereOfflineMethodId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Invoice wherePaymentStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Invoice whereTransactionId($value)
+
+ * @mixin \Eloquent
  */
 class Invoice extends BaseModel
 {
@@ -132,7 +158,11 @@ class Invoice extends BaseModel
     use CustomFieldsTrait;
     use HasCompany;
 
-    protected $dates = ['issue_date', 'due_date', 'last_viewed'];
+    protected $casts = [
+        'issue_date' => 'datetime',
+        'due_date' => 'datetime',
+        'last_viewed' => 'datetime',
+    ];
     protected $appends = ['total_amount', 'issue_on', 'original_invoice_number'];
     protected $with = ['currency', 'address'];
 
@@ -197,6 +227,10 @@ class Invoice extends BaseModel
     {
         return $this->belongsTo(UnitType::class, 'unit_id');
     }
+    public function bankAccount(): belongsTo
+    {
+        return $this->belongsTo(BankAccount::class, 'bank_account_id');
+    }
 
     public function scopePending($query)
     {
@@ -259,7 +293,6 @@ class Invoice extends BaseModel
 
         return Carbon::parse($this->issue_date)->format('d F, Y');
 
-
     }
 
     public function getOriginalInvoiceNumberAttribute()
@@ -314,6 +347,16 @@ class Invoice extends BaseModel
                     ->whereNotNull('referral_mobile')
                     ->whereNotNull('referral_name')
                     ->get();
+    }
+
+    public function getDownloadFileUrlAttribute()
+    {
+        return ($this->downloadable_file) ? asset_url_local_s3(InvoiceFiles::FILE_PATH . '/' . $this->downloadable_file) : null;
+    }
+
+    public function files(): HasMany
+    {
+        return $this->hasMany(InvoiceFiles::class, 'invoice_id')->orderBy('id', 'desc');
     }
 
 }

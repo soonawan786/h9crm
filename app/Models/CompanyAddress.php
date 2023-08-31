@@ -25,12 +25,16 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder|CompanyAddress whereTaxName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|CompanyAddress whereTaxNumber($value)
  * @method static \Illuminate\Database\Eloquent\Builder|CompanyAddress whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property string|null $location
  * @method static \Illuminate\Database\Eloquent\Builder|CompanyAddress whereLocation($value)
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|CompanyAddress whereCompanyId($value)
+ * @property string|null $latitude
+ * @property string|null $longitude
+ * @method static \Illuminate\Database\Eloquent\Builder|CompanyAddress whereLatitude($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|CompanyAddress whereLongitude($value)
+ * @mixin \Eloquent
  */
 class CompanyAddress extends BaseModel
 {

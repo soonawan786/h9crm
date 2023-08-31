@@ -20,8 +20,8 @@
                     @endif
 
                     @foreach ($worksuitePlugins as $item)
-                        @if(View::exists(strtolower($item).'::notifications.'.\Illuminate\Support\Str::snake(class_basename($notification->type))))
-                            @include(strtolower($item).'::notifications.'.\Illuminate\Support\Str::snake(class_basename($notification->type)))
+                        @if(View::exists($item.'::notifications.'.\Illuminate\Support\Str::snake(class_basename($notification->type))))
+                            @include($item.'::notifications.'.\Illuminate\Support\Str::snake(class_basename($notification->type)))
                         @endif
                     @endforeach
 

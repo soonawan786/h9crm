@@ -43,14 +43,14 @@
                                 <x-forms.tel fieldId="company_phone"
                                              :fieldLabel="__('modules.accountSettings.companyPhone')"
                                              fieldName="company_phone"
-                                             fieldPlaceholder="e.g. 987654321"></x-forms.tel>
+                                             :fieldPlaceholder="__('placeholders.mobile')"></x-forms.tel>
                             </div>
 
                             <div class="col-md-4">
                                 <x-forms.text fieldId="website"
                                               :fieldLabel="__('modules.accountSettings.companyWebsite')"
                                               fieldName="website"
-                                              fieldPlaceholder="e.g. https://www.spacex.com/">
+                                              :fieldPlaceholder="__('placeholders.website')">
                                 </x-forms.text>
                             </div>
 
@@ -71,7 +71,7 @@
                                                 :fieldLabel="__('modules.accountSettings.defaultTimezone')"
                                                 fieldName="timezone">
                                     @foreach($timezones as $tz)
-                                        <option @selected($tz == global_setting()->timezone)>{{ $tz }}</option>
+                                        <option @selected($tz == global_setting()->timezone)  value="{{ $tz }}">{{ $tz }}</option>
                                     @endforeach
                                 </x-forms.select>
                             </div>
@@ -114,7 +114,7 @@
                                               :fieldLabel="__('modules.accountSettings.companyAddress')"
                                               fieldName="address"
                                               fieldRequired="true"
-                                              fieldId="address" fieldPlaceholder="e.g. Rocket Road">
+                                              fieldId="address" :fieldPlaceholder="__('placeholders.address')">
                             </x-forms.textarea>
                         </div>
                     </div>
@@ -156,6 +156,13 @@
 
 <script>
     $(document).ready(function () {
+
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
+                position: 'bl',
+                ...datepickerConfig
+            });
+        });
 
         $('#save-company-form').click(function () {
             const url = "{{ route('superadmin.companies.store') }}";

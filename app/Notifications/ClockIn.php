@@ -2,14 +2,9 @@
 
 namespace App\Notifications;
 
-use App\Models\Role;
 use App\Models\Attendance;
-use App\Models\SlackSetting;
 use Illuminate\Bus\Queueable;
 use App\Models\EmailNotificationSetting;
-use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\SlackMessage;
 
 class ClockIn extends BaseNotification
@@ -35,7 +30,6 @@ class ClockIn extends BaseNotification
     /**
      * Get the notification's delivery channels.
      *
-     * @param  mixed  $notifiable
      * @return array
      */
     public function via()

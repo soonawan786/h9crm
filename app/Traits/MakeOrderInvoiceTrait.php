@@ -20,7 +20,8 @@ trait MakeOrderInvoiceTrait
      * @param  string $status
      * @return Invoice $invoice
      */
-    public function makeOrderInvoice(Order $order, $status = 'completed')
+
+    public function makeOrderInvoice(Order|Collection $order, $status = 'completed')
     {
 
         $order->status = $status;
@@ -65,7 +66,9 @@ trait MakeOrderInvoiceTrait
                     'quantity'     => $item->quantity,
                     'unit_price'   => $item->unit_price,
                     'amount'       => $item->amount,
-                    'taxes'        => $item->taxes
+                    'taxes'        => $item->taxes,
+                    'product_id' => $item->product_id,
+                    'unit_id' => $item->unit_id
                 ]
             );
         }

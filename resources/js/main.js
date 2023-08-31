@@ -66,9 +66,10 @@ if ($('#more_filter').length > 0) {
         var container = $("#more_filter");
         var searchField = $(".bs-searchbox");
         var select2Field = $("#bs-select-2");
+        var selectField = $(".bs-container");
 
         // if the target of the click isn't the container nor a descendant of the container
-        if (!container.is(e.target) && container.has(e.target).length === 0 && !searchField.is(e.target) && searchField.has(e.target).length === 0 && !select2Field.is(e.target) && select2Field.has(e.target).length === 0)
+        if (!container.is(e.target) && container.has(e.target).length === 0 && !searchField.is(e.target) && searchField.has(e.target).length === 0 && !select2Field.is(e.target) && select2Field.has(e.target).length === 0 && selectField.has(e.target).length === 0)
         {
             closeMoreFilter()
         }

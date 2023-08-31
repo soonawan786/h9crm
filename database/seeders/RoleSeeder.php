@@ -23,7 +23,9 @@ class RoleSeeder extends Seeder
         $role->save();
 
         $roleId = $role->id;
-        $permissions = Permission::get();
+        $permissions = Permission::whereHas('module', function ($query) {
+            $query->withoutGlobalScopes()->where('is_superadmin', '0');
+        })->get();
 
         $role = Role::findOrFail($roleId);
         $role->perms()->sync([]);

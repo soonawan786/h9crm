@@ -36,8 +36,8 @@
                         </div>
 
                         <div class="col-md-4 accountNumber @if ($bankAccount->type == 'cash') d-none @endif">
-                            <x-forms.number fieldId="account_number" :fieldLabel="__('modules.bankaccount.accountNumber')" fieldName="account_number" fieldRequired="true"
-                                fieldPlaceholder="e.g. 0112345678" :fieldValue="$bankAccount->account_number"></x-forms.number>
+                            <x-forms.text fieldId="account_number" :fieldLabel="__('modules.bankaccount.accountNumber')" fieldName="account_number" fieldRequired="true"
+                                :fieldPlaceholder="__('placeholders.bankaccount.accountNumber')" :fieldValue="$bankAccount->account_number"></x-forms.text>
                         </div>
 
                         <div class="col-md-4 accountType @if ($bankAccount->type == 'cash') d-none @endif">
@@ -70,7 +70,7 @@
 
                         <div class="col-md-4">
                             <x-forms.number fieldId="opening_balance" :fieldLabel="__('modules.bankaccount.openingBalance')" fieldName="opening_balance"
-                                fieldPlaceholder="e.g. 25$" :fieldValue="$bankAccount->opening_balance" fieldRequired="true"></x-forms.number>
+                                :fieldPlaceholder="__('placeholders.bankaccount.balance')" :fieldValue="$bankAccount->opening_balance" fieldRequired="true"></x-forms.number>
                         </div>
 
                         <div class="col-md-4">
@@ -83,7 +83,7 @@
                         </div>
 
                         <div class="col-md-12 bankLogo @if ($bankAccount->type == 'cash') d-none @endif">
-                            <x-forms.file allowedFileExtensions="png jpg jpeg" class="mr-0 mr-lg-2 mr-md-2"
+                            <x-forms.file allowedFileExtensions="png jpg jpeg bmp" class="mr-0 mr-lg-2 mr-md-2"
                                 :fieldLabel="__('modules.bankaccount.bankLogo')" fieldName="bank_logo"
                                 fieldId="bank_logo" :fieldValue="($bankAccount->bank_logo ? $bankAccount->file_url : '')" :popover="__('modules.themeSettings.logoSize')">
                             </x-forms.file>

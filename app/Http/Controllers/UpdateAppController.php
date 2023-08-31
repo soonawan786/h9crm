@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helper\Reply;
 use App\Http\Requests\UploadInstallRequest;
+use App\Models\GlobalSetting;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -20,13 +21,17 @@ class UpdateAppController extends AccountBaseController
         $this->pageTitle = 'app.menu.updates';
         $this->pageIcon = 'ti-reload';
         $this->activeSettingMenu = 'update_settings';
+
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin());
+            return $next($request);
+        });
     }
 
     public function index()
     {
-
         try {
-            $results = DB::select(DB::raw('select version()'));
+            $results = DB::select('select version()');
             $this->mysql_version = $results[0]->{'version()'};
             $this->databaseType = 'MySQL Version';
 
@@ -35,6 +40,7 @@ class UpdateAppController extends AccountBaseController
             }
         }catch (\Exception $e) {
             $this->mysql_version = null;
+            dd($e->getMessage());
         }
 
         $this->reviewed = file_exists(storage_path('reviewed'));

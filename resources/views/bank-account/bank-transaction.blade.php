@@ -33,7 +33,7 @@ $addBankWithdrawPermission = user()->permission('add_bank_withdraw');
 
                 <div class="text-right">
                     <div class="f-12 text-dark-grey">@lang('modules.bankaccount.bankBalance')</div>
-                    <h2 class="heading-h2 text-primary mt-2">{{ currency_format($bankaccount->bank_balance, $bankaccount->currencyId) }}</h2>
+                    <h2 class="heading-h2 text-primary mt-2">{{ currency_format($bankaccount->bank_balance, $bankaccount->currency_id) }}</h2>
                 </div>
             </div>
 

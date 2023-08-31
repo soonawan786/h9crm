@@ -2,12 +2,14 @@
 
 namespace App\Observers;
 
-use App\Events\TicketEvent;
-use App\Events\TicketRequesterEvent;
-use App\Models\Notification;
 use App\Models\Order;
 use App\Models\Ticket;
+use App\Events\TicketEvent;
+use App\Models\Notification;
 use App\Models\UniversalSearch;
+use App\Models\TicketAgentGroups;
+use App\Events\TicketRequesterEvent;
+use App\Models\User;
 
 class TicketObserver
 {
@@ -42,17 +44,69 @@ class TicketObserver
 
     public function created(Ticket $model)
     {
+
         if (!isRunningInConsoleOrSeeding()) {
             // Send admin notification
-            event(new TicketEvent($model, 'NewTicket'));
+            if (request()->mention_user_ids != '' || request()->mention_user_ids != null){
+                $model->mentionUser()->sync(request()->mention_user_ids);
+                $mentionArray = explode(',', request()->mention_user_ids);
+                $mentionUserIds = array_intersect($mentionArray, array(request()->agent_id));
+                $unmentionIds = array_diff([request()->agent_id], $mentionArray);
+                $mentionUserIds = $mentionUserIds ?: $mentionArray;
+                $userDetails = User::whereIn('id', $mentionArray)->get();
+
+                event(new TicketEvent($model, $userDetails, 'MentionTicketAgent'));
+
+                if ($unmentionIds != null && $unmentionIds != '' && $model->agent_id != '') {
+                    event(new TicketEvent($model, User::whereIn('id', $unmentionIds)->get(), 'TicketAgent'));
+
+                }
+
+            } else {
+                event(new TicketEvent($model, null, 'NewTicket'));
+            }
 
             if ($model->requester) {
-                event(new TicketRequesterEvent($model, $model->requester));
+
+                event(new TicketRequesterEvent($model, null, $model->requester));
             }
 
-            if ($model->agent_id != '') {
-                event(new TicketEvent($model, 'TicketAgent'));
+            request()->assign_group ? $group_id = request()->assign_group : $group_id = request()->group_id;
+
+            $agentGroupData = TicketAgentGroups::where('company_id', $model->company_id)
+                ->where('status', 'enabled')
+                ->where('group_id', $group_id)
+                ->pluck('agent_id')
+                ->toArray();
+            $ticketData = $model->where('company_id', $model->company_id)
+                ->where('group_id', $group_id)
+                ->whereIn('agent_id', $agentGroupData)
+                ->whereIn('status', ['open', 'pending'])
+                ->whereNotNull('agent_id')
+                ->pluck('agent_id')
+                ->toArray();
+
+            $diffAgent = array_diff($agentGroupData, $ticketData);
+
+            if(is_null(request()->agent_id)) {
+                if(!empty($diffAgent)){
+                    $model->agent_id = current($diffAgent);
+                }
+                else {
+                    $agentDuplicateCount = array_count_values($ticketData);
+
+                    if(!empty($agentDuplicateCount)) {
+                        $minVal = min($agentDuplicateCount);
+                        $agent_id = array_search($minVal, $agentDuplicateCount);
+                        $model->agent_id = $agent_id;
+                    }
+                }
             }
+            else {
+                $model->agent_id = request()->agent_id;
+            }
+
+            $model->save();
 
         }
     }
@@ -63,6 +117,7 @@ class TicketObserver
             if ($ticket->isDirty('status') && $ticket->status == 'closed') {
                 $ticket->close_date = now(company()->timezone)->format('Y-m-d');
             }
+
         }
     }
 
@@ -70,7 +125,7 @@ class TicketObserver
     {
         if (!isRunningInConsoleOrSeeding()) {
             if ($ticket->isDirty('agent_id') && $ticket->agent_id != '') {
-                event(new TicketEvent($ticket, 'TicketAgent'));
+                event(new TicketEvent($ticket, null, 'TicketAgent'));
             }
         }
     }

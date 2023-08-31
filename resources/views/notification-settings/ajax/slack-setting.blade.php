@@ -16,7 +16,7 @@
                 </div>
 
                 <div class="col-lg-12">
-                    <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2"
+                    <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2"
                                   :fieldLabel="__('modules.slackSettings.slackNotificationLogo')"
                                   :fieldValue="$slackSettings->slack_logo_url" fieldName="slack_logo"
                                   fieldId="slack_logo" :popover="__('messages.fileFormat.ImageFile')"/>
@@ -29,8 +29,14 @@
 
 <div class="col-xl-4 col-lg-12 col-md-12 ntfcn-tab-content-right border-left-grey p-4">
     <h4 class="f-16 text-capitalize f-w-500 text-dark-grey">@lang("modules.slackSettings.notificationTitle")</h4>
+    <div class="mb-3 d-flex">
+        <x-forms.checkbox  :checked="$checkedAll==true"
+                :fieldLabel="__('modules.permission.selectAll')"
+                fieldName="select_all_checkbox" fieldId="select_all"
+                fieldValue="all"/>
+    </div>
     @foreach ($emailSettings as $emailSetting)
-        <div class="mb-3 d-flex">
+        <div class="mb-3 d-flex notification">
             <x-forms.checkbox :checked="$emailSetting->send_slack == 'yes'"
                               :fieldLabel="__('modules.emailNotification.'.str_slug($emailSetting->setting_name))"
                               fieldName="send_slack[]" :fieldId="'send_slack'.$emailSetting->id"
@@ -77,6 +83,25 @@
         });
 
         init('#slack-row');
+
+
+        var checkboxes = document.querySelectorAll(".notification input[type=checkbox]");
+
+        $('body').on('click', '#select_all', function() {
+            var selectAll = $('#select_all').is(':checked');
+
+            if(selectAll == true){
+                checkboxes.forEach(function(checkbox){
+                    checkbox.checked = true;
+                })
+            }
+            else{
+                checkboxes.forEach(function(checkbox){
+                    checkbox.checked = false;
+                })
+            }
+        });
+
     });
 </script>
 <script>

@@ -22,10 +22,10 @@
                         </div>
 
                         <div class="col-md-1 text-center align-self-center border-left">
-                            <button class="btn btn-outline show-user-timelogs text-primary" data-user-id="{{ $item->id }}"><i
+                            <button class="btn btn-outline show-user-timelogs text-primary" data-user-id="{{ $item->id }}" data-toggle="tooltip" data-original-title="@lang('app.expand')"><i
                                     class="fa fa-plus"></i></button>
 
-                            <button class="btn btn-outline hide-user-timelogs d-none" data-user-id="{{ $item->id }}"><i
+                            <button class="btn btn-outline hide-user-timelogs d-none" data-user-id="{{ $item->id }}" data-toggle="tooltip" data-original-title="@lang('app.collapse')"><i
                                     class="fa fa-minus"></i></button>
                         </div>
 

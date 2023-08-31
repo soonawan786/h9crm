@@ -41,7 +41,7 @@
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
         <div class="d-flex" id="table-actions">
-            <x-forms.link-primary :link="route('proposal-template.create')" class="mr-3 openRightModal" icon="plus">
+            <x-forms.link-primary :link="route('proposal-template.create')" class="mr-3" icon="plus">
                 @lang('modules.proposal.addProposalTemplate')
             </x-forms.link-primary>
         </div>

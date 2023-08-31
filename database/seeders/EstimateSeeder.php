@@ -38,7 +38,6 @@ class EstimateSeeder extends Seeder
         $estimate->sub_total = 1200;
         $estimate->total = 1200;
         $estimate->currency_id = $currency->id;
-        $estimate->unit_id = $unit->id;
         $estimate->note = null;
         $estimate->status = 'waiting';
         $estimate->save();
@@ -57,6 +56,7 @@ class EstimateSeeder extends Seeder
                     'type' => $type[$key],
                     'quantity' => $quantity[$key],
                     'unit_price' => $cost_per_item[$key],
+                    'unit_id' => $unit->id,
                     'amount' => $amount[$key]
                 ]);
             }
@@ -72,7 +72,6 @@ class EstimateSeeder extends Seeder
         $estimate->sub_total = 4100;
         $estimate->total = 4100;
         $estimate->currency_id = $currency->id;
-        $estimate->unit_id = $unit->id;
         $estimate->note = null;
         $estimate->status = 'waiting';
         $estimate->save();
@@ -89,6 +88,7 @@ class EstimateSeeder extends Seeder
                 'item_name' => $item, 'type' => $type[$key],
                 'quantity' => $quantity[$key],
                 'unit_price' => $cost_per_item[$key],
+                'unit_id' => $unit->id,
                 'amount' => $amount[$key]
             ]);
         endforeach;

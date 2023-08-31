@@ -48,12 +48,16 @@ class LeadAgentAssigned extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('leads.show', $this->lead->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('email.leadAgent.subject') . '<br>' . __('modules.lead.leadDetails') . ':- ' . '<br>' . __('modules.lead.clientName') . ': ' . $this->lead->client_name;
+        $salutation = $this->lead->salutation .' ';
+        $leadEmail = __('modules.lead.clientEmail') . ': ';
+        $clientEmail = !is_null($this->lead->client_email) ? $leadEmail : '';
+        $content = __('email.leadAgent.subject') . '<br>' . __('modules.lead.clientName') . ': ' . $salutation . $this->lead->client_name . '<br>' . $clientEmail . $this->lead->client_email;
 
-        return parent::build()
+        return $build
             ->subject(__('email.leadAgent.subject') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,

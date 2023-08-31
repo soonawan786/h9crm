@@ -30,7 +30,9 @@ mix.js('resources/js/bootstrap.js', 'public/js')
     'node_modules/bootstrap-select/js/bootstrap-select.js',
     'node_modules/quill/dist/quill.min.js',
     'node_modules/quill-emoji/dist/quill-emoji.js',
-
+    'node_modules/quill-mention/dist/quill.mention.min.js',
+    'node_modules/quill-magic-url/dist/index.js',
+    
     'resources/js/main.js',
     'resources/js/custom.js'
 ], 'public/js/main.js')

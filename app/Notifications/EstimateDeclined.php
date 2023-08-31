@@ -16,7 +16,7 @@ class EstimateDeclined extends BaseNotification
      * @return void
      */
     private $estimate;
-    private $company;
+    protected $company;
     private $emailSetting;
 
     public function __construct(Estimate $estimate)
@@ -55,12 +55,13 @@ class EstimateDeclined extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('estimates.show', $this->estimate->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $content = __('email.estimateDeclined.text');
 
-        return parent::build()
+        return $build
             ->subject(__('email.estimateDeclined.subject') . ' - ' . config('app.name') . __('!'))
             ->markdown('mail.email', [
                 'url' => $url,
@@ -96,13 +97,13 @@ class EstimateDeclined extends BaseNotification
                 ->from(config('app.name'))
                 ->to('@' . $notifiable->employee[0]->slack_username)
                 ->image($slack->slack_logo_url)
-                ->content(__('email.hello')  . ' ' .  mb_ucwords($notifiable->name) .' '. __('email.estimateDeclined.subject'));
+                ->content(__('email.hello')  . ' ' .  $notifiable->name .' '. __('email.estimateDeclined.subject'));
         }
 
         return (new SlackMessage())
             ->from(config('app.name'))
             ->image($slack->slack_logo_url)
-            ->content(__('email.hello')  . ' ' .  mb_ucwords($notifiable->name) .' '. __('email.estimateDeclined.subject'));
+            ->content(__('email.hello')  . ' ' .  $notifiable->name .' '. __('email.estimateDeclined.subject'));
 
     }
 

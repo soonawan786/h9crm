@@ -57,4 +57,19 @@ class TicketGroupController extends AccountBaseController
         return Reply::success(__('messages.deleteSuccess'));
     }
 
+    public function edit($id)
+    {
+        $this->group = TicketGroup::findOrFail($id);
+        return view('ticket-settings.edit-group-modal', $this->data );
+    }
+
+    public function update(StoreTicketGroup $request, $id)
+    {
+        $ticketGroup = TicketGroup::findOrFail($id);
+        $ticketGroup->group_name = $request->group_name;
+        $ticketGroup->save();
+
+        return Reply::success(__('messages.updateSuccess'));
+    }
+
 }

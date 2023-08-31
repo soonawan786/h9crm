@@ -1,4 +1,35 @@
+@push('styles')
+    <style>
+        #manageEmployees {
+            background-color: #1d82f5!important;
+            border: 1px solid #1d82f5!important;
+        }
+
+        @media (max-width: 576px) {
+            #manageEmployee {
+                text-align: center;
+            }
+        }
+    </style>
+@endpush
+
 <div class="col-lg-12 col-md-12 ntfcn-tab-content-left w-100 p-4 ">
+    @if (!checkCompanyPackageIsValid(user()->company_id))
+        <div class="d-lg-flex justify-content-between">
+            <div class="align-self-center">
+                <x-alert type="danger" icon="exclamation-triangle">
+                    @lang('superadmin.updatePlanNote')
+                </x-alert>
+            </div>
+
+            <div class="align-self-center ml-3 mb-3" id="manageEmployee">
+                <a href="{{ route('employees.index') }}"
+                    class="btn btn-sm btn-primary rounded f-12 px-2 py-1" id="manageEmployees">
+                        <i class="fa fa-edit mr-1"></i> @lang('superadmin.packages.manageEmployees')
+                    </a>
+            </div>
+        </div>
+    @endif
 
     <div class='card border'>
         <x-cards.card-header>
@@ -9,25 +40,25 @@
         </x-cards.card-header>
 
         <div class="card-body">
-            <div class="d-flex justify-content-between">
+            <div class="d-lg-flex justify-content-between">
                 <div class="align-self-center">
                     <h5 class="heading-h5 font-weight-normal">@lang('superadmin.packages.currentPlan')</h5>
 
                     <h3 class="heading-h3 mt-2 text-primary">{{ ucfirst($company->package->name) }} @lang('superadmin.'.$company->package_type)</h3>
 
-{{--                    <h5 class="heading-h5 mt-2 text-lightest">@lang('superadmin.packages.licenseExpiresOn')--}}
-{{--                        @if (!is_null($company->licence_expire_on))--}}
-{{--                            <span class="font-weight-bold">--}}
-{{--                                {{ \Carbon\Carbon::parse($company->licence_expire_on)->timezone(global_setting()->timezone)->format(global_setting()->date_format) }}--}}
-{{--                            </span>--}}
-{{--                            <em>({{ \Carbon\Carbon::parse($company->licence_expire_on)->diffForHumans() }})</em>--}}
-{{--                        @else--}}
-{{--                            ----}}
-{{--                        @endif--}}
-{{--                    </h5>--}}
+                    @if (!is_null($company->licence_expire_on))
+                        <h5 class="heading-h5 mt-2 text-lightest">@lang('superadmin.packages.licenseExpiresOn')
+                            <span class="font-weight-bold">
+                                {{ \Carbon\Carbon::parse($company->licence_expire_on)->timezone(global_setting()->timezone)->format(global_setting()->date_format) }}
+                            </span>
+                            <em>({{ \Carbon\Carbon::parse($company->licence_expire_on)->diffForHumans() }})</em>
+                        @else
+                            --
+                    </h5>
+                   @endif
                 </div>
 
-                <div class="w-50">
+                <div class="w-50 mb-2">
                     @php
                         $storage = __('superadmin.notUsed');
                         $storageUsed = 0;

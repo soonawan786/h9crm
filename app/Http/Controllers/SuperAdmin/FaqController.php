@@ -5,10 +5,10 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Helper\Files;
 use App\Helper\Reply;
 use Illuminate\Http\Request;
+use App\Models\GlobalSetting;
 use App\Models\SuperAdmin\Faq;
 use App\Models\SuperAdmin\FaqFile;
 use App\Models\SuperAdmin\FaqCategory;
-use App\DataTables\SuperAdmin\FaqDataTable;
 use App\Http\Controllers\AccountBaseController;
 use App\Http\Requests\SuperAdmin\Faq\StoreRequest;
 use App\Http\Requests\SuperAdmin\Faq\UpdateRequest;
@@ -29,6 +29,11 @@ class FaqController extends AccountBaseController
      */
     public function index()
     {
+        $this->viewPermission = user()->permission('view_admin_faq');
+        $this->manageFaqCategoryPermission = user()->permission('manage_faq_category');
+
+        abort_403(GlobalSetting::validateSuperAdmin('view_admin_faq'));
+
         $this->categories = FaqCategory::all();
 
         if (request()->id != '') {
@@ -51,10 +56,13 @@ class FaqController extends AccountBaseController
      */
     public function create()
     {
-        abort_403(!user()->is_superadmin);
+        $this->addPermission = user()->permission('add_admin_faq');
+        $this->manageFaqCategoryPermission = user()->permission('manage_faq_category');
+
+        abort_403(!user()->is_superadmin || !($this->addPermission == 'all'));
 
         $this->pageTitle = __('app.create') . ' ' . __('superadmin.menu.adminFaq');
-        $this->categories = FaqCategory::all();
+        $this->categories = ($this->manageFaqCategoryPermission == 'all') ? FaqCategory::all() : [];
 
         if (request()->ajax()) {
             $html = view('super-admin.faq.ajax.create', $this->data)->render();
@@ -73,7 +81,9 @@ class FaqController extends AccountBaseController
      */
     public function store(StoreRequest $request)
     {
-        abort_403(!user()->is_superadmin);
+
+        $this->addPermission = user()->permission('add_admin_faq');
+        abort_403(!user()->is_superadmin || !($this->addPermission == 'all'));
 
         $faq = new Faq();
         $faq->title             = $request->title;
@@ -92,7 +102,8 @@ class FaqController extends AccountBaseController
      */
     public function edit($id)
     {
-        abort_403(!user()->is_superadmin);
+        $this->editPermission = user()->permission('edit_admin_faq');
+        abort_403(!user()->is_superadmin || !($this->editPermission == 'all'));
 
         $this->faq = Faq::with('files')->findOrFail($id);
         $this->pageTitle = __('app.edit') . ' ' . $this->faq->title;
@@ -116,7 +127,8 @@ class FaqController extends AccountBaseController
      */
     public function update(UpdateRequest $request, $id)
     {
-        abort_403(!user()->is_superadmin);
+        $this->editPermission = user()->permission('edit_admin_faq');
+        abort_403(!user()->is_superadmin || !($this->editPermission == 'all'));
 
         $faq = Faq::find($id);
 
@@ -136,7 +148,8 @@ class FaqController extends AccountBaseController
      */
     public function destroy($id)
     {
-        abort_403(!user()->is_superadmin);
+        $this->deletePermission = user()->permission('delete_admin_faq');
+        abort_403(!user()->is_superadmin || !($this->deletePermission == 'all'));
 
         $faqFiles = FaqFile::where('faq_id', $id)->get();
 
@@ -172,6 +185,10 @@ class FaqController extends AccountBaseController
 
     public function download($id)
     {
+        $this->viewPermission = user()->permission('view_admin_faq');
+
+        abort_403(!($this->viewPermission == 'all') && !(in_array('admin', user_roles())));
+
         $file = FaqFile::whereRaw('md5(id) = ?', $id)->firstOrFail();
         return download_local_s3($file, 'faq-files/' . $file->faq_id.'/'.$file->hashname);
     }
@@ -187,11 +204,15 @@ class FaqController extends AccountBaseController
 
         $view = view('super-admin.faq.ajax.files', $this->data)->render();
 
-        return Reply::successWithData(__('messages.fileDeleted'), ['view' => $view]);
+        return Reply::successWithData(__('messages.deleteSuccess'), ['view' => $view]);
     }
 
     public function show($id)
     {
+        $this->viewPermission = user()->permission('view_admin_faq');
+
+        abort_403(!($this->viewPermission == 'all') && !(in_array('admin', user_roles())));
+
         $this->knowledge = Faq::findOrFail($id);
 
         if (request()->ajax()) {

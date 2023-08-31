@@ -3,13 +3,9 @@
 namespace App\Console\Commands;
 
 use App\Mail\DailyTimeLogReport;
-use App\Mail\MonthlyAttendance;
-use App\Models\AttendanceSetting;
 use App\Models\Company;
 use App\Models\LogTimeFor;
 use App\Models\Role;
-use App\Models\User;
-use App\Notifications\BaseNotification;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Mail;
 
@@ -39,13 +35,13 @@ class SendDailyTimelogReport extends Command
 
             if ($timelogSetting->timelog_report == 1) {
                 $roles = Role::with('users')
+                    ->where('company_id', $company->id)
                     ->whereIn('id', json_decode($timelogSetting->daily_report_roles))
                     ->get();
 
                 foreach ($roles as $role) {
                     foreach ($role->users as $user) {
-                        /** @phpstan-ignore-next-line */
-                        Mail::to($user->email)->send(new DailyTimeLogReport($company, $user->name));
+                        Mail::to($user->email)->send(new DailyTimeLogReport($company, $user, $role));
                     }
                 }
             }

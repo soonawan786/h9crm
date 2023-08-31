@@ -20,10 +20,11 @@ class AttendanceReportDataTable extends BaseDataTable
     private $attendanceSettings;
     private $totalWorkingDays;
     private $daysPresent;
-    private $firstClockIn;
-    private $lastClockOut;
+    private $holidaysCount;
+    private $extraDays;
     private $startTime;
     private $endTime;
+    private $notClockedOut;
 
     public function __construct()
     {
@@ -38,14 +39,16 @@ class AttendanceReportDataTable extends BaseDataTable
     public function dataTable($query)
     {
         $request = $this->request();
-        $startDate = $startDate = now($this->company->timezone)->startOfMonth();
+        $startDate = now($this->company->timezone)->startOfMonth();
         $endDate = $endDate = now($this->company->timezone);
+
+        $diff = 0;
 
         if ($request->startDate != '') {
             // if this month filter's end date is not equal to now
             $diff = ($endDate->lt(Carbon::createFromFormat($this->company->date_format, $request->endDate))) ? $endDate->diffInDays(Carbon::createFromFormat($this->company->date_format, $request->endDate)) : 0;
-            $startDate = $startDate = Carbon::createFromFormat($this->company->date_format, $request->startDate);
-            $endDate = $endDate = Carbon::createFromFormat($this->company->date_format, $request->endDate);
+            $startDate = Carbon::createFromFormat($this->company->date_format, $request->startDate)->startOfDay();
+            $endDate = $endDate = Carbon::createFromFormat($this->company->date_format, $request->endDate)->endOfDay();
         }
 
         $period = CarbonPeriod::create($startDate, $endDate);
@@ -81,13 +84,8 @@ class AttendanceReportDataTable extends BaseDataTable
                     'user' => $row
                 ]);
             })
-            ->addColumn('present_days', function ($row) use ($startDate, $endDate, $holidays) {
+            ->addColumn('present_days', function ($row) use ($startDate, $endDate) {
                 $this->daysPresent = Attendance::countDaysPresentByUser($startDate, $endDate, $row->id);
-                $this->extraDays = $this->extraDays($startDate, $endDate, $row->id, $holidays);
-
-                if ($this->extraDays) {
-                    $this->daysPresent = $this->daysPresent - $this->extraDays;
-                }
 
                 if ($this->daysPresent == 0) {
                     return '0';
@@ -186,7 +184,7 @@ class AttendanceReportDataTable extends BaseDataTable
     protected function getColumns()
     {
         return [
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.employee') => ['data' => 'name', 'name' => 'users.name', 'exportable' => false, 'title' => __('app.employee')],
             __('app.name') => ['data' => 'employee_name', 'name' => 'users.name', 'visible' => false, 'title' => __('app.name')],
             __('modules.attendance.present') => ['data' => 'present_days', 'name' => 'present_days', 'title' => __('modules.attendance.present')],
@@ -196,16 +194,6 @@ class AttendanceReportDataTable extends BaseDataTable
             __('app.days') . ' ' . __('modules.attendance.late') => ['data' => 'late_day_count', 'name' => 'late_day_count', 'title' => __('app.days') . ' ' . __('modules.attendance.late')],
             __('modules.attendance.halfDay') => ['data' => 'half_day_count', 'name' => 'half_day_count', 'title' => __('modules.attendance.halfDay')],
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Attendance_report_' .now()->format('Y-m-d-H-i-s');
     }
 
     public function calculateHours($period, $user)
@@ -245,7 +233,7 @@ class AttendanceReportDataTable extends BaseDataTable
 
         }
 
-        return CarbonInterval::formatHuman($timeLogInMinutes);
+        return sprintf('%d'.__('app.hrs').' %d'.__('app.mins'), floor($timeLogInMinutes / 60), floor($timeLogInMinutes / 60) % 60);
     }
 
     public function extraDays($startDate, $endDate, $userId, $holidays)

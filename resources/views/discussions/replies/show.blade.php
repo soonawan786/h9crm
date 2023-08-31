@@ -2,7 +2,7 @@
 <!-- START -->
 <div class="d-flex justify-content-between align-items-center p-3 border-bottom-grey rounded-top bg-white">
     <span>
-        <p class="f-15 f-w-500 mb-0">{{ ucfirst($discussion->title) }}</p>
+        <p class="f-15 f-w-500 mb-0">{{ $discussion->title }}</p>
         <p class="f-11 text-lightest mb-0">@lang('modules.tickets.requestedOn')
             {{ $discussion->created_at->timezone(company()->timezone)->translatedFormat(company()->date_format . ' ' . company()->time_format) }}
         </p>
@@ -133,12 +133,15 @@
                     <x-forms.label fieldReuired="true" fieldId="description" :fieldLabel="__('app.reply')">
                     </x-forms.label>
                     <div id="reply"></div>
+
                     <textarea name="description" id="description-text" class="d-none"></textarea>
                 </div>
             </div>
+            <input type="hidden" name= "discussion_type" value="discussion_reply">
+
             <div class="col-md-12">
                 <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2"
-                    :fieldLabel="__('app.add') . ' ' .__('app.file')" fieldName="file"
+                    :fieldLabel="__('app.menu.addFile')" fieldName="file"
                     fieldId="file-upload-dropzone" />
                     <x-forms.button-primary  class="mb-2" id="save-discussion" icon="check">@lang('app.reply')</x-forms.button-primary>
             </div>
@@ -147,6 +150,12 @@
 
 <script src="{{ asset('vendor/jquery/dropzone.min.js') }}"></script>
 <script>
+
+    $(document).ready(function () {
+      const atValues = @json($userData);
+      quillMention(atValues, '#reply');
+    });
+
     $('body').on('click', '.delete-file', function() {
         const id = $(this).data('row-id');
         const discussionFile = $(this);
@@ -201,11 +210,11 @@
             },
             paramName: "file",
             maxFilesize: DROPZONE_MAX_FILESIZE,
-            maxFiles: 10,
+            maxFiles: DROPZONE_MAX_FILES,
             autoProcessQueue: false,
             uploadMultiple: true,
             addRemoveLinks: true,
-            parallelUploads: 10,
+            parallelUploads: DROPZONE_MAX_FILES,
             acceptedFiles: DROPZONE_FILE_ALLOW,
             init: function () {
                 taskDropzone = this;
@@ -219,6 +228,28 @@
         });
         taskDropzone.on('uploadprogress', function () {
             $.easyBlockUI();
+        });
+        taskDropzone.on('removedfile', function () {
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).removeClass("has-error");
+            $(label).removeClass("is-invalid");
+        });
+        taskDropzone.on('error', function (file, message) {
+            taskDropzone.removeFile(file);
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).find(".help-block").remove();
+            var helpBlockContainer = $(grp);
+
+            if (helpBlockContainer.length == 0) {
+                helpBlockContainer = $(grp);
+            }
+
+            helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+            $(grp).addClass("has-error");
+            $(label).addClass("is-invalid");
+
         });
         taskDropzone.on('completemultiple', function () {
             $.easyAjax({
@@ -235,18 +266,24 @@
         });
 
 
-    quillImageLoad('#reply');
-
     $('#save-discussion').click(function() {
             const note = document.getElementById('reply').children[0].innerHTML;
             document.getElementById('description-text').value = note;
+            var mentionUser = $('#reply span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
+
+            var mention_user_id  =  $.makeArray(mentionUser);
+            var discussionData = $('#createMethods').serialize();
+
+            var data = discussionData+='&mention_user_id=' + mention_user_id;
 
             $.easyAjax({
                 url: "{{ route('discussion-reply.store') }}",
                 container: '#createMethods',
                 type: "POST",
                 blockUI: true,
-                data: $('#createMethods').serialize(),
+                data: data,
                 success: function(response) {
                     if (response.status == "success") {
                         if (taskDropzone.getQueuedFiles().length > 0) {

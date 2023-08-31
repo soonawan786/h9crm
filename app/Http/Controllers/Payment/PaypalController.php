@@ -117,6 +117,7 @@ class PaypalController extends Controller
     {
 
         if ($type == 'order') {
+            Session::put('enc_invoice_id', $id);
             $order = Order::findOrFail($id);
             $company = $order->company;
             /** @phpstan-ignore-next-line */
@@ -127,6 +128,7 @@ class PaypalController extends Controller
         }
         else {
             $invoice = Invoice::findOrFail($id);
+            Session::put('enc_invoice_id', $invoice->hash);
             $company = $invoice->company;
 
             $currencyCode = $invoice->currency->currency_code;
@@ -218,7 +220,7 @@ class PaypalController extends Controller
 
         /** add payment ID to session **/
         Session::put('paypal_payment_id', $payment->getId());
-        Session::put('enc_invoice_id', $id);
+
         Session::put('type', $paymentType);
         /** @phpstan-ignore-next-line */
         Session::put('invoice_id', $invoice->id);

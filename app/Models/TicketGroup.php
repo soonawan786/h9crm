@@ -24,12 +24,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|TicketGroup whereGroupName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketGroup whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketGroup whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @property-read int|null $enabled_agents_count
  * @method static \Database\Factories\TicketGroupFactory factory(...$parameters)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketGroup whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class TicketGroup extends BaseModel
 {

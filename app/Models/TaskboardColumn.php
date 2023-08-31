@@ -29,10 +29,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @method static \Illuminate\Database\Eloquent\Builder|TaskboardColumn wherePriority($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskboardColumn whereSlug($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskboardColumn whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|TaskboardColumn whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class TaskboardColumn extends BaseModel
 {
@@ -48,7 +48,7 @@ class TaskboardColumn extends BaseModel
 
     public function membertasks(): HasMany
     {
-        return $this->hasMany(Task::class, 'board_column_id')->where('user_id', auth()->user()->id)->orderBy('column_priority');
+        return $this->hasMany(Task::class, 'board_column_id')->where('user_id', user()->id)->orderBy('column_priority');
     }
 
     public function userSetting(): HasOne

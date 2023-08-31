@@ -101,13 +101,23 @@
             }
         });
 
-        quillImageLoad('#details');
+        const atValues = @json($projectuserData);
+
+        quillMention(atValues, '#details');
 
         $('#save-project-note-form').click(function() {
             var comment = document.getElementById('details').children[0].innerHTML;
             document.getElementById('details-text').value = comment;
 
+            var mentionUser = $('#details span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
+            var mention_user_id  =  $.makeArray(mentionUser);
+
             const url = "{{ route('project-notes.update', $note->id) }}";
+            var projectData = $('#save-project-note-data-form').serialize();
+
+            var data = projectData+='&mention_user_id=' + mention_user_id;
 
             $.easyAjax({
                 url: url,
@@ -116,7 +126,7 @@
                 disableButton: true,
                 blockUI: true,
                 buttonSelector: "#save-project-note-form",
-                data: $('#save-project-note-data-form').serialize(),
+                data: data,
                 success: function(response) {
                     if (response.status == 'success') {
                         location.reload();

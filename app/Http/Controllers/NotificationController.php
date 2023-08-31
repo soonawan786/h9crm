@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helper\Reply;
 use Illuminate\Http\Request;
+use App\Models\PackageUpdateNotify;
 
 class NotificationController extends AccountBaseController
 {
@@ -42,6 +43,28 @@ class NotificationController extends AccountBaseController
     {
         $this->user->unreadNotifications->where('id', $request->id)->markAsRead();
         return Reply::dataOnly(['status' => 'success']);
+    }
+
+    public function notifyAdmin()
+    {
+        $isAllowedInCurrentPackage = checkCompanyPackageIsValid(user()->company_id);
+
+        if ($isAllowedInCurrentPackage) {
+            return redirect()->route('dashboard');
+        }
+
+        $this->isNotified = PackageUpdateNotify::where('company_id', user()->company_id)->where('user_id', user()->id)->exists();
+        return view('super-admin.billing.notify-admin', $this->data);
+    }
+
+    public function notifyAdminSubmit()
+    {
+        PackageUpdateNotify::create([
+            'company_id' => user()->company_id,
+            'user_id' => user()->id
+        ]);
+
+        return Reply::success(__('superadmin.packageIssueNotified'));
     }
 
 }

@@ -49,12 +49,13 @@ class InvoiceRecurringStatus extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('invoice-recurring.show', $this->invoice->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $content = __('email.invoiceRecurringStatus.text') . ' ' . $this->invoice->status . '.';
 
-        return parent::build()
+        return $build
             ->subject(__('email.invoiceRecurringStatus.subject') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,

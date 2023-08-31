@@ -2,12 +2,14 @@
 
 namespace App\DataTables;
 
-use App\Models\Contract;
-use App\DataTables\BaseDataTable;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
+use App\Models\Contract;
+use App\Models\CustomField;
+use App\Models\CustomFieldGroup;
+use App\DataTables\BaseDataTable;
 use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
+use Illuminate\Support\Facades\DB;
 
 class ContractsDataTable extends BaseDataTable
 {
@@ -35,6 +37,10 @@ class ContractsDataTable extends BaseDataTable
     public function dataTable($query)
     {
         $datatables = datatables()->eloquent($query);
+
+        // Custom Fields For export
+        $customFieldColumns = CustomField::customFieldData($datatables, Contract::CUSTOM_FIELD_MODEL);
+
         return $datatables
             ->addColumn('check', function ($row) {
                 return '<input type="checkbox" class="select-table-row" id="datatable-row-' . $row->id . '"  name="datatable_ids[]" value="' . $row->id . '" onclick="dataTableRowCheck(' . $row->id . ')">';
@@ -52,8 +58,15 @@ class ContractsDataTable extends BaseDataTable
 
                 $action .= ' <a href="' . route('contracts.show', [$row->id]) . '" class="dropdown-item"><i class="fa fa-eye mr-2"></i>' . __('app.view') . '</a>';
 
+                if (!$row->company_sign && user()->company_id == $row->company_id) {
+                    $action .= '<a class="dropdown-item sign-modal" href="javascript:;" data-contract-id="' . $row->id . '">
+                    <i class="fa fa-check mr-2"></i>
+                    ' . trans('modules.estimates.companysignature') . '
+                    </a>';
+                }
+
                 if (!$row->signature) {
-                    $action .= '<a class="dropdown-item" href="' . route('front.contract.show', $row->hash) . '" target="_blank"><i class="fa fa-link mr-2"></i>' . __('modules.proposal.publicLink') . '</a>';
+                    $action .= '<a class="dropdown-item" href="' . url()->signedRoute('front.contract.show', [$row->hash]) . '" target="_blank"><i class="fa fa-link mr-2"></i>' . __('modules.proposal.publicLink') . '</a>';
                 }
 
                 if ($this->addContractPermission == 'all' || $this->addContractPermission == 'added') {
@@ -101,13 +114,13 @@ class ContractsDataTable extends BaseDataTable
             })
             ->editColumn('project_name', function ($row) {
                 if ($row->project_id != null) {
-                    return '<a href="' . route('projects.show', $row->project_id) . '" class="text-darkest-grey">' . ucfirst($row->project->project_name) . '</a>';
+                    return '<a href="' . route('projects.show', $row->project_id) . '" class="text-darkest-grey">' . $row->project->project_name . '</a>';
                 }
 
                 return '--';
             })
             ->addColumn('contract_subject', function ($row) {
-                return ucfirst($row->subject);
+                return $row->subject;
             })
             ->editColumn('subject', function ($row) {
                 $signed = '';
@@ -118,7 +131,7 @@ class ContractsDataTable extends BaseDataTable
 
                 return '<div class="media align-items-center">
                         <div class="media-body">
-                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('contracts.show', [$row->id]) . '">' . ucfirst($row->subject) . '</a></h5>
+                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('contracts.show', [$row->id]) . '">' . $row->subject . '</a></h5>
                     <p class="mb-0">' . $signed . '</p>
                     </div>
                   </div>';
@@ -137,15 +150,15 @@ class ContractsDataTable extends BaseDataTable
                 return currency_format($row->amount, $row->currency->id);
             })
             ->addColumn('client_name', function ($row) {
-                return ucfirst($row->client->name);
+                return $row->client->name;
             })
             ->editColumn('client.name', function ($row) {
                 return '<div class="media align-items-center">
                     <a href="' . route('clients.show', [$row->client_id]) . '">
-                    <img src="' . $row->client->image_url . '" class="mr-3 taskEmployeeImg rounded-circle" alt="' . ucfirst($row->client->name) . '" title="' . ucfirst($row->client->name) . '"></a>
+                    <img src="' . $row->client->image_url . '" class="mr-3 taskEmployeeImg rounded-circle" alt="' . $row->client->name . '" title="' . $row->client->name . '"></a>
                     <div class="media-body">
-                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('clients.show', [$row->client_id]) . '">' . ucfirst($row->client->name) . '</a></h5>
-                    <p class="mb-0 f-13 text-dark-grey">' . ucfirst($row->client->clientDetails->company_name) . '</p>
+                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('clients.show', [$row->client_id]) . '">' . $row->client->name . '</a></h5>
+                    <p class="mb-0 f-13 text-dark-grey">' . $row->client->clientDetails->company_name . '</p>
                     </div>
                   </div>';
             })
@@ -153,17 +166,20 @@ class ContractsDataTable extends BaseDataTable
                 if ($row->signature) {
                     return __('app.signed');
                 }
+            })->editColumn('contract_number', function ($row) {
+                    return '<a href="' . route('contracts.show', [$row->id]) . '" class="text-darkest-grey">' . $row->contract_number . '</a>';
             })
             ->addIndexColumn()
             ->smart(false)
             ->setRowId(function ($row) {
                 return 'row-' . $row->id;
             })
-            ->rawColumns(['project_name','action', 'client.name', 'check', 'subject']);
+            ->rawColumns(array_merge(['project_name','action', 'client.name', 'check', 'subject','contract_number'], $customFieldColumns));
     }
 
     /**
      * @param Contract $model
+     * @property-read \App\Models\Award $title
      * @return \Illuminate\Database\Eloquent\Builder
      */
     public function query(Contract $model)
@@ -248,6 +264,7 @@ class ContractsDataTable extends BaseDataTable
     /**
      * Optional method if you want to use html builder.
      *
+     * @property-read \App\Models\Award $title
      * @return \Yajra\DataTables\Html\Builder
      */
     public function html()
@@ -273,7 +290,7 @@ class ContractsDataTable extends BaseDataTable
      */
     protected function getColumns()
     {
-        return [
+        $data = [
             'check' => [
                 'title' => '<input type="checkbox" name="select_all_table" id="select-all-table" onclick="selectAllTable(this)">',
                 'exportable' => false,
@@ -290,7 +307,10 @@ class ContractsDataTable extends BaseDataTable
             __('app.amount') => ['data' => 'amount', 'name' => 'amount', 'title' => __('app.amount')],
             __('app.startDate') => ['data' => 'start_date', 'name' => 'start_date', 'title' => __('app.startDate')],
             __('app.endDate') => ['data' => 'end_date', 'name' => 'end_date', 'title' => __('app.endDate')],
-            __('app.signature') => ['data' => 'signature', 'name' => 'signature', 'visible' => false, 'title' => __('app.signature')],
+            __('app.signature') => ['data' => 'signature', 'name' => 'signature', 'visible' => false, 'title' => __('app.signature')]
+        ];
+
+        $action = [
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -298,16 +318,8 @@ class ContractsDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
 
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Contracts_' .now()->format('Y-m-d-H-i-s');
+        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Contract()), $action);
     }
 
 }

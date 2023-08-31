@@ -96,7 +96,7 @@ if ($viewPermission == 'all'
                         </li>
                     @endif
 
-                    @if (!in_array('client', user_roles()))
+                    @if ($showFullProfile && !in_array('client', user_roles()))
                         <li>
                             <x-tab :href="route('employees.show', $employee->id) . '?tab=appreciation'" :text="__('app.menu.appreciation')" class="appreciation" />
                         </li>
@@ -120,7 +120,7 @@ if ($viewPermission == 'all'
                         </li>
                     @endif
 
-                    @if($viewImmigrationPermission != 'none')
+                    @if($viewImmigrationPermission == 'all' ||  (in_array($viewImmigrationPermission, ['added', 'owned', 'both']) && user()->id == $employee->id))
                         <li>
                             <x-tab :href="route('employees.show', $employee->id) . '?tab=immigration'" :text="__('modules.employees.immigration')" class="immigration" />
                         </li>

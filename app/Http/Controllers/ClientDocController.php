@@ -37,7 +37,7 @@ class ClientDocController extends AccountBaseController
 
         foreach ($request->file as $index => $fFormat) {
             if (!in_array($fFormat->getClientMimeType(), $fileFormats)) {
-                return Reply::error(__('meesages.employeeDocsAllowedFormat'));
+                return Reply::error(__('messages.employeeDocsAllowedFormat'));
             }
         }
 

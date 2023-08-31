@@ -53,7 +53,6 @@ class LeadBoardController extends AccountBaseController
         $this->leadAgents = $this->leadAgents->get();
         $this->myAgentId = LeadAgent::where('user_id', user()->id)->first();
 
-
         if (request()->ajax()) {
 
             $startDate = ($request->startDate != 'null') ? Carbon::createFromFormat($this->company->date_format, $request->startDate)->toDateString() : null;
@@ -64,13 +63,7 @@ class LeadBoardController extends AccountBaseController
 
             $boardColumns = LeadStatus::with('userSetting')->withCount(['leads as leads_count' => function ($q) use ($startDate, $endDate, $request) {
 
-                if ($startDate && $endDate) {
-                    $q->where(function ($task) use ($startDate, $endDate) {
-                        $task->whereBetween(DB::raw('DATE(leads.`created_at`)'), [$startDate, $endDate]);
-
-                        $task->orWhereBetween(DB::raw('DATE(leads.`created_at`)'), [$startDate, $endDate]);
-                    });
-                }
+                $this->dateFilter($q, $startDate, $endDate, $request);
 
                 if ($request->followUp != 'all' && $request->followUp != '') {
                     $q->leftJoin('lead_follow_up', 'lead_follow_up.lead_id', 'leads.id');
@@ -177,12 +170,10 @@ class LeadBoardController extends AccountBaseController
                     });
                 }
 
-                if ($startDate && $endDate) {
-                    $q->where(function ($task) use ($startDate, $endDate) {
-                        $task->whereBetween(DB::raw('DATE(leads.`created_at`)'), [$startDate, $endDate]);
+                $this->dateFilter($q, $startDate, $endDate, $request);
 
-                        $task->orWhereBetween(DB::raw('DATE(leads.`created_at`)'), [$startDate, $endDate]);
-                    });
+                if (!is_null($request->min) || !is_null($request->max)) {
+                    $q->whereBetween('leads.value', [$request->min, $request->max]);
                 }
 
                 if ($request->followUp != 'all' && $request->followUp != '') {
@@ -239,12 +230,10 @@ class LeadBoardController extends AccountBaseController
                     ->groupBy('leads.id');
 
 
-                if ($startDate && $endDate) {
-                    $leads->where(function ($task) use ($startDate, $endDate) {
-                        $task->whereBetween(DB::raw('DATE(leads.`created_at`)'), [$startDate, $endDate]);
+                $this->dateFilter($leads, $startDate, $endDate, $request);
 
-                        $task->orWhereBetween(DB::raw('DATE(leads.`created_at`)'), [$startDate, $endDate]);
-                    });
+                if (!is_null($request->min) || !is_null($request->max)) {
+                    $leads = $leads->whereBetween('leads.value', [$request->min, $request->max]);
                 }
 
                 if ($request->followUp != 'all' && $request->followUp != '') {
@@ -332,7 +321,28 @@ class LeadBoardController extends AccountBaseController
             return Reply::dataOnly(['view' => $view]);
         }
 
+        $this->leads = Lead::get();
+
         return view('leads.board.index', $this->data);
+    }
+
+    public function dateFilter($query, $startDate, $endDate, $request)
+    {
+        if ($startDate && $endDate) {
+            $query->where(function ($task) use ($startDate, $endDate, $request) {
+                if($request->date_filter_on == 'created_at') {
+                    $task->whereBetween(DB::raw('DATE(leads.`created_at`)'), [$startDate, $endDate]);
+                }
+                elseif($request->date_filter_on == 'updated_at') {
+                    $task->whereBetween(DB::raw('DATE(leads.`updated_at`)'), [$startDate, $endDate]);
+                }
+                elseif($request->date_filter_on == 'next_follow_up_date') {
+                    $task->whereHas('followup', function ($q) use ($startDate, $endDate) {
+                        $q->whereBetween(DB::raw('DATE(lead_follow_up.`next_follow_up_date`)'), [$startDate, $endDate]);
+                    });
+                }
+            });
+        }
     }
 
     public function loadMore(Request $request)
@@ -353,6 +363,10 @@ class LeadBoardController extends AccountBaseController
 
                 $task->orWhereBetween(DB::raw('DATE(leads.`created_at`)'), [$startDate, $endDate]);
             });
+        }
+
+        if (!is_null($request->min) || !is_null($request->max)) {
+            $leads = $leads->whereBetween('value', [$request->min, $request->max]);
         }
 
         if ($request->followUp != 'all' && $request->followUp != '') {

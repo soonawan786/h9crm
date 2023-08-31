@@ -8,6 +8,9 @@ use App\Models\FileStorage;
 use App\Models\StorageSetting;
 use App\Helper\Files;
 use App\Http\Requests\Settings\StorageAwsFileUpload;
+use App\Models\GlobalSetting;
+use Illuminate\Contracts\Filesystem\FileNotFoundException;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
 
@@ -20,8 +23,7 @@ class StorageSettingController extends AccountBaseController
         $this->pageTitle = 'app.menu.storageSettings';
         $this->activeSettingMenu = 'storage_settings';
         $this->middleware(function ($request, $next) {
-            // WORKSUITESAAS
-            abort_403(((user()->permission('manage_storage_setting') !== 'all')) && (!user()->is_superadmin));
+            abort_403(((user()->permission('manage_storage_setting') !== 'all')) && GlobalSetting::validateSuperAdmin('manage_superadmin_storage_settings'));
 
             return $next($request);
         });
@@ -37,6 +39,7 @@ class StorageSettingController extends AccountBaseController
         $this->awsCredentials = StorageSetting::where('filesystem', 'aws_s3')->first();
         $this->digitalOceanCredentials = StorageSetting::where('filesystem', 'digitalocean')->first();
         $this->wasabiCredentials = StorageSetting::where('filesystem', 'wasabi')->first();
+        $this->minioCredentials = StorageSetting::where('filesystem', 'minio')->first();
         $this->localCredentials = StorageSetting::where('filesystem', 'local')->first();
 
         if (!is_null($this->awsCredentials)) {
@@ -49,6 +52,10 @@ class StorageSettingController extends AccountBaseController
 
         if (!is_null($this->wasabiCredentials)) {
             $this->wasabiKeys = json_decode($this->wasabiCredentials->auth_keys);
+        }
+
+        if (!is_null($this->minioCredentials)) {
+            $this->minioKeys = json_decode($this->minioCredentials->auth_keys);
         }
 
         $this->localFilesCount = FileStorage::where('storage_location', 'local')->count();
@@ -102,6 +109,18 @@ class StorageSettingController extends AccountBaseController
             ];
             $storage->auth_keys = json_encode($arrayResponse);
             break;
+
+        case 'minio':
+            $arrayResponse = [
+                'driver' => 's3',
+                'key' => $request->minio_key,
+                'secret' => $request->minio_secret,
+                'region' => $request->minio_region,
+                'bucket' => $request->minio_bucket,
+                'endpoint' => $request->minio_endpoint,
+            ];
+            $storage->auth_keys = json_encode($arrayResponse);
+            break;
         }
 
         $storage->filesystem = $request->storage;
@@ -139,6 +158,7 @@ class StorageSettingController extends AccountBaseController
 
     public function awsLocalToAwsModal()
     {
+        config(['filesystems.default' => 'local']);
         $this->files = FileStorage::where('storage_location', 'local')->orderBy('storage_location')->get();
         $this->localFilesCount = FileStorage::where('storage_location', 'local')->count();
 
@@ -147,23 +167,31 @@ class StorageSettingController extends AccountBaseController
 
     /**
      * @throws \Froiden\RestAPI\Exceptions\RelatedResourceNotFoundException
+     * @throws FileNotFoundException
      */
     public function moveFilesLocalToAwsS3()
     {
         $files = FileStorage::where('storage_location', 'local')->get();
 
         foreach ($files as $file) {
-            $contents = public_path(Files::UPLOAD_FOLDER . '/' . $file->path . '/' . $file->filename);
+            $filePath = public_path(Files::UPLOAD_FOLDER . '/' . $file->path . '/' . $file->filename);
+
+            if (!File::exists($filePath)) {
+                $file->delete();
+                continue;
+            }
+
+            $contents = File::get($filePath);
             $uploaded = Storage::disk(config('filesystems.default'))->put($file->path . '/' . $file->filename, $contents);
 
             if ($uploaded) {
-                $file->storage_location = 'aws_s3';
+                $file->storage_location = config('filesystems.default') === 's3' ? 'aws_s3' : config('filesystems.default');
                 $file->save();
-                $this->deleteFileFromLocal($contents);
+                $this->deleteFileFromLocal($filePath);
             }
         }
 
-        return Reply::successWithData(__('messages.filesMoveToAwsSuccessfully'), ['fileurl' => 'done']);
+        return Reply::successWithData(__('messages.filesMoveToCloudSuccessfully'), ['fileurl' => 'done']);
     }
 
     private function deleteFileFromLocal($filePath)

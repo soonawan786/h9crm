@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
@@ -37,6 +38,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @method static \Illuminate\Database\Eloquent\Builder|ProposalTemplateItem whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProposalTemplateItem whereUnitPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProposalTemplateItem whereUpdatedAt($value)
+ * @property int|null $product_id
+ * @property int|null $unit_id
+ * @property-read \App\Models\UnitType|null $unit
+ * @method static \Illuminate\Database\Eloquent\Builder|ProposalTemplateItem whereProductId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProposalTemplateItem whereUnitId($value)
  * @mixin \Eloquent
  */
 class ProposalTemplateItem extends BaseModel
@@ -56,4 +62,9 @@ class ProposalTemplateItem extends BaseModel
         return Tax::where('id', $id)->withTrashed();
     }
 
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(UnitType::class, 'unit_id');
+    }
+    
 }

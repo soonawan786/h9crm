@@ -18,8 +18,6 @@ class CreditNoteObserver
 
     public function saving(CreditNotes $creditNote)
     {
-        $this->unitType($creditNote);
-
         if (\user()) {
             $creditNote->last_updated_by = user()->id;
         }

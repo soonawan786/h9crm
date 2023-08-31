@@ -5,7 +5,10 @@ namespace App\Models\SuperAdmin;
 use App\Models\User;
 use App\Traits\HasCompany;
 use App\Scopes\CompanyScope;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Observers\SuperAdmin\SupportTicketObserver;
 
@@ -52,12 +55,21 @@ use App\Observers\SuperAdmin\SupportTicketObserver;
  * @method static \Illuminate\Database\Eloquent\Builder|SupportTicket whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SupportTicket whereUserId($value)
  */
-class SupportTicket extends Model
+class SupportTicket extends BaseModel
 {
+
     use HasCompany;
 
     use SoftDeletes;
+
     protected $dates = ['deleted_at', 'created_at', 'updated_at'];
+
+    protected $casts = [
+        'deleted_at' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
     protected $appends = ['created_on', 'updated_on'];
 
     protected static function boot()
@@ -67,42 +79,64 @@ class SupportTicket extends Model
         static::observe(SupportTicketObserver::class);
     }
 
-    public function requester()
+    public function requester(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id')->withoutGlobalScopes(['active', CompanyScope::class]);
     }
 
-    public function agent()
+    public function agent(): BelongsTo
     {
         return $this->belongsTo(User::class, 'agent_id')->withoutGlobalScopes(['active', CompanyScope::class]);
     }
 
-    public function reply()
+    public function reply(): HasMany
     {
         return $this->hasMany(SupportTicketReply::class, 'support_ticket_id');
     }
 
-    public function client()
+    public function latestReply(): HasOne
+    {
+        return $this->hasOne(SupportTicketReply::class, 'support_ticket_id')->latest();
+    }
+
+    public function client(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id')->withoutGlobalScopes(['active']);
     }
 
     public function getCreatedOnAttribute()
     {
-        if (!is_null($this->created_at)) {
-            return $this->created_at->format('d M Y H:i');
+        if (is_null($this->created_at)) {
+            return '';
         }
 
-        return '';
+        return $this->created_at->format('d M Y H:i');
+
     }
 
     public function getUpdatedOnAttribute()
     {
-        if (!is_null($this->updated_at)) {
-            return $this->updated_at->format('Y-m-d H:i a');
+        if (is_null($this->updated_at)) {
+            return '';
         }
 
-        return '';
+        return $this->updated_at->format('Y-m-d H:i a');
+
+    }
+
+    public function badge($tag = 'p')
+    {
+
+        $latestReplyUser = $this->latestReply?->user;
+        $totalReply = $this->reply()->count();
+
+        $selfReplyCount = $this->reply()->where('user_id', $latestReplyUser?->id)->count();
+
+        if ($totalReply > 1 && ($totalReply !== $selfReplyCount) && $latestReplyUser && $latestReplyUser->id !== user()->id) {
+            return '<'.$tag.' class="mb-0"><span class="badge badge-secondary mr-1 bg-info">' . __('app.newResponse') . '</span></'.$tag.'>';
+        }
+
+        return $totalReply == 1 || ($totalReply == $selfReplyCount) ? '<'.$tag.' class="mb-0"><span class="badge badge-secondary mr-1 bg-dark-green">' . __('app.new') . '</span></'.$tag.'>' : '';
     }
 
 }

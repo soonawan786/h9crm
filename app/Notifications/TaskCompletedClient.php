@@ -49,12 +49,13 @@ class TaskCompletedClient extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('tasks.show', $this->task->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = ucfirst($this->task->heading) . ' ' . __('email.taskComplete.subject') . ' #' . $this->task->task_short_code;
+        $content = $this->task->heading . ' ' . __('email.taskComplete.subject') . ' #' . $this->task->task_short_code;
 
-        return parent::build()
+        return $build
             ->subject(__('email.taskComplete.subject') . ' #' . $this->task->task_short_code . ' - ' . config('app.name') . '.')
             ->markdown('mail.email', [
                 'url' => $url,

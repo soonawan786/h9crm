@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Output\ConsoleOutput;
@@ -14,7 +15,7 @@ class SyncUserPermissions extends Command
      *
      * @var string
      */
-    protected $signature = 'sync-user-permissions {all?} {fresh?}';
+    protected $signature = 'sync-user-permissions {all?}';
 
     /**
      * The console command description.
@@ -27,7 +28,7 @@ class SyncUserPermissions extends Command
     {
         $output = new ConsoleOutput();
 
-        $unsyncedUsers = User::with('roles', 'role')
+        $unsyncedUsers = User::with('roles')
             ->where('permission_sync', 0)
             ->when($this->argument('all'), function ($query) {
                 return $query->get();
@@ -45,14 +46,8 @@ class SyncUserPermissions extends Command
 
         $unsyncedUsers->each(function ($user, $key) use ($total) {
             $remaining = $total - $key;
-            $userRole = $user->roles->pluck('name')->toArray();
 
-            if (!in_array('admin', $userRole) && count($userRole) == 1) {
-                $this->assignPermissions($user, $remaining);
-            }
-            elseif (in_array('admin', $userRole)) {
-                $this->assignPermissions($user, $remaining);
-            }
+            $this->assignPermissions($user, $remaining);
 
             $user->permission_sync = 1;
             $user->saveQuietly();
@@ -64,14 +59,24 @@ class SyncUserPermissions extends Command
         $output = new ConsoleOutput();
         //phpcs:ignore
         $output->writeln('<info>Remaining: ' . $remaining . ' Syncing permission started for ' . $user->name . '</info>');
-        $roleId = $user->role[0]->role_id;
+        $rolesCount = $user->roles->count();
+        $role = null;
 
-        if ($this->argument('fresh')) {
-            $user->insertUserRolePermission($roleId);
+        if ($rolesCount > 1) {
+            $role = $user->roles->where('name', '!=', 'employee')->first();
         }
-        else {
-            $user->assignUserRolePermission($roleId);
+        else
+        {
+            $role = $user->roles->first();
         }
+
+        if (!$role) {
+            //phpcs:ignore
+            $output->writeln('<error>Role not found for ' . $user->name . '</error>');
+            return false;
+        }
+
+        $user->assignUserRolePermission($role->id);
 
         //phpcs:ignore
         $output->writeln('<info>Remaining: ' . $remaining . ' Syncing permission ended for ' . $user->name . '</info>');

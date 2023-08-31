@@ -1,5 +1,21 @@
 <link rel="stylesheet" href="{{ asset('vendor/css/dropzone.min.css') }}">
+<style>
+    #message-new .ql-editor {
+      border: 1px solid #a3a3a3;
+      border-radius: 6px;
+      padding-left: 6px !important;
+      height: 100% !important;
+    }
+    .ql-editor-disabled {
+      border-radius: 6px;
+      background-color: rgba(124, 0, 0, 0.2);
+      transition-duration: 0.5s;
+    }
+    .ql-toolbar{
+        display: none !important;
+    }
 
+    </style>
 <div class="modal-header">
     <h5 class="modal-title" id="modelHeading">@lang("modules.messages.startConversation")</h5>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
@@ -37,6 +53,7 @@
                     </div>
                 </div>
             </div>
+            <input type = "hidden" name = "mention_user_id" id = "mentionUserIds" class ="mention_user_ids">
 
             <div class="col-md-12" id="member-list">
                 <div class="form-group">
@@ -81,16 +98,16 @@
 
             <div class="col-md-12">
                 <div class="form-group">
-                    <x-forms.textarea class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.messages.message')"
-                        fieldRequired="true" fieldName="message" fieldId="message"
-                        :fieldPlaceholder="__('modules.messages.typeMessage')">
-                    </x-forms.textarea>
+                    <x-forms.label :fieldLabel="__('app.message')" fieldRequired="true" fieldId="description">
+                    </x-forms.label>
+                    <div id="message-new"></div>
+                    <textarea name="message" id="new-message-text" class="d-none"></textarea>
                 </div>
             </div>
 
-            <div class="col-md-12">
+            <div class="col-md-12 my-4">
                 <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2"
-                    :fieldLabel="__('app.add') . ' ' .__('app.file')" fieldName="file"
+                    :fieldLabel="__('app.menu.addFile')" fieldName="file"
                     fieldId="message-file-upload-dropzone" />
                 <input type="hidden" name="message_id" id="message_id">
                 <input type="hidden" name="type" id="message">
@@ -115,6 +132,9 @@
 
     $('#selectEmployee').selectpicker();
 
+     var atValues = @json($userData);
+     quillMention(atValues, '#message-new');
+
     $("input[name=user_type]").click(function() {
         if ($(this).val() == 'employee') {
             $('#member-list').removeClass('d-none');
@@ -137,11 +157,11 @@
         },
         paramName: "file",
         maxFilesize: DROPZONE_MAX_FILESIZE,
-        maxFiles: 10,
+        maxFiles: DROPZONE_MAX_FILES,
         autoProcessQueue: false,
         uploadMultiple: true,
         addRemoveLinks: true,
-        parallelUploads: 10,
+        parallelUploads: DROPZONE_MAX_FILES,
         acceptedFiles: DROPZONE_FILE_ALLOW,
         init: function () {
             taskDropzone1 = this;
@@ -163,8 +183,37 @@
     taskDropzone1.on('uploadprogress', function () {
         $.easyBlockUI();
     });
+    taskDropzone1.on('removedfile', function () {
+        var grp = $('div#file-upload-dropzone').closest(".form-group");
+        var label = $('div#file-upload-box').siblings("label");
+        $(grp).removeClass("has-error");
+        $(label).removeClass("is-invalid");
+    });
+    taskDropzone1.on('error', function (file, message) {
+        taskDropzone1.removeFile(file);
+        var grp = $('div#file-upload-dropzone').closest(".form-group");
+        var label = $('div#file-upload-box').siblings("label");
+        $(grp).find(".help-block").remove();
+        var helpBlockContainer = $(grp);
+
+        if (helpBlockContainer.length == 0) {
+            helpBlockContainer = $(grp);
+        }
+
+        helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+        $(grp).addClass("has-error");
+        $(label).addClass("is-invalid");
+
+    });
 
     $('#save-message').click(function() {
+        var note = document.getElementById('message-new').children[0].innerHTML;
+        document.getElementById('new-message-text').value = note;
+        var mention_user_id = $('#message-new span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
+        $('#mentionUserIds').val(mention_user_id.join(','));
+
         var url = "{{ route('messages.store') }}";
         $.easyAjax({
             url: url,

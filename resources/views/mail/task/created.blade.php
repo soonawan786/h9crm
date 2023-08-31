@@ -1,5 +1,5 @@
 @component('mail::message')
-# @lang('email.hello') {{ $name }} ,
+# @lang('email.hello') @if (! empty($notifiableName)) {{ $notifiableName }} @endif @lang('!') ,
 
 @lang('email.newTask.subject')
 

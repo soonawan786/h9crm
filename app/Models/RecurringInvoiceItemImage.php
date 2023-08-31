@@ -29,9 +29,9 @@ use App\Traits\IconTrait;
  * @method static \Illuminate\Database\Eloquent\Builder|InvoiceItemImage whereInvoiceItemId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|InvoiceItemImage whereSize($value)
  * @method static \Illuminate\Database\Eloquent\Builder|InvoiceItemImage whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int $invoice_recurring_item_id
  * @method static \Illuminate\Database\Eloquent\Builder|RecurringInvoiceItemImage whereInvoiceRecurringItemId($value)
+ * @mixin \Eloquent
  */
 class RecurringInvoiceItemImage extends BaseModel
 {

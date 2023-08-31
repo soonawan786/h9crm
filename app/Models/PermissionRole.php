@@ -19,8 +19,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|PermissionRole wherePermissionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PermissionRole wherePermissionTypeId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PermissionRole whereRoleId($value)
- * @mixin \Eloquent
  * @property-read \App\Models\Permission $permission
+ * @mixin \Eloquent
  */
 class PermissionRole extends BaseModel
 {
@@ -123,10 +123,10 @@ class PermissionRole extends BaseModel
             'delete_expenses' => PermissionType::ADDED,
             'view_appreciation' => PermissionType::OWNED,
 
-            'view_immigration' => PermissionType::ADDED,
-            'add_immigration' => PermissionType::ALL,
-            'edit_immigration' => PermissionType::ADDED,
-            'delete_immigration' => PermissionType::ALL,
+            'view_immigration' => PermissionType::OWNED,
+            'add_immigration' => PermissionType::OWNED,
+            'edit_immigration' => PermissionType::OWNED,
+            'delete_immigration' => PermissionType::OWNED,
 
         ];
 

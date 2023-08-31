@@ -12,8 +12,6 @@ use App\Models\EmployeeDetails;
 use App\Models\User;
 use Illuminate\Http\Request;
 
-use function PHPUnit\Framework\isNull;
-
 class DepartmentController extends AccountBaseController
 {
     public $arr = [];
@@ -101,8 +99,16 @@ class DepartmentController extends AccountBaseController
     public function edit($id)
     {
         $this->department = Team::findOrFail($id);
-        $this->departments = Team::all();
+        $departments = Team::where('id', '!=', $this->department->id)->get();
 
+        $childDepartments = $departments->where('parent_id', $this->department->id)->pluck('id')->toArray();
+
+        $departments = $departments->where('parent_id', '!=', $this->department->id);
+
+        // remove child departments
+        $this->departments = $departments->filter(function ($value, $key) use ($childDepartments) {
+            return !in_array($value->parent_id, $childDepartments);
+        });
 
         if (request()->ajax()) {
             $html = view('departments.ajax.edit', $this->data)->render();
@@ -131,8 +137,6 @@ class DepartmentController extends AccountBaseController
         $group->parent_id = $request->parent_id ?? null;
         $group->save();
 
-        $teams = Team::allDepartments();
-        $options = BaseModel::options($teams, null, 'team_name');
         $redirectUrl = route('departments.index');
 
         return Reply::successWithData(__('messages.updateSuccess'), ['redirectUrl' => $redirectUrl]);
@@ -322,6 +326,7 @@ class DepartmentController extends AccountBaseController
     {
 
         $options = '';
+        $userData = [];
 
         if ($id == 0) {
             $members = User::allEmployees();
@@ -336,13 +341,18 @@ class DepartmentController extends AccountBaseController
             $members = User::departmentUsers($id);
 
             foreach ($members as $item) {
+
                 $self_select = (user() && user()->id == $item->id) ? '<span class=\'ml-2 badge badge-secondary\'>' . __('app.itsYou') . '</span>' : '';
 
                 $options .= '<option  data-content="<div class=\'d-inline-block mr-1\'><img class=\'taskEmployeeImg rounded-circle\' src=' . $item->image_url . ' ></div>  ' . $item->name . '' . $self_select . '" value="' . $item->id . '"> ' . $item->name . ' </option>';
+                $url = route('employees.show', [$item->id]);
+
+                $userData[] = ['id' => $item->id, 'value' => $item->name, 'image' => $item->image_url, 'link' => $url];
+
             }
         }
 
-        return Reply::dataOnly(['status' => 'success', 'data' => $options]);
+        return Reply::dataOnly(['status' => 'success', 'data' => $options, 'userData' => $userData]);
     }
 
 }

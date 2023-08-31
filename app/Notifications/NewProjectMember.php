@@ -28,7 +28,7 @@ class NewProjectMember extends BaseNotification
         $this->project = $project;
         $this->projectMember = ProjectMember::where('project_id', $this->project->id)->first();
         $this->company = $this->project->company;
-        $this->emailSetting = EmailNotificationSetting::where('company_id', $this->company->id)->where('slug', 'employee-assign-to-project')->first();
+        $this->emailSetting = EmailNotificationSetting::where('company_id', $this->company->id)->where('slug', 'project-mention-notification')->first();
     }
 
     /**
@@ -65,12 +65,13 @@ class NewProjectMember extends BaseNotification
     // phpcs:ignore
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $url = route('projects.show', $this->project->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('email.newProjectMember.text') . ' - ' . mb_ucwords($this->project->project_name) . '<br>';
+        $content = __('email.newProjectMember.text') . ' - ' . ($this->project->project_name) . '<br>';
 
-        return parent::build()
+        return $build
             ->subject(__('email.newProjectMember.subject') . ' - ' . config('app.name') . '.')
             ->markdown('mail.email', [
                 'url' => $url,
@@ -110,7 +111,7 @@ class NewProjectMember extends BaseNotification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content('*' . __('email.newProjectMember.subject') . '*' . "\n" . __('email.newProjectMember.text') . ' - ' . mb_ucwords($this->project->project_name));
+                ->content('*' . __('email.newProjectMember.subject') . '*' . "\n" . __('email.newProjectMember.text') . ' - ' . $this->project->project_name);
         }
 
         return (new SlackMessage())
@@ -122,8 +123,8 @@ class NewProjectMember extends BaseNotification
     public function toOneSignal()
     {
         return OneSignalMessage::create()
-            ->subject(__('email.newProjectMember.subject'))
-            ->body(mb_ucwords($this->project->project_name));
+            ->setSubject(__('email.newProjectMember.subject'))
+            ->setBody($this->project->project_name);
     }
 
 }

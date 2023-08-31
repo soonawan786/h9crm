@@ -62,7 +62,7 @@ $editTaskPermission = ($project->project_admin == user()->id) ? 'all' : user()->
                         <select class="form-control select-picker" id="projectTask" data-live-search="true"
                             data-size="8" multiple name="projectTask[]">
                             @foreach ($project->tasks as $task)
-                                <option value="{{ $task->id}}">{{ mb_ucwords($task->heading) }}</option>
+                                <option value="{{ $task->id}}">{{ $task->heading }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -77,7 +77,7 @@ $editTaskPermission = ($project->project_admin == user()->id) ? 'all' : user()->
                         <select class="form-control select-picker" id="task_status" data-live-search="true"
                             data-size="8" multiple name="task_status[]">
                             @foreach ($taskBoardStatus as $status)
-                                <option selected value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : mb_ucwords($status->column_name) }}</option>
+                                <option selected value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : $status->column_name }}</option>
                             @endforeach
                         </select>
                     </div>

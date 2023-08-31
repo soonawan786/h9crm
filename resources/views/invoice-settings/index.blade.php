@@ -1,31 +1,48 @@
 @extends('layouts.app')
 
 @section('content')
+<link rel="stylesheet" href="{{ asset('vendor/css/image-picker.min.css') }}">
 
     <!-- SETTINGS START -->
     <div class="w-100 d-flex ">
 
-        <x-setting-sidebar :activeMenu="$activeSettingMenu"/>
+        @include('sections.setting-sidebar')
 
         <x-setting-card>
             <x-slot name="header">
                 <div class="s-b-n-header" id="tabs">
                     <nav class="tabs px-4 border-bottom-grey">
                         <div class="nav" id="nav-tab" role="tablist">
-                            <a class="nav-item nav-link f-15 active general"
-                                href="{{ route('invoice-settings.index') }}?tab=general" role="tab"
-                                aria-controls="nav-ticketAgents" aria-selected="true">@lang('app.menu.invoiceSettings')
-                            </a>
+                            @if (in_array('invoices', user_modules()))
+                                <a class="nav-item nav-link f-15 active general"
+                                    href="{{ route('invoice-settings.index') }}?tab=general" role="tab"
+                                    aria-controls="nav-ticketAgents" aria-selected="true">@lang('app.menu.invoiceSettings')
+                                </a>
+                            @endif
 
-                            <a class="nav-item nav-link f-15 units"
-                                    href="{{ route('invoice-settings.index') }}?tab=units" role="tab"
-                                    aria-controls="nav-ticketTypes" aria-selected="true">@lang('app.menu.units')
-                            </a>
+                            @if (in_array('invoices', user_modules()) || in_array('estimates', user_modules()) || in_array('orders', user_modules()) || in_array('leads', user_modules()))
+                                <a class="nav-item nav-link f-15 active template"
+                                    href="{{ route('invoice-settings.index') }}?tab=template" role="tab"
+                                    aria-controls="nav-ticketAgents" aria-selected="true">@lang('app.menu.invoiceTemplate')
+                                </a>
 
-                            <a class="nav-item nav-link f-15 quickbooks"
-                                href="{{ route('invoice-settings.index') }}?tab=quickbooks" role="tab"
-                                aria-controls="nav-ticketTypes" aria-selected="true">@lang('app.menu.quickBookSettings')
-                            </a>
+                                <a class="nav-item nav-link f-15 active prefix"
+                                    href="{{ route('invoice-settings.index') }}?tab=prefix" role="tab"
+                                    aria-controls="nav-ticketAgents" aria-selected="true">@lang('app.menu.prefixSettings')
+                                </a>
+
+                                <a class="nav-item nav-link f-15 units"
+                                        href="{{ route('invoice-settings.index') }}?tab=units" role="tab"
+                                        aria-controls="nav-ticketTypes" aria-selected="true">@lang('app.menu.units')
+                                </a>
+                            @endif
+
+                            @if (in_array('invoices', user_modules()) || in_array('payments', user_modules()))
+                                <a class="nav-item nav-link f-15 quickbooks"
+                                    href="{{ route('invoice-settings.index') }}?tab=quickbooks" role="tab"
+                                    aria-controls="nav-ticketTypes" aria-selected="true">@lang('app.menu.quickBookSettings')
+                                </a>
+                            @endif
 
                         </div>
                     </nav>
@@ -54,6 +71,7 @@
 @endsection
 
 @push('scripts')
+<script src="https://cdnjs.cloudflare.com/ajax/libs/image-picker/0.3.1/image-picker.min.js"></script>
 <script>
 
     $('.nav-item').removeClass('active');
@@ -67,7 +85,7 @@
         $('.' + activeTab + '-btn').removeClass('d-none');
     }
 
-    
+
     $("body").on("click", "#editSettings .nav a", function(event) {
         event.preventDefault();
 

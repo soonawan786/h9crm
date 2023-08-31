@@ -3,6 +3,7 @@
     $editTaskCommentPermission = user()->permission('edit_task_comments');
     $deleteTaskCommentPermission = user()->permission('delete_task_comments');
 @endphp
+
 <style>
     .comment-like {
       background-color: #ffffff;
@@ -23,8 +24,15 @@
         position: relative;
         margin-top: 2px;
     }
+    .ql-mention-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    }
     </style>
 <!-- TAB CONTENT START -->
+
 <div class="tab-pane fade show active" role="tabpanel" aria-labelledby="nav-email-tab">
     @if ($addTaskCommentPermission == 'all'
     || ($addTaskCommentPermission == 'added' && $task->added_by == user()->id)
@@ -38,12 +46,11 @@
                     @lang('modules.tasks.comment')</a>
             </div>
         </div>
-
         <x-form id="save-comment-data-form" class="d-none">
             <div class="col-md-12 p-20 ">
                 <div class="media">
                     <img src="{{ user()->image_url }}" class="align-self-start mr-3 taskEmployeeImg rounded"
-                        alt="{{ mb_ucfirst(user()->name) }}">
+                        alt="{{ user()->name }}">
                     <div class="media-body bg-white">
                         <div class="form-group">
                             <div id="task-comment"></div>
@@ -59,22 +66,22 @@
                         </x-forms.button-primary>
                 </div>
 
+
+
             </div>
         </x-form>
     @endif
-
-
     <div class="d-flex flex-wrap justify-content-between p-20" id="comment-list">
         @forelse ($task->comments as $comment)
             <div class="card w-100 rounded-1 border-2 mb-3 p-2 comment">
                 <div class="card-horizontal">
                     <div class="card-img my-1 ml-0 mx-1">
-                        <img src="{{ $comment->user->image_url }}" alt="{{ mb_ucwords($comment->user->name) }}">
+                        <img src="{{ $comment->user->image_url }}" alt="{{ $comment->user->name }}">
                     </div>
                     <div class="card-body border-0 pl-0 py-1 ml-3">
                         <div class="row">
                             <div class="col-md-6 d-inline-flex">
-                                <h4 class="card-title f-15 f-w-500 text-dark mr-3">{{ mb_ucwords($comment->user->name) }}</h4>
+                                <h4 class="card-title f-15 f-w-500 text-dark mr-3">{{ $comment->user->name }}</h4>
                                 <span class="cursor-pointer card-date f-11 text-lightest mb-0 comment-time" data-toggle="tooltip"
                                 data-original-title="{{ $comment->created_at->timezone(company()->timezone)->translatedFormat(company()->date_format . ' ' . company()->time_format) }}">
                                 {{$comment->created_at->timezone(company()->timezone)->diffForHumans()}}
@@ -119,7 +126,11 @@
                                 $dislikeUserList = implode(', ', $dislikeUsers);
                             }
                         @endphp
-                        <div class="card-text f-14 text-dark-grey">{!! ucfirst($comment->comment) !!}
+                        <div class="card-text f-14 text-dark-grey ">
+                            <div class="card-text f-14 text-dark-grey text-justify ql-editor">
+                                {!! $comment->comment !!}
+
+                            </div>
                             <div id="emoji-{{$comment->id}}">
                                 <button class="btn cursor-pointer comment-like mr-2 f-12 btn-sm" data-comment-id="{{ $comment->id }}" data-toggle="tooltip"
                                     data-emoji="thumbs-up" @if($comment->like->count() != 0) data-original-title="{{ trans('modules.tasks.likeUser', [ 'user' => $likeUserList ]) }}" style="background-color: #f7f2f2;" @else data-original-title="@lang('modules.tasks.like')" @endif>
@@ -142,36 +153,45 @@
             </div>
         @endforelse
     </div>
-
-
 </div>
-<!-- TAB CONTENT END -->
 
+<!-- TAB CONTENT END -->
 <script>
     var add_task_comments = "{{ $addTaskCommentPermission }}";
+    $(document).ready(function() {
 
-    $('#add-comment').click(function() {
-        $(this).closest('.row').addClass('d-none');
-        $('#save-comment-data-form').removeClass('d-none');
+        $('#add-comment').click(function() {
+            $(this).closest('.row').addClass('d-none');
+            $('#save-comment-data-form').removeClass('d-none');
+        });
+
     });
 
     $('#cancel-comment').click(function() {
         $('#save-comment-data-form').addClass('d-none');
         $('#add-comment').closest('.row').removeClass('d-none');
+
     });
+        //quill mention
 
-    $(document).ready(function() {
+        var userValues = @json($taskuserData);
 
-        if (add_task_comments == "all" || add_task_comments == "added") {
-            quillImageLoad('#task-comment');
-        }
+        $(document).ready(function() {
+            if (add_task_comments == "all" || add_task_comments == "added") {
+                quillMention(userValues, '#task-comment');
+            }
+        });
+
 
         $('#submit-comment').click(function() {
             var comment = document.getElementById('task-comment').children[0].innerHTML;
             document.getElementById('task-comment-text').value = comment;
+            var mention_user_id = $('#task-comment span[data-id]').map(function(){
+                return $(this).attr('data-id')
+
+            }).get();
 
             var token = '{{ csrf_token() }}';
-
             const url = "{{ route('taskComment.store') }}";
 
             $.easyAjax({
@@ -184,6 +204,7 @@
                 data: {
                     '_token': token,
                     comment: comment,
+                    mention_user_id : mention_user_id,
                     taskId: '{{ $task->id }}'
                 },
                 success: function(response) {
@@ -196,6 +217,6 @@
                 }
             });
         });
-    });
 
-</script>
+
+  </script>

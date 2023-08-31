@@ -22,10 +22,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|ClientSubCategory whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientSubCategory whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientSubCategory whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ClientSubCategory whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ClientSubCategory extends BaseModel
 {

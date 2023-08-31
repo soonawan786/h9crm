@@ -1,26 +1,16 @@
 <div class="modal-header">
-    <h5 class="modal-title" id="modelHeading">@lang('app.add') @lang('app.client')</h5>
+    <h5 class="modal-title" id="modelHeading">@lang('app.client')</h5>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
             aria-hidden="true">×</span></button>
 </div>
-
 <x-form id="save-client-data-form">
     <input type="hidden" name="ajax_create" value="1">
-    <input type="hidden" name="country" value="162">
     <div class="modal-body">
         <div class="row">
             <div class="col-md-12">
                 <x-forms.text fieldId="name" :fieldLabel="__('modules.client.clientName')" fieldName="name"
                     fieldRequired="true" :fieldPlaceholder="__('placeholders.name')"
                     :fieldValue="$lead->client_name ?? ''"></x-forms.text>
-            </div>
-            <div class="col-md-12">
-                <x-forms.tel fieldId="mobile" :fieldLabel="__('app.mobile')" fieldName="mobile"
-                                   :fieldPlaceholder="__('placeholders.mobile')" :fieldValue="$lead->mobile ?? ''"></x-forms.tel>
-            </div>
-            <div class="col-md-12">
-                <x-forms.datepicker fieldId="date_of_birth" :fieldLabel="__('modules.employees.dateOfBirth')"
-                    fieldName="date_of_birth" :fieldPlaceholder="__('placeholders.date')" />
             </div>
             <div class="col-md-12">
                 <x-forms.email fieldId="email" :fieldLabel="__('app.email')" fieldName="email"
@@ -31,7 +21,7 @@
             <div class="col-md-12">
                 <x-forms.text class="mb-3" fieldId="company_name"
                     :fieldLabel="__('modules.client.companyName')" fieldName="company_name"
-                    fieldPlaceholder="e.g. Space X" :fieldValue="$lead->company_name ?? ''"></x-forms.text>
+                    :fieldPlaceholder="__('placeholders.company')" :fieldValue="$lead->company_name ?? ''"></x-forms.text>
             </div>
             <div class="col-md-12">
                 <div class="form-group my-3">
@@ -62,13 +52,6 @@
         setTimeout(function () {
             $('[data-toggle="popover"]').popover();
         }, 500);
-
-        datepicker('#date_of_birth', {
-            position: 'bl',
-            maxDate: new Date(),
-            ...datepickerConfig
-        });
-
     });
 
     $('#random_password').click(function() {
@@ -91,6 +74,9 @@
                         $('#client_list_id').html('<option value="">--</option>' +
                             response.teamData);
                         $('#client_list_id').selectpicker('refresh');
+                        $('#project_id').html(response.project);
+                        $('#project_id').selectpicker('refresh');
+
                     }
                     $(MODAL_DEFAULT).modal('hide');
                 }

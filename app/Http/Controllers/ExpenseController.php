@@ -74,7 +74,7 @@ class ExpenseController extends AccountBaseController
         || ($this->viewPermission == 'added' && $this->expense->added_by == user()->id)
         || ($viewProjectPermission == 'owned' || $this->expense->user_id == user()->id)));
 
-        if (!empty($this->expense->getCustomFieldGroupsWithFields())) {
+        if ($this->expense->getCustomFieldGroupsWithFields()) {
             $this->fields = $this->expense->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -134,7 +134,7 @@ class ExpenseController extends AccountBaseController
 
         $expense = new Expense();
 
-        if (!empty($expense->getCustomFieldGroupsWithFields())) {
+        if ($expense->getCustomFieldGroupsWithFields()) {
             $this->fields = $expense->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -239,7 +239,7 @@ class ExpenseController extends AccountBaseController
 
         $expense = new Expense();
 
-        if (!empty($expense->getCustomFieldGroupsWithFields())) {
+        if ($expense->getCustomFieldGroupsWithFields()) {
             $this->fields = $expense->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -282,7 +282,10 @@ class ExpenseController extends AccountBaseController
             $expense->bill = $filename;
         }
 
-        $expense->status = $request->status;
+        if ($request->has('status')) {
+            $expense->status = $request->status;
+        }
+
         $expense->bank_account_id = $request->bank_account_id;
         $expense->save();
 
@@ -423,8 +426,8 @@ class ExpenseController extends AccountBaseController
                 $selected = $employee->id == $request->userId ? 'selected' : '';
                 $itsYou = $employee->id == user()->id ? "<span class='ml-2 badge badge-secondary pr-1'>". __('app.itsYou') .'</span>' : '';
 
-                $data .= 'data-content="<div class=\'d-inline-block mr-1\'><img class=\'taskEmployeeImg rounded-circle\' src=\'' . $employee->image_url . '\' ></div> '.ucfirst($employee->name).$itsYou.'"
-                value="' . $employee->id . '"'.$selected.'>'.ucfirst($employee->name).'</option>';
+                $data .= 'data-content="<div class=\'d-inline-block mr-1\'><img class=\'taskEmployeeImg rounded-circle\' src=\'' . $employee->image_url . '\' ></div> '.$employee->name.$itsYou.'"
+                value="' . $employee->id . '"'.$selected.'>'.$employee->name.'</option>';
 
             }
         }
@@ -434,17 +437,12 @@ class ExpenseController extends AccountBaseController
 
                 $selected = $manager->id == $request->userId ? 'selected' : '';
                 $itsYou = $manager->id == user()->id ? "<span class='ml-2 badge badge-secondary pr-1'>" . __('app.itsYou') . '</span>' : '';
-                $data .= 'data-content="<div class=\'d-inline-block mr-1\'><img class=\'taskEmployeeImg rounded-circle\' src=\'' . $manager->image_url . '\' ></div> '.ucfirst($manager->name).'"
-                value="' . $manager->id . '"'.$selected.'>'.ucfirst($manager->name).$itsYou.'</option>';
+                $data .= 'data-content="<div class=\'d-inline-block mr-1\'><img class=\'taskEmployeeImg rounded-circle\' src=\'' . $manager->image_url . '\' ></div> '.$manager->name.'"
+                value="' . $manager->id . '"'.$selected.'>'.$manager->name.$itsYou.'</option>';
             }
         }
 
         return Reply::dataOnly(['status' => 'success', 'employees' => $data]);
     }
 
-    public function getPurhcaseFromName(Request $request){
-
-        $results = Expense::where('purchase_from', 'LIKE', "%{$request->searchTerm}%")->groupBy('purchase_from')->limit(5)->get();
-        return response()->json($results);
-    }
 }

@@ -71,16 +71,18 @@ class PaymentReminder extends BaseNotification
     // phpcs:ignore
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
+
         $url = route('front.invoice', [$this->invoice->hash]);
         $paymentUrl = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('app.invoiceNumber') . ' : ' . ucfirst($this->invoice->invoice_number) . '<p>
+        $content = __('app.invoiceNumber') . ' : ' . $this->invoice->invoice_number . '<p>
             <b style="color: green">' . __('app.dueDate') . ' : ' . $this->invoice->due_date->format($this->company->date_format) . '</b>
         </p>';
 
-        return parent::build()
+        return $build
             ->subject(__('email.paymentReminder.subject') . ' - ' . config('app.name') . '.')
-            ->greeting(__('email.hello') . ' ' . mb_ucwords($this->user->name) . '!')
+            ->greeting(__('email.hello') . ' ' . $this->user->name . '!')
             ->markdown('mail.payment.reminder', [
                 'paymentUrl' => $paymentUrl,
                 'content' => $content,
@@ -119,7 +121,7 @@ class PaymentReminder extends BaseNotification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content('*' . __('email.paymentReminder.subject') . '*' . "\n" . __('app.invoice') . ' - ' . ucfirst($this->invoice->invoice_number));
+                ->content('*' . __('email.paymentReminder.subject') . '*' . "\n" . __('app.invoice') . ' - ' . $this->invoice->invoice_number);
         }
 
         return (new SlackMessage())
@@ -132,8 +134,8 @@ class PaymentReminder extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.paymentReminder.subject'))
-            ->body($this->invoice->heading);
+            ->setSubject(__('email.paymentReminder.subject'))
+            ->setBody($this->invoice->heading);
     }
 
 }

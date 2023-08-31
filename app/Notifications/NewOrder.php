@@ -50,6 +50,7 @@ class NewOrder extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
 
         if ($this->order) {
 
@@ -58,7 +59,7 @@ class NewOrder extends BaseNotification
             $subject = (!in_array('client', user_roles()) ? __('email.orders.subject') : __('email.order.subject'));
             $content = __('email.order.text');
 
-            return parent::build()
+            return $build
                 ->subject($subject . ' - ' . config('app.name') . '.')
                 ->markdown('mail.email', [
                     'url' => $url,
@@ -81,7 +82,8 @@ class NewOrder extends BaseNotification
     {
         return [
             'id' => $this->order->id,
-            'order_number' => $this->order->order_number
+            'order_number' => $this->order->order_number,
+            'client_id' => $this->order->client_id,
         ];
     }
 

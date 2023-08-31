@@ -13,6 +13,8 @@ class ProjectTemplatesDataTable extends BaseDataTable
     private $deleteProjectPermission;
     private $viewProjectPermission;
     private $addProjectPermission;
+    private $manageProjectTemplatePermission;
+    private $viewProjectTemplatePermission;
 
     public function __construct()
     {
@@ -97,7 +99,7 @@ class ProjectTemplatesDataTable extends BaseDataTable
                 return '<div class="media align-items-center">
                             <div class="media-body">
                                 <h5 class="mb-0 f-13 text-darkest-grey">
-                                    <a href="' . route('project-template.show', [$row->id]) . '">' . ucfirst($row->project_name) . '</a>
+                                    <a href="' . route('project-template.show', [$row->id]) . '">' . $row->project_name . '</a>
                                 </h5>
                             </div>
                         </div>';
@@ -176,7 +178,7 @@ class ProjectTemplatesDataTable extends BaseDataTable
                 'searchable' => false,
                 'visible' => !in_array('client', user_roles())
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('modules.projects.projectName') => ['data' => 'project_name', 'name' => 'project_name', 'title' => __('modules.projects.projectName')],
             __('modules.projects.members') => ['data' => 'members', 'name' => 'members', 'exportable' => false, 'width' => '25%', 'title' => __('modules.projects.members')],
             __('modules.projects.projectCategory') => ['data' => 'category_id', 'name' => 'category_id', 'title' => __('modules.projects.projectCategory')],
@@ -188,16 +190,6 @@ class ProjectTemplatesDataTable extends BaseDataTable
                 ->width(150)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Projects_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

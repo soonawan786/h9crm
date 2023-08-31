@@ -42,13 +42,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|ProductFiles whereSize($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProductFiles whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProductFiles whereUserId($value)
- * @mixin \Eloquent
  * @property int $product_id
  * @property-read \App\Models\Product $product
  * @method static \Illuminate\Database\Eloquent\Builder|ProductFiles whereProductId($value)
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ProductFiles whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ProductFiles extends BaseModel
 {

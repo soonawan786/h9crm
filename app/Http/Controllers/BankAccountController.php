@@ -449,7 +449,7 @@ class BankAccountController extends AccountBaseController
 
         foreach($period as $periodData){
             $months[$periodData->format('m-Y')] = [
-                'y' => $periodData->format('F'),
+                'y' => $periodData->translatedFormat('F'),
                 'a' => 0 ,
                 'b' => 0
             ];

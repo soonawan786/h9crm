@@ -42,11 +42,11 @@ class ProductSubCategoryController extends AccountBaseController
         $subCategory = '';
 
         foreach ($subCategoryData as $item) {
-            $subCategory .= '<option value='.$item->id.'>'.ucwords($item->category_name).'</option>';
+            $subCategory .= '<option value='.$item->id.'>'.$item->category_name.'</option>';
         }
 
         foreach ($categoryData as $data) {
-            $category .= '<option value='.$data->id.'>'.ucwords($data->category_name).'</option>';
+            $category .= '<option value='.$data->id.'>'.$data->category_name.'</option>';
         }
 
         return Reply::successWithData(__('messages.recordSaved'), ['data' => $category, 'subCategoryData' => $subCategory]);

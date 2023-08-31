@@ -10,6 +10,7 @@ use App\Models\EmailNotificationSetting;
 use App\Models\SuperAdmin\SupportTicket;
 use Illuminate\Notifications\Messages\SlackMessage;
 use NotificationChannels\OneSignal\OneSignalMessage;
+use NotificationChannels\OneSignal\OneSignalChannel;
 
 class NewSupportTicket extends BaseNotification
 {
@@ -17,6 +18,7 @@ class NewSupportTicket extends BaseNotification
 
     private $ticket;
     private $emailSetting;
+    private $pushNotification;
 
     public function __construct(SupportTicket $ticket)
     {
@@ -87,7 +89,7 @@ class NewSupportTicket extends BaseNotification
                 ->from(config('app.name'))
                 ->image(asset('storage/slack-logo/' . $slack->slack_logo))
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content('*' . __('email.newSupportTicket.subject') . '*' . "\n" . ucfirst($this->ticket->subject) . "\n" . __('modules.tickets.requesterName') . ' - ' . ucwords($this->ticket->requester->name));
+                ->content('*' . __('superadmin.newSupportTicket.subject') . '*' . "\n" . ucfirst($this->ticket->subject) . "\n" . __('modules.tickets.requesterName') . ' - ' . ucwords($this->ticket->requester->name));
         }
 
         return (new SlackMessage())

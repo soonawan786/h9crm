@@ -11,6 +11,7 @@ use App\Events\OrderCompletedEvent;
 use App\Models\CompanyAddress;
 use App\Models\OrderItemImage;
 use App\Events\OrderUpdatedEvent;
+use App\Models\OrderCart;
 use App\Scopes\ActiveScope;
 use App\Traits\UnitTypeSaveTrait;
 
@@ -37,12 +38,13 @@ class OrderObserver
         }
 
         if (!empty(request()->item_name)) {
-
             $itemsId = request()->item_ids;
             $itemsSummary = request()->item_summary;
             $cost_per_item = request()->cost_per_item;
             $hsn_sac_code = request()->hsn_sac_code;
             $quantity = request()->quantity;
+            $unitId = request()->unit_id;
+            $productId = request()->product_id;
             $amount = request()->amount;
             $tax = request()->taxes;
             $invoice_item_image_url = request()->invoice_item_image_url;
@@ -52,16 +54,17 @@ class OrderObserver
                     $orderItem = OrderItems::create(
                         [
                             'order_id' => $order->id,
-                            'product_id' => $itemsId[$key] ?? null,
                             'item_name' => $item,
                             'item_summary' => $itemsSummary[$key] ?: '',
                             'type' => 'item',
+                            'unit_id' => (isset($unitId[$key]) && !is_null($unitId[$key])) ? $unitId[$key] : null,
+                            'product_id' => (isset($productId[$key]) && !is_null($productId[$key])) ? $productId[$key] : null,
                             'hsn_sac_code' => (isset($hsn_sac_code[$key])) ? $hsn_sac_code[$key] : null,
                             'quantity' => $quantity[$key],
                             'unit_price' => round($cost_per_item[$key], 2),
                             'amount' => round($amount[$key], 2),
-                            'taxes' => $tax ? array_key_exists($key, $tax) ? json_encode($tax[$key]) : null : null
-                        ]
+                            'taxes' => ($tax ? (array_key_exists($key, $tax) ? json_encode($tax[$key]) : null) : null)
+                            ]
                     );
 
                     // Save order image url
@@ -76,24 +79,25 @@ class OrderObserver
 
                 }
 
+                if (in_array('client', user_roles())) {
+                    OrderCart::where('client_id', user()->id)->where('product_id', $itemsId[$key])->delete();
+                }
+
             endforeach;
+
         }
 
-        if ($order->client_id != null) {
             // Notify client
             $notifyUser = User::withoutGlobalScope(ActiveScope::class)->findOrFail($order->client_id);
 
-            if (request()->type && request()->type == 'send') {
-                event(new NewOrderEvent($order, $notifyUser));
-            }
+        if (request()->type && request()->type == 'send') {
+            event(new NewOrderEvent($order, $notifyUser));
         }
 
     }
 
     public function saving(Order $order)
     {
-        $this->unitType($order);
-
         if (!isRunningInConsoleOrSeeding()) {
 
             if (is_null($order->company_address_id)) {
@@ -110,14 +114,15 @@ class OrderObserver
 
             $clientId = $order->client_id ?: $order->added_by;
 
-            // Notify client
-            $notifyUser = User::withoutGlobalScope(ActiveScope::class)->findOrFail($clientId);
+                // Notify client
+                $notifyUser = User::withoutGlobalScope(ActiveScope::class)->findOrFail($clientId);
 
 
             if($order->status=='completed'){
                 event(new OrderCompletedEvent($order, $notifyUser));
             }
-            event(new OrderUpdatedEvent($order, $notifyUser));
+                event(new OrderUpdatedEvent($order, $notifyUser));
+
         }
 
     }
@@ -128,10 +133,12 @@ class OrderObserver
         $notificationModel = ['App\Notifications\NewOrder'];
         Notification::whereIn('type', $notificationModel)
             ->whereNull('read_at')
-            ->where(function ($q) use ($order) {
-                $q->where('data', 'like', '{"id":' . $order->id . ',%');
-                $q->orWhere('data', 'like', '%,"task_id":' . $order->id . ',%');
-            })->delete();
+            ->where(
+                function ($q) use ($order) {
+                    $q->where('data', 'like', '{"id":' . $order->id . ',%');
+                    $q->orWhere('data', 'like', '%,"task_id":' . $order->id . ',%');
+                }
+            )->delete();
     }
 
 }

@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Payment;
 
 use App\Models\Company;
+use App\Traits\MakePaymentTrait;
+use Froiden\RestAPI\Exceptions\RelatedResourceNotFoundException;
+use Illuminate\Http\JsonResponse;
 use Stripe\Stripe;
 use Stripe\Webhook;
 use App\Models\Order;
@@ -16,9 +19,13 @@ use Stripe\Exception\SignatureVerificationException;
 class StripeWebhookController extends Controller
 {
 
-    use MakeOrderInvoiceTrait;
+    use MakeOrderInvoiceTrait, MakePaymentTrait;
 
-    public function getWebhook(Request $request, $companyHash = null)
+    /**
+     * @param $companyHash
+     * @return JsonResponse
+     */
+    public function getWebhook($companyHash = null)
     {
         if (!$companyHash) {
             return response()->json([
@@ -39,6 +46,9 @@ class StripeWebhookController extends Controller
         ]);
     }
 
+    /**
+     * @throws RelatedResourceNotFoundException
+     */
     public function verifyStripeWebhook(Request $request, $companyHash)
     {
 
@@ -65,11 +75,7 @@ class StripeWebhookController extends Controller
         $sig_header = $_SERVER['HTTP_STRIPE_SIGNATURE'];
 
         try {
-            Webhook::constructEvent(
-                $payload,
-                $sig_header,
-                $endpoint_secret
-            );
+            Webhook::constructEvent($payload, $sig_header, $endpoint_secret);
         } catch (\UnexpectedValueException $e) {
             // Invalid payload
             return response(__('messages.invalidPayload'), 400);
@@ -79,30 +85,28 @@ class StripeWebhookController extends Controller
         }
 
         $payload = json_decode($request->getContent(), true);
-
         $eventId = $payload['id'];
         $intentId = $payload['data']['object']['id'];
 
         if ($payload['data']['object']['status'] != 'succeeded') {
             $this->paymentFailed($payload);
-
             return response(__('messages.paymentFailed'), 400);
         }
 
         // Do something with $event
         if ($payload['type'] == 'payment_intent.succeeded') {
 
-            $previousClientPayment = Payment::where('payload_id', $intentId)
+            $prevClientPayment = Payment::where('payload_id', $intentId)
                 ->whereNull('event_id')
                 ->first();
 
-            if ($previousClientPayment) {
-                /* Found payment with same trasaction id */
-                $previousClientPayment->event_id = $eventId;
-                $previousClientPayment->save();
+            if ($prevClientPayment) {
+                /* Found payment with same transaction id */
+                $prevClientPayment->event_id = $eventId;
+                $prevClientPayment->save();
             }
             else {
-                /* Found nothing on payment table with same trasaction id */
+                /* Found nothing on payment table with same transaction id */
 
                 /* If it is an invoice payment */
                 if (isset($payload['data']['object']['metadata']['invoice_id'])) {
@@ -110,23 +114,20 @@ class StripeWebhookController extends Controller
 
                     $invoice = Invoice::findOrFail($invoiceId);
                     $currencyId = $invoice->currency_id;
-                };
+                }
 
                 /* If it is an order payment */
                 if (isset($payload['data']['object']['metadata']['order_id'])) {
                     $orderId = $payload['data']['object']['metadata']['order_id'];
-
                     $order = Order::findOrFail($orderId);
-
                     $invoice = $this->makeOrderInvoice($order);
-
                     $invoiceId = $invoice->id;
                     $currencyId = $order->currency_id;
                 }
 
                 /* Make payment */
                 if (isset($invoice) && isset($currencyId) && isset($invoiceId)) {
-                    $this->makePayment($payload, $invoice, $currencyId, $invoiceId);
+                    $this->makePayment('Stripe', $payload['data']['object']['amount'] / 100, $invoice, $payload['data']['object']['id'], 'complete');
                 }
 
                 /* Change invoice status */
@@ -146,26 +147,9 @@ class StripeWebhookController extends Controller
         return response(__('messages.webhookHandled'), 200);
     }
 
-    public function makePayment($payload, $invoice, $currencyId, $invoiceId)
-    {
-        $eventId = $payload['id'];
-        $amount = $payload['data']['object']['amount'];
-        $projectId = isset($payload['data']['object']['metadata']['invoice_id']) ? $invoice->project_id : null;
-        $orderId = $payload['data']['object']['metadata']['order_id'] ?? null;
-
-        $payment = new Payment();
-        $payment->project_id = $projectId;
-        $payment->invoice_id = $invoiceId;
-        $payment->order_id = $orderId;
-        $payment->currency_id = $currencyId;
-        $payment->amount = $amount / 100;
-        $payment->event_id = $eventId;
-        $payment->gateway = 'Stripe';
-        $payment->paid_on = now();
-        $payment->status = 'complete';
-        $payment->save();
-    }
-
+    /**
+     * @throws RelatedResourceNotFoundException
+     */
     public function paymentFailed($payload)
     {
         $intentId = $payload['data']['object']['id'];

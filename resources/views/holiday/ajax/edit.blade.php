@@ -1,9 +1,9 @@
 <div class="row">
     <div class="col-sm-12">
-        <x-form id="save-holiday-data-form" method="put">
+        <x-form id="save-holiday-data-form" method="PUT">
             <div class="add-client bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
-                    @lang('app.edit') @lang('app.menu.holiday')</h4>
+                    @lang('app.menu.editHoliday')</h4>
                 <div class="row p-20">
 
                     <div class="col-lg-6">
@@ -16,7 +16,7 @@
                         <div class="form-group my-3">
                             <x-forms.text :fieldLabel="__('modules.holiday.occasion')" fieldName="occassion"
                                 fieldId="occassion" :fieldPlaceholder="__('modules.holiday.occasion')"
-                                :fieldValue="$holiday->occassion" />
+                                :fieldValue="$holiday->occassion" fieldRequired="true" />
                         </div>
                     </div>
 

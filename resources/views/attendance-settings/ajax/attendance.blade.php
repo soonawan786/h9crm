@@ -80,7 +80,7 @@
                     <div id="insertBefore"></div>
                     <div class="clearfix"></div>
                     <a href="javascript:;" id="plusButton" class="text-capitalize"><i class="f-12 mr-2 fa fa-plus"></i>
-                        @lang('app.add') @lang('modules.attendance.ipAddress') </a>
+                        @lang('modules.addIpAddress') </a>
                 </div>
 
                 <div class="col-lg-12 mb-1">
@@ -123,6 +123,7 @@
             <x-forms.number class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.attendance.ReminderAfterMinutes')" fieldName="alert_after"
                 fieldId="alert_after" :fieldValue="$attendanceSetting->alert_after" fieldRequired="true" />
         </div>
+
     </div>
 </div>
 <!-- Buttons Start -->

@@ -5,7 +5,7 @@
     <!-- SETTINGS START -->
     <div class="w-100 d-flex ">
 
-        <x-setting-sidebar :activeMenu="$activeSettingMenu"/>
+        @include('sections.setting-sidebar')
 
         <x-setting-card>
             <x-slot name="header">
@@ -141,7 +141,7 @@
         primary.insertAdjacentHTML('beforeend', `
     <li class="-more bg-grey">
         <button type="button" class="px-4 h-100 w-100 d-lg-flex d-md-flex align-items-center justify-content-center py-3" aria-haspopup="true" aria-expanded="false">
-        More <span>&darr;</span>
+        @lang('app.more') <span>&darr;</span>
         </button>
         <ul class="-secondary" id="hide-project-menues">
         ${primary.innerHTML}

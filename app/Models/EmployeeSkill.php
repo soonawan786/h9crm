@@ -24,10 +24,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|EmployeeSkill whereSkillId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|EmployeeSkill whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|EmployeeSkill whereUserId($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|EmployeeSkill whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class EmployeeSkill extends BaseModel
 {

@@ -37,7 +37,7 @@ class ClientNoteController extends AccountBaseController
     public function create()
     {
         abort_403(!in_array(user()->permission('add_client_note'), ['all', 'added', 'both']));
-        $this->pageTitle = __('app.add') . ' ' . __('app.client') . ' ' . __('app.note');
+        $this->pageTitle = __('app.addClientNote');
         $this->clientId = request('client');
         $projectMember = [];
 
@@ -160,7 +160,7 @@ class ClientNoteController extends AccountBaseController
     public function edit($id)
     {
 
-        $this->pageTitle = __('app.edit') . ' ' . __('app.client') . ' ' . __('app.note');
+        $this->pageTitle = __('app.editClientNote');
 
         $this->note = ClientNote::findOrFail($id);
         $editClientNotePermission = user()->permission('view_client_note');

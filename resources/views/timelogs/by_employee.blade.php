@@ -1,19 +1,21 @@
 @extends('layouts.app')
 
+@push('datatable-styles')
+    <link rel="stylesheet" href="{{ asset('vendor/css/daterangepicker.css') }}">
+@endpush
+
 @section('filter-section')
+
 
     <x-filters.filter-box>
         <!-- DATE START -->
-        <div class="select-box d-flex pr-2 border-right-grey border-right-grey-sm-0">
+         <div class="select-box d-flex pr-2 border-right-grey border-right-grey-sm-0">
             <p class="mb-0 pr-2 f-14 text-dark-grey d-flex align-items-center">@lang('app.duration')</p>
-            <div class="input-group input-daterange">
-                <input type="text"
-                    class="position-relative text-dark date-range-field form-control border-0 p-0 text-left f-14 f-w-500"
-                    id="start-date" placeholder="@lang('app.startDate')"
-                    value="{{ $startDate->format(company()->date_format) }}">
-                <div class="input-group-addon datePickerInput d-flex align-items-center pr-3">@lang('app.to')</div>
-                <input type="text" class="date-range-field1 text-dark form-control border-0 p-0 text-left f-14 f-w-500"
-                    id="end-date" placeholder="@lang('app.endDate')" value="{{ $endDate->format(company()->date_format) }}">
+            <div class="select-status d-flex">
+                <input type="text" class="position-relative text-dark form-control border-0 p-2 text-left f-14 f-w-500 border-additional-grey"
+                       id="datatableRange" placeholder="@lang('placeholders.dateRange')"/>
+                       <input type="hidden" id="start-date" value="{{$startDate}}">
+                       <input type="hidden" id="end-date" value="{{$endDate}}">
             </div>
         </div>
         <!-- DATE END -->
@@ -68,7 +70,7 @@
                             data-size="8" data-container="body">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($projects as $project)
-                                <option value="{{ $project->id }}">{{ mb_ucwords($project->project_name) }}</option>
+                                <option value="{{ $project->id }}">{{ $project->project_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -136,16 +138,7 @@ $addTimelogPermission = user()->permission('add_timelogs');
             </div>
 
             <div class="btn-group" role="group">
-                <a href="{{ route('timelogs.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
-                    data-original-title="@lang('app.menu.timeLogs')"><i class="side-icon bi bi-list-ul"></i></a>
-
-                <a href="{{ route('timelog-calendar.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
-                    data-original-title="@lang('app.menu.calendar')"><i class="side-icon bi bi-calendar"></i></a>
-
-                <a href="{{ route('timelogs.by_employee') }}" class="btn btn-secondary f-14 btn-active"
-                    data-toggle="tooltip" data-original-title="@lang('app.employee') @lang('app.menu.timeLogs')"><i
-                        class="side-icon bi bi-person"></i></i></a>
-
+                @include('timelogs.timelog-menu')
             </div>
         </div>
         <!-- Add Task Export Buttons End -->
@@ -158,43 +151,53 @@ $addTimelogPermission = user()->permission('add_timelogs');
     <!-- CONTENT WRAPPER END -->
 
 @endsection
-
 @push('scripts')
+<script src="{{ asset('vendor/jquery/daterangepicker.min.js') }}"></script>
 
     <script>
-        const dp1 = datepicker('.date-range-field', {
-            position: 'bl',
-            dateSelected: new Date("{{ str_replace('-', '/', $startDate) }}"),
-            onSelect: (instance, date) => {
-                $('#reset-filters').removeClass('d-none');
-                dp2.setMin(date);
-                showTable();
-            },
-            ...datepickerConfig
-        });
+        $(function() {
+            var start = moment().subtract(89, 'days');
+            var end = moment();
 
-        const dp2 = datepicker('.date-range-field1', {
-            position: 'bl',
-            dateSelected: new Date("{{ str_replace('-', '/', $endDate) }}"),
-            onSelect: (instance, date) => {
-                $('#reset-filters').removeClass('d-none');
-                dp1.setMax(date);
-                showTable();
-            },
-            ...datepickerConfig
+            $('#datatableRange').daterangepicker({
+                autoUpdateInput: false,
+                locale: daterangeLocale,
+                linkedCalendars: false,
+                startDate: start,
+                endDate: end,
+                ranges: daterangeConfig
+            }, cb2);
+
+            $('#datatableRange').on('apply.daterangepicker', (event, picker) => {
+                cb2(picker.startDate, picker.endDate);
+                $('#datatableRange').val(picker.startDate.format('{{ companyOrGlobalSetting()->moment_date_format }}') +
+                    ' @lang("app.to") ' + picker.endDate.format(
+                        '{{ companyOrGlobalSetting()->moment_date_format }}'));
+                    showTable()
+            });
+
+            function cb2(start, end) {
+                $('#datatableRange').val(start.format('{{ companyOrGlobalSetting()->moment_date_format }}') +
+                    ' @lang("app.to") ' + end.format(
+                        '{{ companyOrGlobalSetting()->moment_date_format }}'));
+            }
+
         });
 
         function showTable() {
-            var startDate = $('#start-date').val();
+            const dateRangePicker = $('#datatableRange').data('daterangepicker');
 
-            if (startDate == '') {
+            let startDate = $('#datatableRange').val();
+            let endDate;
+
+            if (startDate === '') {
                 startDate = null;
-            }
-
-            var endDate = $('#end-date').val();
-
-            if (endDate == '') {
                 endDate = null;
+            } else {
+                startDate = dateRangePicker.startDate.format('{{ company()->moment_date_format }}');
+                endDate = dateRangePicker.endDate.format('{{ company()->moment_date_format }}');
+                $('#start-date').val(startDate);
+                $('#end-date').val(endDate);
             }
 
             var projectID = $('#project_id').val();
@@ -395,5 +398,15 @@ $addTimelogPermission = user()->permission('add_timelogs');
         });
 
         showTable();
+
+        $(document).ready(function () {
+
+            $('#datatableRange').val('{{ $startDate }}' +
+            ' @lang("app.to") ' + '{{ $endDate }}');
+            $('#datatableRange').data('daterangepicker').setStartDate("{{ $startDate }}");
+            $('#datatableRange').data('daterangepicker').setEndDate("{{ $endDate }}");
+            showTable();
+
+        });
     </script>
 @endpush

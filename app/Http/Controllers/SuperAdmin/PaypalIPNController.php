@@ -20,7 +20,7 @@ class PaypalIPNController extends Controller
     // phpcs:ignore
     public function verifyBillingIPN(Request $request)
     {
-        info('Paypal IPN called');
+
         $txnType = $request->get('txn_type');
 
         if ($txnType == 'recurring_payment') {

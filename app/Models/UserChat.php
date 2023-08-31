@@ -7,6 +7,8 @@ use App\Traits\HasCompany;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 
@@ -39,16 +41,23 @@ use Illuminate\Support\Facades\DB;
  * @method static Builder|UserChat whereUpdatedAt($value)
  * @method static Builder|UserChat whereUserId($value)
  * @method static Builder|UserChat whereUserOne($value)
- * @mixin \Eloquent
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\UserchatFile[] $files
  * @property-read int|null $files_count
  * @method static \Database\Factories\UserChatFactory factory(...$parameters)
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static Builder|UserChat whereCompanyId($value)
+ * @method static Builder|UserChat whereNotificationSent($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionProject
+ * @property-read int|null $mention_project_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @property-read int|null $mention_user_count
+ * @mixin \Eloquent
  */
 class UserChat extends BaseModel
 {
+
+    use HasCompany;
     use HasFactory;
 
     protected $table = 'users_chat';
@@ -171,6 +180,16 @@ class UserChat extends BaseModel
 
         return null;
 
+    }
+
+    public function mentionUser(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'mention_users')->withoutGlobalScope(ActiveScope::class)->using(MentionUser::class);
+    }
+
+    public function mentionProject(): HasMany
+    {
+        return $this->hasMany(MentionUser::class, 'project_id');
     }
 
 }

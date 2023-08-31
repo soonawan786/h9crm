@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\UnitType;
+use App\Traits\HasCompany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -51,10 +52,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|ProposalTemplate whereSubTotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProposalTemplate whereTotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProposalTemplate whereUpdatedAt($value)
+ * @property-read UnitType|null $units
+ * @method static \Illuminate\Database\Eloquent\Builder|ProposalTemplate whereUnitId($value)
+ * @property-read \App\Models\Company|null $company
  * @mixin \Eloquent
  */
 class ProposalTemplate extends BaseModel
 {
+
+    use HasCompany;
 
     protected $table = 'proposal_templates';
 

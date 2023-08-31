@@ -33,13 +33,13 @@
 
     <!-- NAVBAR LEFT(MOBILE MENU COLLAPSE) END-->
     <!-- NAVBAR RIGHT(SEARCH, ADD, NOTIFICATION, LOGOUT) START-->
-    <div class="page-header-right float-right d-flex align-items-center">
+    <div class="page-header-right float-right d-flex align-items-center justify-content-end">
 
-        @if(isset($selfActiveTimer))
-            <span id="timer-clock">
+        <span id="timer-clock">
+            @if(isset($selfActiveTimer))
                 @include('sections.timer_clock', ['selfActiveTimer' => $selfActiveTimer])
-            </span>
-        @endif
+            @endif
+        </span>
 
         {{-- WORKSUITESAAS --}}
         @if(isWorksuiteSaas())
@@ -50,16 +50,25 @@
             @endif
 
             {{-- WORKSUITESAAS --}}
-            @if (in_array(company()->package->default, ['yes', 'trial']) && in_array('admin', user_roles()))
+            @if (in_array(company()->package->default, ['yes']) && in_array('admin', user_roles()))
                 <a href="{{ route('billing.upgrade_plan') }}" class='btn-primary btn btn-sm rounded mr-3 f-12 py-2 px-3' data-toggle="tooltip" data-original-title="{{ __('superadmin.packages.upgradePlan') }}" >
                     <i class="bi bi-stars"></i>
                     @if (is_null($selfActiveTimer)) {{ __('superadmin.packages.upgradePlan') }} @endif
+                </a>
+            @elseif (in_array(company()->package->default, ['trial']) && in_array('admin', user_roles()))
+                <a href="{{ route('billing.upgrade_plan') }}" class='btn-light border btn btn-sm rounded mr-3 f-12 py-2 px-3 font-weight-semibold d-none d-lg-block' data-toggle="tooltip" data-original-title="{{ __('superadmin.packages.upgradePlan') }}" >
+                    @php
+                        $daysLeftInTrial = now(company()->timezone)->diffInDays(\Carbon\Carbon::parse(company()->licence_expire_on)->addDays(1), false);
+                    @endphp
+                    <i @class(['bi bi-circle-fill', 'text-success' => ($daysLeftInTrial >= 0), 'text-danger' => ($daysLeftInTrial < 0)])></i>
+                    @if (is_null($selfActiveTimer)) {{ ($daysLeftInTrial > 0) ? $daysLeftInTrial . ' ' . __('superadmin.packages.daysLeftTrial') : __('superadmin.packages.trialExpired') }} @endif
                 </a>
             @endif
 
         @endif
 
         <ul>
+        @if (checkCompanyPackageIsValid(user()->company_id))
             <!-- SEARCH START -->
             <li data-toggle="tooltip" data-placement="top" title="{{__('app.search')}}" class="d-none d-sm-block">
                 <div class="d-flex align-items-center">
@@ -120,7 +129,7 @@
                                 <a class="dropdown-item f-14 text-dark openRightModal"
                                    href="{{ route('projects.create') }}">
                                     <i class="fa fa-plus f-w-500 mr-2 f-11"></i>
-                                    @lang('app.add') @lang('app.project')
+                                    @lang('app.addProject')
                                 </a>
                             @endif
 
@@ -128,7 +137,7 @@
                                 <a class="dropdown-item f-14 text-dark openRightModal"
                                    href="{{ route('tasks.create') }}">
                                     <i class="fa fa-plus f-w-500 mr-2 f-11"></i>
-                                    @lang('app.add') @lang('app.task')
+                                    @lang('app.addTask')
                                 </a>
                             @endif
 
@@ -136,7 +145,7 @@
                                 <a class="dropdown-item f-14 text-dark openRightModal"
                                    href="{{ route('clients.create') }}">
                                     <i class="fa fa-plus f-w-500 mr-2 f-11"></i>
-                                    @lang('app.add') @lang('app.client')
+                                    @lang('app.addClient')
                                 </a>
                             @endif
 
@@ -144,7 +153,7 @@
                                 <a class="dropdown-item f-14 text-dark openRightModal"
                                    href="{{ route('employees.create') }}">
                                     <i class="fa fa-plus f-w-500 mr-2 f-11"></i>
-                                    @lang('app.add') @lang('app.employee')
+                                    @lang('app.addEmployee')
                                 </a>
                             @endif
 
@@ -160,14 +169,7 @@
                                 <a class="dropdown-item f-14 text-dark openRightModal"
                                    href="{{ route('tickets.create') }}">
                                     <i class="fa fa-plus f-w-500 mr-2 f-11"></i>
-                                    @lang('app.add') @lang('modules.tickets.ticket')
-                                </a>
-                            @endif
-                            @if (in_array('invoices', user_modules()) && (user()->permission('add_invoices') == 'all'))
-                                <a class="dropdown-item f-14 text-dark openRightModal"
-                                   href="{{ route('invoices.create') }}">
-                                    <i class="fa fa-plus f-w-500 mr-2 f-11"></i>
-                                    @lang('app.add') @lang('modules.invoices.invoice')
+                                    @lang('modules.tickets.addTicket')
                                 </a>
                             @endif
                         </div>
@@ -218,6 +220,8 @@
                     </div>
                 </div>
             </li>
+        @endif
+
             <!-- NOTIFICATIONS END -->
             <!-- LOGOUT START -->
             <li data-toggle="tooltip" data-placement="top" title="{{__('app.logout')}}">

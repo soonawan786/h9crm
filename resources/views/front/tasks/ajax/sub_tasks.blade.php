@@ -16,7 +16,7 @@
                     <div class="card-body pt-0">
                         <div class="d-flex flex-grow-1">
                             <p class="card-title f-14 mr-3 text-dark">
-                                {!! $subtask->status == 'complete' ? '<s>' . ucfirst($subtask->title) . '</s>' : ucfirst($subtask->title) !!}
+                                {!! $subtask->status == 'complete' ? '<s>' . $subtask->title . '</s>' : $subtask->title !!}
                             </p>
 
                         </div>

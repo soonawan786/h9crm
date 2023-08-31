@@ -120,7 +120,6 @@ class RazorpayWebhookController extends Controller
      */
     protected function paymentAuthorized(array $requestData)
     {
-        info('PAYMENT_AUTHORIZED');
         //
         // Order entity should be sent as part of the webhook payload
         //

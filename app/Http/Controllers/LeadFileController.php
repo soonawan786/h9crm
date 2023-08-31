@@ -19,10 +19,11 @@ class LeadFileController extends AccountBaseController
     /**
      * ManageLeadFileController constructor.
      */
+
     public function __construct()
     {
         parent::__construct();
-        $this->pageIcon = __('icon-people');
+        $this->pageIcon = 'icon-people';
         $this->pageTitle = 'app.menu.lead';
     }
 
@@ -31,6 +32,7 @@ class LeadFileController extends AccountBaseController
      *
      * @return \Illuminate\Http\Response
      */
+
     public function create()
     {
         $addPermission = user()->permission('add_lead_files');
@@ -76,6 +78,7 @@ class LeadFileController extends AccountBaseController
      * @param int $id
      * @return array|void
      */
+
     public function destroy(Request $request, $id)
     {
         $deletePermission = user()->permission('delete_lead_files');

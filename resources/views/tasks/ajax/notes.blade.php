@@ -24,7 +24,7 @@
             <div class="col-md-12 p-20 ">
                 <div class="media">
                     <img src="{{ user()->image_url }}" class="align-self-start mr-3 taskEmployeeImg rounded"
-                         alt="{{ mb_ucfirst(user()->name) }}">
+                         alt="{{ user()->name }}">
                     <div class="media-body bg-white">
                         <div class="form-group">
                             <div id="task-note"></div>
@@ -49,13 +49,13 @@
             <div class="card w-100 rounded-0 border-0 note">
                 <div class="card-horizontal">
                     <div class="card-img my-1 ml-0">
-                        <img src="{{ $note->user->image_url }}" alt="{{ mb_ucwords($note->user->name) }}">
+                        <img src="{{ $note->user->image_url }}" alt="{{ $note->user->name }}">
                     </div>
                     <div class="card-body border-0 pl-0 py-1">
                         <div class="d-flex flex-grow-1">
-                            <h4 class="card-title f-15 f-w-500 text-dark mr-3">{{ mb_ucwords($note->user->name) }}</h4>
+                            <h4 class="card-title f-15 f-w-500 text-dark mr-3">{{ $note->user->name }}</h4>
                             <p class="card-date f-11 text-lightest mb-0">
-                                {{ ucfirst($note->created_at->diffForHumans()) }}
+                                {{ $note->created_at->diffForHumans() }}
                             </p>
                             <div class="dropdown ml-auto note-action">
                                 <button
@@ -79,7 +79,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="card-text f-14 text-dark-grey text-justify ql-editor">{!! ucfirst($note->note) !!}
+                        <div class="card-text f-14 text-dark-grey text-justify ql-editor">{!! $note->note !!}
                         </div>
                     </div>
                 </div>
@@ -106,18 +106,22 @@
         $('#add-notes').closest('.row').removeClass('d-none');
     });
 
+    var atValues = @json($taskuserData);
 
     $(document).ready(function () {
 
         if (add_task_notes == "all" || add_task_notes == "added") {
-            quillImageLoad('#task-note');
+            quillMention(atValues, '#task-note');
         }
 
 
         $('#submit-note').click(function () {
             var note = document.getElementById('task-note').children[0].innerHTML;
             document.getElementById('task-note-text').value = note;
+            var mention_user_id = $('#task-note span[data-id]').map(function(){
+                return $(this).attr('data-id')
 
+            }).get();
             var token = '{{ csrf_token() }}';
 
             const url = "{{ route('task-note.store') }}";
@@ -132,6 +136,7 @@
                 data: {
                     '_token': token,
                     note: note,
+                    mention_user_id : mention_user_id,
                     taskId: '{{ $task->id }}'
                 },
                 success: function (response) {

@@ -61,12 +61,13 @@ class NewProductPurchaseRequest extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('invoices.show', $this->invoice->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('email.productPurchase.subject') . '<br>' . __('email.productPurchase.text') . ' ' . mb_ucwords($this->invoice->client->name) . '.';
+        $content = __('email.productPurchase.subject') . '<br>' . __('email.productPurchase.text') . ' ' . $this->invoice->client->name . '.';
 
-        return parent::build()
+        return $build
             ->subject(__('email.productPurchase.subject') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,
@@ -99,7 +100,7 @@ class NewProductPurchaseRequest extends BaseNotification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content(__('email.productPurchase.subject') . "\n" . __('email.productPurchase.text') . ' ' . mb_ucwords($this->invoice->client->name) . '.');
+                ->content(__('email.productPurchase.subject') . "\n" . __('email.productPurchase.text') . ' ' . $this->invoice->client->name . '.');
         }
 
         return (new SlackMessage())
@@ -112,8 +113,8 @@ class NewProductPurchaseRequest extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.productPurchase.subject'))
-            ->body('by ' . mb_ucwords($this->invoice->client->name));
+            ->setSubject(__('email.productPurchase.subject'))
+            ->setBody('by ' . $this->invoice->client->name);
     }
 
 }

@@ -3,7 +3,7 @@
 namespace App\Models\SuperAdmin;
 
 use App\Models\LanguageSetting;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\SuperAdmin\SignUpSetting
@@ -24,7 +24,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|SignUpSetting whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class SignUpSetting extends Model
+class SignUpSetting extends BaseModel
 {
 
     public function language()

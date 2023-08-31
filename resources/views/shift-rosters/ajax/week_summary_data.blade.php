@@ -1,4 +1,4 @@
-<div class="d-flex justify-content-between">
+<div class="row d-flex justify-content-between">
     <div>
         <div class='input-group'>
             <div class="input-group-prepend">
@@ -72,14 +72,16 @@
                                     @endif
                                 @elseif ($day == 'EMPTY')
                                     <button type="button" class="py-4 change-shift-week badge badge-light f-14 p-1 border w-100"  data-user-id="{{ $userId }}"
-                                        data-attendance-date="{{ $key2 }}"><i class="fa fa-plus-circle text-primary"></i></button>
+                                        data-attendance-date="{{ $key2 }}">
+                                        @if (in_array($manageEmployeeShifts, ['all']))
+                                        <i class="fa fa-plus-circle text-primary"></i>
+                                        @else
+                                        <i class="fa fa-ban text-red"></i>
+                                        @endif</button>
                                 @elseif ($day == 'Holiday')
-                                    <a href="javascript:;" data-toggle="tooltip" class="change-shift-week py-4 badge badge-light f-10 p-1 border border-primary w-100"
-                                        data-original-title="{{ $holidayOccasions[$key2] }}"
-                                        data-user-id="{{ $userId }}" data-attendance-date="{{ $key2 }}"><i
-                                            class="fa fa-star text-primary"></i>
-                                            {{ $holidayOccasions[$key2] }}
-                                        </a>
+                                <div data-toggle="tooltip" class=" py-4 badge badge-light f-10 p-1 border border-primary w-100"
+                                    data-original-title="@lang('modules.attendance.holiday')"> <i class="fa fa-star text-primary"></i>
+                                    {{ $holidayOccasions[$key2] }}</div>
                             @else
                                 {!! $day !!}
                             @endif

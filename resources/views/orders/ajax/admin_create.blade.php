@@ -15,13 +15,29 @@ $addProductPermission = user()->permission('add_product');
         <input type="hidden" name="type" value="send">
         <!-- CLIENT, PROJECT, GST, BILLING, SHIPPING ADDRESS START -->
         <div class="row px-lg-4 px-md-4 px-3 pt-3">
+            <!-- INVOICE NUMBER START -->
+            <div class="col-md-4 mb-4">
+                <div class="form-group mb-lg-0 mb-md-0 mb-4">
+                    <x-forms.label class="mb-12" fieldId="order_number" :fieldLabel="__('modules.orders.orderNumber')" fieldRequired="true">
+                    </x-forms.label>
+                    <x-forms.input-group>
+                        <x-slot name="prepend">
+                            <span
+                                class="input-group-text">{{ invoice_setting()->order_prefix }}{{ invoice_setting()->order_number_separator }}{{ $zero }}</span>
+                        </x-slot>
+                        <input type="text" name="order_number" id="order_number"
+                            class="form-control height-35 f-15" value="{{ is_null($lastOrder) ? 1 : $lastOrder }}">
+                    </x-forms.input-group>
+                </div>
+            </div>
+            <!-- INVOICE NUMBER END -->
             <!-- CLIENT START -->
-            <div class="col-md-4 mb-2">
+            <div class="col-md-4 mb-4">
                 <x-client-selection-dropdown :clients="$clients" :selected="null" />
             </div>
             <!-- CLIENT END -->
             <!-- BILLING ADDRESS START -->
-            <div class="col-md-4">
+            <div class="col-md-4 mb-4">
                 <div class="form-group c-inv-select mb-0">
                     <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
                         for="usr">@lang('modules.invoices.billingAddress')</label>
@@ -90,39 +106,49 @@ $addProductPermission = user()->permission('add_product');
                 </select>
             </div>
 
-            <div class="col-md-4">
-                <x-forms.label fieldId="unit_type_id" :fieldLabel="__('modules.unitType.unitType')" :fieldRequired="true" class="mt-0"></x-forms.label>
-                <select class="form-control select-picker" name="unit_type_id" id="unit_type_id">
-                    @foreach ($unit_types as $unit_type)
-                    <option @if($unit_type->default == 1) selected @endif value="{{ $unit_type->id }}">{{ ucwords($unit_type->unit_type) }}
-                    </option>
-                    @endforeach
-            </select>
-            </div>
             <input type="hidden" id="calculate_tax" value="after_discount">
         </div>
 
         <hr class="m-0 mt-2 border-top-grey">
 
-        <div class="d-flex px-4 py-3">
-            <div class="form-group">
+        <div class="row px-lg-4 px-md-4 px-3 py-3">
+            <div class="col-md-3 d-none product-category-filter">
+                <div class="form-group c-inv-select mb-4">
+                    <x-forms.input-group>
+                        <select class="form-control select-picker" name="category_id"
+                                id="product_category_id" data-live-search="true">
+                            <option value="">{{ __('app.select') . ' ' . __('app.product') . ' ' . __('app.category')  }}</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}">
+                                    {{ $category->category_name }}</option>
+                            @endforeach
+                        </select>
+                    </x-forms.input-group>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group c-inv-select mb-4">
                 <x-forms.input-group>
-                    <select class="form-control select-picker" data-live-search="true" data-size="8" id="add-products">
-                        <option value="">{{ __('app.select') . ' ' . __('app.product') }}</option>
+                    <select class="form-control select-picker" data-live-search="true" data-size="8" id="add-products" title="{{ __('app.menu.selectProduct') }}">
                         @foreach ($products as $item)
                             <option data-content="{{ $item->name }}" value="{{ $item->id }}">
                                 {{ $item->name }}</option>
                         @endforeach
                     </select>
+                    <x-slot name="preappend">
+                        <a href="javascript:;"
+                            class="btn btn-outline-secondary border-grey toggle-product-category"
+                            data-toggle="tooltip" data-original-title="{{ __('modules.productCategory.filterByCategory') }}"><i class="fa fa-filter"></i></a>
+                    </x-slot>
                     @if ($addProductPermission == 'all' || $addProductPermission == 'added')
                         <x-slot name="append">
-                            <a href="{{ route('products.create') }}" data-redirect-url="{{ url()->full() }}"
+                            <a href="{{ route('products.create') }}" data-redirect-url="no"
                                 class="btn btn-outline-secondary border-grey openRightModal"
                                 data-toggle="tooltip" data-original-title="{{ __('app.add').' '.__('modules.dashboard.newproduct') }}">@lang('app.add')</a>
                         </x-slot>
                     @endif
                 </x-forms.input-group>
-
+                </div>
             </div>
         </div>
 
@@ -232,38 +258,40 @@ $addProductPermission = user()->permission('add_product');
 <script>
     $(document).ready(function() {
 
-
-
-        const hsn_status = {{ $invoiceSetting->hsn_sac_code_show }};
-
-        changesProduct($('#unit_type_id').val());
-        $('#unit_type_id').change(function(e){
-            let unitTypeId = $(this).val();
-            changesProduct(unitTypeId);
+         $('.toggle-product-category').click(function() {
+            $('.product-category-filter').toggleClass('d-none');
         });
-        function changesProduct(id){
-            var url = "{{ route('orders.get_clients_data', ':id') }}",
-            url = url.replace(':id', id);
+
+        $('#product_category_id').on('change', function(){
+            var categoryId = $(this).val();
+            var url = "{{route('invoices.product_category', ':id')}}",
+            url = (categoryId) ? url.replace(':id', categoryId) : url.replace(':id', null);;
             $.easyAjax({
                 url : url,
                 type : "GET",
+                container: '#saveInvoiceForm',
+                blockUI: true,
                 success: function (response) {
                     if (response.status == 'success') {
                         var options = [];
                         var rData = [];
                         rData = response.data;
-                        $.each(rData, function (index, value) {
+                        $.each(rData, function(index, value) {
                             var selectData = '';
-                            selectData = '<option value="' + value.id + '">' + value.name + '</option>';
+                            selectData = '<option value="' + value.id + '">' + value.name +
+                                '</option>';
                             options.push(selectData);
                         });
-                        $('#add-products').html('<option value="" class="form-control" >{{ __('app.select') . ' ' . __('app.product') }}</option>' +
+                        $('#add-products').html(
+                            '<option value="" class="form-control" >{{ __('app.select') . ' ' . __('app.product') }}</option>' +
                             options);
                         $('#add-products').selectpicker('refresh');
                     }
                 }
             });
-        }
+        });
+
+        const hsn_status = {{ $invoiceSetting->hsn_sac_code_show }};
 
         $('#client_list_id').change(function() {
             var id = $(this).val();
@@ -310,7 +338,7 @@ $addProductPermission = user()->permission('add_product');
 
                         } else {
                             $('#client_billing_address').html(
-                                '<span class="text-lightest">@lang("messages.selectCustomerForBillingAddress")</span>'
+                                "<span class='text-lightest'>@lang('messages.selectCustomerForBillingAddress')</span>"
                             );
                         }
                     } else {

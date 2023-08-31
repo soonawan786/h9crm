@@ -35,7 +35,7 @@
         overflow-y: auto;
 
         @include media-breakpoint-down(md){
-            display: none;
+            // display: none;
         }
     }
 }    

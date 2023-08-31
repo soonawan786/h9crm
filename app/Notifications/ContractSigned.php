@@ -51,7 +51,7 @@ class ContractSigned extends BaseNotification
      */
     public function toMail($notifiable)
     {
-
+        $contract = parent::build();
         $publicUrlController = new ContractController();
         $pdfOption = $publicUrlController->downloadView($this->contract->id);
         $pdf = $pdfOption['pdf'];
@@ -59,14 +59,13 @@ class ContractSigned extends BaseNotification
 
         $content = new HtmlString(__('email.contractSign.text', ['contract' => '<strong>' . $this->contract->subject . '</strong>', 'client' => '<strong>' . $this->contractSign->full_name . '</strong>']));
 
-        $contract = parent::build();
         $contract->subject(__('email.contractSign.subject'))
             ->markdown('mail.email', [
                 'content' => $content,
                 'themeColor' => $this->company->header_color,
                 'notifiableName' => $notifiable->name
             ]);
-            
+
         $contract->attachData($pdf->output(), $filename . '.pdf');
 
         return $contract;

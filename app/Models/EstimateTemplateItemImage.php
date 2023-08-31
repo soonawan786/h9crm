@@ -6,6 +6,34 @@ use App\Traits\IconTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * App\Models\EstimateTemplateItemImage
+ *
+ * @property int $id
+ * @property int|null $company_id
+ * @property int $estimate_template_item_id
+ * @property string $filename
+ * @property string|null $hashname
+ * @property string|null $size
+ * @property string|null $external_link
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read mixed $file_url
+ * @property-read mixed $icon
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItemImage newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItemImage newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItemImage query()
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItemImage whereCompanyId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItemImage whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItemImage whereEstimateTemplateItemId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItemImage whereExternalLink($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItemImage whereFilename($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItemImage whereHashname($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItemImage whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItemImage whereSize($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItemImage whereUpdatedAt($value)
+ * @mixin \Eloquent
+ */
 class EstimateTemplateItemImage extends BaseModel
 {
     use IconTrait;

@@ -24,12 +24,23 @@ class StoreLeaveType extends CoreRequest
      */
     public function rules()
     {
-        return [
+        $rules = [
             'type_name' => 'required',
             'color' => 'required',
             'leave_number' => 'required',
             'monthly_limit' => 'required',
+            'gender' => 'required',
+            'marital_status' => 'required',
+            'department' => 'required',
+            'designation' => 'required',
+            'role' => 'required',
         ];
+
+        if(!is_null(request('effective_after'))){
+            $rules['effective_after'] = 'numeric|min:1';
+        }
+
+        return $rules;
     }
 
 }

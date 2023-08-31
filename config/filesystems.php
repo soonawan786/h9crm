@@ -72,6 +72,15 @@ return [
             'url' => env('AWS_URL'),
             'endpoint' => env('AWS_ENDPOINT'),
         ],
+        'aws_s3' => [
+            'driver' => 's3',
+            'key' => env('AWS_ACCESS_KEY_ID'),
+            'secret' => env('AWS_SECRET_ACCESS_KEY'),
+            'region' => env('AWS_DEFAULT_REGION'),
+            'bucket' => env('AWS_BUCKET'),
+            'url' => env('AWS_URL'),
+            'endpoint' => env('AWS_ENDPOINT'),
+        ],
         'digitalocean' => [
             'driver' => 's3',
             'key' => env('DIGITALOCEAN_SPACES_KEY'),
@@ -87,6 +96,15 @@ return [
             'region' => env('WASABI_DEFAULT_REGION', 'eu-central-1'),
             'bucket' => env('WASABI_BUCKET'),
             'endpoint' => env('WASABI_ENDPOINT', 'https://s3.wasabisys.com'),
+        ],
+        'minio' => [
+            'driver' => 's3',
+            'use_path_style_endpoint' => true,
+            'key' => env('MINIO_ACCESS_KEY_ID'),
+            'secret' => env('MINIO_SECRET_ACCESS_KEY'),
+            'region' => env('MINIO_DEFAULT_REGION', 'us-east-1'),
+            'bucket' => env('MINIO_BUCKET'),
+            'endpoint' => env('MINIO_ENDPOINT', ''),
         ],
         'storage' => [
             'driver' => 'local',

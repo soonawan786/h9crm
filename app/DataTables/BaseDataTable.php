@@ -25,7 +25,7 @@ class BaseDataTable extends DataTable
 
         return parent::builder()
             ->setTableId($table)
-            ->columns($this->getColumns())
+            ->columns($this->getColumns()) /** @phpstan-ignore-line */
             ->minifiedAjax()
             ->orderBy($orderBy)
             ->destroy(true)
@@ -36,6 +36,14 @@ class BaseDataTable extends DataTable
             ->processing()
             ->dom($this->domHtml)
             ->language($intl);
+    }
+
+    protected function filename(): string
+    {
+        // Remove DataTable from name
+        $filename = str()->snake(class_basename($this), '-');
+
+        return str_replace('data-table', '', $filename)  . now()->format('Y-m-d-H-i-s');
     }
 
 }

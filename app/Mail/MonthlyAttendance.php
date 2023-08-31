@@ -2,16 +2,16 @@
 
 namespace App\Mail;
 
+use Carbon\Carbon;
+use App\Models\User;
 use App\Models\Company;
 use App\Models\Holiday;
-use App\Models\User;
-use App\Notifications\BaseNotification;
-use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
-use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Mail\Mailables\Attachment;
+use Illuminate\Contracts\Queue\ShouldQueue;
 
 class MonthlyAttendance extends Mailable implements ShouldQueue
 {
@@ -35,6 +35,7 @@ class MonthlyAttendance extends Mailable implements ShouldQueue
         $this->month = $this->todayDate->copy()->month;
         $this->year = $this->todayDate->copy()->year;
         $this->company = $company;
+        Config::set('app.logo', $company->logo_url);
     }
 
     /**
@@ -80,6 +81,7 @@ class MonthlyAttendance extends Mailable implements ShouldQueue
             ->leftJoin('employee_details', 'employee_details.user_id', '=', 'users.id')
             ->select('users.id', 'users.name', 'users.email', 'users.created_at', 'employee_details.department_id', 'users.image')
             ->onlyEmployee()
+            ->where('users.company_id', $company->id)
             ->groupBy('users.id');
 
         $employees = $employees->get();
@@ -196,11 +198,11 @@ class MonthlyAttendance extends Mailable implements ShouldQueue
 
         $options = $pdf->getOptions();
         $options->set(array('enable_php' => true));
-        $pdf->getDomPDF()->setOptions($options);
+        $pdf->getDomPDF()->setOptions($options); /** @phpstan-ignore-line */
 
-        $pdf->loadView('attendance-report', ['daysInMonth' => $daysInMonth, 'month' => $this->month, 'year' => $this->year, 'weekMap' => $weekMap, 'employeeAttendence' => $employeeAttendence, 'holidayOccasions' => $holidayOccasions, 'company' => $company]);
+        $pdf->loadView('attendance-report', ['daysInMonth' => $daysInMonth, 'month' => $this->month, 'year' => $this->year, 'weekMap' => $weekMap, 'employeeAttendence' => $employeeAttendence, 'holidayOccasions' => $holidayOccasions, 'company' => $company]); /** @phpstan-ignore-line */
 
-        $dom_pdf = $pdf->getDomPDF();
+        $dom_pdf = $pdf->getDomPDF(); /** @phpstan-ignore-line */
         $canvas = $dom_pdf->getCanvas();
         $canvas->page_text(530, 820, 'Page {PAGE_NUM} of {PAGE_COUNT}', null, 10);
 

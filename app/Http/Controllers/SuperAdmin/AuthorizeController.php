@@ -24,6 +24,7 @@ class AuthorizeController extends AccountBaseController
 
         $package = Package::find($request->plan_id);
 
+
         /* Create a merchantAuthenticationType object with authentication details
            retrieved from the constants file */
         $merchantAuthentication = new AnetAPI\MerchantAuthenticationType();

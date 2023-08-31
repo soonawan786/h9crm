@@ -6,6 +6,7 @@ use App\Helper\Reply;
 use App\Http\Controllers\AccountBaseController;
 use App\Http\Requests\PaymentGateway\UpdateGatewayCredentials;
 use App\Models\Currency;
+use App\Models\GlobalSetting;
 use App\Models\OfflinePaymentMethod;
 use App\Models\SuperAdmin\GlobalPaymentGatewayCredentials;
 use App\Scopes\CompanyScope;
@@ -19,8 +20,7 @@ class PaymentGatewayCredentialController extends AccountBaseController
         $this->pageTitle = 'app.menu.paymentGatewayCredential';
         $this->activeSettingMenu = 'payment_gateway_settings';
         $this->middleware(function ($request, $next) {
-            abort_403(!user()->is_superadmin);
-
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_payment_settings'));
             return $next($request);
         });
     }

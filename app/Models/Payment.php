@@ -66,7 +66,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|Payment whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Payment whereTransactionId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Payment whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $order_id
  * @property string|null $payment_gateway_response null = success
  * @method static \Illuminate\Database\Eloquent\Builder|Payment completed()
@@ -81,6 +80,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Payment whereCompanyId($value)
+ * @property int|null $bank_account_id
+ * @property int|null $quickbooks_payment_id
+ * @property-read OfflinePaymentMethod|null $offlineMethods
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\BankTransaction> $transactions
+ * @property-read int|null $transactions_count
+ * @method static \Illuminate\Database\Eloquent\Builder|Payment whereBankAccountId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Payment whereDefaultCurrencyId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Payment whereExchangeRate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Payment whereQuickbooksPaymentId($value)
+ * @mixin \Eloquent
  */
 class Payment extends BaseModel
 {
@@ -89,14 +98,13 @@ class Payment extends BaseModel
 
     const FILE_PATH = 'payment-receipt';
 
-    protected $dates = ['paid_on'];
+    protected $casts = [
+        'paid_on' => 'datetime',
+        'payment_gateway_response' => 'object'
+    ];
 
     protected $appends = ['total_amount', 'paid_date', 'file_url'];
     protected $with = ['currency', 'order'];
-    // automatically handles json_encode, json_decode to php object
-    protected $casts = [
-        'payment_gateway_response' => 'object'
-    ];
 
     public function client()
     {

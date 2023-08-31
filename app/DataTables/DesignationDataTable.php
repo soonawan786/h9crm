@@ -40,7 +40,7 @@ class DesignationDataTable extends BaseDataTable
                 return '<input type="checkbox" class="select-table-row" id="datatable-row-' . $row->id . '"  name="datatable_ids[]" value="' . $row->id . '" onclick="dataTableRowCheck(' . $row->id . ')">';
             })
             ->editColumn('name', function ($row) {
-                $name = '<h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('designations.show', [$row->id]) . '" class="openRightModal">' . ucfirst($row->name) . '</a></h5>';
+                $name = '<h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('designations.show', [$row->id]) . '" class="openRightModal">' . $row->name . '</a></h5>';
 
                 return $name;
             })
@@ -98,7 +98,7 @@ class DesignationDataTable extends BaseDataTable
     }
 
     /**
-     * @param Holiday $model
+     * @param Designation $model
      * @return \Illuminate\Database\Query\Builder
      */
     public function query(Designation $model)
@@ -174,9 +174,9 @@ class DesignationDataTable extends BaseDataTable
                 'orderable' => false,
                 'searchable' => false
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.name') => ['data' => 'name', 'name' => 'name', 'exportable' => true, 'title' => __('app.name')],
-            __('app.menu.parent_id') => ['data' => 'parent_id', 'name' => 'parent_id', 'exportable' => true, 'title' => __('app.menu.parent_id') . ' ' . strtolower(__('app.menu.designation'))],
+            __('app.menu.parent_id') => ['data' => 'parent_id', 'name' => 'parent_id', 'exportable' => true, 'title' => __('app.menu.parent_id') . ' ' . __('app.menu.designation')],
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -184,16 +184,6 @@ class DesignationDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Designation_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

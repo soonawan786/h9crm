@@ -11,6 +11,14 @@
             max-width: {{ 100/count($packages) }}%;
             flex: 0 0 {{ 100/count($packages) }}%
         }
+
+        .package-contact-btn {
+            font-size: 12px;
+        }
+
+        .rate p {
+            font-size: 12px;
+        }
     </style>
     @endif
 @endpush
@@ -48,7 +56,6 @@
                                 <div class="price-top">
                                     <div class="price-top title">
                                         <h3>@lang('superadmin.pickUp') <br> @lang('superadmin.yourPlan')</h3>
-                                        {{--@lang('modules.frontCms.pickPlan')--}}
                                     </div>
                                     <div class="price-content">
 
@@ -82,12 +89,22 @@
                                                         <h5 class="mb-0">{{ ($item->name) }}</h5>
                                                     </div>
                                                     <div class="rate">
-                                                        <h2 class="mb-2">
+                                                        @if (!$item->is_free)
+                                                            <h2 class="mb-2">
 
-                                                            <span class="font-weight-bolder">{{ global_currency_format($item->annual_price, $global->currency->id) }}</span>
+                                                                <span class="font-weight-bolder">{{ global_currency_format($item->annual_price, $item->currency_id) }}</span>
 
-                                                        </h2>
-                                                        <p class="mb-0">@lang('superadmin.billedAnnually')</p>
+                                                            </h2>
+                                                            <p class="mb-0">@lang('superadmin.billedAnnually')</p>
+                                                        @else
+                                                            <h2 class="mb-2">
+
+                                                                <span class="font-weight-bolder">@lang('superadmin.packages.free')</span>
+
+                                                            </h2>
+                                                            <p class="mb-0">@lang('superadmin.packages.freeForever')</p>
+                                                        @endif
+                                                        
                                                     </div>
                                                 </div>
                                                 <div class="price-content">
@@ -141,7 +158,6 @@
                                     <div class="price-top">
                                         <div class="price-top title">
                                             <h3>@lang('superadmin.pickUp') <br> @lang('superadmin.yourPlan')</h3>
-                                            {{--@lang('modules.frontCms.pickPlan')--}}
                                         </div>
                                         <div class="price-content">
 
@@ -175,12 +191,21 @@
                                                             <h5 class="mb-0">{{ ($item->name) }}</h5>
                                                         </div>
                                                         <div class="rate">
-                                                            <h2 class="mb-2">
+                                                            @if (!$item->is_free)
+                                                                <h2 class="mb-2">
 
-                                                                <span class="font-weight-bolder">{{ global_currency_format($item->monthly_price, $global->currency->id) }}</span>
+                                                                    <span class="font-weight-bolder">{{ global_currency_format($item->monthly_price, $item->currency_id) }}</span>
 
-                                                            </h2>
-                                                            <p class="mb-0">@lang('superadmin.billedMonthly')</p>
+                                                                </h2>
+                                                                <p class="mb-0">@lang('superadmin.billedMonthly')</p>
+                                                            @else
+                                                                <h2 class="mb-2">
+
+                                                                    <span class="font-weight-bolder">@lang('superadmin.packages.free')</span>
+
+                                                                </h2>
+                                                                <p class="mb-0">@lang('superadmin.packages.freeForever')</p>
+                                                            @endif
                                                         </div>
                                                     </div>
                                                     <div class="price-content">
@@ -228,7 +253,7 @@
 
                             </div>
                         </div>
-                    </div>
+                </div>
             </div>
         </div>
     </section>

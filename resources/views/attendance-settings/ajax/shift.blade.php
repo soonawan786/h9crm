@@ -10,6 +10,8 @@ $manageShiftPermission = user()->permission('manage_employee_shifts');
             @if ($manageShiftPermission == 'all')
                 <th>&nbsp;</th>
                 <th class="text-right pr-20">@lang('app.action')</th>
+            @else
+                <th>&nbsp;</th>
             @endif
         </x-slot>
 
@@ -48,36 +50,41 @@ $manageShiftPermission = user()->permission('manage_employee_shifts');
                     </div>
                 </td>
                 @if ($manageShiftPermission == 'all')
-
-                        <td>
-                            <x-forms.radio fieldId="shift_{{ $shift->id }}" class="set_default_shift"
-                                data-shift-id="{{ $shift->id }}" :fieldLabel="__('app.default')" fieldName="set_default_shift"
-                                fieldValue="{{ $shift->id }}" :checked="$shift->id == attendance_setting()->default_employee_shift ? 'checked' : ''">
-                            </x-forms.radio>
-                        </td>
-                        <td class="text-right pr-20">
-                            <div class="task_view mb-1">
+                    <td>
+                        <x-forms.radio fieldId="shift_{{ $shift->id }}" class="set_default_shift"
+                            data-shift-id="{{ $shift->id }}" :fieldLabel="__('app.default')" fieldName="set_default_shift"
+                            fieldValue="{{ $shift->id }}" :checked="$shift->id == attendance_setting()->default_employee_shift ? 'checked' : ''">
+                        </x-forms.radio>
+                    </td>
+                    <td class="text-right pr-20">
+                        <div class="task_view mb-1">
+                            <a href="javascript:;" data-shift-id="{{ $shift->id }}"
+                                class="edit-shift task_view_more d-flex align-items-center justify-content-center" data-toggle="tooltip"
+                                data-original-title="@lang('app.edit')"> <i
+                                    class="fa fa-edit icons"></i>
+                            </a>
+                        </div>
+                        @if ($shift->id != attendance_setting()->default_employee_shift)
+                            <div class="task_view mt-1 mt-lg-0 mt-md-0">
                                 <a href="javascript:;" data-shift-id="{{ $shift->id }}"
-                                    class="edit-shift task_view_more d-flex align-items-center justify-content-center" data-toggle="tooltip"
-                                    data-original-title="@lang('app.edit')"> <i
-                                        class="fa fa-edit icons"></i>
+                                    class="delete-shift task_view_more d-flex align-items-center justify-content-center dropdown-toggle" data-toggle="tooltip"
+                                    data-original-title="@lang('app.delete')">
+                                    <i class="fa fa-trash icons"></i>
                                 </a>
                             </div>
-                            @if ($shift->id != attendance_setting()->default_employee_shift)
-                                <div class="task_view mt-1 mt-lg-0 mt-md-0">
-                                    <a href="javascript:;" data-shift-id="{{ $shift->id }}"
-                                        class="delete-shift task_view_more d-flex align-items-center justify-content-center dropdown-toggle" data-toggle="tooltip"
-                                        data-original-title="@lang('app.delete')">
-                                        <i class="fa fa-trash icons"></i>
-                                    </a>
-                                </div>
-                            @endif
-                        </td>
-                    @endif
-                </tr>
+                        @endif
+                    </td>
+                @elseif ($shift->shift_name == $defaultShift->shift_name)
+                    <td>
+                        @lang('app.defaultShift')
+                    </td>
+                @else
+                    <td>&nbsp;</td>
+                @endif
+            </tr>
         @empty
             <tr>
-                <td colspan="4">
+                <td colspan="5">
                     <x-cards.no-record icon="user" :message="__('messages.noAgentAdded')" />
                 </td>
             </tr>
@@ -97,8 +104,8 @@ $manageShiftPermission = user()->permission('manage_employee_shifts');
         var url = "{{ route('employee-shifts.edit', ':id') }}";
         url = url.replace(':id', shiftID);
 
-        $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
-        $.ajaxModal(MODAL_LG, url);
+        $(MODAL_XL + ' ' + MODAL_HEADING).html('...');
+        $.ajaxModal(MODAL_XL, url);
     });
 
     /* delete shift */

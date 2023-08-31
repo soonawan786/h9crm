@@ -54,13 +54,14 @@ class NewUserViaLink extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
 
         $url = route('employees.show', $this->new_user->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $content = __('email.newUserViaLink.text') . '<br>' . __('app.name') . ':- ' . $this->new_user->name . '<br>' . __('app.email') . ':- ' . $this->new_user->email;
 
-        return parent::build()
+        return $build
             ->subject(__('email.newUserViaLink.subject') . ' ' . config('app.name') . '.')
             ->markdown('mail.email', [
                 'url' => $url,

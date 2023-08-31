@@ -1,5 +1,5 @@
 <div class="modal-header">
-    <h5 class="modal-title">@lang('superadmin.footer.addFooterMenu') ( {{$langCode->language_name}} <span class='flag-icon flag-icon-{{ $langCode->language_code == 'en' ? 'gb' : strtolower($langCode->language_code) }} flag-icon-squared'></span> )</h5>
+    <h5 class="modal-title">@lang('superadmin.footer.addFooterMenu') ( {{$langCode->language_name}} <span class='flag-icon flag-icon-{{ $langCode->flag_code == 'en' ? 'gb' : strtolower($langCode->flag_code) }} flag-icon-squared'></span> )</h5>
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 </div>
 
@@ -23,7 +23,10 @@
                         <x-forms.text :fieldLabel="__('app.title')" fieldName="title" autocomplete="off"
                                       fieldId="title" fieldRequired="true"/>
                     </div>
-
+                    <div class="col-lg-6">
+                        <x-forms.text :fieldLabel="__('superadmin.slug')" fieldName="slug" autocomplete="off"
+                                      fieldId="slug" fieldRequired="true"/>
+                    </div>
                     <div class="col-lg-6">
                         <div class="form-group my-3">
                             <x-forms.label fieldId="content_type_desc"
@@ -181,5 +184,21 @@
         })
     });
 
+
+    $('#title').on('change', function () {
+        var title = $(this).val();
+        var csrf = "{{ csrf_token() }}";
+        $.easyAjax({
+            url: "{{ route('superadmin.front-settings.footer-settings.generate_slug') }}",
+            type: "POST",
+            data: {
+                title: title,
+                _token: csrf
+            },
+            success: function (response) {
+                $('#slug').val(response.slug);
+            }
+        })
+    });
     init('#createFooter');
 </script>

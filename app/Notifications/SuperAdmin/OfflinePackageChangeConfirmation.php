@@ -12,6 +12,7 @@ class OfflinePackageChangeConfirmation extends BaseNotification
 
     private $planChange;
     private $forCompany;
+
     /**
      * Create a new notification instance.
      *

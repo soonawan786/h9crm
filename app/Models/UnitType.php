@@ -11,6 +11,107 @@ use App\Models\ProposalTemplate;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * App\Models\UnitType
+ *
+ * @property int $id
+ * @property int|null $company_id
+ * @property string $unit_type
+ * @property int $default
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Company|null $company
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CreditNotes> $creditnoteitems
+ * @property-read int|null $creditnoteitems_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, EstimateItem> $estimateitems
+ * @property-read int|null $estimateitems_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EstimateTemplate> $estimatetemplate
+ * @property-read int|null $estimatetemplate_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, InvoiceItems> $invoicesItems
+ * @property-read int|null $invoices_items_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read int|null $orders_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalItem> $proposalitems
+ * @property-read int|null $proposalitems_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalTemplate> $proposaltemplate
+ * @property-read int|null $proposaltemplate_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\RecurringInvoice> $recurringInvoice
+ * @property-read int|null $recurring_invoice_count
+ * @method static \Illuminate\Database\Eloquent\Builder|UnitType newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|UnitType newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|UnitType query()
+ * @method static \Illuminate\Database\Eloquent\Builder|UnitType whereCompanyId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|UnitType whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|UnitType whereDefault($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|UnitType whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|UnitType whereUnitType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|UnitType whereUpdatedAt($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CreditNotes> $creditnoteitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, EstimateItem> $estimateitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EstimateTemplate> $estimatetemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, InvoiceItems> $invoicesItems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalItem> $proposalitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalTemplate> $proposaltemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\RecurringInvoice> $recurringInvoice
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CreditNotes> $creditnoteitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, EstimateItem> $estimateitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EstimateTemplate> $estimatetemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, InvoiceItems> $invoicesItems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalItem> $proposalitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalTemplate> $proposaltemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\RecurringInvoice> $recurringInvoice
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CreditNotes> $creditnoteitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, EstimateItem> $estimateitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EstimateTemplate> $estimatetemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, InvoiceItems> $invoicesItems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalItem> $proposalitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalTemplate> $proposaltemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\RecurringInvoice> $recurringInvoice
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CreditNotes> $creditnoteitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, EstimateItem> $estimateitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EstimateTemplate> $estimatetemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, InvoiceItems> $invoicesItems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalItem> $proposalitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalTemplate> $proposaltemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\RecurringInvoice> $recurringInvoice
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CreditNotes> $creditnoteitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, EstimateItem> $estimateitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EstimateTemplate> $estimatetemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, InvoiceItems> $invoicesItems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalItem> $proposalitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalTemplate> $proposaltemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\RecurringInvoice> $recurringInvoice
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CreditNotes> $creditnoteitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, EstimateItem> $estimateitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EstimateTemplate> $estimatetemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, InvoiceItems> $invoicesItems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalItem> $proposalitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalTemplate> $proposaltemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\RecurringInvoice> $recurringInvoice
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CreditNotes> $creditnoteitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, EstimateItem> $estimateitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EstimateTemplate> $estimatetemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, InvoiceItems> $invoicesItems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalItem> $proposalitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalTemplate> $proposaltemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\RecurringInvoice> $recurringInvoice
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\CreditNotes> $creditnoteitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, EstimateItem> $estimateitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\EstimateTemplate> $estimatetemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, InvoiceItems> $invoicesItems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Order> $orders
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalItem> $proposalitems
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, ProposalTemplate> $proposaltemplate
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\RecurringInvoice> $recurringInvoice
+ * @mixin \Eloquent
+ */
 class UnitType extends BaseModel
 {
     use HasCompany;

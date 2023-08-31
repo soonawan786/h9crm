@@ -9,6 +9,10 @@
         td .fa-times{
             color:red;
         }
+
+        input[type=radio].form-check-input  {
+            height: 15px;
+        }
     </style>
 @endpush
 
@@ -44,17 +48,23 @@
 @endsection
 
 @section('content')
+@php
+$addPackagesPermission = user()->permission('add_packages');
+$deletePackagesPermission = user()->permission('delete_packages');
+@endphp
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
         <div class="d-flex">
             <div id="table-actions" class="flex-grow-1 align-items-center">
+                @if($addPackagesPermission == 'all')
                 <x-forms.link-primary :link="route('superadmin.packages.create')" class="mr-3 float-left openRightModal"
                     icon="plus">
                     @lang('app.add')
                     @lang('app.new')
                     @lang('superadmin.package')
                 </x-forms.link-primary>
+                @endif
             </div>
         </div>
 
@@ -112,49 +122,51 @@
             showTable();
         });
 
-        $('body').on('click', '.delete-table-row', function() {
-            var id = $(this).data('order-id');
-            Swal.fire({
-                title: "@lang('messages.sweetAlertTitle')",
-                text: "@lang('messages.recoverRecord')",
-                icon: 'warning',
-                showCancelButton: true,
-                focusConfirm: false,
-                confirmButtonText: "@lang('messages.confirmDelete')",
-                cancelButtonText: "@lang('app.cancel')",
-                customClass: {
-                    confirmButton: 'btn btn-primary mr-3',
-                    cancelButton: 'btn btn-secondary'
-                },
-                showClass: {
-                    popup: 'swal2-noanimation',
-                    backdrop: 'swal2-noanimation'
-                },
-                buttonsStyling: false
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    var url = "{{ route('superadmin.packages.destroy', ':id') }}";
-                    url = url.replace(':id', id);
+        @if($deletePackagesPermission == 'all')
+            $('body').on('click', '.delete-table-row', function() {
+                var id = $(this).data('order-id');
+                Swal.fire({
+                    title: "@lang('messages.sweetAlertTitle')",
+                    text: "@lang('messages.recoverRecord')",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    focusConfirm: false,
+                    confirmButtonText: "@lang('messages.confirmDelete')",
+                    cancelButtonText: "@lang('app.cancel')",
+                    customClass: {
+                        confirmButton: 'btn btn-primary mr-3',
+                        cancelButton: 'btn btn-secondary'
+                    },
+                    showClass: {
+                        popup: 'swal2-noanimation',
+                        backdrop: 'swal2-noanimation'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var url = "{{ route('superadmin.packages.destroy', ':id') }}";
+                        url = url.replace(':id', id);
 
-                    var token = "{{ csrf_token() }}";
+                        var token = "{{ csrf_token() }}";
 
-                    $.easyAjax({
-                        type: 'POST',
-                        url: url,
-                        blockUI: true,
-                        data: {
-                            '_token': token,
-                            '_method': 'DELETE'
-                        },
-                        success: function(response) {
-                            if (response.status == "success") {
-                                showTable();
+                        $.easyAjax({
+                            type: 'POST',
+                            url: url,
+                            blockUI: true,
+                            data: {
+                                '_token': token,
+                                '_method': 'DELETE'
+                            },
+                            success: function(response) {
+                                if (response.status == "success") {
+                                    showTable();
+                                }
                             }
-                        }
-                    });
-                }
+                        });
+                    }
+                });
             });
-        });
+        @endif
 
 
     </script>

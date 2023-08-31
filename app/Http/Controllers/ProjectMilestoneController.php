@@ -160,7 +160,7 @@ class ProjectMilestoneController extends AccountBaseController
             $options = '<option value="">--</option>';
         }
         else {
-            $projects = ProjectMilestone::where('project_id', $id)->get();
+            $projects = ProjectMilestone::where('project_id', $id)->whereNot('status', 'complete')->get();
             $options = BaseModel::options($projects, null, 'milestone_title');
         }
 

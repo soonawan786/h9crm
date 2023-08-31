@@ -63,6 +63,7 @@
         .close-it{
             opacity: 1;
             transition: width 0.7s;
+            left: -43px;
         }
     }
 }
@@ -204,7 +205,6 @@
     }
     .close-it{
         position: absolute;
-        left: -44px;
         top: 17px;
         background-color: #1D82F5;
         padding: 9px 17px !important;

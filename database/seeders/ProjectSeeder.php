@@ -39,6 +39,7 @@ class ProjectSeeder extends Seeder
             $project->currency_id = $this->getCurrencyId($companyId);
             $project->category_id = $this->getCategoryId($companyId);
             $project->added_by = $this->getAdminId($companyId);
+            $project->calculate_task_progress = 'false';
             $project->save();
 
             $activity = new \App\Models\ProjectActivity();
@@ -217,7 +218,6 @@ class ProjectSeeder extends Seeder
         $invoice->company_id = $companyId;
         $invoice->company_address_id = $companyAddress->id;
         $invoice->client_id = $project->client_id;
-        $invoice->unit_id = $unit->id;
         $invoice->invoice_number = \App\Models\Invoice::where('company_id', $companyId)->count() == 0 ? 1 : \App\Models\Invoice::where('company_id', $companyId)->count() + 1;
         $invoice->issue_date = Carbon::parse((date('m') - 1) . '/' . $faker->numberBetween(1, 30) . '/' . date('Y'))->format('Y-m-d');
         $invoice->due_date = Carbon::parse($invoice->issue_date)->addDays(10)->format('Y-m-d');
@@ -241,7 +241,7 @@ class ProjectSeeder extends Seeder
         $search->save();
 
         foreach ($items as $key => $item) :
-            \App\Models\InvoiceItems::create(['invoice_id' => $invoice->id, 'item_name' => $item, 'type' => $type[$key], 'quantity' => $quantity[$key], 'unit_price' => $cost_per_item[$key], 'amount' => $amount[$key]]);
+            \App\Models\InvoiceItems::create(['invoice_id' => $invoice->id, 'item_name' => $item, 'type' => $type[$key], 'quantity' => $quantity[$key], 'unit_price' => $cost_per_item[$key], 'amount' => $amount[$key], 'unit_id' => $unit->id]);
         endforeach;
 
         if ($invoice->status == 'paid') {

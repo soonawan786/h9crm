@@ -26,17 +26,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|NoticeView whereRead($value)
  * @method static \Illuminate\Database\Eloquent\Builder|NoticeView whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|NoticeView whereUserId($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|NoticeView whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class NoticeView extends BaseModel
 {
 
     use HasCompany;
 
-    protected $dates = ['created_at', 'updated_at'];
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     public function user(): BelongsTo
     {

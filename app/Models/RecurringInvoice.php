@@ -91,12 +91,19 @@ use Illuminate\Notifications\Notifiable;
  * @method static \Illuminate\Database\Eloquent\Builder|RecurringInvoice whereUnlimitedRecurring($value)
  * @method static \Illuminate\Database\Eloquent\Builder|RecurringInvoice whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|RecurringInvoice whereUserId($value)
- * @mixin \Eloquent
  * @property string $calculate_tax
  * @method static \Illuminate\Database\Eloquent\Builder|RecurringInvoice whereCalculateTax($value)
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|RecurringInvoice whereCompanyId($value)
+ * @property int $immediate_invoice
+ * @property-read \App\Models\UnitType|null $units
+ * @method static \Illuminate\Database\Eloquent\Builder|RecurringInvoice whereImmediateInvoice($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|RecurringInvoice whereNextInvoiceDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|RecurringInvoice whereUnitId($value)
+ * @property int|null $bank_account_id
+ * @method static \Illuminate\Database\Eloquent\Builder|RecurringInvoice whereBankAccountId($value)
+ * @mixin \Eloquent
  */
 class RecurringInvoice extends BaseModel
 {
@@ -104,7 +111,11 @@ class RecurringInvoice extends BaseModel
     use Notifiable, HasCompany;
 
     protected $table = 'invoice_recurring';
-    protected $dates = ['issue_date', 'due_date', 'next_invoice_date'];
+    protected $casts = [
+        'issue_date' => 'datetime',
+        'due_date' => 'datetime',
+        'next_invoice_date' => 'datetime',
+    ];
     protected $appends = ['total_amount', 'issue_on'];
     protected $with = ['client'];
 

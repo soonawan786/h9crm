@@ -24,10 +24,18 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|LogTimeFor whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LogTimeFor whereLogTimeFor($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LogTimeFor whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|LogTimeFor whereCompanyId($value)
+ * @property int $tracker_reminder
+ * @property int $timelog_report
+ * @property string|null $daily_report_roles
+ * @property string|null $time
+ * @method static \Illuminate\Database\Eloquent\Builder|LogTimeFor whereDailyReportRoles($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|LogTimeFor whereTime($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|LogTimeFor whereTimelogReport($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|LogTimeFor whereTrackerReminder($value)
+ * @mixin \Eloquent
  */
 class LogTimeFor extends BaseModel
 {

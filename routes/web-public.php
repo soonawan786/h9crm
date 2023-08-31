@@ -1,7 +1,7 @@
 <?php
 
 use App\Http\Controllers\HomeController;
-
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\LoginController;
 
@@ -26,7 +26,7 @@ Route::post('/invitation/accept-invite', [RegisterController::class, 'acceptInvi
 
 Route::get('/invoice/{hash}', [HomeController::class, 'invoice'])->name('front.invoice');
 Route::get('/change-lang/{locale}', [HomeController::class, 'changeLang'])->name('front.changeLang');
-Route::get('invoices/show-image', [HomeController::class, 'showImage'])->name('invoices.public.show_image');
+Route::get('front/show-image', [HomeController::class, 'showImage'])->name('front.public.show_image');
 
 Route::get('/invoice-stripe/stripe-modal/', [HomeController::class, 'stripeModal'])->name('front.stripe_modal');
 Route::get('/invoice-paystack/paystack-modal/', [HomeController::class, 'paystackModal'])->name('front.paystack_modal');
@@ -127,3 +127,5 @@ Route::get('cropper/{element}', [ImageController::class, 'cropper'])->name('crop
 
 // Sync user permissions
 Route::get('sync-user-permissions', [HomeController::class, 'syncPermissions'])->name('sync_user_permissions');
+
+Route::get('file/{type}/{path}', [FileController::class, 'getFile'])->name('file.getFile');

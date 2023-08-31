@@ -5,10 +5,7 @@
                 <button class="topbar-toggler">&#9776;</button>
                 <a class="topbar-brand" href="{{ route('front.home') }}">
                     <div class="d-flex align-items-center">
-                        <img class="mr-2 rounded logo-default" style="max-height: 32px;" src="{{ $globalSetting->logo_url }}" alt="Logo"/>
-                        @if ($globalSetting->sidebar_logo_style != 'full')
-                            <h3 class="mb-0 pl-1 {{ $globalSetting->auth_theme == 'dark' ? 'text-light' : '' }}">{{ $globalSetting->global_app_name ?? $globalSetting->app_name }}</h3>
-                        @endif
+                        <img class="mr-2 rounded logo-default" style="max-height: 32px;" src="{{ global_setting()->logo_front_url }}" alt="Logo"/>
                     </div>
                 </a>
             </div>

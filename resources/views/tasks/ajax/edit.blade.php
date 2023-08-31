@@ -33,7 +33,7 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
                                 @if ($viewTaskCategoryPermission == 'all' || $viewTaskCategoryPermission == 'added')
                                     @foreach ($categories as $category)
                                         <option @if ($task->task_category_id == $category->id) selected @endif value="{{ $category->id }}">
-                                            {{ mb_ucwords($category->category_name) }}
+                                            {{ $category->category_name }}
                                         </option>
                                     @endforeach
                                 @endif
@@ -58,7 +58,7 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
                                 <option value="">--</option>
                                 @foreach ($projects as $project)
                                     <option @if ($project->id == $task->project_id) selected @endif value="{{ $project->id }}">
-                                        {{ mb_ucwords($project->project_name) }}
+                                        {{ $project->project_name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -124,6 +124,12 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
                         </div>
                     </div>
 
+                    <div class="col-md-12 show-leave">
+                        @if(isset($leaveData))
+                            <label id="leave-date"> {{ __("modules.tasks.leaveMessage") }} <i class="fa fa-question-circle" title="{{$leaveData}}" id="leave-tooltip"></i></label>
+                        @endif
+                    </div>
+
                     <div class="col-md-12">
                         <div class="form-group my-3">
                             <x-forms.label fieldId="description" :fieldLabel="__('app.description')">
@@ -183,8 +189,8 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
                                 <x-forms.select fieldName="milestone_id" fieldId="milestone-id"
                                     :fieldLabel="__('modules.projects.milestones')">
                                     <option value="">--</option>
-                                    @if ($task->project && count($task->project->milestones) > 0)
-                                        @foreach ($task->project->milestones as $milestone)
+                                    @if ($task->project && count($task->project->incompleteMilestones) > 0)
+                                        @foreach ($task->project->incompleteMilestones as $milestone)
                                             <option @if ($milestone->id == $task->milestone_id) selected @endif value="{{ $milestone->id }}">
                                                 {{ $milestone->milestone_title }}</option>
                                         @endforeach
@@ -358,11 +364,12 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
                             </x-forms.select>
                         </div>
                     </div>
+                    <input type = "hidden" name = "mention_user_ids" id = "mentionUserId" class ="mention_user_ids">
 
                     @if ($addTaskFilePermission == 'all' || $addTaskFilePermission == 'added')
                         <div class="col-lg-12">
                             <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2"
-                                :fieldLabel="__('app.add') . ' ' .__('app.file')" fieldName="file"
+                                :fieldLabel="__('app.menu.addFile')" fieldName="file"
                                 fieldId="task-files-upload-dropzone" />
                             <input type="hidden" name="image_url" id="image_url">
                         </div>
@@ -398,12 +405,12 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
 
         $(".select-picker").selectpicker();
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         $(document).on('change', '#project-id', function () {
 
@@ -445,11 +452,11 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
                 },
                 paramName: "file",
                 maxFilesize: DROPZONE_MAX_FILESIZE,
-                maxFiles: 10,
+                maxFiles: DROPZONE_MAX_FILES,
                 autoProcessQueue: false,
                 uploadMultiple: true,
                 addRemoveLinks: true,
-                parallelUploads: 10,
+                parallelUploads: DROPZONE_MAX_FILES,
                 acceptedFiles: DROPZONE_FILE_ALLOW,
                 init: function() {
                     taskDropzone = this;
@@ -463,9 +470,31 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
             taskDropzone.on('uploadprogress', function() {
                 $.easyBlockUI();
             });
-            taskDropzone.on('completemultiple', function() {
+            taskDropzone.on('queuecomplete', function() {
                 var msgs = "@lang('messages.recordSaved')";
                 window.location.href = "{{ route('tasks.index') }}"
+            });
+            taskDropzone.on('removedfile', function () {
+                var grp = $('div#file-upload-dropzone').closest(".form-group");
+                var label = $('div#file-upload-box').siblings("label");
+                $(grp).removeClass("has-error");
+                $(label).removeClass("is-invalid");
+            });
+            taskDropzone.on('error', function (file, message) {
+                taskDropzone.removeFile(file);
+                var grp = $('div#file-upload-dropzone').closest(".form-group");
+                var label = $('div#file-upload-box').siblings("label");
+                $(grp).find(".help-block").remove();
+                var helpBlockContainer = $(grp);
+
+                if (helpBlockContainer.length == 0) {
+                    helpBlockContainer = $(grp);
+                }
+
+                helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+                $(grp).addClass("has-error");
+                $(label).addClass("is-invalid");
+
             });
         }
 
@@ -480,8 +509,9 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
                 return selected + " {{ __('app.membersSelected') }} ";
             }
         });
+        const atValues = @json($userData);
 
-        quillImageLoad('#description');
+        quillMention(atValues, '#description');
 
         const dp1 = datepicker('#task_start_date', {
             position: 'bl',
@@ -495,6 +525,29 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
                     dp2.setDate(date, true)
                 }
                 dp2.setMin(date);
+
+                var dueDate = $('#due_date').val();
+                var startDate = $('#task_start_date').val();
+                var userId = $('#selectAssignee').val();
+
+                $.easyAjax({
+                    url:"{{ route('tasks.checkLeaves')}}",
+                    type:'GET',
+                    data:{due_date:dueDate, start_date:startDate, user_id:userId},
+                    success:function(response) {
+                    $('.show-leave').removeClass('d-none');
+                    var rData = [];
+                    var leaveData = [];
+                        rData = response.data;
+                        $.each(rData, function(index, value) {
+                            var data = '';
+                            data = index + " {{ __('modules.tasks.leaveOn') }} "  + value + "\n";
+                            leaveData.push(data);
+                            var label = '<label id="leave-date"> {{ __("modules.tasks.leaveMessage") }} <i class="fa fa-question-circle" title="'+leaveData+'" id="leave-tooltip"></i></label>'
+                            $(".show-leave").html(label);
+                        });
+                }
+                });
             },
             ...datepickerConfig
         });
@@ -504,13 +557,72 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
             dateSelected: new Date("{{ $task->due_date ? str_replace('-', '/', $task->due_date) : str_replace('-', '/', now()) }}"),
             onSelect: (instance, date) => {
                 dp1.setMax(date);
+
+                var dueDate = $('#due_date').val();
+                var startDate = $('#task_start_date').val();
+                var userId = $('#selectAssignee').val();
+
+                $.easyAjax({
+                    url:"{{ route('tasks.checkLeaves')}}",
+                    type:'GET',
+                    data:{start_date:startDate, due_date:dueDate, user_id:userId},
+                    success:function(response) {
+                    $('.show-leave').removeClass('d-none');
+                    var rData = [];
+                    var leaveData = [];
+                        rData = response.data;
+                        $.each(rData, function(index, value) {
+                            var data = '';
+                            data = index + " {{ __('modules.tasks.leaveOn') }} "  + value + "\n";
+                            leaveData.push(data);
+                            var label = '<label id="leave-date"> {{ __("modules.tasks.leaveMessage") }} <i class="fa fa-question-circle" title="'+leaveData+'" id="leave-tooltip"></i></label>'
+                            $(".show-leave").html(label);
+                        });
+                }
+                });
             },
             ...datepickerConfig
         });
 
+        $('#selectAssignee').change(function(){
+            var dueDate = $('#due_date').val();
+            var startDate = $('#task_start_date').val();
+            var userId = $('#selectAssignee').val();
+
+            $.easyAjax({
+                url:"{{ route('tasks.checkLeaves')}}",
+                type:'GET',
+                data:{start_date:startDate, due_date:dueDate, user_id:userId},
+                success:function(response) {
+                    $('.show-leave').removeClass('d-none');
+                    var rData = [];
+                    var leaveData = [];
+                        rData = response.data;
+                        $.each(rData, function(index, value) {
+                            var data = '';
+                            data = index + " {{ __('modules.tasks.leaveOn') }} "  + value + "\n";
+                            leaveData.push(data);
+                            var label = '<label id="leave-date"> {{ __("modules.tasks.leaveMessage") }} <i class="fa fa-question-circle" title="'+leaveData+'" id="leave-tooltip"></i></label>'
+                            $(".show-leave").html(label);
+                        });
+                }
+            });
+        })
+
         $('#save-task-form').click(function() {
             var note = document.getElementById('description').children[0].innerHTML;
+
             document.getElementById('description-text').value = note;
+            var usesr = $('#description span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
+
+            var mention_user_id  =  $.makeArray(usesr);
+            $('#mentionUserId').val(mention_user_id.join(','));
+
+            var taskData = $('#save-task-data-form').serialize();
+
+            var data = taskData+='&mention_user_id=' + mention_user_id;
 
             const url = "{{ route('tasks.update', $task->id) }}";
 
@@ -520,8 +632,9 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
                 type: "POST",
                 disableButton: true,
                 blockUI: true,
+                file: true,
                 buttonSelector: "#save-task-form",
-                data: $('#save-task-data-form').serialize(),
+                data: data,
                 success: function(response) {
                     if ((add_task_files == "all" || add_task_files == "added") &&
                         taskDropzone.getQueuedFiles().length > 0) {
@@ -652,6 +765,9 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
                 blockUI: true,
                 redirect: true,
                 success: function (data) {
+                    var atValues = data.userData;
+                    destory_editor('#description')
+                    quillMention(atValues, '#description');
                     $('#task_labels').html(data.data);
                     $('#task_labels').selectpicker('refresh');
                 }
@@ -702,6 +818,8 @@ $viewTaskCategoryPermission = user()->permission('view_task_category');
                 }
             });
         });
+
+        <x-forms.custom-field-filejs/>
 
         init(RIGHT_MODAL);
     });

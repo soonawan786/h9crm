@@ -128,8 +128,19 @@ class AttemptToAuthenticate
 
         $cannotLogin = false;
 
-        if (!now()->between($officeStartTime, $officeEndTime)) {
+        if (is_null($attendanceSettings->early_clock_in) && !now()->between($officeStartTime, $officeEndTime)) {
             $cannotLogin = true;
+        }
+        else {
+            $earlyClockIn = Carbon::now($globalSetting->timezone)->addMinutes($attendanceSettings->early_clock_in);
+            $earlyClockIn = $earlyClockIn->setTimezone('UTC');
+
+            if($earlyClockIn->gte($officeStartTime)){
+                $cannotLogin = false;
+            }
+            else {
+                $cannotLogin = true;
+            }
         }
 
         if ($cannotLogin == true && now()->betweenIncluded($officeStartTime->copy()->subDay(), $officeEndTime->copy()->subDay())) {
@@ -190,8 +201,19 @@ class AttemptToAuthenticate
         $cannotLogin = false;
         $clockInCount = Attendance::getTotalUserClockInWithTime($officeStartTime, $officeEndTime, $authUser);
 
-        if (!now()->between($officeStartTime, $officeEndTime)) {
+        if (is_null($attendanceSettings->early_clock_in) && !now()->between($officeStartTime, $officeEndTime) && $showClockIn->show_clock_in_button == 'no') {
             $cannotLogin = true;
+        }
+        else {
+            $earlyClockIn = Carbon::now($globalSetting->timezone)->addMinutes($attendanceSettings->early_clock_in);
+            $earlyClockIn = $earlyClockIn->setTimezone('UTC');
+
+            if($earlyClockIn->gte($officeStartTime)){
+                $cannotLogin = false;
+            }
+            else {
+                $cannotLogin = true;
+            }
         }
 
         ($showClockIn->auto_clock_in == 'yes') ? $cannotLogin = false : $cannotLogin = true;
@@ -303,11 +325,11 @@ class AttemptToAuthenticate
     {
         $globalSetting = GlobalSetting::first();
 
-        $checkPreviousDayShift = EmployeeShiftSchedule::where('user_id', $authUser)
+        $checkPreviousDayShift = EmployeeShiftSchedule::with('shift')->where('user_id', $authUser)
             ->where('date', now($globalSetting->timezone)->subDay()->toDateString())
             ->first();
 
-        $checkTodayShift = EmployeeShiftSchedule::where('user_id', $authUser)
+        $checkTodayShift = EmployeeShiftSchedule::with('shift')->where('user_id', $authUser)
             ->where('date', now($globalSetting->timezone)->toDateString())
             ->first();
 
@@ -333,9 +355,13 @@ class AttemptToAuthenticate
             ($nowTime->betweenIncluded($checkTodayShift->shift_start_time, $checkTodayShift->shift_end_time) || $nowTime->gt($checkTodayShift->shift_end_time))
         ) {
             $attendanceSettings = $checkTodayShift;
-
+        }
+        else if ($checkTodayShift && !is_null($checkTodayShift->shift->early_clock_in))
+        {
+            $attendanceSettings = $checkTodayShift;
         }
         else {
+
             $attendanceSettings = $defaultAttendanceSettings;
         }
 

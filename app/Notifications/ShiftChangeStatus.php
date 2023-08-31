@@ -2,12 +2,14 @@
 
 namespace App\Notifications;
 
+use App\Models\EmailNotificationSetting;
 use App\Models\EmployeeShiftChangeRequest;
 
 class ShiftChangeStatus extends BaseNotification
 {
 
     public $employeeShiftSchedule;
+    public $emailSetting;
 
     /**
      * Create a new notification instance.
@@ -18,6 +20,8 @@ class ShiftChangeStatus extends BaseNotification
     {
         $this->employeeShiftSchedule = $employeeShiftSchedule;
         $this->company = $this->employeeShiftSchedule->shift->company;
+        $this->emailSetting = EmailNotificationSetting::where('company_id', $this->company->id)->where('slug', 'shift-assign-notification')->first();
+
     }
 
     /**
@@ -26,9 +30,15 @@ class ShiftChangeStatus extends BaseNotification
      * @param mixed $notifiable
      * @return array
      */
-    public function via()
+    public function via($notifiable)
     {
-        return ['mail', 'database'];
+        $via = ['database'];
+
+        if ($this->emailSetting->send_email == 'yes' && $notifiable->email_notifications && $notifiable->email != '') {
+            array_push($via, 'mail');
+        }
+
+        return $via;
     }
 
     /**
@@ -39,12 +49,13 @@ class ShiftChangeStatus extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('dashboard');
         $url = getDomainSpecificUrl($url, $this->company);
 
         $content = __('email.shiftChangeStatus.text') . ': ' . __('app.' . $this->employeeShiftSchedule->status) . '<br>'. __('app.date') . ': ' . $this->employeeShiftSchedule->shiftSchedule->date->toFormattedDateString() . '<br>'. __('modules.attendance.shiftName') . ': ' . $this->employeeShiftSchedule->shift->shift_name;
 
-        return parent::build()
+        return $build
             ->subject(__('email.shiftChangeStatus.subject') . ' - ' . config('app.name') . '.')
             ->markdown('mail.email', [
                 'url' => $url,
@@ -58,7 +69,6 @@ class ShiftChangeStatus extends BaseNotification
     /**
      * Get the array representation of the notification.
      *
-     * @param mixed $notifiable
      * @return array
      */
     public function toArray()

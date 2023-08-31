@@ -26,21 +26,24 @@ class MultiCompanySelect
         }
 
         if (!session()->has('impersonate') && !session()->has('stop_impersonate')) {
-            $user = user();
 
-            if ($user) {
-                $user->last_login = now();
-                /* @phpstan-ignore-line */
-                $user->saveQuietly();
+
+            try {
+                if (auth()->check()) {
+                    auth()->user()->user->update(['last_login' => now()]);
+                }
+
+
+                if (company()) {
+                    $company = company();
+                    $company->last_login = now();
+                    /* @phpstan-ignore-line */
+                    $company->saveQuietly();
+                }
+            } catch (\Exception $e) {
+
             }
 
-
-            if (company()) {
-                $company = company();
-                $company->last_login = now();
-                /* @phpstan-ignore-line */
-                $company->saveQuietly();
-            }
         }
 
         return $next($request);

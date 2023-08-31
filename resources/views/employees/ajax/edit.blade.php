@@ -23,7 +23,7 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
                             <div class="col-md-4">
                                 <x-forms.text fieldId="employee_id" :fieldLabel="__('modules.employees.employeeId')"
                                     fieldName="employee_id" :fieldValue="$employee->employeeDetail->employee_id"
-                                    fieldRequired="true" :fieldPlaceholder="__('modules.employees.employeeIdInfo')">
+                                    fieldRequired="true" :fieldPlaceholder="__('modules.employees.employeeIdInfo')" :popover="__('modules.employees.employeeIdHelp')">
                                 </x-forms.text>
                             </div>
                             <div class="col-md-4">
@@ -37,14 +37,6 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
                                     fieldName="email" fieldRequired="true" :fieldValue="$employee->email"
                                     :fieldPlaceholder="__('placeholders.email')" :fieldReadOnly="($emailCountInCompanies > 1)" :popover="($emailCountInCompanies > 1) ? __('messages.emailCannotChange') : null">
                                 </x-forms.text>
-                            </div>
-                            <div class="col-lg-4 col-md-6">
-                                <div class="form-group my-3">
-                                    <label class="f-14 text-dark-grey mb-12" for="password">{{ __('modules.employees.employeePassword') }}</label>
-                                    <input type="password" name="password" id="employee_password" autocomplete="off"
-                                    placeholder="@lang('placeholders.password')" class="form-control height-35 f-14">
-                                </div>
-
                             </div>
                             <div class="col-md-4">
                                 <x-forms.label class="my-3" fieldId="designation"
@@ -83,37 +75,51 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
                                     </select>
                                 </x-forms.input-group>
                             </div>
-                            <div class="col-md-4">
-                                <x-forms.select fieldId="country" :fieldLabel="__('app.country')" fieldName="country"
-                                    search="true">
-                                    <option value="">--</option>
-                                    @foreach ($countries as $item)
-                                        <option @if ($employee->country_id == $item->id) selected @endif data-tokens="{{ $item->iso3 }}" data-content="<span
-                                        class='flag-icon flag-icon-{{ strtolower($item->iso) }} flag-icon-squared'></span>
-                                    {{ $item->nicename }}" value="{{ $item->id }}">{{ $item->nicename }}</option>
-                                    @endforeach
-                                </x-forms.select>
-                            </div>
+
+
                         </div>
                     </div>
                     <div class="col-lg-3">
                         @php
                             $userImage = $employee->hasGravatar($employee->email) ? str_replace('?s=200&d=mp', '', $employee->image_url) : asset('img/avatar.png');
                         @endphp
-                        <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2 cropper"
+                        <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2 cropper"
                             :fieldLabel="__('modules.profile.profilePicture')"
                             :fieldValue="($employee->image ? $employee->image_url : $userImage)" fieldName="image"
                             fieldId="image" fieldHeight="119" :popover="__('messages.fileFormat.ImageFile')" />
                     </div>
-
                     <div class="col-md-4 col-lg-3">
-                        <x-forms.tel fieldId="mobile" :fieldLabel="__('app.mobile')" fieldName="mobile"
-                            :fieldValue="$employee->mobile" :fieldPlaceholder="__('placeholders.mobile')"></x-forms.tel>
+                        <x-forms.select fieldId="country" :fieldLabel="__('app.country')" fieldName="country"
+                            search="true">
+                            <option value="">--</option>
+                            @foreach ($countries as $item)
+                                <option @if ($employee->country_id == $item->id) selected @endif data-mobile="{{ $employee->mobile }}" data-tokens="{{ $item->iso3 }}" data-phonecode="{{ $item->phonecode }}" data-content="<span
+                                class='flag-icon flag-icon-{{ strtolower($item->iso) }} flag-icon-squared'></span>
+                            {{ $item->nicename }}" value="{{ $item->id }}">{{ $item->nicename }}</option>
+                            @endforeach
+                        </x-forms.select>
+                    </div>
+                    <div class="col-md-4">
+                        <x-forms.label class="my-3" fieldId="mobile"
+                            :fieldLabel="__('app.mobile')"></x-forms.label>
+                        <x-forms.input-group style="margin-top:-4px">
+                            <x-forms.select fieldId="country_phonecode" fieldName="country_phonecode"
+                                search="true">
+                                @foreach ($countries as $item)
+                                    <option @selected($employee->country_phonecode == $item->phonecode)
+                                            data-tokens="{{ $item->name }}"
+                                            data-content="{{$item->flagSpanCountryCode()}}"
+                                            value="{{ $item->phonecode }}">{{ $item->phonecode }}
+                                    </option>
+                                @endforeach
+                            </x-forms.select>
+                            <input type="tel" class="form-control height-35 f-14" placeholder="@lang('placeholders.mobile')"
+                                   name="mobile" id="mobile" value="{{ $employee->mobile }}">
+                        </x-forms.input-group>
                     </div>
                     <div class="col-md-4 col-lg-3">
                         <x-forms.select fieldId="gender" :fieldLabel="__('modules.employees.gender')"
                             fieldName="gender">
-                            <option value="">--</option>
                             <option @if ($employee->gender == 'male') selected @endif value="male">@lang('app.male')</option>
                             <option @if ($employee->gender == 'female') selected @endif value="female">@lang('app.female')</option>
                             <option @if ($employee->gender == 'others') selected @endif value="others">@lang('app.others')</option>
@@ -144,7 +150,7 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
                             fieldName="locale" search="true">
                             @foreach ($languages as $language)
                                 <option @if ($employee->locale == $language->language_code) selected @endif
-                                data-content="<span class='flag-icon flag-icon-{{ ($language->flag_code == 'en') ? 'gb' : strtolower($language->flag_code) }} flag-icon-squared'></span> {{ $language->language_name }}"
+                                data-content="<span class='flag-icon flag-icon-{{ ($language->flag_code == 'en') ? 'gb' : $language->flag_code }} flag-icon-squared'></span> {{ $language->language_name }}"
                                 value="{{ $language->language_code }}">{{ $language->language_name }}</option>
                             @endforeach
                         </x-forms.select>
@@ -156,7 +162,7 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
                     && $employee->id != user()->id
                     && $changeEmployeeRolePermission == 'all'
                     )
-                        <div class="col-md-4">
+                        <div class="col-md-4 col-lg-3">
                             <x-forms.select fieldId="role" :fieldLabel="__('app.role')" fieldName="role">
                                 @foreach ($roles as $role)
                                     <option
@@ -292,10 +298,20 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
                     </div>
 
                     @if (function_exists('sms_setting') && sms_setting()->telegram_status)
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <x-forms.number fieldName="telegram_user_id" fieldId="telegram_user_id"
                                 fieldLabel="<i class='fab fa-telegram'></i> {{ __('sms::modules.telegramUserId') }}"
                                 :fieldValue="$employee->telegram_user_id" :popover="__('sms::modules.userIdInfo')" />
+                            <p class="text-bold text-danger">
+                                @lang('sms::modules.telegramBotNameInfo')
+                            </p>
+                            <p class="text-bold"><span id="telegram-link-text">https://t.me/{{ sms_setting()->telegram_bot_name }}</span>
+                                <a href="javascript:;" class="btn-copy btn-secondary f-12 rounded p-1 py-2 ml-1"
+                                    data-clipboard-target="#telegram-link-text">
+                                    <i class="fa fa-copy mx-1"></i>@lang('app.copy')</a>
+                                <a href="https://t.me/{{ sms_setting()->telegram_bot_name }}" target="_blank" class="btn-secondary f-12 rounded p-1 py-2 ml-1">
+                                    <i class="fa fa-copy mx-1"></i>@lang('app.openInNewTab')</a>
+                            </p>
                         </div>
                     @endif
                     <div class="col-lg-3 col-md-6">
@@ -345,9 +361,8 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
                     <div class="col-lg-3 col-md-6">
                         <x-forms.select fieldId="marital_status" :fieldLabel="__('modules.employees.maritalStatus')"
                             fieldName="marital_status" :fieldPlaceholder="__('placeholders.date')">
-                            <option value="">--</option>
-                            <option value="married" @if($employee->employeeDetail->marital_status == 'married') selected @endif>Married</option>
-                            <option value="unmarried" @if($employee->employeeDetail->marital_status == 'unmarried') selected @endif>Unmarried</option>
+                            <option value="married" @if($employee->employeeDetail->marital_status == 'married') selected @endif>@lang('modules.leaves.married')</option>
+                            <option value="unmarried" @if($employee->employeeDetail->marital_status == 'unmarried') selected @endif>@lang('modules.leaves.unmarried')</option>
                         </x-forms.select>
                     </div>
 
@@ -375,15 +390,18 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
 </div>
 
 <script src="{{ asset('vendor/jquery/tagify.min.js') }}"></script>
+@if (function_exists('sms_setting') && sms_setting()->telegram_status)
+    <script src="{{ asset('vendor/jquery/clipboard.min.js') }}"></script>
+@endif
 <script>
     $(document).ready(function() {
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         datepicker('#joining_date', {
             position: 'bl',
@@ -501,6 +519,7 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
             });
         });
 
+
         $('#random_password').click(function() {
             const randPassword = Math.random().toString(36).substr(2, 8);
 
@@ -529,6 +548,14 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
             });
         }
 
+        $('#country').on('change', function(){
+            $('#country_phonecode').val();
+            var phonecode = $(this).find(':selected').data('phonecode');
+            $('#country_phonecode').val(phonecode);
+            $('.select-picker').selectpicker('refresh');
+        });
+        <x-forms.custom-field-filejs/>
+
         init(RIGHT_MODAL);
     });
 
@@ -547,4 +574,27 @@ $changeEmployeeRolePermission = user()->permission('change_employee_role');
             $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
             $.ajaxModal(MODAL_LG, url);
         });
+
+        @if (function_exists('sms_setting') && sms_setting()->telegram_status)
+        var clipboard = new ClipboardJS('.btn-copy');
+
+        clipboard.on('success', function(e) {
+            Swal.fire({
+                icon: 'success',
+                text: '@lang("app.urlCopied")',
+                toast: true,
+                position: 'top-end',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
+                showClass: {
+                    popup: 'swal2-noanimation',
+                    backdrop: 'swal2-noanimation'
+                },
+            })
+        });
+    @endif
 </script>

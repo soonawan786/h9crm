@@ -14,13 +14,15 @@ class NewSupportTicketReply extends BaseNotification
 {
     use Queueable;
 
+    private $ticket;
+    private $emailSetting;
+    private $pushNotification;
+
     /**
      * Create a new notification instance.
      *
      * @return void
      */
-    private $ticket;
-
     public function __construct(SupportTicketReply $ticket)
     {
         $this->emailSetting = EmailNotificationSetting::where('setting_name', 'New Support Ticket Request')->first();
@@ -75,7 +77,7 @@ class NewSupportTicketReply extends BaseNotification
                     ->from(config('app.name'))
                     ->image($slack->slack_logo_url)
                     ->to('@' . $notifiable->employee[0]->slack_username)
-                    ->content('*' . __('email.supportTicketReply.subject') . '*' . "\n" . ucfirst($this->ticket->subject) . "\n" . __('modules.tickets.requesterName') . ' - ' . ucwords($this->ticket->requester->name));
+                    ->content('*' . __('superadmin.supportTicketReply.subject') . '*' . "\n" . ucfirst($this->ticket->subject) . "\n" . __('modules.tickets.requesterName') . ' - ' . ucwords($this->ticket->requester->name));
             }
 
             return (new SlackMessage())

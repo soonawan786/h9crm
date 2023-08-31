@@ -30,7 +30,7 @@ class ProposalSign extends BaseModel
 
     public function getSignatureAttribute()
     {
-        return !is_null($this->attributes['signature']) ? asset_url('proposal/sign/' . $this->attributes['signature']) : null;
+        return !is_null($this->attributes['signature']) ? asset_url_local_s3('proposal/sign/' . $this->attributes['signature']) : null;
     }
 
 }

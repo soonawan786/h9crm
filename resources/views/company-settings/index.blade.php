@@ -5,7 +5,7 @@
     <!-- SETTINGS START -->
     <div class="w-100 d-flex ">
 
-        <x-setting-sidebar :activeMenu="$activeSettingMenu"/>
+        @include('sections.setting-sidebar')
 
         <x-setting-card>
             <x-slot name="header">
@@ -21,7 +21,7 @@
                     <div class="col-lg-6">
                         <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
                                       :fieldLabel="__('modules.accountSettings.companyName')"
-                                      fieldPlaceholder="e.g. Acme Corporation" fieldRequired="true"
+                                      :fieldPlaceholder="__('placeholders.company')" fieldRequired="true"
                                       fieldName="company_name"
                                       :popover="__('messages.companyNameTooltip')"
                                       fieldId="company_name" :fieldValue="company()->company_name"/>
@@ -40,13 +40,13 @@
                     <div class="col-lg-6">
                         <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
                                       :fieldLabel="__('modules.accountSettings.companyPhone')"
-                                      fieldPlaceholder="e.g. +19876543" fieldRequired="true" fieldName="company_phone"
+                                      :fieldPlaceholder="__('placeholders.mobileWithPlus')" fieldRequired="true" fieldName="company_phone"
                                       fieldId="company_phone" :fieldValue="company()->company_phone"/>
                     </div>
                     <div class="col-lg-6">
                         <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
                                       :fieldLabel="__('modules.accountSettings.companyWebsite')"
-                                      fieldPlaceholder="e.g. https://www.spacex.com/" fieldRequired="false"
+                                      :fieldPlaceholder="__('placeholders.website')" fieldRequired="false"
                                       fieldName="website"
                                       fieldId="website" :fieldValue="company()->website"/>
                     </div>
@@ -72,10 +72,6 @@
 @endsection
 
 @push('scripts')
-    <script
-        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCCl9wZfCCqZ9BtkD_ItVG8dAWT9BTMVB0&callback=initMap&libraries=places&v=weekly"
-        async>
-    </script>
     <script>
         $('#save-form').click(function () {
             var url = "{{ route('company-settings.update', company()->id) }}";

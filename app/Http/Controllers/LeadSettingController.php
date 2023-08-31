@@ -18,7 +18,7 @@ class LeadSettingController extends AccountBaseController
         $this->pageTitle = 'app.menu.leadSource';
         $this->activeSettingMenu = 'lead_settings';
         $this->middleware(function ($request, $next) {
-            abort_403(!(user()->permission('manage_lead_setting') == 'all'));
+            abort_403(!(user()->permission('manage_lead_setting') == 'all' && in_array('leads', user_modules())));
             return $next($request);
         });
     }

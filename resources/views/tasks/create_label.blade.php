@@ -29,7 +29,7 @@
             <tr id="label-{{ $item->id }}">
                 <td>{{ $key + 1 }}</td>
                 <td data-row-id="{{ $item->id }}" data-column="label_name" contenteditable="true">
-                    {{ mb_ucwords($item->label_name) }}
+                    {{ $item->label_name }}
                 </td>
                 <td data-row-id="{{ $item->id }}" data-column="description" contenteditable="true">{{ $item->description }}
                 </td>
@@ -39,7 +39,7 @@
                         <option value="">--</option>
                         @foreach ($projects as $project)
                             <option @if ($project->id == $item->project_id) selected @endif value="{{ $project->id }}">
-                                {{ mb_ucwords($project->project_name) }}
+                                {{ $project->project_name }}
                             </option>
                         @endforeach
                     </select>
@@ -262,10 +262,6 @@
         var projectId = $(this).val();
         var taskId = $('#task_id').val();
         var labelId = $('#label_id').val();
-
-        if (projectId === '') {
-            projectId = 0;
-        }
 
         if (id != "") {
             $.easyAjax({

@@ -11,7 +11,7 @@
 
     <title>@lang('modules.contracts.contractNumber') - #{{ $contract->contract_number }}</title>
     <meta name="msapplication-TileColor" content="#ffffff">
-    <meta name="msapplication-TileImage" content="{{ $company->favicon_url }}">
+    <meta name="msapplication-TileImage" content="{{ $contract->company->favicon_url }}">
     <meta name="theme-color" content="#ffffff">
 
     <style>
@@ -41,38 +41,61 @@
             src: url("{{ storage_path('fonts/THSarabunNew_Italic.ttf') }}") format('truetype');
         }
 
-        @if($invoiceSetting->is_chinese_lang)
         @font-face {
+            font-family: 'BeVietnamPro';
+            font-style: normal;
+            font-weight: normal;
+            src: url("{{ storage_path('fonts/BeVietnamPro-Black.ttf') }}") format('truetype');
+        }
+        @font-face {
+            font-family: 'BeVietnamPro';
+            font-style: italic;
+            font-weight: normal;
+            src: url("{{ storage_path('fonts/BeVietnamPro-BlackItalic.ttf') }}") format('truetype');
+        }
+        @font-face {
+            font-family: 'BeVietnamPro';
+            font-style: italic;
+            font-weight: bold;
+            src: url("{{ storage_path('fonts/BeVietnamPro-bold.ttf') }}") format('truetype');
+        }
+
+        @if($invoiceSetting->is_chinese_lang)
+            @font-face {
             font-family: SimHei;
             /*font-style: normal;*/
             font-weight: bold;
             src: url('{{ asset('fonts/simhei.ttf') }}') format('truetype');
         }
+
         @endif
 
-        @php
-            $font = '';
-            if($invoiceSetting->locale == 'ja') {
-                $font = 'ipag';
-            } else if($invoiceSetting->locale == 'hi') {
-                $font = 'hindi';
-            } else if($invoiceSetting->locale == 'th') {
-                $font = 'THSarabunNew';
-            } else if($invoiceSetting->is_chinese_lang) {
-                $font = 'SimHei';
-            }else {
-                $font = 'Verdana';
-            }
-        @endphp
+    @php
+        $font = '';
+        if($invoiceSetting->locale == 'ja') {
+            $font = 'ipag';
+        } else if($invoiceSetting->locale == 'hi') {
+            $font = 'hindi';
+        } else if($invoiceSetting->locale == 'th') {
+            $font = 'THSarabunNew';
+        } else if($invoiceSetting->is_chinese_lang) {
+            $font = 'SimHei';
+        } else if($invoiceSetting->locale == 'vi') {
+            $font = 'BeVietnamPro';
+        }else {
+            $font = 'Verdana';
+        }
+    @endphp
 
-        @if($invoiceSetting->is_chinese_lang)
-            body
-        {
+    @if($invoiceSetting->is_chinese_lang)
+        body {
             font-weight: normal !important;
         }
-        @endif
-        * {
-            font-family: {{$font}}, DejaVu Sans , sans-serif;
+    @endif
+
+       body {
+            margin: 0;
+            font-family: {{$font}}, DejaVu Sans, sans-serif;
         }
 
         .bg-grey {
@@ -268,13 +291,12 @@
             font-size: 20px !important;
             }
 
-            .description
-            {
-                font-weight: bold !important;
-                font-size: 16px !important;
+            .description {
+            font-weight: bold !important;
+            font-size: 16px !important;
             }
-        @endif
 
+       @endif
     </style>
 </head>
 
@@ -283,7 +305,7 @@
         <tbody>
             <!-- Table Row Start -->
             <tr>
-                <td><img src="{{ $company->invoiceSetting->logo_url }}" alt="{{ mb_ucwords($company->company_name) }}"
+                <td><img src="{{ $contract->company->invoiceSetting->logo_url }}" alt="{{ $contract->company->company_name }}"
                         class="logo" /></td>
                 <td align="right" class="f-21 text-black font-weight-700 text-uppercase">@lang('app.menu.contract')</td>
             </tr>
@@ -292,10 +314,10 @@
             <tr>
                 <td>
                     <p class="line-height mt-1 mb-0 f-14 text-black">
-                        {{ mb_ucwords($company->company_name) }}<br>
-                        @if (!is_null($company))
-                            {!! nl2br($company->defaultAddress->address) !!}<br>
-                            {{ $company->company_phone }}
+                        {{ $contract->company->company_name }}<br>
+                        @if (!is_null($contract->company))
+                            {!! nl2br($contract->company->defaultAddress->address) !!}<br>
+                            {{ $contract->company->company_phone }}
                         @endif
 
                     </p>
@@ -308,14 +330,14 @@
                         </tr>
                         <tr>
                             <td class="heading-table-left">@lang('modules.projects.startDate')</td>
-                            <td class="heading-table-right">{{ $contract->start_date->translatedFormat($company->date_format) }}
+                            <td class="heading-table-right">{{ $contract->start_date->translatedFormat($contract->company->date_format) }}
                             </td>
                         </tr>
                         @if ($contract->end_date != null)
                             <tr>
                                 <td class="heading-table-left">@lang('modules.contracts.endDate')</td>
                                 <td class="heading-table-right">
-                                    {{ $contract->end_date->translatedFormat($company->date_format) }}
+                                    {{ $contract->end_date->translatedFormat($contract->company->date_format) }}
                                 </td>
                             </tr>
                         @endif
@@ -341,9 +363,9 @@
                             <td class="f-14 text-black">
 
                                 <p class="line-height mb-0">
-                                    <span class="text-grey text-capitalize">@lang("app.client")</span><br>
-                                    {{ mb_ucwords($contract->client->name) }}<br>
-                                    {{ mb_ucwords($contract->client->clientDetails->company_name) }}
+                                    <span class="text-grey text-capitalize">@lang('app.client')</span><br>
+                                    {{ $contract->client->name }}<br>
+                                    {{ $contract->client->clientDetails->company_name }}
                                     {!! nl2br($contract->client->clientDetails->address) !!}
                                 </p>
 
@@ -353,7 +375,7 @@
                                 @if ($contract->client->clientDetails->company_logo)
                                     <div class="text-uppercase bg-white unpaid rightaligned">
                                         <img src="{{ $contract->client->clientDetails->image_url }}"
-                                            alt="{{ mb_ucwords($contract->client->clientDetails->company_name) }}"
+                                            alt="{{ $contract->client->clientDetails->company_name }}"
                                             class="logo" />
                                     </div>
                                 @endif
@@ -384,15 +406,27 @@
         @if ($contract->amount != 0)
             <div class="text-right pt-3 border-top description">
                 <h4>@lang('modules.contracts.contractValue'):
-                    {{ $contract->amount.' '.$contract->currency->currency_code }}</h4>
+                    {{ $contract->amount . ' ' . $contract->currency->currency_code }}</h4>
             </div>
         @endif
 
+        <hr class="mt-1 mb-1">
         @if ($contract->signature)
-            <div style="text-align: left; margin-top: 10px;">
-                <h2 class="name" style="margin-bottom: 20px;">@lang('app.signature')</h2>
+            <div style="text-align: left; margin-top: 10px">
+                <h4 class="name" style="margin-bottom: 20px;">@lang('modules.estimates.clientsignature')</h4>
                 {!! Html::image($contract->signature->signature, '', ['class' => '', 'height' => '75px']) !!}
-                <p>({{ $contract->signature->full_name }})</p>
+                <p>Client Name:- {{ $contract->signature->full_name }}<br>
+                    Place:- {{ $contract->signature->place }}<br>
+                    Date:- {{ $contract->signature->date }}
+                </p>
+            </div>
+        @endif
+
+        @if ($contract->company_sign)
+            <div style="text-align: right; margin-top: -260px">
+                <h4 class="name" style="margin-bottom: 20px;">@lang('modules.estimates.companysignature')</h4>
+                <img src="{{ $contract->company_signature }}" style="width: 200px;">
+                <p>Date:- {{ $contract->sign_date }}</p>
             </div>
         @endif
     </div>
@@ -405,7 +439,7 @@
            @foreach($fields as $field)
                <tr>
                    <td style="text-align: left;background: none;" >
-                       <div class="f-14">{{ ucfirst($field->label) }}</div>
+                       <div class="f-14">{{ $field->label }}</div>
                        <p  class="f-14 line-height text-grey">
                            @if( $field->type == 'text' || $field->type == 'password' || $field->type == 'number' || $field->type == 'textarea')
                                {{$contract->custom_fields_data['field_'.$field->id] ?? '-'}}
@@ -425,7 +459,7 @@
        </table>
    </div>
 
-@endif
+    @endif
 
 </body>
 

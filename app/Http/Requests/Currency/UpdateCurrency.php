@@ -25,7 +25,7 @@ class UpdateCurrency extends CoreRequest
     public function rules()
     {
         return [
-            'currency_name' => 'required|unique:currencies,currency_name,' . $this->route('currency_setting') . ',id,company_id,' . company()->id,
+            'currency_name' => 'required',
             'currency_symbol' => 'required',
             'usd_price' => 'required_if:is_cryptocurrency,yes',
             'exchange_rate' => 'required_if:is_cryptocurrency,no',

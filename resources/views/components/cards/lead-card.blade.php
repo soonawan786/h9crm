@@ -12,9 +12,9 @@ $moveClass = '';
     <div class="card-body p-2">
         <div class="d-flex justify-content-between mb-2">
             <a href="{{ route('leads.show', [$lead->id]) }}"
-                class="f-12 f-w-500 text-dark mb-0 text-wrap openRightModal">{{ ucfirst($lead->client_name) }}
+                class="f-12 f-w-500 text-dark mb-0 text-wrap openRightModal">{{ $lead->client_name }}
                 @if (!is_null($lead->client_id))
-                <i class="fa fa-check-circle text-success" data-toggle="tooltip" data-original-title="@lang('modules.lead.convertedLead')"></i>
+                <i class="fa fa-check-circle text-success" data-toggle="tooltip" data-original-title="@lang('modules.lead.convertedClient')"></i>
                 @endif
             </a>
             @if (!is_null($lead->value))
@@ -28,7 +28,7 @@ $moveClass = '';
         @if ($lead->company_name)
             <div class="d-flex mb-3 align-items-center">
                 <i class="fa fa-building f-11 text-lightest"></i><span
-                    class="ml-2 f-11 text-lightest">{{ ucfirst($lead->company_name) }}</span>
+                    class="ml-2 f-11 text-lightest">{{ $lead->company_name }}</span>
             </div>
         @endif
 
@@ -36,16 +36,15 @@ $moveClass = '';
             @if (!is_null($lead->agent_id))
                 <div class="d-flex flex-wrap">
                     <div class="avatar-img mr-1 rounded-circle">
-                        <a href="{{ route('employees.show', $lead->leadAgent->user_id) }}" alt="{{ mb_ucwords($lead->leadAgent->user->name) }}" data-toggle="tooltip"
-                            data-original-title="{{ __('app.leadAgent') .' : '. mb_ucwords($lead->leadAgent->user->name) }}"
+                        <a href="{{ route('employees.show', $lead->leadAgent->user_id) }}" alt="{{ $lead->leadAgent->user->name }}" data-toggle="tooltip"
+                            data-original-title="{{ __('app.leadAgent') .' : '. $lead->leadAgent->user->name }}"
                             data-placement="right"><img src="{{ $lead->leadAgent->user->image_url }}"></a>
                     </div>
                 </div>
             @endif
             @if ($lead->next_follow_up_date != null && $lead->next_follow_up_date != '')
                 <div class="d-flex text-lightest">
-                    <i class="f-11 bi bi-calendar"></i><span
-                        class="f-12 ml-1">{{ \Carbon\Carbon::parse($lead->next_follow_up_date)->translatedFormat(company()->date_format) }}</span>
+                    <span class="f-12 ml-1"><i class="f-11 bi bi-calendar"></i> {{ \Carbon\Carbon::parse($lead->next_follow_up_date)->translatedFormat(company()->date_format) }}</span>
                 </div>
             @endif
 

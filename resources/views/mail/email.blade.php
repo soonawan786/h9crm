@@ -14,7 +14,6 @@
     @endcomponent
 @endif
 
-@lang('email.thankyouNote')<br>
 @lang('email.regards'),<br>
 {{ config('app.name') }}
 @endcomponent

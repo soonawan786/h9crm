@@ -83,7 +83,9 @@ class RecurringInvoicesDataTable extends BaseDataTable
                     }
                 }
 
-                if ($row->status != 'canceled' && isset($row->client) && isset($row->client->clientDetails) && is_null($row->client->clientDetails->shipping_address) && $row->credit_note == 0) {
+                $creditNote = $row->credit_note;
+
+                if ($row->status != 'canceled' && isset($row->client) && isset($row->client->clientDetails) && is_null($row->client->clientDetails->shipping_address) && $creditNote == 0) {
                     /** @phpstan-ignore-next-line */
                     $action .= '<a class="dropdown-item" href="javascript:addShippingAddress(' . $row->id . ');"><i class="fa fa-plus"></i> ' . __('app.addShippingAddress') . '</a>';
                 }
@@ -139,20 +141,20 @@ class RecurringInvoicesDataTable extends BaseDataTable
             })
             ->editColumn('project_name', function ($row) {
                 if ($row->project_id != null) {
-                    return '<a href="' . route('projects.show', $row->project_id) . '" class="text-darkest-grey">' . ucfirst($row->project->project_name) . '</a>';
+                    return '<a href="' . route('projects.show', $row->project_id) . '" class="text-darkest-grey">' . $row->project->project_name . '</a>';
                 }
 
                 return '--';
             })
             ->addColumn('client_name', function ($row) {
                 if ($row->project && $row->project->client) {
-                    return ucfirst($row->project->client->name);
+                    return $row->project->client->name;
                 }
                 else if ($row->client_id != '') {
-                    return ucfirst($row->client->name);
+                    return $row->client->name;
                 }
                 else if ($row->estimate && $row->estimate->client) {
-                    return ucfirst($row->estimate->client->name);
+                    return $row->estimate->client->name;
                 }
                 else {
                     return '--';
@@ -189,7 +191,7 @@ class RecurringInvoicesDataTable extends BaseDataTable
 
                 return '<div class="media align-items-center">
                         <div class="media-body">
-                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('invoices.show', [$row->id]) . '">' . ucfirst($row->invoice_number) . '</a></h5>
+                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('invoices.show', [$row->id]) . '">' . $row->invoice_number . '</a></h5>
                     <p class="mb-0">' . $recurring . '</p>
                     </div>
                   </div>';
@@ -330,6 +332,7 @@ class RecurringInvoicesDataTable extends BaseDataTable
         $modules = $this->user->modules;
 
         $dsData = [
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'visible' => false, 'title' => __('app.id')],
             __('app.invoice') . '#' => ['data' => 'invoice_number', 'name' => 'invoice_number', 'exportable' => false, 'title' => __('app.invoice')],
             __('modules.invoices.total') . '#' => ['data' => 'invoices', 'name' => 'invoice_number', 'visible' => false, 'title' => __('modules.invoiceExport')],
@@ -352,16 +355,6 @@ class RecurringInvoicesDataTable extends BaseDataTable
         }
 
         return $dsData;
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'invoices_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

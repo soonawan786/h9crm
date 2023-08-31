@@ -1,14 +1,26 @@
 <div class="modal-header">
-    <h5 class="modal-title" id="modelHeading">@lang('app.edit') @lang('modules.timeLogs.break')</h5>
+    <h5 class="modal-title" id="modelHeading">@lang('modules.timeLogs.editBreak')</h5>
     <button type="button"  class="close" data-dismiss="modal" aria-label="Close"><span
             aria-hidden="true">×</span></button>
 </div>
 <div class="modal-body">
     <x-form id="editTimelogBreak" method="PUT">
+        <input type="hidden" name="timelog_id" value="{{ $timelogBreak->project_time_log_id }}">
         <div class="row">
+
+            <div class="col-6 mb-4">
+                <div class='f-14 text-dark-grey mb-12'>@lang('app.timeLog') @lang('modules.timeLogs.startTime')</div>
+                <div>{{ $timelogBreak->timeLog->start_time->timezone(company()->timezone)->translatedFormat(company()->date_format . ' ' . company()->time_format) }}</div>
+            </div>
+
+            <div class="col-6 mb-4">
+                <div class='f-14 text-dark-grey mb-12'>@lang('app.timeLog') @lang('modules.timeLogs.endTime')</div>
+                <div>{{ $timelogBreak->timeLog->end_time->timezone(company()->timezone)->translatedFormat(company()->date_format . ' ' . company()->time_format) }}</div>
+            </div>
+
             <div class="col-sm-6">
                 <div class="bootstrap-timepicker timepicker">
-                    <x-forms.text :fieldLabel="__('modules.timeLogs.startTime')"
+                    <x-forms.text :fieldLabel="__('modules.timeLogs.break') .' '.__('modules.timeLogs.startTime')"
                         :fieldPlaceholder="__('placeholders.hours')" fieldName="start_time"
                         fieldId="start_time" fieldRequired="true"
                         :fieldValue="$timelogBreak->start_time->timezone(company()->timezone)->format(company()->time_format)" />
@@ -16,7 +28,7 @@
             </div>
             <div class="col-sm-6">
                 <div class="bootstrap-timepicker timepicker">
-                    <x-forms.text :fieldLabel="__('modules.timeLogs.endTime')"
+                    <x-forms.text :fieldLabel="__('modules.timeLogs.break') .' '.__('modules.timeLogs.endTime')"
                         :fieldPlaceholder="__('placeholders.hours')" fieldName="end_time"
                         fieldId="end_time" fieldRequired="true"
                         :fieldValue="$timelogBreak->end_time->timezone(company()->timezone)->format(company()->time_format)" />

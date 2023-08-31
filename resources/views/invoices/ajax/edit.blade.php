@@ -2,6 +2,13 @@
     $addProductPermission = user()->permission('add_product');
 @endphp
 
+<link rel="stylesheet" href="{{ asset('vendor/css/dropzone.min.css') }}">
+
+@if (!in_array('clients', user_modules()))
+    <x-alert class="mb-3" type="danger" icon="exclamation-circle"><span>@lang('messages.enableClientModule')</span>
+        <x-forms.link-secondary icon="arrow-left" :link="route('invoices.index')">@lang('app.back')</x-forms.link-secondary>
+    </x-alert>
+@else
 
     <!-- CREATE INVOICE START -->
 <div class="bg-white rounded b-shadow-4 create-inv">
@@ -92,7 +99,7 @@
 
         <!-- CLIENT, PROJECT, GST, BILLING, SHIPPING ADDRESS START -->
         <div class="row px-lg-4 px-md-4 px-3 pt-3">
-            <div class="col-lg-4 col-md-6">
+<div class="col-lg-4 col-md-6">
                 <x-forms.label class="my-3" fieldId="" :fieldLabel="__('modules.unitType.unitType')">
                 </x-forms.label>
                 <x-forms.input-group>
@@ -147,18 +154,24 @@
 
             @if($linkInvoicePermission == 'all')
                 <div class="col-md-4">
-                    <x-forms.select fieldId="bank_account_id" :fieldLabel="__('app.menu.bankaccount')" fieldName="bank_account_id"
-                                    search="true">
-                        <option value="">--</option>
-                        @if($viewBankAccountPermission != 'none')
-                            @foreach ($bankDetails as $bankDetail)
-                                <option value="{{ $bankDetail->id }}" @if($bankDetail->id == $invoice->bank_account_id) selected @endif>@if($bankDetail->type == 'bank')
-                                        {{ $bankDetail->bank_name }} | @endif
-                                    {{ mb_ucwords($bankDetail->account_name) }}
-                                </option>
-                            @endforeach
-                        @endif
-                    </x-forms.select>
+                    <div class="form-group c-inv-select my-4">
+                        <x-forms.label fieldId="bank_account_id" :fieldLabel="__('app.menu.bankaccount')">
+                        </x-forms.label>
+                        <div class="select-others height-35 rounded">
+                            <select class="form-control select-picker" data-live-search="true" data-size="8"
+                                name="bank_account_id" id="bank_account_id">
+                                <option value="">--</option>
+                                @if($viewBankAccountPermission != 'none')
+                                    @foreach ($bankDetails as $bankDetail)
+                                        <option value="{{ $bankDetail->id }}" @if($bankDetail->id == $invoice->bank_account_id) selected @endif>@if($bankDetail->type == 'bank')
+                                                {{ $bankDetail->bank_name }} | @endif
+                                            {{ $bankDetail->account_name }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+                    </div>
                 </div>
             @endif
 
@@ -181,8 +194,8 @@
                 <!-- STATUS END -->
             @endif
 
-
         </div>
+
         <div class="row px-lg-4 px-md-4 px-3 py-3">
             <!-- BILLING ADDRESS START -->
             <div class="col-md-4">
@@ -236,26 +249,44 @@
 
         <hr class="m-0 border-top-grey">
 
-
-        <div class="d-flex px-4 py-3">
-            <div class="form-group">
+        <div class="row px-lg-4 px-md-4 px-3 py-3">
+            <div class="col-md-3 d-none product-category-filter">
+                <div class="form-group c-inv-select mb-4">
+                    <x-forms.input-group>
+                        <select class="form-control select-picker" name="category_id"
+                                id="product_category_id" data-live-search="true">
+                            <option value="null">{{ __('app.select') . ' ' . __('app.product') . ' ' . __('app.category')  }}</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}">
+                                    {{ $category->category_name }}</option>
+                            @endforeach
+                        </select>
+                    </x-forms.input-group>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group c-inv-select mb-4">
                 <x-forms.input-group>
-                    <select class="form-control select-picker" data-live-search="true" data-size="8"
-                            id="add-products">
-                        <option value="">{{ __('app.select') . ' ' . __('app.product') }}</option>
-                        @foreach ($product_data as $item)
+                    <select class="form-control select-picker" data-live-search="true" data-size="8" id="add-products" title="{{ __('app.menu.selectProduct') }}">
+                        @foreach ($products as $item)
                             <option data-content="{{ $item->name }}" value="{{ $item->id }}">
                                 {{ $item->name }}</option>
                         @endforeach
                     </select>
+                    <x-slot name="preappend">
+                        <a href="javascript:;"
+                            class="btn btn-outline-secondary border-grey toggle-product-category"
+                            data-toggle="tooltip" data-original-title="{{ __('modules.productCategory.filterByCategory') }}"><i class="fa fa-filter"></i></a>
+                    </x-slot>
                     @if ($addProductPermission == 'all' || $addProductPermission == 'added')
                         <x-slot name="append">
-                            <a href="{{ route('products.create') }}" data-redirect-url="{{ url()->full() }}"
-                               class="btn btn-outline-secondary border-grey openRightModal"
-                               data-toggle="tooltip" data-original-title="{{ __('app.add').' '.__('modules.dashboard.newproduct') }}">@lang('app.add')</a>
+                            <a href="{{ route('products.create') }}" data-redirect-url="no"
+                                class="btn btn-outline-secondary border-grey openRightModal"
+                                data-toggle="tooltip" data-original-title="{{ __('app.add').' '.__('modules.dashboard.newproduct') }}">@lang('app.add')</a>
                         </x-slot>
                     @endif
                 </x-forms.input-group>
+                </div>
             </div>
         </div>
 
@@ -275,9 +306,7 @@
                                 @if ($invoiceSetting->hsn_sac_code_show)
                                     <td width="10%" class="border-0" align="right">@lang("app.hsnSac")</td>
                                 @endif
-                                <td width="10%" class="border-0" align="right" id="type">
-
-                                </td>
+                                <td width="10%" class="border-0" align="right">@lang('modules.invoices.qty')</td>
                                 <td width="10%" class="border-0" align="right">
                                     @lang("modules.invoices.unitPrice")</td>
                                 <td width="13%" class="border-0" align="right">@lang('modules.invoices.tax')
@@ -304,8 +333,23 @@
                                 @endif
                                 <td class="border-bottom-0">
                                     <input type="number" min="1"
-                                           class="form-control f-14 border-0 w-100 text-right quantity"
+                                           class="form-control f-14 border-0 w-100 text-right quantity mt-3"
                                            value="{{ $item->quantity }}" name="quantity[]">
+
+                                    @if (!is_null($item->product_id) && $item->product_id != 0)
+                                        <span class="text-dark-grey float-right border-0 f-12">{{ $item->unit->unit_type }}</span>
+                                        <input type="hidden" name="product_id[]" value="{{ $item->product_id }}">
+                                        <input type="hidden" name="unit_id[]" value="{{ $item->unit_id }}">
+                                    @else
+                                        <select class="text-dark-grey float-right border-0 f-12" name="unit_id[]">
+                                            @foreach ($units as $unit)
+                                                <option
+                                                @if ($item->unit_id == $unit->id) selected @endif
+                                                value="{{ $unit->id }}">{{ $unit->unit_type }}</option>
+                                            @endforeach
+                                        </select>
+                                        <input type="hidden" name="product_id[]" value="">
+                                    @endif
                                 </td>
                                 <td class="border-bottom-0">
                                     <input type="number" min="1"
@@ -318,9 +362,9 @@
                                                 name="taxes[{{ $key }}][]" multiple="multiple"
                                                 class="select-picker type customSequence border-0" data-size="3">
                                             @foreach ($taxes as $tax)
-                                                <option data-rate="{{ $tax->rate_percent }}"
+                                                <option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%"
                                                         @if (isset($item->taxes) && array_search($tax->id, json_decode($item->taxes)) !== false) selected @endif value="{{ $tax->id }}">
-                                                    {{ strtoupper($tax->tax_name) }}:
+                                                    {{ $tax->tax_name }}:
                                                     {{ $tax->rate_percent }}%</option>
                                             @endforeach
                                         </select>
@@ -343,7 +387,7 @@
                                     <input type="file"
                                            class="dropify"
                                            name="invoice_item_image[]"
-                                           data-allowed-file-extensions="png jpg jpeg"
+                                           data-allowed-file-extensions="png jpg jpeg bmp"
                                            data-messages-default="test"
                                            data-height="70"
                                            data-id="{{ $item->id }}"
@@ -473,6 +517,78 @@
         </div>
         <!-- NOTE AND TERMS AND CONDITIONS END -->
 
+        <!-- UPLOAD MULTIPLE FILES START -->
+        <div class="row px-lg-4 px-md-4 px-3 py-3">
+            <!-- INVOICE NUMBER START -->
+            <div class="col-md-12">
+                <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.menu.addFile')" fieldName="file" fieldId="file-upload-dropzone"/>
+            </div>
+            <input type="hidden" name="invoiceID" id="invoiceID">
+        </div>
+        <!-- UPLOAD MULTIPLE FILES END -->
+
+        <div class="d-flex px-lg-4 px-md-4 px-3 py-2 bg-light-grey">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="f-14 text-dark-grey mb-12 w-100" for="payment_status"></label>
+                    <div class="d-flex">
+                        <x-forms.checkbox fieldId="payment_status" :fieldLabel="__('modules.invoices.receivedPayment')" :fieldValue="$invoice->payment_status" fieldName="payment_status" :checked="$invoice->payment_status == '1'"></x-forms.checkbox>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 payment-types @if($invoice->payment_status != 1) d-none @endif">
+                <x-forms.select fieldId="payment_gateway_id" :fieldLabel="__('modules.payments.paymentGateway')" fieldName="gateway"
+                search="true" fieldRequired="true">
+                    <option value="">--</option>
+                    <option value="Offline"  id="offline_method" @if($invoice->gateway == 'Offline') selected @endif>{{ __('modules.offlinePayment.offlinePayment') }}</option>
+                    @if ($paymentGateway->paypal_status == 'active')
+                        <option value="paypal" @if($invoice->gateway == 'paypal') selected @endif>{{ __('app.paypal') }}</option>
+                    @endif
+                    @if ($paymentGateway->stripe_status == 'active')
+                        <option value="stripe" @if($invoice->gateway == 'stripe') selected @endif>{{ __('app.stripe') }}</option>
+                    @endif
+                    @if ($paymentGateway->razorpay_status == 'active')
+                        <option value="razorpay" @if($invoice->gateway == 'razorpay') selected @endif>{{ __('app.razorpay') }}</option>
+                    @endif
+                    @if ($paymentGateway->paystack_status == 'active')
+                        <option value="paystack" @if($invoice->gateway == 'paystack') selected @endif>{{ __('app.paystack') }}</option>
+                    @endif
+                    @if ($paymentGateway->mollie_status == 'active')
+                        <option value="mollie" @if($invoice->gateway == 'mollie') selected @endif>{{ __('app.mollie') }}</option>
+                    @endif
+                    @if ($paymentGateway->payfast_status == 'active')
+                        <option value="payfast" @if($invoice->gateway == 'payfast') selected @endif>{{ __('app.payfast') }}</option>
+                    @endif
+                    @if ($paymentGateway->authorize_status == 'active')
+                        <option value="authorize" @if($invoice->gateway == 'authorize') selected @endif>{{ __('app.authorize') }}</option>
+                    @endif
+                    @if ($paymentGateway->square_status == 'active')
+                        <option value="square" @if($invoice->gateway == 'square') selected @endif>{{ __('app.square') }}</option>
+                    @endif
+                    @if ($paymentGateway->flutterwave_status == 'active')
+                        <option value="flutterwave" @if($invoice->gateway == 'flutterwave') selected @endif>{{ __('app.flutterwave') }}</option>
+                    @endif
+                </x-forms.select>
+            </div>
+
+            <div class="col-md-3 @if($invoice->offline_methods == null || $invoice->payment_status != 1) d-none @endif " id="add_offline">
+                <x-forms.select fieldId="offline_method_id" :fieldLabel="__('modules.payments.offlinePaymentMethod')" fieldName="offline_methods"
+                search="true" fieldRequired="true">
+                    @foreach ($methods as $method)
+                        @if($method->status == 'yes')
+                        <option @if($invoice->offline_method_id == $method->id) selected @endif value={{$method->id}}>{{$method->name}}</option>
+                        @endif
+                    @endforeach
+                </x-forms.select>
+            </div>
+
+            <div class="col-md-3 payment-types @if($invoice->payment_status != 1) d-none @endif">
+                <x-forms.text fieldId="transaction_id" :fieldLabel="__('modules.payments.transactionId')"
+                    fieldName="transaction_id" :fieldPlaceholder="__('placeholders.payments.transactionId')" :fieldValue="$invoice->transaction_id"/>
+            </div>
+        </div>
+
         <!-- CANCEL SAVE SEND START -->
         <x-form-actions class="c-inv-btns">
 
@@ -504,6 +620,14 @@
                                 </a>
                             </li>
                         @endif
+                        @if($invoice->status == 'draft' || $invoice->send_status == 0)
+                            <li>
+                                <a class="dropdown-item f-14 text-dark save-form" href="javascript:void(0);"
+                                   data-type="mark_as_send" data-toggle="tooltip" data-original-title="@lang('messages.markSentInfo')">
+                                    <i class="fa fa-check-double f-w-500  mr-2 f-12"></i> @lang('app.saveMark')
+                                </a>
+                            </li>
+                        @endif
                     </ul>
                 </div>
 
@@ -520,40 +644,98 @@
 </div>
 <!-- CREATE INVOICE END -->
 
+<script src="{{ asset('vendor/jquery/dropzone.min.js') }}"></script>
 <script>
     $(document).ready(function() {
-        changesProduct($('#unit_type_id').val());
-        var term = '{!! $unit_type !!}';
-        $('#unit_type_id').change(function(e){
-            let unitTypeId = $(this).val();
-            changesProduct(unitTypeId);
+        $('.toggle-product-category').click(function() {
+            $('.product-category-filter').toggleClass('d-none');
         });
-        function changesProduct(id){
-            var url = "{{ route('get_clients_data', ':id') }}",
-                url = url.replace(':id', id);
+
+        $('#product_category_id').on('change', function(){
+            var id = $(this).val();
+            var url = "{{route('invoices.product_category', ':id')}}",
+            url = url.replace(':id', id);
             $.easyAjax({
                 url : url,
                 type : "GET",
+                container: '#saveInvoiceForm',
+                blockUI: true,
                 success: function (response) {
                     if (response.status == 'success') {
                         var options = [];
                         var rData = [];
                         rData = response.data;
-                        $.each(rData, function (index, value) {
+                        $.each(rData, function(index, value) {
                             var selectData = '';
-                            selectData = '<option value="' + value.id + '">' + value.name + '</option>';
+                            selectData = '<option value="' + value.id + '">' + value.name +
+                                '</option>';
                             options.push(selectData);
                         });
-                        $('#add-products').html('<option value="" class="form-control" >{{ __('app.select') . ' ' . __('app.product') }}</option>' +
+                        $('#add-products').html(
+                            '<option value="" class="form-control" >{{ __('app.select') . ' ' . __('app.product') }}</option>' +
                             options);
                         $('#add-products').selectpicker('refresh');
-                        term = ucWord(response.type.unit_type);
-                        $('#type').html(term);
                     }
                 }
             });
-        }
-        var file = $('.dropify').dropify({
+        });
+
+        Dropzone.autoDiscover = false;
+            //Dropzone class
+        invoiceDropzone = new Dropzone("div#file-upload-dropzone", {
+            dictDefaultMessage: "{{ __('app.dragDrop') }}",
+            url: "{{ route('invoice-files.store') }}",
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            paramName: "file",
+            maxFilesize: DROPZONE_MAX_FILESIZE,
+            maxFiles: DROPZONE_MAX_FILES,
+            autoProcessQueue: false,
+            uploadMultiple: true,
+            addRemoveLinks: true,
+            parallelUploads: DROPZONE_MAX_FILES,
+            acceptedFiles: DROPZONE_FILE_ALLOW,
+            init: function() {
+                invoiceDropzone = this;
+            }
+        });
+        invoiceDropzone.on('sending', function(file, xhr, formData) {
+            var ids = "{{ $invoice->id }}";
+            formData.append('invoice_id', ids);
+            $.easyBlockUI();
+        });
+        invoiceDropzone.on('uploadprogress', function() {
+            $.easyBlockUI();
+        });
+        invoiceDropzone.on('queuecomplete', function() {
+            var msgs = "@lang('messages.recordSaved')";
+            window.location.href = "{{ route('invoices.index') }}"
+        });
+        invoiceDropzone.on('removedfile', function () {
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).removeClass("has-error");
+            $(label).removeClass("is-invalid");
+        });
+        invoiceDropzone.on('error', function (file, message) {
+            invoiceDropzone.removeFile(file);
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).find(".help-block").remove();
+            var helpBlockContainer = $(grp);
+
+            if (helpBlockContainer.length == 0) {
+                helpBlockContainer = $(grp);
+            }
+
+            helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+            $(grp).addClass("has-error");
+            $(label).addClass("is-invalid");
+
+        });
+
+        var file = $('#sortable .dropify').dropify({
             messages: dropifyMessages
         });
 
@@ -606,12 +788,12 @@
             return false;
         });
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         const dp1 = datepicker('#invoice_date', {
             position: 'bl',
@@ -624,7 +806,7 @@
             ...datepickerConfig
         });
 
-        $('#client_id').change(function() {
+        $('#client_list_id').change(function() {
             var id = $(this).val();
             var url = "{{ route('clients.project_list', ':id') }}";
             url = url.replace(':id', id);
@@ -666,8 +848,8 @@
 
                         if (response.data.clientDetails.shipping_address === null) {
                             var addShippingLink =
-                                `<a href="javascript:;" class="text-capitalize" id="show-shipping-field"><i class="f-12 mr-2 fa fa-plus"></i>@lang("
-                            app.addShippingAddress ")</a>`;
+                                `<a href="javascript:;" class="text-capitalize" id="show-shipping-field"><i class="f-12 mr-2 fa fa-plus"></i>
+                                    @lang("app.addShippingAddress")</a>`;
                             $('#client_shipping_address').html(addShippingLink);
                         } else {
                             $('#client_shipping_address').html(nl2br(response.data
@@ -741,7 +923,7 @@
             @endif
 
                 item +=
-                `<td width="10%" class="border-0" align="right">${ ucWord(term) }</td>
+                `<td width="10%" class="border-0" align="right">@lang("modules.invoices.qty")</td>
                 <td width="10%" class="border-0" align="right">@lang("modules.invoices.unitPrice")</td>
                 <td width="13%" class="border-0" align="right">@lang("modules.invoices.tax")</td>
                 <td width="17%" class="border-0 bblr-mbl" align="right">@lang("modules.invoices.amount")</td>
@@ -762,7 +944,15 @@
             @endif
 
                 item += '<td class="border-bottom-0">' +
-                '<input type="number" min="1" class="f-14 border-0 w-100 text-right quantity form-control" value="1" name="quantity[]">' +
+                '<input type="number" min="1" class="f-14 border-0 w-100 text-right quantity form-control mt-3" value="1" name="quantity[]">' +
+                `<select class="text-dark-grey float-right border-0 f-12" name="unit_id[]">
+                    @foreach ($units as $unit)
+                        <option
+                        @if ($unit->default == 1) selected @endif
+                        value="{{ $unit->id }}">{{ $unit->unit_type }}</option>
+                    @endforeach
+                </select>
+                <input type="hidden" name="product_id[]" value="">`+
                 '</td>' +
                 '<td class="border-bottom-0">' +
                 '<input type="number" min="1" class="f-14 border-0 w-100 text-right cost_per_item form-control" placeholder="0.00" value="0" name="cost_per_item[]">' +
@@ -772,8 +962,8 @@
                 '<select id="multiselect' + i + '" name="taxes[' + i +
                 '][]" multiple="multiple" class="select-picker type customSequence" data-size="3">'
                 @foreach ($taxes as $tax)
-                +'<option data-rate="{{ $tax->rate_percent }}" value="{{ $tax->id }}">'
-                +'{{ strtoupper($tax->tax_name) }}:{{ $tax->rate_percent }}%</option>'
+                +'<option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%" value="{{ $tax->id }}">'
+                +'{{ $tax->tax_name }}:{{ $tax->rate_percent }}%</option>'
                 @endforeach
                 +
                 '</select>' +
@@ -789,7 +979,7 @@
                 '<textarea class="f-14 border-0 w-100 desktop-description" name="item_summary[]" placeholder="@lang("placeholders.invoices.description")"></textarea>' +
                 '</td>' +
                 '<td td class="border-left-0">' +
-                '<input type="file" class="dropify" id="dropify'+i+'" name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg" data-messages-default="test" data-height="70""/><input type="hidden" name="invoice_item_image_url[]">' +
+                '<input type="file" class="dropify" id="dropify'+i+'" name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg bmp" data-messages-default="test" data-height="70""/><input type="hidden" name="invoice_item_image_url[]">' +
                 '</td>' +
                 '</tr>' +
                 '</tbody>' +
@@ -855,6 +1045,15 @@
                 redirect: true,
                 file: true,  // Commented so that we dot get error of Input variables exceeded 1000
                 data: $('#saveInvoiceForm').serialize(),
+                success: function(response) {
+                    if (invoiceDropzone.getQueuedFiles().length > 0) {
+                        invoiceDropzone.processQueue();
+                    }
+                    else {
+                        window.location.href = response.redirectUrl;
+                    }
+
+                }
             })
         });
 
@@ -904,6 +1103,8 @@
 
         calculateTotal();
 
+        <x-forms.custom-field-filejs/>
+
         init(RIGHT_MODAL);
 
     });
@@ -952,4 +1153,57 @@
             }
         });
     });
+
+    $('input[type=checkbox][name=payment_status]').change(function() {
+        if ($(this).is(":checked")) {
+            $(this).val(1);
+            $('#add_offline').addClass('d-none');
+            $('.payment-types').removeClass('d-none');
+        } else {
+            $(this).val(0);
+            $('#add_offline').addClass('d-none');
+            $('#transaction_id').val('');
+            $('.payment-types').addClass('d-none');
+            $('#payment_gateway_id').val('');
+            $('#payment_gateway_id').selectpicker('refresh');
+        }
+    });
+
+    $('#payment_gateway_id').on('change', function()
+    {
+        var val = $(this).val();
+
+        if (val == 'Offline'){
+            var url = "{{ route('offline.methods') }}"
+            $.easyAjax({
+                url : url,
+                type : "GET",
+                success: function (response) {
+                    if (response.status == 'success') {
+                        $('#add_offline').removeClass('d-none');
+                        var options = [];
+                        var rData = [];
+                        rData = response.data;
+                            $.each(rData, function (index, value) {
+                            var selectData = '';
+                            if(value.status=='yes'){
+                            selectData = '<option value="' + value.id + '">' + value.name + '</option>';
+                            }
+                            options.push(selectData);
+                        });
+                        $('#add_offline_methods').html(
+                            options);
+                        $('#add_offline_methods').selectpicker('refresh');
+                    }
+                }
+            });
+        }
+        else
+        {
+            $('#add_offline').addClass('d-none');
+        }
+    });
+
 </script>
+
+@endif

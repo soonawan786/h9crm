@@ -1,3 +1,6 @@
+@php
+$manageFaqCategoryPermission = user()->permission('manage_faq_category');
+@endphp
 <link rel="stylesheet" href="{{ asset('vendor/css/dropzone.min.css') }}">
 <div class="row">
     <div class="col-sm-12">
@@ -23,11 +26,12 @@
                                         {{ ucwords($category->name) }}</option>
                                 @endforeach
                             </select>
-
-                            <x-slot name="append">
-                                <button id="addCategory" type="button"
-                                    class="btn btn-outline-secondary border-grey">@lang('app.add')</button>
-                            </x-slot>
+                            @if($manageFaqCategoryPermission == 'all')
+                                <x-slot name="append">
+                                    <button id="addCategory" type="button"
+                                        class="btn btn-outline-secondary border-grey">@lang('app.add')</button>
+                                </x-slot>
+                            @endif
                         </x-forms.input-group>
                     </div>
 
@@ -91,6 +95,7 @@
                 maxFilesize: DROPZONE_MAX_FILESIZE,
                 maxFiles: 10,
                 autoProcessQueue: false,
+                dictRemoveFile: '@lang('app.removeFile')',
                 uploadMultiple: true,
                 addRemoveLinks: true,
                 parallelUploads: 10,
@@ -141,5 +146,9 @@
         });
 
         init(RIGHT_MODAL);
+    });
+
+    $('#close-settings').click(function() {
+        closeTaskDetail()
     });
 </script>

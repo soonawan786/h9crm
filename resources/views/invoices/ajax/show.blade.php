@@ -2,6 +2,12 @@
     #logo {
         height: 50px;
     }
+    #signatory img {
+        height:95px;
+        margin-bottom: -40px;
+        margin-top: 5px;
+        margin-right: 15px;
+    }
 </style>
 
 @php
@@ -21,7 +27,11 @@
 @endif
 
 <!-- INVOICE CARD START -->
-@if (
+@if(!is_null($invoice->client_id) && !is_null($invoice->clientDetails))
+    @php
+        $client = $invoice->client;
+    @endphp
+@elseif (
     !is_null($invoice->project) &&
         !is_null($invoice->project->client) &&
         !is_null($invoice->project->client->clientDetails))
@@ -63,7 +73,7 @@
         <div class="invoice-table-wrapper">
             <table width="100%">
                 <tr class="inv-logo-heading">
-                    <td><img src="{{ invoice_setting()->logo_url }}" alt="{{ mb_ucwords(company()->company_name) }}"
+                    <td><img src="{{ invoice_setting()->logo_url }}" alt="{{ company()->company_name }}"
                             id="logo" /></td>
                     <td align="right" class="font-weight-bold f-21 text-dark text-uppercase mt-4 mt-lg-0 mt-md-0">
                         @lang('app.invoice')</td>
@@ -71,13 +81,13 @@
                 <tr class="inv-num">
                     <td class="f-14 text-dark">
                         <p class="mt-3 mb-0">
-                            {{ mb_ucwords(company()->company_name) }}<br>
+                            {{ company()->company_name }}<br>
                             @if (!is_null($settings) && $invoice->address)
                                 {!! nl2br($invoice->address->address) !!}<br>
                             @endif
                             {{ company()->company_phone }}
                             @if ($invoiceSetting->show_gst == 'yes' && $invoice->address)
-                                <br>{{ strtoupper($invoice->address->tax_name) }}: {{ $invoice->address->tax_number }}
+                                <br>{{ $invoice->address->tax_name }}: {{ $invoice->address->tax_number }}
                             @endif
                         </p><br>
                     </td>
@@ -134,7 +144,7 @@
                                 <span class="text-dark-grey text-capitalize">@lang('modules.invoices.billedTo')</span><br>
 
                                 @if ($invoice->client && $invoice->client->name && invoice_setting()->show_client_name == 'yes')
-                                    {{ mb_ucwords($invoice->client->name) }}<br>
+                                    {{ $invoice->client->name }}<br>
                                 @endif
 
                                 @if ($invoice->client && $invoice->client->email && invoice_setting()->show_client_email == 'yes')
@@ -149,7 +159,7 @@
                                     $invoice->clientDetails &&
                                         $invoice->clientDetails->company_name &&
                                         invoice_setting()->show_client_company_name == 'yes')
-                                    {{ mb_ucwords($invoice->clientDetails->company_name) }}<br>
+                                    {{ $invoice->clientDetails->company_name }}<br>
                                 @endif
 
                                 @if (
@@ -183,7 +193,7 @@
                     <td align="right" class="mt-2 mt-lg-0 mt-md-0">
                         @if ($invoice->clientDetails->company_logo)
                             <img src="{{ $invoice->clientDetails->image_url }}"
-                                alt="{{ mb_ucwords($invoice->clientDetails->company_name) }}" class="logo"
+                                alt="{{ $invoice->clientDetails->company_name }}" class="logo"
                                 style="height:50px;" />
                             <br><br><br>
                         @endif
@@ -209,7 +219,7 @@
                                     <td class="border-right-0 border-left-0" align="right">@lang('app.hsnSac')</td>
                                 @endif
                                 <td class="border-right-0 border-left-0" align="right">
-                                    {{ isset($invoice->unit) ? $invoice->unit->unit_type : 'Qty\hrs' }}
+                                    @lang('modules.invoices.qty')
                                 </td>
                                 <td class="border-right-0 border-left-0" align="right">
                                     @lang('modules.invoices.unitPrice') ({{ $invoice->currency->currency_code }})
@@ -223,14 +233,14 @@
                             @foreach ($invoice->items as $item)
                                 @if ($item->type == 'item')
                                     <tr class="text-dark font-weight-semibold f-13">
-                                        <td>{{ ucfirst($item->item_name) }}</td>
+                                        <td>{{ $item->item_name }}</td>
                                         @if ($invoiceSetting->hsn_sac_code_show)
                                             <td align="right">{{ $item->hsn_sac_code }}</td>
                                         @endif
-                                        <td align="right">{{ $item->quantity }}</td>
+                                        <td align="right">{{ $item->quantity }} @if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                                         <td align="right">
                                             {{ currency_format($item->unit_price, $invoice->currency_id, false) }}</td>
-                                        <td align="right">{{ strtoupper($item->tax_list) }}</td>
+                                        <td align="right">{{ $item->tax_list }}</td>
                                         <td align="right">
                                             {{ currency_format($item->amount, $invoice->currency_id, false) }}
                                         </td>
@@ -273,7 +283,7 @@
                                         @foreach ($taxes as $key => $tax)
                                             <tr class="text-dark-grey" align="right">
                                                 <td class="w-50 border-top-0 border-left-0">
-                                                    {{ mb_strtoupper($key) }}</td>
+                                                    {{ $key }}</td>
                                             </tr>
                                         @endforeach
                                         <tr class=" text-dark-grey font-weight-bold" align="right">
@@ -335,7 +345,7 @@
                                 <table>
                                     <tr width="100%" class="font-weight-semibold f-13">
                                         <td class="border-left-0 border-right-0 border-top-0">
-                                            {{ ucfirst($item->item_name) }}</td>
+                                            {{ $item->item_name }}</td>
                                     </tr>
                                     @if ($item->item_summary != '' || $item->invoiceItemImage)
                                         <tr>
@@ -358,7 +368,7 @@
                         </tr>
                         <tr>
                             <th width="50%" class="bg-light-grey text-dark-grey font-weight-bold">
-                                {{$invoice->unit ? $invoice->unit->unit_type: 'Qty\hrs'}}</th>
+                                @lang('modules.invoices.qty')</th>
                             <td width="50%">{{ $item->quantity }}</td>
                         </tr>
                         <tr>
@@ -397,7 +407,7 @@
 
                 @foreach ($taxes as $key => $tax)
                     <tr>
-                        <th width="50%" class="text-dark-grey font-weight-normal">{{ mb_strtoupper($key) }}</th>
+                        <th width="50%" class="text-dark-grey font-weight-normal">{{ $key }}</th>
                         <td width="50%" class="text-dark-grey font-weight-normal">
                             {{ currency_format($tax, $invoice->currency_id, false) }}</td>
                     </tr>
@@ -421,20 +431,30 @@
                     <td height="30" colspan="2"></td>
                 </tr>
                 <tr>
-                    <td>
-                        <table>
-                            <tr>@lang('app.note')</tr>
-                            <tr>
-                                <p class="text-dark-grey">{!! !empty($invoice->note) ? $invoice->note : '--' !!}</p>
-                            </tr>
-                        </table>
+                    <td>@lang('app.note')</td>
+                    <td style="text-align: right;">@lang('modules.invoiceSettings.invoiceTerms')</td>
+                </tr>
+                <tr>
+                    <td style="vertical-align: text-top">
+                        <p class="text-dark-grey">{!! !empty($invoice->note) ? $invoice->note : '--' !!}</p>
                     </td>
+                    <td style="text-align: right;">
+                        <p class="text-dark-grey">{!! nl2br($invoiceSetting->invoice_terms) !!}</p>
+                    </td>
+                </tr>
+
+                <tr>
                     <td align="right">
                         <table>
-                            <tr>@lang('modules.invoiceSettings.invoiceTerms')</tr>
-                            <tr>
-                                <p class="text-dark-grey">{!! nl2br($invoiceSetting->invoice_terms) !!}</p>
-                            </tr>
+
+                            @if ($invoiceSetting->authorised_signatory && $invoiceSetting->authorised_signatory_signature && $invoice->status == 'paid')
+                                <tr align="right">
+                                    <td id="signatory">
+                                        <img src="{{ $invoiceSetting->authorised_signatory_signature_url }}" alt="{{ $company->company_name }}"/><br>
+                                        @lang('modules.invoiceSettings.authorisedSignatory')
+                                    </td>
+                                </tr>
+                            @endif
                         </table>
                     </td>
                 </tr>
@@ -455,9 +475,6 @@
                         </table>
                     </td>
                 </tr>
-
-
-
             </table>
         </div>
     </div>
@@ -521,10 +538,18 @@
                     @if ($invoice->status != 'canceled' && !$invoice->credit_note && !in_array('client', user_roles()))
                         <li>
                             <a class="dropdown-item f-14 text-dark sendButton" href="javascript:;"
-                                data-invoice-id="{{ $invoice->id }}">
+                                data-invoice-id="{{ $invoice->id }}"  data-type="send">
                                 <i class="fa fa-paper-plane f-w-500 mr-2 f-11"></i> @lang('app.send')
                             </a>
                         </li>
+                        @if ($invoice->send_status == 0)
+                            <li>
+                                <a class="dropdown-item f-14 text-dark sendButton" href="javascript:;" data-toggle="tooltip" data-original-title="@lang('messages.markSentInfo')"
+                                    data-invoice-id="{{ $invoice->id }}" data-type="mark_as_send">
+                                    <i class="fa fa-paper-plane f-w-500 mr-2 f-11"></i> @lang('app.markSent')
+                                </a>
+                            </li>
+                        @endif
                     @endif
 
                     @if ($invoice->status == 'paid' && !in_array('client', user_roles()) && $invoice->credit_note == 0)
@@ -814,10 +839,60 @@
         <!-- TASK STATUS START -->
         <div class="col-md-12">
             <x-cards.data>
+                <h5 class="mb-3"> @lang('modules.projects.otherInfo')</h5>
                 <x-forms.custom-field-show :fields="$fields" :model="$invoice"></x-forms.custom-field-show>
             </x-cards.data>
         </div>
     </div>
+@endif
+
+@if (count($invoice->files) > 0)
+<div class="bg-white mt-4 pl-3 pt-3">
+    <h5>{{ __('modules.invoiceFiles') }}</h5>
+    <div class="d-flex flex-wrap" id="invoice-file-list">
+        @forelse($invoice->files as $file)
+            <x-file-card :fileName="$file->filename" :dateAdded="$file->created_at->diffForHumans()">
+                @if ($file->icon == 'images')
+                    <img src="{{ $file->file_url }}">
+                @else
+                    <i class="fa {{ $file->icon }} text-lightest"></i>
+                @endif
+
+                @if ($viewPermission == 'all' || ($viewPermission == 'added' && $file->added_by == user()->id))
+                    <x-slot name="action">
+                        <div class="dropdown ml-auto file-action">
+                            <button class="btn btn-lg f-14 p-0 text-lightest text-capitalize rounded  dropdown-toggle"
+                                    type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="fa fa-ellipsis-h"></i>
+                            </button>
+
+                            <div class="dropdown-menu dropdown-menu-right border-grey rounded b-shadow-4 p-0"
+                                    aria-labelledby="dropdownMenuLink" tabindex="0">
+                                @if ($viewPermission == 'all' || ($viewPermission == 'added' && $file->added_by == user()->id))
+                                    @if ($file->icon = 'images')
+                                        <a class="cursor-pointer d-block text-dark-grey f-13 pt-3 px-3 " target="_blank"
+                                            href="{{ $file->file_url }}">@lang('app.view')</a>
+                                    @endif
+                                    <a class="cursor-pointer d-block text-dark-grey f-13 py-3 px-3 "
+                                        href="{{ route('invoice-files.download', md5($file->id)) }}">@lang('app.download')</a>
+                                @endif
+
+                                @if ($deletePermission == 'all' || ($deletePermission == 'added' && $file->added_by == user()->id))
+                                    <a class="cursor-pointer d-block text-dark-grey f-13 pb-3 px-3 delete-file"
+                                        data-row-id="{{ $file->id }}" href="javascript:;">@lang('app.delete')</a>
+                                @endif
+                            </div>
+                        </div>
+                    </x-slot>
+                @endif
+
+            </x-file-card>
+        @empty
+            <x-cards.no-record :message="__('messages.noFileUploaded')" icon="file"/>
+        @endforelse
+
+    </div>
+</div>
 @endif
 
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
@@ -991,6 +1066,7 @@
     $('body').on('click', '.sendButton', function() {
         var id = $(this).data('invoice-id');
         var token = "{{ csrf_token() }}";
+        var type = $(this).data('type');
 
         var url = "{{ route('invoices.send_invoice', ':id') }}";
         url = url.replace(':id', id);
@@ -1002,6 +1078,7 @@
             blockUI: true,
             data: {
                 '_token': token,
+                'data_type': type,
                 'type': 'send'
             },
             success: function(response) {
@@ -1179,6 +1256,49 @@
                 url = url.replace(':id', id);
 
                 location.href = url;
+            }
+        });
+    });
+
+    $('body').on('click', '.delete-file', function() {
+        let id = $(this).data('row-id');
+        Swal.fire({
+            title: "@lang('messages.sweetAlertTitle')",
+            text: "@lang('messages.recoverRecord')",
+            icon: 'warning',
+            showCancelButton: true,
+            focusConfirm: false,
+            confirmButtonText: "@lang('messages.confirmDelete')",
+            cancelButtonText: "@lang('app.cancel')",
+            customClass: {
+                confirmButton: 'btn btn-primary mr-3',
+                cancelButton: 'btn btn-secondary'
+            },
+            showClass: {
+                popup: 'swal2-noanimation',
+                backdrop: 'swal2-noanimation'
+            },
+            buttonsStyling: false
+        }).then((result) => {
+            if (result.isConfirmed) {
+                var url = "{{ route('invoice-files.destroy', ':id') }}";
+                url = url.replace(':id', id);
+
+                var token = "{{ csrf_token() }}";
+
+                $.easyAjax({
+                    type: 'POST',
+                    url: url,
+                    data: {
+                        '_token': token,
+                        '_method': 'DELETE'
+                    },
+                    success: function(response) {
+                        if (response.status == "success") {
+                            $('#invoice-file-list').html(response.view);
+                        }
+                    }
+                });
             }
         });
     });

@@ -20,7 +20,7 @@ class ProjectSettingController extends AccountBaseController
         $this->pageTitle = 'app.menu.projectSettings';
         $this->activeSettingMenu = 'project_settings';
         $this->middleware(function ($request, $next) {
-            abort_403(user()->permission('manage_project_setting') !== 'all');
+            abort_403(!(user()->permission('manage_project_setting') == 'all' && in_array('projects', user_modules())));
 
             return $next($request);
         });

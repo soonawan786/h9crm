@@ -7,21 +7,15 @@
 @section('filter-section')
 
     <x-filters.filter-box>
-        <div class="select-box d-flex py-2  pr-2 border-right-grey border-right-grey-sm-0">
-            <p class="mb-0 pr-2 f-14 text-dark-grey d-flex align-items-center">@lang('app.clientName')</p>
-            <div class="select-status">
-                <select class="form-control select-picker" name="client_id" id="client_id" data-live-search="true"
-                    data-size="8">
-                    @if (!in_array('client', user_roles()))
-                        <option value="all">@lang('app.all')</option>
-                    @endif
-                    @foreach ($clients as $client)
-                            <x-user-option :user="$client" />
-                    @endforeach
-                </select>
+        <!-- DATE START -->
+        <div class="select-box d-flex pr-2 border-right-grey border-right-grey-sm-0">
+            <p class="mb-0 pr-2 f-14 text-dark-grey d-flex align-items-center">@lang('app.duration')</p>
+            <div class="select-status d-flex">
+                <input type="text" class="position-relative text-dark form-control border-0 p-2 text-left f-14 f-w-500 border-additional-grey"
+                    id="datatableRange" placeholder="@lang('placeholders.dateRange')">
             </div>
         </div>
-
+        <!-- DATE END -->
         <div class="select-box d-flex py-2 {{ !in_array('client', user_roles()) ? 'px-lg-2 px-md-2 px-0' : '' }}  border-right-grey border-right-grey-sm-0 pr-2 pl-2">
             <p class="mb-0 pr-2 f-14 text-dark-grey d-flex align-items-center">@lang('app.status')</p>
             <div class="select-status">
@@ -30,7 +24,7 @@
                     <option {{ request('status') == 'overdue' ? 'selected' : '' }} value="overdue">@lang('app.overdue')
                     </option>
                     @foreach ($projectStatus as $status)
-                        <option value="{{$status->status_name}}">{{ ucfirst($status->status_name) }}</option>
+                        <option value="{{$status->status_name}}">{{ $status->status_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -45,7 +39,7 @@
                         <option value="41-60" selected>41% - 60%</option>
                         <option value="61-80" selected>61% - 80%</option>
                         <option value="81-99" selected>81% - 99%</option>
-                        <option value="100-100">100%</option>
+                        <option value="100-100" {{ request()->projects == 'all' ? 'selected' : ''}}>100%</option>
                     </select>
                 </x-forms.input-group>
             </div>
@@ -78,6 +72,33 @@
         <!-- MORE FILTERS START -->
         <x-filters.more-filter-box>
             <div class="more-filter-items">
+                <label class="f-14 text-dark-grey mb-12 text-capitalize" for="usr">@lang('app.dateFilterOn')</label>
+                <div class="select-filter mb-4">
+                    <select class="form-control select-picker" name="date_filter_on" id="date_filter_on">
+                        <option value="deadline">@lang('app.deadline')</option>
+                        <option value="start_date">@lang('app.startDate')</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="more-filter-items">
+                <label class="f-14 text-dark-grey mb-12 text-capitalize" for="usr">@lang('app.clientName')</label>
+                <div class="select-filter mb-4">
+                    <div class="select-others">
+                        <select class="form-control select-picker" name="client_id" id="client_id" data-container="body"
+                            data-size="8">
+                            @if (!in_array('client', user_roles()))
+                                <option selected value="all">@lang('app.all')</option>
+                            @endif
+                            @foreach ($clients as $client)
+                                <x-user-option :user="$client" />
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="more-filter-items">
                 <label class="f-14 text-dark-grey mb-12 text-capitalize"
                     for="usr">@lang('modules.projects.projectCategory')</label>
                 <div class="select-filter mb-4">
@@ -101,7 +122,7 @@
                         <div class="select-others">
                             <select class="form-control select-picker" name="employee_id" id="employee_id"
                                 data-live-search="true" data-container="body" data-size="8">
-                                @if ($allEmployees->count() > 1)
+                                @if ($allEmployees->count() > 1 || in_array('admin', user_roles()))
                                     <option value="all">@lang('app.all')</option>
                                 @endif
                                 @foreach ($allEmployees as $employee)
@@ -140,6 +161,20 @@
                     </div>
                 </div>
             </div>
+
+            <div class="more-filter-items">
+                <label class="f-14 text-dark-grey mb-12 text-capitalize"
+                    for="usr">@lang('app.public')</label>
+                <div class="select-filter mb-4">
+                    <div class="select-others">
+                        <select class="form-control select-picker" name="public" id="public"
+                            data-live-search="true" data-container="body" data-size="8">
+                            <option selected value="all">@lang('app.all')</option>
+                            <option value="1">@lang('app.public')</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
         </x-filters.more-filter-box>
         <!-- MORE FILTERS END -->
 
@@ -151,13 +186,14 @@
 $addProjectPermission = user()->permission('add_projects');
 $manageProjectTemplatePermission = user()->permission('manage_project_template');
 $viewProjectTemplatePermission = user()->permission('view_project_template');
+$deleteProjectPermission = user()->permission('delete_projects');
 @endphp
 
 @section('content')
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
-        <div class="d-block d-lg-flex d-md-flex justify-content-between action-bar">
+        <div class="d-grid d-lg-flex d-md-flex action-bar">
             <div id="table-actions" class="flex-grow-1 align-items-center mb-2 mb-lg-0 mb-md-0">
                 @if ($addProjectPermission == 'all' || $addProjectPermission == 'added' || $addProjectPermission == 'both')
                     <x-forms.link-primary :link="route('projects.create')"
@@ -175,7 +211,7 @@ $viewProjectTemplatePermission = user()->permission('view_project_template');
 
 
                 @if ($addProjectPermission == 'all' || $addProjectPermission == 'added' || $addProjectPermission == 'both')
-                    <x-forms.link-secondary :link="route('projects.import')" class="mr-3 float-left mb-2 mb-lg-0 mb-md-0" icon="file-upload">
+                    <x-forms.link-secondary :link="route('projects.import')" class="mr-3 float-left mb-2 mb-lg-0 mb-md-0 d-none d-lg-block" icon="file-upload">
                         @lang('app.importExcel')
                     </x-forms.link-secondary>
                 @endif
@@ -194,23 +230,25 @@ $viewProjectTemplatePermission = user()->permission('view_project_template');
                     </div>
                     <div class="select-status mr-3 d-none quick-action-field" id="change-status-action">
                         <select name="status" class="form-control select-picker">
-                            <option value="not started">@lang('app.notStarted')</option>
-                            <option value="in progress">@lang('app.inProgress')</option>
-                            <option value="on hold">@lang('app.onHold')</option>
-                            <option value="canceled">@lang('app.canceled')</option>
-                            <option value="finished">@lang('app.finished')</option>
+                            @foreach ($projectStatus as $status)
+                                 <option value="{{ $status->status_name }}">{{ $status->status_name }}</option>
+                            @endforeach
                         </select>
                     </div>
                 </x-datatable.actions>
             @endif
 
-
-            <div class="btn-group ml-0 ml-lg-3 ml-md-3" role="group">
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group">
                 <a href="{{ route('projects.index') }}" class="btn btn-secondary f-14 btn-active projects" data-toggle="tooltip"
                     data-original-title="@lang('app.menu.projects')"><i class="side-icon bi bi-list-ul"></i></a>
 
-                <a href="{{ route('projects.archive') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
-                    data-original-title="@lang('app.archive')"><i class="side-icon bi bi-archive"></i></a>
+                    @if ($deleteProjectPermission != 'none')
+                        <a href="{{ route('projects.archive') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
+                            data-original-title="@lang('app.archive')"><i class="side-icon bi bi-archive"></i></a>
+                    @endif
+                    <a href="{{ route('project-calendar.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
+                    data-original-title="@lang('app.menu.calendar')"><i class="side-icon bi bi-calendar"></i></a>
+
 
                 <a href="javascript:;" class="btn btn-secondary f-14 show-pinned" data-toggle="tooltip"
                     data-original-title="@lang('app.pinned')"><i class="side-icon bi bi-pin-angle"></i></a>
@@ -218,7 +256,7 @@ $viewProjectTemplatePermission = user()->permission('view_project_template');
         </div>
         <!-- Add Task Export Buttons End -->
         <!-- Task Box Start -->
-        <div class="d-flex flex-column w-tables rounded mt-3 bg-white">
+        <div class="d-flex flex-column w-tables rounded mt-3 bg-white table-responsive">
 
             {!! $dataTable->table(['class' => 'table table-hover border-0 w-100']) !!}
 
@@ -235,15 +273,32 @@ $viewProjectTemplatePermission = user()->permission('view_project_template');
     <script>
         var deadLineStartDate = '';
         var deadLineEndDate = '';
+
+        var startFilterDate = '';
+        var endFilterDate = '';
         $(".select-picker").selectpicker();
 
         $('#projects-table').on('preXhr.dt', function(e, settings, data) {
+
+            var dateRangePicker = $('#datatableRange').data('daterangepicker');
+            var startFilterDate = $('#datatableRange').val();
+
+            if (startFilterDate == '') {
+                startFilterDate = null;
+                endFilterDate = null;
+            } else {
+                startFilterDate = dateRangePicker.startDate.format('{{ company()->moment_date_format }}');
+                endFilterDate = dateRangePicker.endDate.format('{{ company()->moment_date_format }}');
+            }
+
             var status = $('#status').val();
             var clientID = $('#client_id').val();
             var categoryID = $('#category_id').val();
             var teamID = $('#team_id').val();
             var employee_id = $('#employee_id').val();
             var pinned = $('#pinned').val();
+            var date_filter_on = $('#date_filter_on').val();
+            var public = $('#public').val();
             var searchText = $('#search-text-field').val();
             var progress = $('#progress').val();
 
@@ -256,11 +311,15 @@ $viewProjectTemplatePermission = user()->permission('view_project_template');
             data['progress'] = progress;
             data['client_id'] = clientID;
             data['pinned'] = pinned;
+            data['date_filter_on'] = date_filter_on;
             data['category_id'] = categoryID;
             data['team_id'] = teamID;
+            data['public'] = public;
             data['employee_id'] = employee_id;
             data['deadLineStartDate'] = deadLineStartDate;
             data['deadLineEndDate'] = deadLineEndDate;
+            data['startFilterDate'] = startFilterDate;
+            data['endFilterDate'] = endFilterDate;
             data['searchText'] = searchText;
             @if (!is_null(request('start')) && !is_null(request('end')))
                 data['startDate'] = '{{ request('start') }}';
@@ -272,7 +331,7 @@ $viewProjectTemplatePermission = user()->permission('view_project_template');
             window.LaravelDataTables["projects-table"].draw(false);
         }
 
-        $('#client_id, #status, #employee_id, #team_id, #category_id, #pinned, #progress').on('change keyup',
+        $('#client_id, #status, #employee_id, #team_id, #category_id, #pinned, #date_filter_on, #public, #progress').on('change keyup',
             function() {
                 if ($('#status').val() != "not finished") {
                     $('#reset-filters').removeClass('d-none');
@@ -292,10 +351,17 @@ $viewProjectTemplatePermission = user()->permission('view_project_template');
                 } else if ($('#pinned').val() != "all") {
                     $('#reset-filters').removeClass('d-none');
                     showTable();
-                } else if ($('#progress').val() != "all") {
+                } else if ($('#date_filter_on').val() != "deadline") {
                     $('#reset-filters').removeClass('d-none');
                     showTable();
-                } else {
+                } else if ($('#public').val() != "all") {
+                    $('#reset-filters').removeClass('d-none');
+                    showTable();
+                }
+                else if ($('#progress').val() != "all") {
+                    $('#reset-filters').removeClass('d-none');
+                    showTable();
+                }else {
                     $('#reset-filters').addClass('d-none');
                     showTable();
                 }
@@ -324,6 +390,7 @@ $viewProjectTemplatePermission = user()->permission('view_project_template');
 
         $('#reset-filters,#reset-filters-2').click(function() {
             $('#filter-form')[0].reset();
+            $('.filter-box #date_filter_on').val('deadline');
             $('.filter-box .select-picker').selectpicker("refresh");
             $('#reset-filters').addClass('d-none');
             showTable();

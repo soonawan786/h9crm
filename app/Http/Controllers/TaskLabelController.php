@@ -116,10 +116,7 @@ class TaskLabelController extends AccountBaseController
             $taskLabel->description = trim_editor($request->description);
         }
 
-        if($request->project_id != null)
-        {
-            $taskLabel->project_id = $request->project_id;
-        }
+        $taskLabel->project_id = $request->project_id;
 
         if ($request->has('color')) {
             $taskLabel->color = $request->color;

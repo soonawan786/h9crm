@@ -50,11 +50,4 @@ class StoreMilestone extends FormRequest
         return $rules;
     }
 
-    public function messages()
-    {
-        return [
-            'end_date.after_or_equal' => __('messages.milestoneStartDateValidation')
-        ];
-    }
-
 }

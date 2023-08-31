@@ -3,9 +3,9 @@
 namespace App\Models\SuperAdmin;
 
 use App\Models\LanguageSetting;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class FrontMenu extends Model
+class FrontMenu extends BaseModel
 {
     protected $guarded = ['id'];
     protected $table = 'front_menu_buttons';

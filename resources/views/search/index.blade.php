@@ -9,21 +9,39 @@
             <div class="row">
                 <div class="col-lg-12 my-3">
                     <div class="input-group">
-
                         <select class="select-picker form-control" name="search_module" id="search_module"
                             data-live-search="true">
-                            <option value="ticket">@lang('app.menu.ticket')</option>
-                            <option value="invoice">@lang('app.invoice')</option>
-                            <option value="notice">@lang('app.notice')</option>
-                            <option value="task">@lang('app.task')</option>
-                            <option value="project">@lang('app.project')</option>
-                            <option value="estimate">@lang('app.estimate')</option>
-
+                            @if(in_array('tickets', user_modules()))
+                                <option value="ticket">@lang('app.menu.ticket')</option>
+                            @endif
+                            @if (in_array('invoices', user_modules()))
+                                <option value="invoice">@lang('app.invoice')</option>
+                            @endif
+                            @if (in_array('notices', user_modules()))
+                                <option value="notice">@lang('app.notice')</option>
+                            @endif
+                            @if (in_array('tickets', user_modules()))
+                                <option value="task">@lang('app.task')</option>
+                            @endif
+                            @if (in_array('projects', user_modules()))
+                                <option value="project">@lang('app.project')</option>
+                            @endif
+                            @if (in_array('estimates', user_modules()))
+                                <option value="estimate">@lang('app.estimate')</option>
+                            @endif
                             @if (!in_array('client', user_roles()))
-                                <option value="creditNote">@lang('app.menu.credit-note')</option>
-                                <option value="employee">@lang('app.employee')</option>
-                                <option value="client">@lang('app.client')</option>
-                                <option value="lead">@lang('app.lead')</option>
+                                @if (in_array('creditNotes', user_modules()))
+                                    <option value="creditNote">@lang('app.menu.credit-note')</option>
+                                @endif
+                                @if (in_array('employees', user_modules()))
+                                    <option value="employee">@lang('app.employee')</option>
+                                @endif
+                                @if (in_array('clients', user_modules()))
+                                    <option value="client">@lang('app.client')</option>
+                                @endif
+                                @if (in_array('leads', user_modules()))
+                                    <option value="lead">@lang('app.lead')</option>
+                                @endif
                             @endif
                         </select>
 

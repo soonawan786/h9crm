@@ -4,7 +4,6 @@ namespace App\Models\SuperAdmin;
 
 use App\Models\BaseModel;
 use App\Models\LanguageSetting;
-use Illuminate\Database\Eloquent\Model;
 
 /**
  * App\Models\SuperAdmin\Feature
@@ -63,7 +62,7 @@ class Feature extends BaseModel
 
         if ($this->type == 'apps') {
             if(!is_null($this->image)){
-                return asset_url('front/feature/' . $this->image);
+                return asset_url_local_s3('front/feature/' . $this->image);
             }
 
             if (strtolower($this->title) == 'onesignal') {
@@ -85,7 +84,7 @@ class Feature extends BaseModel
             return asset('saas/img/pages/app-' . (($this->id) % 6) . '.png');
         }
 
-        return ($this->image) ? asset_url('front/feature/' . $this->image) : asset('front/img/tools.png');
+        return ($this->image) ? asset_url_local_s3('front/feature/' . $this->image) : asset('front/img/tools.png');
     }
 
 }

@@ -90,7 +90,23 @@
                 @endforeach
             </x-forms.select>
         </div>
-
+        @if (function_exists('sms_setting') && sms_setting()->telegram_status)
+            <div class="col-md-4">
+                <x-forms.number fieldName="telegram_user_id" fieldId="telegram_user_id"
+                    fieldLabel="<i class='fab fa-telegram'></i> {{ __('sms::modules.telegramUserId') }}"
+                    :fieldValue="$user->telegram_user_id" :popover="__('sms::modules.userIdInfo')"/>
+                <p class="text-bold text-danger">
+                    @lang('sms::modules.telegramBotNameInfo')
+                </p>
+                <p class="text-bold"><span id="telegram-link-text">https://t.me/{{ sms_setting()->telegram_bot_name }}</span>
+                    <a href="javascript:;" class="btn-copy btn-secondary f-12 rounded p-1 py-2 ml-1"
+                        data-clipboard-target="#telegram-link-text">
+                        <i class="fa fa-copy mx-1"></i>@lang('app.copy')</a>
+                    <a href="https://t.me/{{ sms_setting()->telegram_bot_name }}" target="_blank" class="btn-secondary f-12 rounded p-1 py-2 ml-1">
+                        <i class="fa fa-copy mx-1"></i>@lang('app.openInNewTab')</a>
+                </p>
+            </div>
+        @endif
     </div>
 </div>
 
@@ -102,7 +118,9 @@
     </x-setting-form-actions>
 </div>
 <!-- Buttons End -->
-
+@if (function_exists('sms_setting') && sms_setting()->telegram_status)
+    <script src="{{ asset('vendor/jquery/clipboard.min.js') }}"></script>
+@endif
 <script>
 
     $(document).ready(function() {
@@ -140,6 +158,28 @@
             $.ajaxModal(MODAL_LG, url);
         });
 
+        @if (function_exists('sms_setting') && sms_setting()->telegram_status)
+            var clipboard = new ClipboardJS('.btn-copy');
+
+            clipboard.on('success', function(e) {
+                Swal.fire({
+                    icon: 'success',
+                    text: '@lang("app.urlCopied")',
+                    toast: true,
+                    position: 'top-end',
+                    timer: 3000,
+                    timerProgressBar: true,
+                    showConfirmButton: false,
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                    showClass: {
+                        popup: 'swal2-noanimation',
+                        backdrop: 'swal2-noanimation'
+                    },
+                })
+            });
+        @endif
     });
 
 </script>

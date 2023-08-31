@@ -150,7 +150,7 @@
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-top-grey">
                     @lang('modules.client.clientDetails')</h4>
                 <div class="row p-20">
-                    <div class="col-md-6 col-lg-4 my-3">
+                    <div class="col-md-6 col-lg-4 my-3" id="client_list_ids">
                         <x-client-selection-dropdown :clients="$clients" />
                     </div>
 
@@ -161,7 +161,7 @@
                     </div>
 
                     <div class="col-md-6 col-lg-4">
-                        <x-forms.text fieldId="office" fieldPlaceholder="e.g. +19876543"
+                        <x-forms.text fieldId="office" :fieldPlaceholder="__('placeholders.mobileWithPlus')"
                                       :fieldValue="($contract ? $contract->office: '')"
                                       :fieldLabel="__('modules.client.officePhoneNumber')" fieldName="office">
                         </x-forms.text>
@@ -170,7 +170,7 @@
                     <div class="col-md-6 col-lg-3">
                         <x-forms.text fieldId="city" :fieldValue="($contract ? $contract->city: '')"
                                       :fieldLabel="__('modules.stripeCustomerAddress.city')"
-                                      fieldPlaceholder="e.g. Hawthorne"
+                                      :fieldPlaceholder="__('placeholders.city')"
                                       fieldName="city">
                         </x-forms.text>
                     </div>
@@ -179,7 +179,7 @@
                     <div class="col-md-6 col-lg-3">
                         <x-forms.text fieldId="state" :fieldValue="($contract ? $contract->state: '')"
                                       :fieldLabel="__('modules.stripeCustomerAddress.state')" fieldName="state"
-                                      fieldPlaceholder="e.g. California">
+                                      :fieldPlaceholder="__('placeholders.state')">
                         </x-forms.text>
                     </div>
 
@@ -191,7 +191,7 @@
 
                     <div class="col-md-6 col-lg-3">
                         <x-forms.text fieldId="postal_code" :fieldValue="($contract ? $contract->postal_code: '')"
-                                      fieldPlaceholder="e.g. 90250"
+                                        :fieldPlaceholder="__('placeholders.postalCode')"
                                       :fieldLabel="__('modules.stripeCustomerAddress.postalCode')"
                                       fieldName="postal_code">
                         </x-forms.text>
@@ -253,12 +253,12 @@
             ...datepickerConfig
         });
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         $('#add-client').click(function () {
             $(MODAL_XL).modal('show');
@@ -297,7 +297,8 @@
                 redirect: true
             })
         });
-        quillImageLoad('#description');
+
+        quillMention(null, '#description');
 
         $('#createContractType').click(function () {
             const url = "{{ route('contractTypes.create') }}";
@@ -334,6 +335,51 @@
                 }
             });
 
+        });
+        $('#client_list_id').change(function() {
+            var id = $(this).val();
+            if (id == '') {
+                id = 0;
+            }
+            var url = "{{ route('contracts.project_detail', ':id') }}";
+            url = url.replace(':id', id);
+            var token = "{{ csrf_token() }}";
+
+            $.easyAjax({
+                url: url,
+                container: '#save-contract-data-form',
+                type: "POST",
+                blockUI: true,
+                data: {
+                    _token: token
+                },
+                success: function(response) {
+                    if (response.status == 'success') {
+                        $('#project_id').html(response.data);
+                        $('#project_id').selectpicker('refresh');
+                    }
+                }
+            });
+        });
+
+        $('#save-contract-data-form').on('change', '#project_id', function () {
+            let id = $(this).val();
+            if (id === '' || id == null) {
+                id = 0;
+            }
+            let url = "{{ route('clients.client_details', ':id') }}";
+            url = url.replace(':id', id);
+            $.easyAjax({
+                url: url,
+                type: "GET",
+                container: '#save-contract-data-form',
+                blockUI: true,
+                redirect: true,
+                success: function (data) {
+                        $('#client_list_id').html(data.teamData);
+                        $('#client_list_id').selectpicker('refresh');
+                }
+            })
         });
 
         $('#without_duedate').click(function () {

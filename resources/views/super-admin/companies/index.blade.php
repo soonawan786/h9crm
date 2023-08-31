@@ -46,10 +46,10 @@
 
             <div class="more-filter-items">
                 <label class="f-14 text-dark-grey mb-12 text-capitalize"
-                       for="package">@lang('superadmin.package')</label>
+                       for="packagFilter">@lang('superadmin.package')</label>
                 <div class="select-filter mb-4">
                     <div class="select-others">
-                        <select class="form-control select-picker" id="package" data-live-search="true"
+                        <select class="form-control select-picker" id="packagFilter" data-live-search="true"
                                 data-container="body" data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($packages as $package)
@@ -113,18 +113,23 @@
 @endsection
 
 @section('content')
-
+@php
+$addCompanyPermission = user()->permission('add_companies');
+$deleteCompanyPermission = user()->permission('delete_companies');
+@endphp
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
 
         <!-- Add Task Export Buttons Start -->
         <div class="d-block d-lg-flex d-md-flex justify-content-between action-bar dd">
             <div id="table-actions" class="flex-grow-1 align-items-center">
+                @if($addCompanyPermission == 'all')
                 <x-forms.link-primary :link="route('superadmin.companies.create')"
                                       class="mr-3 openRightModal float-left mb-2 mb-lg-0 mb-md-0" icon="plus">
                     @lang('app.add')
                     @lang('superadmin.company')
                 </x-forms.link-primary>
+                @endif
             </div>
 
             @if (global_setting()->company_need_approval)
@@ -193,7 +198,7 @@
                 endDate = dateRangePicker.endDate.format('{{ global_setting()->moment_date_format }}');
             }
 
-            const packageName = $('#package').val();
+            const packageName = $('#packagFilter').val();
             const type = $('#type').val();
             const companyStatus = $('#company-status').val();
             const approveStatus = $('#approved-status').val();
@@ -211,11 +216,11 @@
             window.LaravelDataTables["companies-table"].draw();
         }
 
-        $('#package, #type, #search-text-field, #company-status, #approved-status')
+        $('#packagFilter, #type, #search-text-field, #company-status, #approved-status')
             .on('change keyup', function () {
                 if ($('#type').val() !== "all") {
                     $('#reset-filters').removeClass('d-none');
-                } else if ($('#package').val() !== "all") {
+                } else if ($('#packagFilter').val() !== "all") {
                     $('#reset-filters').removeClass('d-none');
                 } else if ($('#company-status').val() !== "all") {
                     $('#reset-filters').removeClass('d-none');
@@ -247,49 +252,51 @@
             showTable();
         });
 
-        $('body').on('click', '.delete-table-row', function () {
-            const id = $(this).data('company-id');
-            Swal.fire({
-                title: "@lang('messages.sweetAlertTitle')",
-                text: "@lang('messages.recoverRecord')",
-                icon: 'warning',
-                showCancelButton: true,
-                focusConfirm: false,
-                confirmButtonText: "@lang('messages.confirmDelete')",
-                cancelButtonText: "@lang('app.cancel')",
-                customClass: {
-                    confirmButton: 'btn btn-primary mr-3',
-                    cancelButton: 'btn btn-secondary'
-                },
-                showClass: {
-                    popup: 'swal2-noanimation',
-                    backdrop: 'swal2-noanimation'
-                },
-                buttonsStyling: false
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    var url = "{{ route('superadmin.companies.destroy', ':id') }}";
-                    url = url.replace(':id', id);
+        @if($deleteCompanyPermission == 'all')
+            $('body').on('click', '.delete-table-row', function () {
+                const id = $(this).data('company-id');
+                Swal.fire({
+                    title: "@lang('messages.sweetAlertTitle')",
+                    text: "@lang('messages.recoverRecord')",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    focusConfirm: false,
+                    confirmButtonText: "@lang('messages.confirmDelete')",
+                    cancelButtonText: "@lang('app.cancel')",
+                    customClass: {
+                        confirmButton: 'btn btn-primary mr-3',
+                        cancelButton: 'btn btn-secondary'
+                    },
+                    showClass: {
+                        popup: 'swal2-noanimation',
+                        backdrop: 'swal2-noanimation'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var url = "{{ route('superadmin.companies.destroy', ':id') }}";
+                        url = url.replace(':id', id);
 
-                    var token = "{{ csrf_token() }}";
+                        var token = "{{ csrf_token() }}";
 
-                    $.easyAjax({
-                        type: 'POST',
-                        url: url,
-                        blockUI: true,
-                        data: {
-                            '_token': token,
-                            '_method': 'DELETE'
-                        },
-                        success: function (response) {
-                            if (response.status === "success") {
-                                showTable();
+                        $.easyAjax({
+                            type: 'POST',
+                            url: url,
+                            blockUI: true,
+                            data: {
+                                '_token': token,
+                                '_method': 'DELETE'
+                            },
+                            success: function (response) {
+                                if (response.status === "success") {
+                                    showTable();
+                                }
                             }
-                        }
-                    });
-                }
+                        });
+                    }
+                });
             });
-        });
+        @endif
 
         @if(module_enabled('Subdomain'))
             $('body').on('click', '.domain-params', function () {

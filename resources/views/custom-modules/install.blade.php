@@ -15,12 +15,7 @@
     <!-- SETTINGS START -->
     <div class="w-100 d-flex ">
 
-        {{-- WORKSUITESAAS --}}
-        @if(user()->is_superadmin)
-            <x-super-admin.setting-sidebar :activeMenu="$activeSettingMenu"/>
-        @else
-            <x-setting-sidebar :activeMenu="$activeSettingMenu"/>
-        @endif
+        @include('sections.setting-sidebar')
 
         <x-setting-card>
             <x-slot name="header">
@@ -122,7 +117,8 @@
             const myDrop = new Dropzone("#file-upload-dropzone", {
                 url: uploadFile,
                 acceptedFiles: 'application/zip, application/x-zip-compressed, application/x-compressed, multipart/x-zip',
-                addRemoveLinks: true
+                addRemoveLinks: true,
+                dictDefaultMessage: "@lang('app.dropFileToUpload')",
             });
             myDrop.on("complete", function (file) {
                 if (myDrop.getRejectedFiles().length == 0) {

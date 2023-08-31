@@ -48,11 +48,11 @@ class SendInvoiceReminder extends Command
 
 
             if ($invoice_setting->send_reminder != 0) {
-                $invoices = $invoices
+                $invoicesBefore = $invoices
                     ->whereDate('due_date', Carbon::now($company->timezone)->addDays($invoice_setting->send_reminder))
                     ->get();
 
-                foreach ($invoices as $invoice) {
+                foreach ($invoicesBefore as $invoice) {
                     $notifyUser = $invoice->client;
 
                     if (!is_null($notifyUser)) {
@@ -62,11 +62,11 @@ class SendInvoiceReminder extends Command
             }
 
             if ($invoice_setting->reminder == 'after') {
-                $invoices_after = $invoices
+                $invoicesAfter = $invoices
                     ->whereDate('due_date', Carbon::now($company->timezone)->subDays($invoice_setting->send_reminder_after))
                     ->get();
 
-                foreach ($invoices_after as $invoice) {
+                foreach ($invoicesAfter as $invoice) {
                     $notifyUser = $invoice->client;
 
                     if (!is_null($notifyUser)) {
@@ -77,11 +77,11 @@ class SendInvoiceReminder extends Command
 
             }
             else {
-                $invoices_every = $invoices
+                $invoicesEvery = $invoices
                     ->whereDate('due_date', '<', now($company->timezone))
                     ->get();
 
-                foreach ($invoices_every as $invoice) {
+                foreach ($invoicesEvery as $invoice) {
                     $notifyUser = $invoice->client;
                     $date_diff = $invoice->due_date->diffInDays(now());
 

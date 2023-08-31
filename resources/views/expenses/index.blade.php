@@ -62,7 +62,7 @@
                 <div class="select-filter mb-4">
                     <div class="select-others">
                         <select class="form-control select-picker" id="employee2" data-live-search="true" data-container="body" data-size="8">
-                            @if ($employees->count() > 1)
+                            @if ($employees->count() > 1 || in_array('admin', user_roles()))
                                 <option value="all">@lang('app.all')</option>
                             @endif
                             @foreach ($employees as $item)
@@ -80,7 +80,7 @@
                         <select class="form-control select-picker" name="project_id" id="project_id2" data-container="body" data-live-search="true" data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($projects as $project)
-                                <option value="{{ $project->id }}">{{ mb_ucwords($project->project_name) }}</option>
+                                <option value="{{ $project->id }}">{{ $project->project_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -93,7 +93,7 @@
                         <select class="form-control select-picker" name="category_id" id="category_id" data-container="body" data-live-search="true" data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach($categories as $category)
-                                <option value="{{ $category->id }}">{{ mb_ucwords($category->category_name) }}</option>
+                                <option value="{{ $category->id }}">{{ $category->category_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -153,7 +153,7 @@ $recurringExpensesPermission = user()->permission('manage_recurring_expense');
 
         <!-- Add Task Export Buttons End -->
         <!-- Task Box Start -->
-        <div class="d-flex flex-column w-tables rounded mt-3 bg-white">
+        <div class="d-flex flex-column w-tables rounded mt-3 bg-white table-responsive">
 
             {!! $dataTable->table(['class' => 'table table-hover border-0 w-100']) !!}
 

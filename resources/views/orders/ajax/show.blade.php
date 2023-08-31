@@ -51,8 +51,8 @@ $deleteOrderPermission = user()->permission('delete_order');
                                 {!! nl2br($order->address->address) !!}<br>
                             @endif
                             {{ company()->company_phone }}<br>
-                            @if ($invoiceSetting->show_gst == 'yes' && $order->address)
-                                <br>{{ strtoupper($order->address->tax_name) }}: {{ $order->address->tax_number }}
+                            @if ($invoiceSetting && $invoiceSetting->show_gst == 'yes' && $order->address->tax_name)
+                                <br>{{ $order->address->tax_name }}: {{ $order->address->tax_number }}
                             @endif
                         </p><br>
                     </td>
@@ -133,7 +133,8 @@ $deleteOrderPermission = user()->permission('delete_order');
                                 @if($invoiceSetting->hsn_sac_code_show)
                                     <td class="border-right-0 border-left-0" align="right">@lang("app.hsnSac")</td>
                                 @endif
-                                <td class="border-right-0 border-left-0" align="right">{{ isset($order->unit) ? $order->unit->unit_type: 'Qty/Hrs' }}
+                                <td class="border-right-0 border-left-0" align="right">
+                                    @lang('modules.invoices.qty')
                                 </td>
                                 <td class="border-right-0 border-left-0" align="right">
                                     @lang("modules.invoices.unitPrice") ({{ $order->currency->currency_code }})
@@ -146,14 +147,14 @@ $deleteOrderPermission = user()->permission('delete_order');
 
                             @foreach ($order->items as $item)
                                 <tr class="text-dark">
-                                    <td>{{ ucfirst($item->item_name) }}</td>
+                                    <td>{{ $item->item_name }}</td>
                                     @if($invoiceSetting->hsn_sac_code_show)
                                         <td align="right">{{ $item->hsn_sac_code }}</td>
                                     @endif
-                                    <td align="right">{{ $item->quantity }}</td>
+                                    <td align="right">{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                                     <td align="right">
                                         {{ currency_format($item->unit_price, $order->currency_id, false) }}</td>
-                                    <td align="right">{{ strtoupper($item->tax_list) }}</td>
+                                    <td align="right">{{ $item->tax_list }}</td>
                                     <td align="right">{{ currency_format($item->amount, $order->currency_id, false) }}
                                     </td>
                                 </tr>
@@ -201,7 +202,7 @@ $deleteOrderPermission = user()->permission('delete_order');
                                         @foreach ($taxes as $key => $tax)
                                             <tr class="text-dark-grey" align="right">
                                                 <td class="w-50 border-top-0 border-left-0">
-                                                    {{ mb_strtoupper($key) }}</td>
+                                                    {{ $key }}</td>
                                             </tr>
                                         @endforeach
                                         <tr class="bg-light-grey text-dark f-w-500 f-16" align="right">
@@ -253,7 +254,7 @@ $deleteOrderPermission = user()->permission('delete_order');
                                 <table>
                                     <tr width="100%">
                                         <td class="border-left-0 border-right-0 border-top-0">
-                                            {{ ucfirst($item->item_name) }}</td>
+                                            {{ $item->item_name }}</td>
                                     </tr>
                                     @if ($item->item_summary != '' || $item->orderItemImage)
                                         <tr>
@@ -274,7 +275,7 @@ $deleteOrderPermission = user()->permission('delete_order');
                         </tr>
                         <tr>
                             <th width="50%" class="bg-light-grey text-dark-grey font-weight-bold">
-                                {{ ucwords($order->unit->unit_type) }}</th>
+                                {{ $order->unit->unit_type ?? '' }}</th>
                             <td width="50%">{{ $item->quantity }}</td>
                         </tr>
                         <tr>
@@ -312,7 +313,7 @@ $deleteOrderPermission = user()->permission('delete_order');
 
                 @foreach ($taxes as $key => $tax)
                     <tr>
-                        <th width="50%" class="text-dark-grey font-weight-normal">{{ mb_strtoupper($key) }}</th>
+                        <th width="50%" class="text-dark-grey font-weight-normal">{{ $key }}</th>
                         <td width="50%" class="text-dark-grey font-weight-normal">
                             {{ currency_format($tax, $order->currency_id, false) }}</td>
                     </tr>

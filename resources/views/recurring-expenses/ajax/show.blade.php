@@ -64,6 +64,9 @@
                 </p>
             </div>
 
+            <x-cards.data-row :label="__('app.bankaccount')"
+                :value="(!is_null($expense->bank) ? $expense->bank->bank_name : '--')" />
+
             <div class="col-12 px-0 pb-3 d-lg-flex d-md-flex d-block">
                 <p class="mb-0 text-lightest f-14 w-30 text-capitalize">
                     @lang('app.employee')</p>

@@ -7,7 +7,7 @@ $attendeesIds = $event->attendee->pluck('user_id')->toArray();
     <div class="row">
         <div class="col-sm-12">
             <div class="card bg-white border-0 b-shadow-4">
-                <div class="card-header bg-white  border-bottom-grey text-capitalize justify-content-between p-20">
+                <div class="card-header bg-white  border-bottom-grey justify-content-between p-20">
                     <div class="row">
                         <div class="col-md-10">
                             <h3 class="heading-h1 mb-3">{{ $event->event_name }}</h3>
@@ -22,7 +22,7 @@ $attendeesIds = $event->attendee->pluck('user_id')->toArray();
 
                                 <div class="dropdown-menu dropdown-menu-right border-grey rounded b-shadow-4 p-0"
                                     aria-labelledby="dropdownMenuLink" tabindex="0">
-                                    @if ($editPermission == 'all'
+                                       @if ($editPermission == 'all'
                                     || ($editPermission == 'added' && $event->added_by == user()->id)
                                     || ($editPermission == 'owned' && in_array(user()->id, $attendeesIds))
                                     || ($editPermission == 'both' && (in_array(user()->id, $attendeesIds) || $event->added_by == user()->id))
@@ -46,25 +46,42 @@ $attendeesIds = $event->attendee->pluck('user_id')->toArray();
                     </div>
                 </div>
                 <div class="card-body">
-                    <x-cards.data-row :label="__('modules.events.eventName')" :value="ucfirst($event->event_name)"
+                    <x-cards.data-row :label="__('modules.events.eventName')" :value="$event->event_name"
                         html="true" />
 
                     <div class="col-12 px-0 pb-3 d-flex">
                         <p class="mb-0 text-lightest f-14 w-30 d-inline-block text-capitalize">
-                            @lang('modules.events.attendees')</p>
+                            @lang('modules.events.attendees') @lang('app.employee')</p>
                         <p class="mb-0 text-dark-grey f-14">
                             @foreach ($event->attendee as $item)
+                            @if(in_array('employee', $item->user->roles->pluck('name')->toArray()))
                                 <div class="taskEmployeeImg rounded-circle mr-1">
-                                    <img data-toggle="tooltip" data-original-title="{{ mb_ucwords($item->user->name) }}"
+                                    <img data-toggle="tooltip" data-original-title="{{ $item->user->name }}"
                                         src="{{ $item->user->image_url }}">
                                 </div>
+                            @endif
                             @endforeach
                         </p>
                     </div>
 
-                    <x-cards.data-row :label="__('app.description')" :value="ucfirst($event->description)"
+                    <div class="col-12 px-0 pb-3 d-flex">
+                        <p class="mb-0 text-lightest f-14 w-30 d-inline-block text-capitalize">
+                            @lang('modules.events.attendees') @lang('app.client')</p>
+                        <p class="mb-0 text-dark-grey f-14">
+                            @foreach ($event->attendee as $item)
+                            @if(in_array('client', $item->user->roles->pluck('name')->toArray()))
+                                <div class="taskEmployeeImg rounded-circle mr-1">
+                                    <img data-toggle="tooltip" data-original-title="{{ $item->user->name }}"
+                                        src="{{ $item->user->image_url }}">
+                                </div>
+                            @endif
+                            @endforeach
+                        </p>
+                    </div>
+
+                    <x-cards.data-row :label="__('app.description')" :value="$event->description"
                         html="true" />
-                    <x-cards.data-row :label="__('app.where')" :value="ucfirst($event->where)"
+                    <x-cards.data-row :label="__('app.where')" :value="$event->where"
                         html="true" />
                     <x-cards.data-row :label="__('modules.events.startOn')"
                         :value="$event->start_date_time->translatedFormat(company()->date_format. ' - '.company()->time_format)"

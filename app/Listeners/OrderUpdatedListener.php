@@ -21,7 +21,7 @@ class OrderUpdatedListener
     {
         Notification::send($event->notifyUser, new OrderUpdated($event->order));
         Notification::send(User::allAdmins($event->order->company->id), new OrderUpdated($event->order));
-        if ($event->notifyUser->mobile != null) {
+if ($event->notifyUser->mobile != null) {
             Notification::send($event->notifyUser, new OrderUpdatedWhatsApp($event->order));
         }
     }

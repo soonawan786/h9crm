@@ -49,7 +49,7 @@
                             <select class="form-control select-picker" data-live-search="true" data-size="8"
                                 name="project_id" id="project_id">
                                 @foreach ($projects as $project)
-                                    <option value="{{ $project->id }}">{{ mb_ucwords($project->project_name) }}
+                                    <option value="{{ $project->id }}">{{ $project->project_name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -193,25 +193,6 @@
                 </div>
             </div>
 
-            <div class="col-lg-3 col-md-6 mt-4">
-                <div class="form-group c-inv-select mb-4">
-                    <x-forms.label fieldId="unit_type_id" :fieldLabel="__('modules.unitType.unitType')">
-                    </x-forms.label>
-                    <div class="select-others height-35 rounded">
-                        <select class="form-control select-picker" data-live-search="true" data-size="8"
-                            name="unit_type_id" id="unit_type_id">
-                            @foreach ($unit_types as $unit_type)
-                                <option data-val="{{ ucwords($unit_type->unit_type) }}"
-                                    @if ($unit_type->default == 1) selected @endif value="{{ $unit_type->id }}">
-                                    {{ ucwords($unit_type->unit_type) }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-
         </div>
         <!-- INVOICE NUMBER, PROJECT, COMPANY NAME, INVOICE DATE, DUE DATE, CURRENCY, TIMELOG FROM AND TO END -->
 
@@ -344,12 +325,12 @@
             $('.qtyValue').html($(this).find(':selected').data('val'));
         });
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         const dp1 = datepicker('#invoice_date', {
             position: 'bl',
@@ -544,7 +525,7 @@
             calculateTotal();
         });
 
-        $('#storePayments').on('change', '.type, #discount_type', function() {
+        $('#storePayments').on('change', '.type, #discount_type, #calculate_tax', function() {
             var quantity = $(this).closest('.item-row').find('.quantity').val();
             var perItemCost = $(this).closest('.item-row').find('.cost_per_item').val();
             var amount = (quantity * perItemCost);

@@ -68,24 +68,30 @@ $addEstimatePermission = user()->permission('add_estimates');
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
-        <div class="d-flex">
-            <div id="table-actions" class="flex-grow-1 align-items-center">
+        <div class="d-block d-lg-flex d-md-flex justify-content-between">
+            <div id="table-actions" class="flex-grow-1 align-items-center mb-2 mb-lg-0 mb-md-0">
                 @if ($addEstimatePermission == 'all' || $addEstimatePermission == 'added')
-                    <x-forms.link-primary :link="route('estimates.create')" class="mr-3 float-left" icon="plus">
+                    <x-forms.link-primary :link="route('estimates.create')" class="mr-3 float-left mb-2 mb-lg-0 mb-md-0" icon="plus">
                         @lang('modules.estimates.createEstimate')
                     </x-forms.link-primary>
-                @endif
                 <x-forms.link-secondary :link="route('estimate-template.index')"
-                class="mr-3 mb-2 mb-lg-0 mb-md-0 float-left" icon="layer-group">
+                class="mr-3 mb-2 mb-lg-0 mb-md-0 float-left mb-2 mb-lg-0 mb-md-0" icon="layer-group">
                 @lang('modules.estimates.estimateTemplate')
                 </x-forms.link-secondary>
+                @endif
+            </div>
+
+            <div class="btn-group mt-3 mt-lg-0 mt-md-0 ml-lg-3 d-none d-lg-block" role="group">
+                <a href="javascript:;" class="img-lightbox btn btn-secondary f-14"
+                data-image-url="{{ asset('img/estimate-lc.png') }}" data-toggle="tooltip"
+                data-original-title="@lang('app.howItWorks')"><i class="side-icon bi bi-question-circle"></i></a>
             </div>
 
         </div>
 
         <!-- Add Task Export Buttons End -->
         <!-- Task Box Start -->
-        <div class="d-flex flex-column w-tables rounded mt-3 bg-white">
+        <div class="d-flex flex-column w-tables rounded mt-3 bg-white table-responsive">
 
             {!! $dataTable->table(['class' => 'table table-hover border-0 w-100']) !!}
 

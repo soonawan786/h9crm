@@ -62,7 +62,6 @@ use Illuminate\Support\Facades\DB;
  * @method static \Illuminate\Database\Eloquent\Builder|Estimate whereTotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Estimate whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Estimate whereValidTill($value)
- * @mixin \Eloquent
  * @property string|null $hash
  * @property int|null $unit_id
  * @method static \Illuminate\Database\Eloquent\Builder|Estimate whereHash($value)
@@ -74,13 +73,23 @@ use Illuminate\Support\Facades\DB;
  * @property-read \App\Models\ClientDetails $clientdetails
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Estimate whereCompanyId($value)
+ * @property \Illuminate\Support\Carbon|null $last_viewed
+ * @property string|null $ip_address
+ * @property-read \App\Models\UnitType|null $unit
+ * @method static \Illuminate\Database\Eloquent\Builder|Estimate whereIpAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Estimate whereLastViewed($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Estimate whereUnitId($value)
+ * @mixin \Eloquent
  */
 class Estimate extends BaseModel
 {
 
     use Notifiable, CustomFieldsTrait, HasCompany;
 
-    protected $dates = ['valid_till', 'last_viewed'];
+    protected $casts = [
+        'valid_till' => 'datetime',
+        'last_viewed' => 'datetime',
+    ];
     protected $appends = ['total_amount', 'valid_date', 'original_estimate_number'];
     protected $with = ['currency'];
 

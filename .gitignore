@@ -1,6 +1,7 @@
 /node_modules
 /public/hot
 /public/storage
+/public/css/app-custom.css
 /public/user-uploads/*
 !public/user-uploads/.htaccess
 /storage/*.key
@@ -12,6 +13,7 @@ Homestead.json
 Homestead.yaml
 npm-debug.log
 yarn-error.log
+.php-cs-fixer.cache
 /.idea
 /.vscode
 /.vagrant

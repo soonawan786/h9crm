@@ -2,29 +2,32 @@
 
 namespace App\Console;
 
-use App\Console\Commands\AutoStopTimer;
-use App\Console\Commands\SendTimeTracker;
-use App\Console\Commands\ClearNullSessions;
-use App\Console\Commands\FetchTicketEmails;
-use App\Console\Commands\SendEventReminder;
-use Illuminate\Console\Scheduling\Schedule;
-use App\Console\Commands\CreateTranslations;
-use App\Console\Commands\HideCronJobMessage;
-use App\Console\Commands\SendInvoiceReminder;
-use App\Console\Commands\SendProjectReminder;
-use App\Console\Commands\SyncUserPermissions;
-use App\Console\Commands\UpdateExchangeRates;
-use App\Console\Commands\SendAutoTaskReminder;
-use App\Console\Commands\RemoveSeenNotification;
-use App\Console\Commands\SendAttendanceReminder;
-use App\Console\Commands\BirthdayReminderCommand;
 use App\Console\Commands\AddMissingRolePermission;
-use App\Console\Commands\AutoCreateRecurringTasks;
-use App\Console\Commands\SendAutoFollowUpReminder;
 use App\Console\Commands\AutoCreateRecurringExpenses;
 use App\Console\Commands\AutoCreateRecurringInvoices;
-use App\Console\Commands\SuperAdmin\FreeLicenceRenew;
+use App\Console\Commands\AutoCreateRecurringTasks;
+use App\Console\Commands\AutoStopTimer;
+use App\Console\Commands\BirthdayReminderCommand;
+use App\Console\Commands\ClearNullSessions;
+use App\Console\Commands\CreateTranslations;
+use App\Console\Commands\FetchTicketEmails;
+use App\Console\Commands\HideCronJobMessage;
+use App\Console\Commands\RemoveSeenNotification;
+use App\Console\Commands\SendAttendanceReminder;
+use App\Console\Commands\SendAutoTaskReminder;
+use App\Console\Commands\SendEventReminder;
+use App\Console\Commands\SendAutoFollowUpReminder;
+use App\Console\Commands\SendDailyTimelogReport;
+use App\Console\Commands\SendProjectReminder;
+use App\Console\Commands\UpdateExchangeRates;
+use App\Console\Commands\SendInvoiceReminder;
+use App\Console\Commands\SendMonthlyAttendanceReport;
+use App\Console\Commands\SyncUserPermissions;
+use App\Console\Commands\SendTimeTracker;
+use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
+use App\Console\Commands\SuperAdmin\FreeLicenceRenew;
+use App\Console\Commands\SuperAdmin\TrialExpire;
 
 class Kernel extends ConsoleKernel
 {
@@ -55,7 +58,12 @@ class Kernel extends ConsoleKernel
         AddMissingRolePermission::class,
         BirthdayReminderCommand::class,
         SendTimeTracker::class,
-        FreeLicenceRenew::class
+        SendMonthlyAttendanceReport::class,
+        SendDailyTimelogReport::class,
+        // WORKSUITE SAAS
+        FreeLicenceRenew::class,
+        TrialExpire::class,
+
     ];
 
     /**
@@ -69,38 +77,45 @@ class Kernel extends ConsoleKernel
         // Get the timezone from the configuration
         $timezone = config('app.cron_timezone');
 
+
         // Schedule the queue:work command to run without overlapping and with 3 tries
         $schedule->command('queue:work --tries=3 --stop-when-empty')->withoutOverlapping();
         $schedule->command('recurring-task-create')->dailyAt('23:59')->timezone($timezone);
         $schedule->command('auto-stop-timer')->dailyAt('23:30')->timezone($timezone);
         $schedule->command('birthday-notification')->dailyAt('09:00')->timezone($timezone);
 
+        // Every Minute
         $schedule->command('send-event-reminder')->everyMinute();
         $schedule->command('hide-cron-message')->everyMinute();
         $schedule->command('send-attendance-reminder')->everyMinute();
         $schedule->command('sync-user-permissions')->everyMinute();
         $schedule->command('fetch-ticket-emails')->everyMinute();
         $schedule->command('send-auto-followup-reminder')->everyMinute();
+        $schedule->command('send-time-tracker')->everyMinute();
 
+        // Daily
         $schedule->command('send-project-reminder')->daily()->timezone($timezone);
         $schedule->command('send-auto-task-reminder')->daily()->timezone($timezone);
         $schedule->command('recurring-invoice-create')->daily()->timezone($timezone);
         $schedule->command('recurring-expenses-create')->daily()->timezone($timezone);
         $schedule->command('send-invoice-reminder')->daily()->timezone($timezone);
         $schedule->command('delete-seen-notification')->daily()->timezone($timezone);
-        $schedule->command('logcleaner:run')->daily()->timezone($timezone);
         $schedule->command('update-exchange-rate')->daily()->timezone($timezone);
+        $schedule->command('send-daily-timelog-report')->daily()->timezone($timezone);
+        $schedule->command('log:clear --keep-last')->daily()->timezone($timezone);
 
+        // Hourly
         $schedule->command('clear-null-session')->hourly();
         $schedule->command('create-database-backup')->hourly();
         $schedule->command('delete-database-backup')->hourly();
         $schedule->command('add-missing-permissions')->everyThirtyMinutes();
-        $schedule->command('send-time-tracker')->everyMinute();
+
+        $schedule->command('send-monthly-attendance-report')->monthlyOn();
 
         // WORKSUITESAAS
-        $schedule->command('free-licence-renew')->daily();
-        $schedule->command('licence-expire')->daily();
-
+        $schedule->command('free-licence-renew')->daily()->runInBackground();
+        $schedule->command('licence-expire')->daily()->runInBackground();
+        $schedule->command('trial-expire')->daily()->runInBackground();
     }
 
     /**

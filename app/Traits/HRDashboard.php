@@ -104,8 +104,8 @@ trait HRDashboard
             ->get();
 
         $this->counts = User::select(
-                DB::raw('(select count(distinct(attendances.user_id)) from `attendances` inner join users as atd_user on atd_user.id=attendances.user_id inner join role_user on role_user.user_id=atd_user.id inner join roles on roles.id=role_user.role_id WHERE roles.name = "employee" and attendances.clock_in_time >= "'.today(company()->timezone)->setTimezone('UTC')->toDateTimeString().'" and atd_user.status = "active") as totalTodayAttendance'),
-                DB::raw('(select count(users.id) from `users` inner join role_user on role_user.user_id=users.id inner join roles on roles.id=role_user.role_id WHERE roles.name = "employee" and users.status = "active") as totalEmployees')
+                DB::raw('(select count(distinct(attendances.user_id)) from `attendances` inner join users as atd_user on atd_user.id=attendances.user_id inner join role_user on role_user.user_id=atd_user.id inner join roles on roles.id=role_user.role_id WHERE roles.name = "employee" and attendances.clock_in_time >= "'.today(company()->timezone)->setTimezone('UTC')->toDateTimeString().'" and atd_user.status = "active" AND attendances.company_id = '. company()->id .') as totalTodayAttendance'),
+                DB::raw('(select count(users.id) from `users` inner join role_user on role_user.user_id=users.id inner join roles on roles.id=role_user.role_id WHERE roles.name = "employee" and users.status = "active" AND users.company_id = '. company()->id .') as totalEmployees')
             )
             ->first();
 
@@ -198,14 +198,14 @@ trait HRDashboard
     public function headCountChart()
     {
         $period = now(global_setting()->timezone)->subMonths(11)->monthsUntil(now(global_setting()->timezone));
-        $startDate = $period->startDate->startOfMonth();
-        $endDate = $period->endDate->endOfMonth();
+        $startDate = $period->startDate->startOfMonth(); /** @phpstan-ignore-line */
+        $endDate = $period->endDate->endOfMonth(); /** @phpstan-ignore-line */
 
         $months = [];
 
         foreach($period as $periodData){
             $months[$periodData->format('m-Y')] = [
-                'y' => $periodData->format('F'),
+                'y' => $periodData ? $periodData->translatedFormat('F') : null,
                 'a' => 0
             ];
         }
@@ -229,8 +229,9 @@ trait HRDashboard
             ->groupby('year', 'month')
             ->get()->keyBy('date');
 
+        $graphData = [];
+
         foreach ($months as $key => $month){
-            $joinings = 0;
             $oldEmployee = $oldEmployee + (isset($joiningDates[$key]) ? $joiningDates[$key]->data : 0);
             $oldEmployee = $oldEmployee - (isset($lastDates[$key]) ? $lastDates[$key]->data : 0);
 
@@ -238,10 +239,9 @@ trait HRDashboard
                 'y' => $months[$key]['y'],
                 'a' => $oldEmployee
             ];
-
         }
 
-            $graphData = collect($graphData);
+        $graphData = collect($graphData);
 
         $data['labels'] = $graphData->pluck('y');
         $data['values'] = $graphData->pluck('a')->toArray();
@@ -249,27 +249,25 @@ trait HRDashboard
         $data['name'] = __('modules.dashboard.headcount');
 
         return $data;
-
     }
 
     public function joiningVsAttritionChart()
     {
-
         $period = now()->subMonths(11)->monthsUntil(now());
-        $startDate = $period->startDate->startOfMonth();
-        $endDate = $period->endDate->endOfMonth();
+
+        $startDate = $period->startDate->startOfMonth(); /** @phpstan-ignore-line */
+        $endDate = $period->endDate->endOfMonth(); /** @phpstan-ignore-line */
+
 
         $months = [];
 
         foreach($period as $periodData){
             $months[$periodData->format('m-Y')] = [
-                'y' => $periodData->format('F'),
+                'y' => $periodData ? $periodData->translatedFormat('F') : null,
                 'a' => 0 ,
                 'b' => 0
             ];
         }
-
-
 
         $joiningDates = EmployeeDetails::whereDate('joining_date', '>=', $startDate)->whereDate('joining_date', '<=', $endDate )
             ->select(DB::raw('count(joining_date) as data'),
@@ -286,6 +284,8 @@ trait HRDashboard
             ->orderBy('last_date')
             ->groupby('year', 'month')
             ->get()->keyBy('date');
+
+        $graphData = [];
 
         foreach ($months as $key => $month){
             $joinings = 0;

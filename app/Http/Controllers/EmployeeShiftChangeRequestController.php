@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\DataTables\ShiftChangeRequestDataTable;
-use App\Helper\Reply;
-use App\Http\Requests\EmployeeShiftChange\UpdateRequest;
-use App\Models\EmployeeShift;
-use App\Models\EmployeeShiftChangeRequest;
-use App\Models\EmployeeShiftSchedule;
+use Carbon\Carbon;
 use App\Models\User;
+use App\Helper\Reply;
 use Illuminate\Http\Request;
+use App\Models\EmployeeShift;
+use App\Models\EmployeeShiftSchedule;
+use App\Models\EmployeeShiftChangeRequest;
+use App\DataTables\ShiftChangeRequestDataTable;
+use App\Http\Requests\EmployeeShiftChange\UpdateRequest;
 
 class EmployeeShiftChangeRequestController extends AccountBaseController
 {
@@ -27,6 +28,10 @@ class EmployeeShiftChangeRequestController extends AccountBaseController
 
     public function index(ShiftChangeRequestDataTable $dataTable)
     {
+        $this->manageEmployeeShifts = user()->permission('manage_employee_shifts');
+
+        abort_403(!(in_array($this->manageEmployeeShifts, ['all'])));
+
         if (!request()->ajax()) {
             $this->employees = User::allEmployees(null, true, 'all');
             $this->employeeShifts = EmployeeShift::where('shift_name', '<>', 'Day Off')->get();
@@ -37,8 +42,13 @@ class EmployeeShiftChangeRequestController extends AccountBaseController
 
     public function edit(Request $request, $id)
     {
+        $shiftId = $request->shift_id;
+        $this->day = Carbon::createFromFormat($this->company->date_format, $request->date)->dayOfWeek;
         $this->shift = EmployeeShiftSchedule::with('requestChange', 'requestChange.shift')->findOrFail($id);
-        $this->employeeShifts = EmployeeShift::where('shift_name', '<>', 'Day Off')->get();
+        $this->employeeShifts = EmployeeShift::where('shift_name', '<>', 'Day Off')
+            ->where('id', '!=', $shiftId )
+            ->where('office_open_days', 'like', '%"'.$this->day.'"%')
+            ->get();
 
         return view('shift-rosters.ajax.request-change', $this->data);
     }

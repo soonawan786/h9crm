@@ -62,6 +62,32 @@
 
         <!-- MORE FILTERS START -->
         <x-filters.more-filter-box>
+
+            <!--GROUP START -->
+            @if (!in_array('client', user_roles()))
+                <div class="more-filter-items">
+                    <label class="f-14 text-dark-grey mb-12 text-capitalize"
+                        for="usr">@lang('modules.tickets.group')</label>
+                    <div class="select-filter mb-4">
+                        <div class="select-others">
+                            <select class="form-control select-picker" name="group_id" id="group_id" data-live-search="true"
+                                data-container="body" data-size="8">
+                                @if ($groups)
+                                    @if ($viewPermission == 'all')
+                                    <option value="all">@lang('app.all')</option>
+                                    @endif
+
+                                    @foreach ($groups as $group)
+                                        <option value = "{{$group->id}}">{{$group->group_name}}</option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            @endif
+            <!--GROUP END -->
+
             <!-- AGENT START -->
             @if (!in_array('client', user_roles()))
                 <div class="more-filter-items">
@@ -71,13 +97,17 @@
                         <div class="select-others">
                             <select class="form-control select-picker" name="agent_id" id="agent_id" data-live-search="true"
                                 data-container="body" data-size="8">
-                                <option value="all">@lang('app.all')</option>
                                 @if ($groups)
+                                    @if ($viewPermission == 'all')
+                                    <option value="all">@lang('app.all')</option>
+                                    @endif
 
                                     @foreach ($groups as $group)
-                                        <optgroup label="{{ mb_ucwords($group->group_name) }}">
+                                        <optgroup label="{{ $group->group_name }}">
                                             @foreach ($group->enabledAgents as $agent)
-                                                <x-user-option :user="$agent->user" :selected="(request('agent') == $agent->user->id) || (request('agent') == 'me' && $agent->user->id == user()->id)" />
+                                                @if($agent->user)
+                                                    <x-user-option :user="$agent->user" :selected="(request('agent') == $agent->user->id) || (request('agent') == 'me' && $agent->user->id == user()->id)" />
+                                                @endif
                                             @endforeach
                                         </optgroup>
                                     @endforeach
@@ -113,7 +143,7 @@
                         <select class="form-control select-picker" id="channel_id" data-container="body">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($channels as $channel)
-                                <option value="{{ $channel->id }}">{{ mb_ucwords($channel->channel_name) }}</option>
+                                <option value="{{ $channel->id }}">{{ $channel->channel_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -127,7 +157,7 @@
                             data-container="body">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($types as $type)
-                                <option value="{{ $type->id }}">{{ mb_ucwords($type->type) }}</option>
+                                <option value="{{ $type->id }}">{{ $type->type }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -142,7 +172,7 @@
                             data-container="body">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($tags as $tag)
-                                <option value="{{ $tag->id }}">{{ mb_ucwords($tag->tag_name) }}</option>
+                                <option value="{{ $tag->id }}">{{ $tag->tag_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -243,7 +273,7 @@ $addTicketPermission = user()->permission('add_tickets');
 
         <!-- Add Task Export Buttons End -->
         <!-- Task Box Start -->
-        <div class="d-flex flex-column w-tables rounded mt-3 bg-white">
+        <div class="d-flex flex-column w-tables rounded mt-3 bg-white table-responsive">
 
             {!! $dataTable->table(['class' => 'table table-hover border-0 w-100']) !!}
 
@@ -284,6 +314,11 @@ $addTicketPermission = user()->permission('add_tickets');
                 agentId = 0;
             }
 
+            var groupId = $('#group_id').val();
+            if (groupId == "") {
+                groupId = 0;
+            }
+
             var status = $('#ticket-status').val();
             if (status == "") {
                 status = 0;
@@ -312,6 +347,7 @@ $addTicketPermission = user()->permission('add_tickets');
 
             data['startDate'] = startDate;
             data['endDate'] = endDate;
+            data['groupId'] = groupId;
             data['agentId'] = agentId;
             data['priority'] = priority;
             data['channelId'] = channelId;
@@ -330,7 +366,7 @@ $addTicketPermission = user()->permission('add_tickets');
             refreshCount();
         }
 
-        $('#agent_id, #ticket-status, #priority, #channel_id, #type_id, #tag_id')
+        $('#agent_id, #ticket-status, #priority, #channel_id, #type_id, #tag_id, #group_id')
             .on('change keyup',
                 function() {
                     if ($('#ticket-status').val() != "not finished") {
@@ -349,6 +385,9 @@ $addTicketPermission = user()->permission('add_tickets');
                         $('#reset-filters').removeClass('d-none');
                         showTable();
                     } else if ($('#tag_id').val() != "all") {
+                        $('#reset-filters').removeClass('d-none');
+                        showTable();
+                    } else if ($('#group_id').val() != "all") {
                         $('#reset-filters').removeClass('d-none');
                         showTable();
                     } else {
@@ -544,6 +583,12 @@ $addTicketPermission = user()->permission('add_tickets');
             if (endDate == '') {
                 endDate = null;
             }
+
+            var groupId = $('#group_id').val();
+            if (groupId == "") {
+                groupId = 0;
+            }
+
             var agentId = $('#agent_id').val();
             if (agentId == "") {
                 agentId = 0;
@@ -582,6 +627,7 @@ $addTicketPermission = user()->permission('add_tickets');
                     'priority': priority,
                     'channelId': channelId,
                     'typeId': typeId,
+                    'groupId': groupId,
                     '_token': '{{ csrf_token() }}'
                 },
                 success: function(response) {

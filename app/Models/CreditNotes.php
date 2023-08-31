@@ -83,7 +83,6 @@ use Illuminate\Notifications\Notifiable;
  * @method static \Illuminate\Database\Eloquent\Builder|CreditNotes whereSubTotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder|CreditNotes whereTotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder|CreditNotes whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property float|null $adjustment_amount
  * @property string $calculate_tax
  * @method static \Illuminate\Database\Eloquent\Builder|CreditNotes whereAdjustmentAmount($value)
@@ -91,13 +90,19 @@ use Illuminate\Notifications\Notifiable;
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|CreditNotes whereCompanyId($value)
+ * @property-read \App\Models\UnitType|null $unit
+ * @method static \Illuminate\Database\Eloquent\Builder|CreditNotes whereUnitId($value)
+ * @mixin \Eloquent
  */
 class CreditNotes extends BaseModel
 {
 
     use Notifiable, HasCompany;
 
-    protected $dates = ['issue_date', 'due_date'];
+    protected $casts = [
+        'issue_date' => 'datetime',
+        'due_date' => 'datetime',
+    ];
     protected $appends = ['total_amount', 'issue_on', 'cn_number', 'original_cn_number'];
     protected $with = ['currency'];
 

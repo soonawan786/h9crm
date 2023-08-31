@@ -29,6 +29,11 @@ class EmployeeVisaController extends AccountBaseController
         });
     }
 
+    public function index()
+    {
+        return redirect()->route('employees.index');
+    }
+
     /**
      * Show the form for creating a new resource.
      *
@@ -53,7 +58,7 @@ class EmployeeVisaController extends AccountBaseController
         $visa->country_id = $request->country;
 
         if($request->has('file')) {
-            $visa->file = Files::upload($request->file, VisaDetail::FILE_PATH, 300);
+            $visa->file = Files::uploadLocalOrS3($request->file, VisaDetail::FILE_PATH);
         }
 
         $visa->save();
@@ -111,7 +116,7 @@ class EmployeeVisaController extends AccountBaseController
 
         if($request->has('file')) {
             Files::deleteFile($visa->image, VisaDetail::FILE_PATH);
-            $visa->file = Files::upload($request->file, VisaDetail::FILE_PATH, 300);
+            $visa->file = Files::uploadLocalOrS3($request->file, VisaDetail::FILE_PATH);
         }
 
         $visa->save();

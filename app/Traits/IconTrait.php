@@ -5,6 +5,8 @@ namespace App\Traits;
 trait IconTrait
 {
 
+    private $filename;
+
     protected $mimeType = [
         'txt' => 'fa-file-alt',
         'htm' => 'fa-file-code',

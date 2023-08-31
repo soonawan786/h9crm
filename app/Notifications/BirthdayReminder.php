@@ -59,6 +59,8 @@ class BirthdayReminder extends BaseNotification
     // phpcs:ignore
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
+
         $list = '<ol>';
 
         foreach ($this->birthDays->upcomingBirthdays as $birthDay) {
@@ -72,7 +74,7 @@ class BirthdayReminder extends BaseNotification
 
         $content = __('email.BirthdayReminder.text') . '<br>' . new HtmlString($list);
 
-        return parent::build()
+        return $build
             ->subject($this->count . ' ' . __('email.BirthdayReminder.subject'))
             ->markdown('mail.email', [
                 'url' => $url,

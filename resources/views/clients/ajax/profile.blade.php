@@ -27,7 +27,7 @@
                     <div class="row">
                         <div class="col-10">
                             <h4 class="card-title f-15 f-w-500 text-darkest-grey mb-0">
-                                {{ ucfirst($client->salutation) . ' ' . mb_ucwords($client->name) }}
+                                {{ $client->salutation . ' ' . $client->name }}
                                 @isset($client->country)
                                     <x-flag :country="$client->country" />
                                 @endisset
@@ -49,7 +49,7 @@
                         </div>
                     </div>
                     <p class="f-13 font-weight-normal text-dark-grey mb-0">
-                        {{ mb_ucwords($client->clientDetails->company_name) }}
+                        {{ $client->clientDetails->company_name }}
                     </p>
                     <p class="card-text f-12 text-lightest">@lang('app.lastLogin')
 
@@ -93,7 +93,7 @@
 <div class="row mt-4">
     <div class="col-xl-7 col-lg-12 col-md-12 mb-4 mb-xl-0 mb-lg-4">
         <x-cards.data :title="__('modules.client.profileInfo')">
-            <x-cards.data-row :label="__('modules.employees.fullName')" :value="mb_ucwords($client->name)" />
+            <x-cards.data-row :label="__('modules.employees.fullName')" :value="$client->name" />
 
             <x-cards.data-row :label="__('app.email')" :value="$client->email ?? '--'" />
 

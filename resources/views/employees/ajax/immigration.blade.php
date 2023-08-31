@@ -14,7 +14,7 @@ $editImmigrationPermission = user()->permission('edit_immigration');
                 || ($addImmigrationPermission == 'owned' && ($employee->id == user()->id))
                 )
                 <x-forms.button-primary class="mr-3 add-passport mb-3   " icon="plus">
-                    @lang('app.add') @lang('app.passport')
+                    @lang('app.addPassport')
                 </x-forms.button-primary>
             @endif
         @endif
@@ -67,8 +67,8 @@ $editImmigrationPermission = user()->permission('edit_immigration');
                         @lang('modules.employees.scanCopy')</p>
                     <p class="mb-0 text-dark-grey f-14 w-70">
                         @if($passport->file)
-                            <img data-toggle="tooltip" style="height:50px;"
-                            src="{{ $passport->image_url }}">
+                            <a target="_blank" class="text-dark-grey"
+                                href="{{ $passport->image_url }}"><i class="fa fa-external-link-alt"></i> <u>@lang('app.view') @lang('modules.employees.scanCopy')</u></a>
                         @else
                         --
                         @endif
@@ -94,7 +94,7 @@ $editImmigrationPermission = user()->permission('edit_immigration');
             || ($addImmigrationPermission == 'owned' && ($employee->id == user()->id))
             )
             <x-forms.button-primary icon="plus" id="add-visa" class="mb-3">
-                @lang('app.add') @lang('app.visa')
+                @lang('app.addVisa')
             </x-forms.button-primary>
         @endif
 
@@ -171,7 +171,7 @@ $editImmigrationPermission = user()->permission('edit_immigration');
                             </td>
                         </tr>
                     @empty
-                        <x-cards.no-record-found-list colspan="5"/>
+                        <x-cards.no-record-found-list colspan="6"/>
                     @endforelse
                 </x-table>
             </x-cards.data>

@@ -2,9 +2,9 @@
 
 namespace App\Models\SuperAdmin;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class MollieSubscription extends Model
+class MollieSubscription extends BaseModel
 {
     //
 }

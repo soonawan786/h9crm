@@ -2,7 +2,7 @@
 
 namespace App\Models\SuperAdmin;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\SuperAdmin\FrontWidget
@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|FrontWidget whereWidgetCode($value)
  * @mixin \Eloquent
  */
-class FrontWidget extends Model
+class FrontWidget extends BaseModel
 {
     protected $guarded = ['id'];
 }

@@ -38,9 +38,9 @@
                     <div class="form-group my-3">
                         <label for="mail_from_name">@lang('app.callback')</label>
                         <p class="text-bold"><span
-                                id="facebook_webhook_link">{{ route('social_login_callback', 'facebook') }}</span>
+                                id="facebook-webhook-link">{{ route('social_login_callback', 'facebook') }}</span>
                             <a href="javascript:;" class="btn-copy btn-secondary f-12 rounded p-1 py-2 ml-1"
-                                data-clipboard-target="#facebook_webhook_link">
+                                data-clipboard-target="#facebook-webhook-link">
                                 <i class="fa fa-copy mx-1"></i>@lang('app.copy')</a>
                         </p>
                         <p class="text-primary">(@lang('messages.addFacebookCallback'))</p>
@@ -60,7 +60,9 @@
 </div>
 
 <script>
+
     $('#facebookButton').on('change', function() {
         $('.facebookSection').toggleClass('d-none');
     });
+    
 </script>

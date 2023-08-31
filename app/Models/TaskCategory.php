@@ -23,10 +23,10 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|TaskCategory whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskCategory whereLastUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskCategory whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|TaskCategory whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class TaskCategory extends BaseModel
 {

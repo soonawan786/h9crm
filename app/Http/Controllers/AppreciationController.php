@@ -169,7 +169,7 @@ class AppreciationController extends AccountBaseController
 
         if ($request->hasFile('photo')) {
             Files::deleteFile($appreciation->image, 'appreciation');
-            $appreciation->image = Files::upload($request->photo, 'appreciation', 300);
+            $appreciation->image = Files::uploadLocalOrS3($request->photo, 'appreciation', 300);
         }
 
         $appreciation->save();
@@ -201,7 +201,7 @@ class AppreciationController extends AccountBaseController
         ));
 
         Appreciation::destroy($id);
-        return Reply::successWithData(__('messages.appreciationDeleted'), ['redirectUrl' => route('appreciations.index')]);
+        return Reply::successWithData(__('messages.deleteSuccess'), ['redirectUrl' => route('appreciations.index')]);
 
     }
 

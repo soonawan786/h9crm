@@ -14,9 +14,11 @@ use App\Models\ProductSubCategory;
 use App\DataTables\ProductsDataTable;
 use App\Http\Requests\Product\StoreProductRequest;
 use App\Http\Requests\Product\UpdateProductRequest;
+use App\Models\OrderCart;
 use App\Models\ProductBrand;
 use App\Models\ProductTags;
 use App\Models\UnitType;
+use Illuminate\Support\Facades\Session;
 
 class ProductController extends AccountBaseController
 {
@@ -25,15 +27,17 @@ class ProductController extends AccountBaseController
     {
         parent::__construct();
         $this->pageTitle = 'app.menu.products';
-        $this->middleware(function ($request, $next) {
-            in_array('client', user_roles()) ? abort_403(!(in_array('orders', $this->user->modules) && user()->permission('add_order') == 'all')) : abort_403(!in_array('products', $this->user->modules));
+        $this->middleware(
+            function ($request, $next) {
+                in_array('client', user_roles()) ? abort_403(!(in_array('orders', $this->user->modules) && user()->permission('add_order') == 'all')) : abort_403(!in_array('products', $this->user->modules));
 
-            return $next($request);
-        });
+                return $next($request);
+            }
+        );
     }
 
     /**
-     * @param ProductsDataTable $dataTable
+     * @param  ProductsDataTable $dataTable
      * @return mixed|void
      */
     public function index(ProductsDataTable $dataTable)
@@ -42,16 +46,15 @@ class ProductController extends AccountBaseController
         abort_403(!in_array($viewPermission, ['all', 'added']));
 
         $productDetails = [];
-
-        if (request()->hasCookie('productDetails')) {
-            $productDetails = json_decode(request()->cookie('productDetails'), true);
-        }
-
+        $productDetails = OrderCart::all();
         $this->productDetails = $productDetails;
 
         $this->totalProducts = Product::count();
+        $this->cartProductCount = OrderCart::where('client_id', user()->id)->count();
+
         $this->categories = ProductCategory::all();
         $this->subCategories = ProductSubCategory::all();
+        $this->unitTypes = UnitType::all();
 
         return $dataTable->render('products.index', $this->data);
     }
@@ -63,14 +66,14 @@ class ProductController extends AccountBaseController
      */
     public function create()
     {
-        $this->pageTitle = __('app.add') . ' ' . __('app.menu.products');
+        $this->pageTitle = __('app.menu.addProducts');
 
         $this->addPermission = user()->permission('add_product');
         abort_403(!in_array($this->addPermission, ['all', 'added']));
         $this->taxes = Tax::all();
         $this->categories = ProductCategory::all();
         $this->subCategories = ProductSubCategory::all();
-        //brands
+//brands
         $this->brands = ProductBrand::all();
         //tags
         $this->tags = ProductTags::all();
@@ -79,7 +82,7 @@ class ProductController extends AccountBaseController
 
         $this->unit_types = UnitType::all();
 
-        if (!empty($product->getCustomFieldGroupsWithFields())) {
+        if ($product->getCustomFieldGroupsWithFields()) {
             $this->fields = $product->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -97,7 +100,7 @@ class ProductController extends AccountBaseController
 
     /**
      *
-     * @param StoreProductRequest $request
+     * @param  StoreProductRequest $request
      * @return void
      */
     public function store(StoreProductRequest $request)
@@ -116,7 +119,7 @@ class ProductController extends AccountBaseController
         $product->downloadable = $request->downloadable == 'true';
         $product->category_id = ($request->category_id) ?: null;
         $product->sub_category_id = ($request->sub_category_id) ?: null;
-        $product->quantity = ($request->quantity) ?: null;
+$product->quantity = ($request->quantity) ?: null;
         $product->brand_id = ($request->brand_id) ?: null;
 
         if (request()->hasFile('downloadable_file') && request()->downloadable == 'true') {
@@ -125,7 +128,7 @@ class ProductController extends AccountBaseController
         }
 
         $product->save();
-        //store tags
+//store tags
         if ($request->filled('tags')) {
             $product->tags()->attach($request->tags);
         }
@@ -141,8 +144,7 @@ class ProductController extends AccountBaseController
             $redirectUrl = route('products.index');
         }
 
-        if($request->add_more == 'true')
-        {
+        if($request->add_more == 'true') {
             $html = $this->create();
 
             return Reply::successWithData(__('messages.recordSaved'), ['html' => $html, 'add_more' => true, 'productID' => $product->id, 'defaultImage' => $request->default_image ?? 0]);
@@ -155,12 +157,12 @@ class ProductController extends AccountBaseController
     /**
      * Display the specified resource.
      *
-     * @param int $id
+     * @param  int $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
     {
-        $this->product = Product::with('category', 'subCategory','brand')->findOrFail($id)->withCustomFields();
+        $this->product = Product::with('category', 'subCategory')->findOrFail($id)->withCustomFields();
         $this->viewPermission = user()->permission('view_product');
         abort_403(!($this->viewPermission == 'all' || ($this->viewPermission == 'added' && $this->product->added_by == user()->id)));
 
@@ -178,7 +180,7 @@ class ProductController extends AccountBaseController
 
         $this->taxValue = implode(', ', $taxes);
 
-        if (!empty($this->product->getCustomFieldGroupsWithFields())) {
+        if ($this->product->getCustomFieldGroupsWithFields()) {
             $this->fields = $this->product->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -197,7 +199,7 @@ class ProductController extends AccountBaseController
     /**
      * Show the form for editing the specified resource.
      *
-     * @param int $id
+     * @param  int $id
      * @return \Illuminate\Http\Response
      */
     public function edit($id)
@@ -212,7 +214,7 @@ class ProductController extends AccountBaseController
         $this->unit_types = UnitType::all();
         $this->subCategories = !is_null($this->product->sub_category_id) ? ProductSubCategory::where('category_id', $this->product->category_id)->get() : [];
         $this->pageTitle = __('app.update') . ' ' . __('app.menu.products');
-        //brands
+//brands
         $this->brands = ProductBrand::all();
         //tags
         $this->tags = ProductTags::all();
@@ -226,6 +228,7 @@ class ProductController extends AccountBaseController
                 $image['id'] = $file->id;
                 $image['name'] = $file->filename;
                 $image['hashname'] = $file->hashname;
+                $image['file_url'] = $file->file_url;
                 $image['size'] = $file->size;
                 $images[] = $image;
             }
@@ -233,7 +236,7 @@ class ProductController extends AccountBaseController
 
         $this->images = json_encode($images);
 
-        if (!empty($this->product->getCustomFieldGroupsWithFields())) {
+        if ($this->product->getCustomFieldGroupsWithFields()) {
             $this->fields = $this->product->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -250,8 +253,8 @@ class ProductController extends AccountBaseController
     }
 
     /**
-     * @param UpdateProductRequest $request
-     * @param int $id
+     * @param  UpdateProductRequest $request
+     * @param  int                  $id
      * @return array|void
      * @throws \Froiden\RestAPI\Exceptions\RelatedResourceNotFoundException
      */
@@ -272,7 +275,7 @@ class ProductController extends AccountBaseController
         $product->downloadable = ($request->downloadable == 'true') ? true : false;
         $product->category_id = ($request->category_id) ? $request->category_id : null;
         $product->sub_category_id = ($request->sub_category_id) ? $request->sub_category_id : null;
-        $product->quantity = ($request->quantity) ? $request->quantity : null;
+$product->quantity = ($request->quantity) ? $request->quantity : null;
         $product->brand_id = ($request->brand_id) ? $request->brand_id : null;
 
         if (request()->hasFile('downloadable_file') && request()->downloadable == 'true') {
@@ -289,7 +292,7 @@ class ProductController extends AccountBaseController
         }
 
         $product->save();
-        if ($request->filled('tags')) {
+if ($request->filled('tags')) {
             $product->tags()->sync($request->tags);
         }
 
@@ -304,7 +307,7 @@ class ProductController extends AccountBaseController
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
+     * @param  int $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
@@ -356,40 +359,84 @@ class ProductController extends AccountBaseController
     public function addCartItem(Request $request)
     {
         $newItem = $request->productID;
-        $productDetails = [];
 
-        if ($request->hasCookie('productDetails')) {
-            $productDetails = json_decode($request->cookie('productDetails'), true);
+           $orderExist = OrderCart::where('product_id', '=', $newItem)->where('client_id', user()->id)->exists();
+           $quantity = 1;
+
+        if ($orderExist == true) {
+                $orderCartUpdate = OrderCart::where('product_id', '=', $newItem)->where('client_id', user()->id)->first();
+
+                $quantity = ($request->has('quantity')) ? $request->quantity : $orderCartUpdate->quantity + 1;
+
+                OrderCart::where('product_id', '=', $newItem)->where('client_id', user()->id)->update(
+                    [
+                        'quantity' => $quantity,
+                        'amount' => $orderCartUpdate->unit_price * $quantity,
+                    ]
+                );
+            $productDetails[] = OrderCart::where('product_id', '=', $newItem)->first();
+
+        } else {
+            $productDetails = Product::where('id', $newItem)->first();
+
+            $product = new OrderCart();
+            $product->product_id = $productDetails->id;
+            $product->client_id = user()->id;
+            $product->item_name = $productDetails->name;
+            $product->description = $productDetails->description;
+            $product->type = 'item';
+            $product->quantity = $quantity;
+            $product->unit_price = $productDetails->price;
+            $product->amount = $productDetails->price;
+            $product->taxes = $productDetails->taxes;
+            $product->unit_id = $productDetails->unit_id;
+            $product->hsn_sac_code = $productDetails->hsn_sac_code;
+            $product->save();
+            $productDetails = $product;
+
         }
 
-        if ($productDetails) {
-            if (is_array($productDetails)) {
-                $productDetails[] = $newItem;
-            }
-            else {
-                array_push($productDetails, $newItem);
-            }
-        }
-        else {
-            $productDetails[] = $newItem;
+        $cartProduct = OrderCart::where('client_id', user()->id)->count();
+
+        if (!$request->has('cartType')) {
+
+            return response(Reply::successWithData(__('messages.recordSaved'), ['status' => 'success', 'cartProduct' => $cartProduct, 'productItems' => $productDetails]));
+
         }
 
-        return response(Reply::successWithData(__('messages.recordSaved'), ['status' => 'success', 'productItems' => $productDetails]))->cookie('productDetails', json_encode($productDetails));
     }
 
     public function removeCartItem(Request $request, $id)
     {
-        $productDetails = [];
+        if ($request->type == 'all_data') {
 
-        if ($request->hasCookie('productDetails')) {
-            $productDetails = json_decode($request->cookie('productDetails'), true);
+            $products = OrderCart::where('client_id', $id)->delete();
+            $productDetails = OrderCart::where('client_id', $id)->count();
 
-            foreach (array_keys($productDetails, $id) as $key) {
-                unset($productDetails[$key]);
-            }
+        } else {
+
+            $products = OrderCart::findOrFail($id);
+            $products->delete();
+
+            $productDetails = OrderCart::where('id', $id)->where('client_id', user()->id)->get();
         }
 
-        return response(Reply::successWithData(__('messages.deleteSuccess'), ['status' => 'success', 'productItems' => $productDetails]))->cookie('productDetails', json_encode($productDetails));
+
+        return response(Reply::successWithData(__('messages.deleteSuccess'), ['status' => 'success', 'productItems' => $productDetails ]))->cookie('productDetails', json_encode($productDetails));
+
+    }
+
+    public function emptyCart()
+    {
+
+        if (request()->ajax()) {
+            $html = view('products.ajax.empty_cart', $this->data)->render();
+            return Reply::dataOnly(['status' => 'success', 'html' => $html, 'title' => $this->pageTitle]);
+        }
+
+        $this->view = 'products.ajax.empty_cart';
+        return view('products.create', $this->data);
+
     }
 
     public function cart(Request $request)
@@ -399,18 +446,11 @@ class ProductController extends AccountBaseController
         $this->lastOrder = Order::lastOrderNumber() + 1;
         $this->invoiceSetting = invoice_setting();
         $this->taxes = Tax::all();
-        $this->products = [];
 
-        if ($request->hasCookie('productDetails')) {
-            $productDetails = json_decode($request->cookie('productDetails'), true);
-
-            $this->quantityArray = array_count_values($productDetails);
-            $this->prodc = $productDetails;
-            $this->productKeys = array_unique($this->prodc);
-            $this->products = Product::where('allow_purchase', 1)->whereIn('id', $this->productKeys)->get();
-        }
+        $this->products = OrderCart::where('client_id', '=', user()->id)->get();
 
         if (request()->ajax()) {
+
             $html = view('products.ajax.cart', $this->data)->render();
 
             return Reply::dataOnly(['status' => 'success', 'html' => $html, 'title' => $this->pageTitle]);
@@ -419,6 +459,19 @@ class ProductController extends AccountBaseController
         $this->view = 'products.ajax.cart';
 
         return view('products.create', $this->data);
+    }
+
+    public function allProductOption()
+    {
+        $products = Product::all();
+
+        $option = '';
+
+        foreach ($products as $item) {
+            $option .= '<option data-content="' . $item->name . '" value="' . $item->id . '"> ' . $item->name . '</option>';
+        }
+
+        return Reply::dataOnly(['products' => $option]);
     }
 
 }

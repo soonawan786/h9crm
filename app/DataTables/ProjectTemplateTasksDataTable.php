@@ -69,7 +69,7 @@ class ProjectTemplateTasksDataTable extends BaseDataTable
 
                 return '<div class="media align-items-center">
                         <div class="media-body">
-                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('project-template-task.show', [$row->id]) . '" class="openRightModal">' . ucfirst($row->heading) . '</a></h5>
+                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('project-template-task.show', [$row->id]) . '" class="openRightModal">' . $row->heading . '</a></h5>
                     </div>
                   </div>';
             })
@@ -138,16 +138,6 @@ class ProjectTemplateTasksDataTable extends BaseDataTable
                 ->width(150)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Task_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

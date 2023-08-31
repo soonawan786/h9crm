@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Scopes\ActiveScope;
 use App\Traits\HasCompany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * App\Models\LeadAgent
@@ -28,10 +29,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|LeadAgent whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadAgent whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadAgent whereUserId($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|LeadAgent whereCompanyId($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Lead> $leads
+ * @property-read int|null $leads_count
+
+ * @mixin \Eloquent
  */
 class LeadAgent extends BaseModel
 {
@@ -44,6 +48,11 @@ class LeadAgent extends BaseModel
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class)->withoutGlobalScope(ActiveScope::class);
+    }
+
+    public function leads(): HasMany
+    {
+        return $this->hasMany(Lead::class);
     }
 
 }

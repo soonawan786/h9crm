@@ -74,7 +74,7 @@ class InvoiceController extends AccountBaseController
                 $this->clients = User::allClients();
             }
         }
-        $this->id = null;
+$this->id = null;
 
         return $dataTable->render('invoices.index', $this->data);
     }
@@ -114,6 +114,7 @@ class InvoiceController extends AccountBaseController
         }
 
         $this->currencies = Currency::all();
+        $this->categories = ProductCategory::all();
         $this->lastInvoice = Invoice::lastInvoiceNumber() + 1;
         $this->invoiceSetting = invoice_setting();
         $this->zero = '';
@@ -134,6 +135,7 @@ class InvoiceController extends AccountBaseController
         $this->projects = Project::allProjectsHavingClient();
         $this->linkInvoicePermission = user()->permission('link_invoice_bank_account');
         $this->viewBankAccountPermission = user()->permission('view_bankaccount');
+        $this->paymentGateway = PaymentGatewayCredentials::first();
 
         $bankAccounts = BankAccount::where('status', 1)->where('currency_id', company()->currency_id);
 
@@ -175,7 +177,7 @@ class InvoiceController extends AccountBaseController
         }
 
         $this->view = 'invoices.ajax.create';
-        //get refeal user detail
+//get refeal user detail
         $referUsers = $invoice->getInvoicesWithNonNullReferrals();
         $this->referalUsers = $referUsers;
 
@@ -229,7 +231,7 @@ class InvoiceController extends AccountBaseController
         $invoice = new Invoice();
         $invoice->project_id = $request->project_id ?? null;
         $invoice->client_id = ($request->client_id) ?: null;
-        $invoice->unit_id = $request->unit_type_id;
+$invoice->unit_id = $request->unit_type_id;
         $invoice->issue_date = Carbon::createFromFormat($this->company->date_format, $request->issue_date)->format('Y-m-d');
         $invoice->due_date = Carbon::createFromFormat($this->company->date_format, $request->due_date)->format('Y-m-d');
         $invoice->sub_total = round($request->sub_total, 2);
@@ -254,7 +256,7 @@ class InvoiceController extends AccountBaseController
         $invoice->referral_mobile = $request->referral_mobile;
         $invoice->referral_name = $request->referral_name;
         $invoice->save();
-        //update quantity
+//update quantity
         $productQuantities = $request->input('product_quantities');
         if($productQuantities!=null){
             foreach ($productQuantities as $productId => $quantity) {
@@ -344,7 +346,7 @@ class InvoiceController extends AccountBaseController
         return Reply::successWithData(__('messages.recordSaved'), ['redirectUrl' => $redirectUrl]);
     }
 
-    /**
+/**
      * XXXXXXXXXXX
      *
      * @return \Illuminate\Http\Response
@@ -400,7 +402,7 @@ class InvoiceController extends AccountBaseController
         //canceled
 
         // if ($firstInvoice->id == $id) {
-        //     if (CreditNotes::where('invoice_id', $id)->exists()) {
+//     if (CreditNotes::where('invoice_id', $id)->exists()) {
         //         CreditNotes::where('invoice_id', $id)->update(['invoice_id' => null]);
         //     }
 
@@ -654,13 +656,15 @@ class InvoiceController extends AccountBaseController
         $this->projects = Project::whereNotNull('client_id')->get();
         $this->currencies = Currency::all();
         $this->unit_types = UnitType::all();
-        $this->product_data = Product::where('unit_id', $this->invoice->unit_id)->get();
+$this->product_data = Product::where('unit_id', $this->invoice->unit_id)->get();
 
         $this->taxes = Tax::all();
         $this->products = Product::all();
         $this->clients = User::allClients();
         $this->linkInvoicePermission = user()->permission('link_invoice_bank_account');
         $this->viewBankAccountPermission = user()->permission('view_bankaccount');
+        $this->paymentGateway = PaymentGatewayCredentials::first();
+        $this->methods = OfflinePaymentMethod::all();
 
         $bankAccounts = BankAccount::where('status', 1)->where('currency_id', $this->invoice->currency_id);
 
@@ -738,7 +742,7 @@ class InvoiceController extends AccountBaseController
         $invoice->total = round($request->total, 2);
         $invoice->due_amount = round($request->total, 2);
         $invoice->currency_id = $request->currency_id;
-        $invoice->unit_id = $request->unit_type_id;
+$invoice->unit_id = $request->unit_type_id;
         $invoice->default_currency_id = company()->currency_id;
         $invoice->exchange_rate = $request->exchange_rate;
 
@@ -789,6 +793,7 @@ class InvoiceController extends AccountBaseController
         $this->firstInvoice = Invoice::orderBy('id', 'desc')->first();
 
         $this->viewPermission = user()->permission('view_invoices');
+        $this->deletePermission = user()->permission('delete_invoices');
         $viewProjectInvoicePermission = user()->permission('view_project_invoices');
         $this->addInvoicesPermission = user()->permission('add_invoices');
 
@@ -806,6 +811,7 @@ class InvoiceController extends AccountBaseController
 
         $this->paidAmount = $this->invoice->getPaidAmount();
         $this->pageTitle = $this->invoice->invoice_number;
+
         $this->firstInvoice = Invoice::orderBy('id', 'desc')->first();
 
         $this->discount = 0;
@@ -897,7 +903,14 @@ class InvoiceController extends AccountBaseController
 
         $invoice->save();
 
-        return Reply::success(__('messages.invoiceSentSuccessfully'));
+        if(request()->data_type == 'mark_as_send'){
+            return Reply::success(__('messages.invoiceMarkAsSent'));
+        }
+
+        else {
+            return Reply::success(__('messages.invoiceSentSuccessfully'));
+        }
+
     }
 
     public function remindForPayment($id)
@@ -942,6 +955,7 @@ class InvoiceController extends AccountBaseController
 
         $this->items->price = number_format((float)$this->items->price, 2, '.', '');
         $this->taxes = Tax::all();
+        $this->units = UnitType::all();
         $view = view('invoices.ajax.add_item', $this->data)->render();
 
         return Reply::dataOnly(['status' => 'success', 'view' => $view]);
@@ -1117,6 +1131,7 @@ class InvoiceController extends AccountBaseController
     {
         $this->invoiceID = $request->invoice_id;
         $this->methods = OfflinePaymentMethod::activeMethod();
+        $this->invoice = Invoice::findOrFail($this->invoiceID);
 
         return view('invoices.offline.index', $this->data);
     }
@@ -1174,7 +1189,7 @@ class InvoiceController extends AccountBaseController
         $invoice->sub_total = $order->sub_total;
         $invoice->total = $order->total;
         $invoice->currency_id = $order->currency_id;
-        $invoice->unit_id = $order->unit_id;
+$invoice->unit_id = $order->unit_id;
         $invoice->status = 'paid';
         $invoice->note = trim_editor($order->note);
         $invoice->issue_date = now();
@@ -1215,7 +1230,7 @@ class InvoiceController extends AccountBaseController
     public function cancelStatus(Request $request)
     {
         //$invoice = Invoice::findOrFail($request->invoiceID);
-        $invoice = Invoice::with('items')->where('id',$request->invoiceID)->first();
+$invoice = Invoice::with('items')->where('id',$request->invoiceID)->first();
         foreach($invoice->items as $item){
             $product = Product::where('name',$item->item_name)->first();
             $updateQuantity = $item->quantity + $product->quantity;
@@ -1271,6 +1286,7 @@ class InvoiceController extends AccountBaseController
         $projectId = $request->projectId;
         $this->qtyVal = $request->qtyValue;
         $this->timelogs = [];
+        $this->units = UnitType::all();
 
         if (!is_null($request->timelogFrom) && $request->timelogFrom != '') {
             $timelogFrom = Carbon::createFromFormat($this->company->date_format, $request->timelogFrom)->format('Y-m-d');
@@ -1351,10 +1367,13 @@ class InvoiceController extends AccountBaseController
     public function deleteInvoiceItemImage(Request $request)
     {
         $item = InvoiceItemImage::where('invoice_item_id', $request->invoice_item_id)->first();
-        Files::deleteFile($item->hashname, InvoiceItemImage::FILE_PATH . '/' . $item->id . '/');
-        $item->delete();
 
-        return Reply::success(__('messages.updateSuccess'));
+        if ($item) {
+            Files::deleteFile($item->hashname, InvoiceItemImage::FILE_PATH . '/' . $item->id . '/');
+            $item->delete();
+        }
+
+        return Reply::success(__('messages.deleteSuccess'));
     }
 
     public function getExchangeRate($id)
@@ -1365,7 +1384,7 @@ class InvoiceController extends AccountBaseController
 
     public function getclients($id)
     {
-        $client_data = Product::where('unit_id', $id)->get();
+$client_data = Product::where('unit_id', $id)->get();
         $unitId = UnitType::where('id', $id)->first();
         return Reply::dataOnly(['status' => 'success', 'data' => $client_data, 'type' => $unitId] );
     }
@@ -1380,17 +1399,17 @@ class InvoiceController extends AccountBaseController
 
             if (in_array('client', user_roles())) {
                 $this->clients = User::client();
-            }
-            else {
+        }
+else {
                 $this->clients = User::allClients();
             }
         }
         $this->id = $id;
 
         return $dataTable->render('invoices.index', $this->data);
-    }
+}
 
-    public function updateClient(Request $request){
+        public function updateClient(Request $request){
         $user = User::withoutGlobalScope(ActiveScope::class)->findOrFail($request->id);
         $fields =[ 'date_of_birth'=>date("Y-m-d", strtotime($request->client_dob))];
         $user->clientDetails->fill($fields);
@@ -1399,10 +1418,18 @@ class InvoiceController extends AccountBaseController
         $user->save();
         return Reply::success(__('messages.updateSuccess'));
     }
-    public function getReferralName(Request $request){
+public function getReferralName(Request $request){
         $results = Invoice::where('referral_name', 'LIKE', "%{$request->searchTerm}%")->groupBy('referral_name')->limit(5)->get();
         return response()->json($results);
 
+    public function offlineDescription(Request $request)
+    {
+        $id = $request->id;
+
+        $offlineMethod = ($id != 'all') ? OfflinePaymentMethod::select('description')->findOrFail($id) : '';
+        $description = $offlineMethod ? $offlineMethod->description : '';
+
+        return Reply::dataOnly(['status' => 'success', 'description' => $description]);
     }
 
 }

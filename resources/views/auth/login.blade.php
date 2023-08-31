@@ -1,3 +1,13 @@
+@push('styles')
+    @foreach ($frontWidgets as $item)
+    @if(!is_null($item->header_script))
+        {!! $item->header_script !!}
+    @endif
+
+    @endforeach
+@endpush
+
+
 <x-auth>
     <form id="login-form" action="{{ route('login') }}" class="ajax-form" method="POST">
         {{ csrf_field() }}
@@ -58,22 +68,31 @@
                 @endif
             </div>
 
-            @if ($socialAuthSettings->social_auth_enable)
+            @if ($socialAuthSettings->social_auth_enable && !$errors->has('g-recaptcha-response'))
                 <button type="submit" id="submit-next"
                         class="btn-primary f-w-500 rounded w-100 height-50 f-18 ">@lang('auth.next') <i
                         class="fa fa-arrow-right pl-1"></i></button>
 
-                @if ($company->allow_client_signup)
-                    <a href="{{ route('register') }}" id="signup-client-next"
-                        class="btn-secondary f-w-500 rounded w-100 height-50 f-15 mt-3">
-                        @lang('app.signUpAsClient')
-                    </a>
-                @endif
-
+            @if ($company->allow_client_signup)
+                <a href="{{ route('register') }}" id="signup-client-next"
+                   class="btn-secondary f-w-500 rounded w-100 height-50 f-15 mt-3">
+                    @lang('app.signUpAsClient')
+                </a>
             @endif
 
+            @if (isWorksuiteSaas() && !module_enabled('Subdomain'))
+                @if ($globalSetting->enable_register == true)
+                    <a href="{{ route('front.signup.index') }}" id="signup-customer"
+                       class="btn-secondary f-w-500 rounded w-100 height-50 f-15 mt-3">
+                        @lang('app.signUp')
+                    </a>
+                @endif
+            @endif
+
+        @endif
+
         <div id="password-section"
-             @if ($socialAuthSettings->social_auth_enable) class="d-none" @endif>
+             @if ($socialAuthSettings->social_auth_enable && !$errors->has('g-recaptcha-response')) class="d-none" @endif>
             <div class="form-group text-left">
                 <label for="password">@lang('app.password')</label>
                 <x-forms.input-group>
@@ -81,39 +100,39 @@
                            placeholder="@lang('placeholders.password')" tabindex="3"
                            class="form-control height-50 f-15 light_text @error('password') is-invalid @enderror">
 
-                    <x-slot name="append">
-                        <button type="button" data-toggle="tooltip"
-                                data-original-title="@lang('app.viewPassword')"
-                                class="btn btn-outline-secondary border-grey height-50 toggle-password">
-                            <i
-                                class="fa fa-eye"></i></button>
-                    </x-slot>
+                        <x-slot name="append">
+                            <button type="button" data-toggle="tooltip"
+                                    data-original-title="@lang('app.viewPassword')"
+                                    class="btn btn-outline-secondary border-grey height-50 toggle-password">
+                                <i
+                                    class="fa fa-eye"></i></button>
+                        </x-slot>
 
-                </x-forms.input-group>
-                @if ($errors->has('password'))
-                    <div class="invalid-feedback d-block">{{ $errors->first('password') }}</div>
-                @endif
-            </div>
-            <div class="forgot_pswd mb-3">
-                <a href="{{ url('forgot-password') }}">@lang('app.forgotPassword')</a>
-            </div>
-
-            <div class="form-group text-left ">
-                <input id="checkbox-signup" class="cursor-pointer" type="checkbox" name="remember">
-                <label for="checkbox-signup" class="cursor-pointer">@lang('app.rememberMe')</label>
-            </div>
-
-            @if ($globalSetting->google_recaptcha_status == 'active')
-                <div class="form-group" id="captcha_container"></div>
-            @endif
-
-            <input type="hidden" id="g_recaptcha" name="g_recaptcha">
-
-            @if ($errors->has('g-recaptcha-response'))
-                <div
-                    class="invalid-feedback  d-block text-left">{{ $errors->first('g-recaptcha-response') }}
+                    </x-forms.input-group>
+                    @if ($errors->has('password'))
+                        <div class="invalid-feedback d-block">{{ $errors->first('password') }}</div>
+                    @endif
                 </div>
-            @endif
+                <div class="forgot_pswd mb-3">
+                    <a href="{{ url('forgot-password') }}">@lang('app.forgotPassword')</a>
+                </div>
+
+                <div class="form-group text-left ">
+                    <input id="checkbox-signup" class="cursor-pointer" type="checkbox" name="remember">
+                    <label for="checkbox-signup" class="cursor-pointer">@lang('app.rememberMe')</label>
+                </div>
+
+                @if ($globalSetting->google_recaptcha_status == 'active')
+                    <div class="form-group" id="captcha_container"></div>
+                @endif
+
+                <input type="hidden" id="g_recaptcha" name="g_recaptcha">
+
+                @if ($errors->has('g-recaptcha-response'))
+                    <div
+                        class="invalid-feedback  d-block text-left">{{ $errors->first('g-recaptcha-response') }}
+                    </div>
+                @endif
 
             <button type="submit" id="submit-login"
                     class="btn-primary f-w-500 rounded w-100 height-50 f-18">
@@ -126,24 +145,31 @@
                     @lang('app.signUpAsClient')
                 </a>
             @endif
-
-            @if (isWorksuiteSaas() && !module_enabled('Subdomain'))
-                @if ($globalSetting->enable_register == true)
-                    <a href="{{ route('front.signup.index') }}"
-                       class="btn-secondary f-w-500 rounded w-100 height-50 f-15 mt-3">
-                        @lang('app.signUp')
-                    </a>
-                @endif
-            @endif
-
         </div>
 
         <x-slot name="outsideLoginBox">
-            @if (isWorksuiteSaas() && !$globalSetting->frontend_disable  )
-                <p class="my-2 f-12"><a
-                        href="{{ module_enabled('Subdomain')?route('front.pricing'):route('front.home') }}"
-                        class="text-dark-grey">@lang('superadmin.goToWebsite')</a>
-                </p>
+            @if (isWorksuiteSaas())
+                @php
+                    $redirect = route('front.home');
+                    $signup = route('front.signup.index');
+                    if(module_enabled('Subdomain')){
+                        $redirect = (!is_null(config('app.main_application_subdomain')) && config('app.main_application_subdomain') !=='')?'//'.config('app.main_application_subdomain'):'//'.getDomain();
+                        $signup = $redirect.'/signup';
+                    }
+                @endphp
+
+                @if(!$globalSetting->frontend_disable)
+                    <p class="my-2 f-12"><a
+                            href="{{ $redirect }}"
+                            class="text-dark-grey">@lang('superadmin.goToWebsite')</a>
+                    </p>
+                @endif
+                @if ($globalSetting->enable_register)
+                    <p class="my-2 f-12">@lang('superadmin.dontHaveAccount') <a
+                            href="{{ $signup }}"
+                            class="text-dark-grey">@lang('app.signUp') </a>
+                    </p>
+                @endif
             @endif
         </x-slot>
 
@@ -217,7 +243,7 @@
                         data: $('#login-form').serialize(),
                         success: function (response) {
                             if (response.status === 'success') {
-                                $('#submit-next, #signup-client-next').remove();
+                                $('#submit-next, #signup-client-next, #signup-customer').remove();
                                 $('#password-section').removeClass('d-none');
                                 $("#password").focus();
                                 document.removeEventListener('click', handleFormSubmit);
@@ -243,6 +269,13 @@
 
             });
         </script>
+
+        @foreach ($frontWidgets as $item)
+        @if(!is_null($item->footer_script))
+            {!! $item->footer_script !!}
+        @endif
+
+        @endforeach
     </x-slot>
 
 </x-auth>

@@ -16,7 +16,7 @@ $addTaskPermission = user()->permission('add_tasks');
                     <option value="">--</option>
                     @foreach ($projects as $data)
                         <option value="{{ $data->id }}">
-                            {{ mb_ucwords($data->project_name) }}
+                            {{ $data->project_name }}
                         </option>
                     @endforeach
                 </x-forms.select>

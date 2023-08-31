@@ -19,18 +19,18 @@
                             @if($type == 'deposit')
                                 <div class="col-md-4">
                                     <input type="hidden" name="to_bank_account" value="{{ $currentAccount->id }}">
-                                    <x-forms.text fieldReadOnly="true" fieldId="to_bank_account" :fieldLabel="__('modules.bankaccount.toBankAccount')" 
-                                    fieldName="to_bank_account1" 
-                                    :fieldValue="(($currentAccount->type == 'bank') ? $currentAccount->bank_name .' | '.mb_ucwords($currentAccount->account_name) : mb_ucwords($currentAccount->account_name))" />
+                                    <x-forms.text fieldReadOnly="true" fieldId="to_bank_account" :fieldLabel="__('modules.bankaccount.toBankAccount')"
+                                    fieldName="to_bank_account1"
+                                    :fieldValue="(($currentAccount->type == 'bank') ? $currentAccount->bank_name .' | '.$currentAccount->account_name : $currentAccount->account_name)" />
                                 </div>
                             @endif
 
                             @if($type == 'withdraw' || $type == 'account')
                                 <div class="col-md-4">
                                     <input type="hidden" name="from_bank_account" value="{{ $currentAccount->id }}">
-                                    <x-forms.text fieldReadOnly="true" fieldId="to_bank_account" :fieldLabel="__('modules.bankaccount.fromBankAccount')" 
-                                    fieldName="from_bank_account1" 
-                                    :fieldValue="(($currentAccount->type == 'bank') ? $currentAccount->bank_name .' | '.mb_ucwords($currentAccount->account_name) : mb_ucwords($currentAccount->account_name))" />
+                                    <x-forms.text fieldReadOnly="true" fieldId="to_bank_account" :fieldLabel="__('modules.bankaccount.fromBankAccount')"
+                                    fieldName="from_bank_account1"
+                                    :fieldValue="(($currentAccount->type == 'bank') ? $currentAccount->bank_name .' | '.$currentAccount->account_name : $currentAccount->account_name)" />
                                 </div>
                             @endif
 
@@ -42,7 +42,7 @@
                                         <option value="">--</option>
                                         @foreach ($bankAccounts as $bankAccount)
                                             <option value="{{ $bankAccount->id }}">@if($bankAccount->type == 'bank')
-                                                {{ $bankAccount->bank_name }} | @endif {{ mb_ucwords($bankAccount->account_name) }}
+                                                {{ $bankAccount->bank_name }} | @endif {{ $bankAccount->account_name }}
                                             </option>
                                         @endforeach
                                     </x-forms.select>

@@ -102,7 +102,7 @@
 
             <!-- WELOCOME NAME START -->
             <div>
-                <h3 class="heading-h3 mb-0 f-21 text-capitalize font-weight-bold">@lang('app.welcome') {{ $user->name }}</h3>
+                <h3 class="heading-h3 mb-0 f-21 font-weight-bold">@lang('app.welcome') {{ $user->name }}</h3>
             </div>
             <!-- WELOCOME NAME END -->
 
@@ -125,7 +125,7 @@
                 </p>
 
                 @if (in_array('attendance', user_modules()) && $cannotLogin == false)
-                    @if (is_null($currentClockIn) && is_null($checkTodayLeave) && is_null($checkTodayHoliday))
+                    @if (is_null($currentClockIn) && is_null($checkTodayLeave) && is_null($checkTodayHoliday) && $checkJoiningDate == true)
                         <button type="button" class="btn-primary rounded f-15 ml-4" id="clock-in"><i
                         class="icons icon-login mr-2"></i>@lang('modules.attendance.clock_in')</button>
                     @endif
@@ -144,7 +144,7 @@
                                     type="link" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true"
 
                                     aria-expanded="false">
-                                    <i class="fa fa-cog" title="{{__('modules.dashboard.dashboardWidgetsSettings')}}" data-toggle="tooltip"></i>
+                                    <i class="fa fa-cog" data-original-title="{{__('modules.dashboard.dashboardWidgetsSettings')}}" data-toggle="tooltip"></i>
                                 </a>
                                 <!-- Dropdown - User Information -->
                                 <ul class="dropdown-menu dropdown-menu-right dashboard-settings p-20"
@@ -191,41 +191,46 @@
                         <!-- EMP DASHBOARD INFO START -->
                         <div class="col-md-12">
                             <div class="card border-0 b-shadow-4 mb-3 e-d-info">
-                                <div class="card-horizontal align-items-center">
-                                    <div class="card-img">
-                                        <img class="" src=" {{ $user->image_url }}" alt="Card image">
+                                <a @if(!in_array('client', user_roles())) href="{{ route('employees.show', user()->id) }}" @endif >
+                                    <div class="card-horizontal align-items-center">
+                                        <div class="card-img">
+                                            <img class="" src=" {{ $user->image_url }}" alt="Card image">
+                                        </div>
+                                        <div class="card-body border-0 pl-0">
+                                            <h4 class="card-title text-dark f-18 f-w-500 mb-0">{{ $user->name }}</h4>
+                                            <p class="f-14 font-weight-normal text-dark-grey mb-2">
+                                                {{ $user->employeeDetails->designation->name ?? '--' }}</p>
+                                            <p class="card-text f-12 text-lightest"> @lang('app.employeeId') :
+                                                {{ $user->employeeDetails->employee_id }}</p>
+                                        </div>
                                     </div>
-                                    <div class="card-body border-0 pl-0">
-                                        <h4 class="card-title f-18 f-w-500 mb-0">{{ mb_ucfirst($user->name) }}</h4>
-                                        <p class="f-14 font-weight-normal text-dark-grey mb-2">
-                                            {{ $user->employeeDetails->designation->name ?? '--' }}</p>
-                                        <p class="card-text f-12 text-lightest"> @lang('app.employeeId') :
-                                            {{ mb_strtoupper($user->employeeDetails->employee_id) }}</p>
-                                    </div>
-                                </div>
+                                </a>
 
                                 <div class="card-footer bg-white border-top-grey py-3">
                                     <div class="d-flex flex-wrap justify-content-between">
-                                        <span>
-                                            <label class="f-12 text-dark-grey mb-12 text-capitalize" for="usr">
-                                                @lang('app.open') @lang('app.menu.tasks') </label>
-                                            <p class="mb-0 f-18 f-w-500">
-                                                <a href="{{ route('tasks.index') . '?assignee=me' }}"
-                                                    class="text-dark">
-                                                    {{ $inProcessTasks }}
-                                                </a>
-                                            </p>
-                                        </span>
-                                        <span>
-                                            <label class="f-12 text-dark-grey mb-12 text-capitalize" for="usr">
-                                                @lang('app.menu.projects') </label>
-                                            <p class="mb-0 f-18 f-w-500">
-                                                <a href="{{ route('projects.index') . '?assignee=me&status=all' }}"
-                                                    class="text-dark">{{ $totalProjects }}</a>
-                                            </p>
-                                        </span>
-
-                                        @if (isset($totalOpenTickets))
+                                        @if(in_array('tasks', user_modules()))
+                                            <span>
+                                                <label class="f-12 text-dark-grey mb-12 text-capitalize" for="usr">
+                                                    @lang('app.open') @lang('app.menu.tasks') </label>
+                                                <p class="mb-0 f-18 f-w-500">
+                                                    <a href="{{ route('tasks.index') . '?assignee=me' }}"
+                                                        class="text-dark">
+                                                        {{ $inProcessTasks }}
+                                                    </a>
+                                                </p>
+                                            </span>
+                                        @endif
+                                        @if(in_array('projects', user_modules()))
+                                            <span>
+                                                <label class="f-12 text-dark-grey mb-12 text-capitalize" for="usr">
+                                                    @lang('app.menu.projects') </label>
+                                                <p class="mb-0 f-18 f-w-500">
+                                                    <a href="{{ route('projects.index') . '?assignee=me&status=all' }}"
+                                                        class="text-dark">{{ $totalProjects }}</a>
+                                                </p>
+                                            </span>
+                                        @endif
+                                        @if (isset($totalOpenTickets) && in_array('tickets', user_modules()))
                                             <span>
                                                 <label class="f-12 text-dark-grey mb-12 text-capitalize" for="usr">
                                                     @lang('modules.dashboard.totalOpenTickets') </label>
@@ -242,7 +247,7 @@
                         <!-- EMP DASHBOARD INFO END -->
                         @endif
 
-                        @if (!is_null($myActiveTimer))
+                        @if (!is_null($myActiveTimer) && in_array('tasks', user_modules()))
                             <div class="col-sm-12" id="myActiveTimerSection">
                                 <x-cards.data class="mb-3" :title="__('modules.timeLogs.myActiveTimer')">
                                     <div class="row">
@@ -291,13 +296,13 @@
                                             @if ($editTimelogPermission == 'all' || ($editTimelogPermission == 'added' && $myActiveTimer->added_by == user()->id) || ($editTimelogPermission == 'owned' && (($myActiveTimer->project && $myActiveTimer->project->client_id == user()->id) || $myActiveTimer->user_id == user()->id)) || ($editTimelogPermission == 'both' && (($myActiveTimer->project && $myActiveTimer->project->client_id == user()->id) || $myActiveTimer->user_id == user()->id || $myActiveTimer->added_by == user()->id)))
                                                 @if (is_null($myActiveTimer->activeBreak))
                                                     <x-forms.button-secondary icon="pause-circle"
-                                                        data-time-id="{{ $myActiveTimer->id }}" id="pause-timer-btn">
+                                                        data-time-id="{{ $myActiveTimer->id }}" id="pause-timer-btn" data-url="{{ url()->current() }}">
                                                         @lang('modules.timeLogs.pauseTimer')</x-forms.button-secondary>
-                                                    <x-forms.button-primary class="ml-3 stop-active-timer"
+                                                    <x-forms.button-primary class="ml-3 stop-active-timer" data-url="{{ url()->current() }}"
                                                         data-time-id="{{ $myActiveTimer->id }}" icon="stop-circle">
                                                         @lang('modules.timeLogs.stopTimer')</x-forms.button-primary>
                                                 @else
-                                                    <x-forms.button-primary id="resume-timer-btn" icon="play-circle"
+                                                    <x-forms.button-primary id="resume-timer-btn" icon="play-circle" data-url="{{ url()->current() }}"
                                                         data-time-id="{{ $myActiveTimer->activeBreak->id }}">
                                                         @lang('modules.timeLogs.resumeTimer')</x-forms.button-primary>
                                                 @endif
@@ -308,72 +313,7 @@
                             </div>
                         @endif
 
-                        @if (in_array('attendance', user_modules()) && in_array('shift_schedule', $activeWidgets) && $sidebarUserPermissions['view_shift_roster'] != 5 && $sidebarUserPermissions['view_shift_roster'] != 'none')
-                            <div class="col-sm-12">
-                                <x-cards.data class="mb-3" :title="__('modules.attendance.shiftSchedule')" padding="false" otherClasses="h-200">
-                                    <x-slot name="action">
-                                        <x-forms.button-primary id="view-shifts">@lang('modules.attendance.shift')
-                                        </x-forms.button-primary>
-                                    </x-slot>
-
-                                    <x-table>
-                                        @foreach ($currentWeekDates as $key => $weekDate)
-                                            @if (isset($weekShifts[$key]))
-                                                <tr>
-                                                    <td class="pl-20">
-                                                        {{ $weekDate->translatedFormat(company()->date_format) }}
-                                                    </td>
-                                                    <td>{{ $weekDate->translatedFormat('l') }}</td>
-                                                    <td>
-                                                        @if (isset($weekShifts[$key]->shift))
-                                                            @if ($weekShifts[$key]->shift->shift_name == 'Day Off')
-                                                                <span class="badge badge-secondary">{{ $weekShifts[$key]->shift->shift_name }}
-                                                                </span>
-                                                            @else
-                                                                <span class="badge badge-success"
-                                                                    style="background-color:{{ $weekShifts[$key]->shift->color }}">{{ $weekShifts[$key]->shift->shift_name }}
-                                                                </span>
-                                                            @endif
-
-                                                            @if (!is_null($weekShifts[$key]->remarks) && $weekShifts[$key]->remarks != '')
-                                                            <i class="fa fa-info-circle text-dark-grey" data-toggle="popover" data-placement="top" data-content="{{ $weekShifts[$key]->remarks }}" data-html="true" data-trigger="hover"></i>
-                                                        @endif
-                                                        @else
-                                                            {!! $weekShifts[$key] !!}
-                                                        @endif
-                                                    </td>
-                                                        <td class="pr-20 text-right">
-                                                            @if (isset($weekShifts[$key]->shift))
-                                                                @if (attendance_setting()->allow_shift_change && !$weekDate->isPast())
-                                                                    @if (!is_null($weekShifts[$key]->requestChange) && $weekShifts[$key]->requestChange->status == 'waiting')
-                                                                        <div class="task_view">
-                                                                            <a href="javascript:;"
-                                                                                data-shift-schedule-id="{{ $weekShifts[$key]->id }}"
-                                                                                class="taskView border-right-0 request-shift-change f-11">@lang('modules.attendance.requestPending')</a>
-                                                                        </div>
-                                                                    @else
-                                                                        <div class="task_view">
-                                                                            <a href="javascript:;"
-                                                                                data-shift-schedule-id="{{ $weekShifts[$key]->id }}"
-                                                                                class="taskView border-right-0 request-shift-change f-11">@lang('modules.attendance.requestChange')</a>
-                                                                        </div>
-                                                                    @endif
-                                                                @else
-                                                                --
-                                                                @endif
-                                                            @else
-                                                                --
-                                                            @endif
-
-                                                        </td>
-                                                </tr>
-                                            @endif
-                                        @endforeach
-                                    </x-table>
-                                </x-cards.data>
-                            </div>
-                        @endif
-
+                            @include('dashboard.employee.widgets.shift_schedule')
 
                             @include('dashboard.employee.widgets.birthday')
 
@@ -400,7 +340,7 @@
             <div class="col-xl-7 col-lg-12 col-md-12 e-d-tasks-projects-events">
                 <!-- EMP DASHBOARD TASKS PROJECTS START -->
                 <div class="row mb-3 mt-xl-0 mt-lg-4 mt-md-4 mt-4">
-                    @if (in_array('tasks', $activeWidgets) && (!is_null($viewTaskPermission) && $viewTaskPermission != 'none'))
+                    @if (in_array('tasks', $activeWidgets) && (!is_null($viewTaskPermission) && $viewTaskPermission != 'none') && in_array('tasks', user_modules()))
                         <div class="col-md-6 mb-3">
                             <div
                                 class="bg-white p-20 rounded b-shadow-4 d-flex justify-content-between align-items-center mb-4 mb-md-0 mb-lg-0">
@@ -426,359 +366,16 @@
                             </div>
                         </div>
                     @endif
-                    @if (in_array('projects', $activeWidgets) && $sidebarUserPermissions['view_projects'] != 5 && $sidebarUserPermissions['view_projects'] != 'none')
-                        <div class="col-md-6 mb-3">
-                            <div
-                                class="bg-white p-20 rounded b-shadow-4 d-flex justify-content-between align-items-center mt-3 mt-lg-0 mt-md-0">
-                                <div class="d-block text-capitalize">
-                                    <h5 class="f-15 f-w-500 mb-20 text-darkest-grey"> @lang('app.menu.projects') </h5>
-                                    <div class="d-flex">
-                                        <a href="{{ route('projects.index') . '?assignee=me&status=in progress' }}">
-                                            <p class="mb-0 f-21 font-weight-bold text-blue d-grid mr-5">
-                                                {{ $totalProjects }}<span
-                                                    class="f-12 font-weight-normal text-lightest">@lang('app.inProgress')</span>
-                                            </p>
-                                        </a>
 
-                                        <a href="{{ route('projects.index') . '?assignee=me&status=overdue' }}">
-                                            <p class="mb-0 f-21 font-weight-bold text-red d-grid">
-                                                {{ $dueProjects }}<span
-                                                    class="f-12 font-weight-normal text-lightest">@lang('app.overdue')</span>
-                                            </p>
-                                        </a>
-                                    </div>
-                                </div>
-                                <div class="d-block">
-                                    <i class="fa fa-layer-group text-lightest f-27"></i>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-                    @if (in_array('lead', $activeWidgets) && $leadAgent)
-                            <div class="col-md-6 mb-3">
-                                <div
-                                    class="bg-white p-20 rounded b-shadow-4 d-flex justify-content-between align-items-center mt-3 mt-lg-0 mt-md-0">
-                                    <div class="d-block text-capitalize">
-                                        <h5 class="f-15 f-w-500 mb-20 text-darkest-grey"> @lang('app.menu.lead') </h5>
-                                        <div class="d-flex">
-                                            <a href="{{ route('leads.index') . '?assignee=me&type=lead' }}">
-                                                <p class="mb-0 f-21 font-weight-bold text-blue d-grid mr-5">
-                                                    {{ $totalLead }}<span
-                                                        class="f-12 font-weight-normal text-lightest">@lang('app.total') @lang('app.menu.leads')</span>
-                                                </p>
-                                            </a>
-
-                                            <a href="{{ route('leads.index') . '?assignee=me&type=client' }}">
-                                                <p class="mb-0 f-21 font-weight-bold text-success d-grid">
-                                                    {{ $convertedLead }}<span
-                                                        class="f-12 font-weight-normal text-lightest">@lang('modules.lead.convertedLead')</span>
-                                                </p>
-                                            </a>
-                                        </div>
-                                    </div>
-                                    <div class="d-block">
-                                        <i class="bi bi-person text-lightest f-27"></i>
-                                    </div>
-                                </div>
-                            </div>
-                    @endif
-                    @if (in_array('week_timelog', $activeWidgets) && $sidebarUserPermissions['view_timelogs'] != 5 && $sidebarUserPermissions['view_timelogs'] != 'none')
-                        <div @class(['mb-3', 'col-md-6' => (in_array('lead', $activeWidgets) && $leadAgent), 'col-md-12' => !(in_array('lead', $activeWidgets) && $leadAgent)])>
-                            <div
-                                class="bg-white p-20 rounded b-shadow-4 d-flex justify-content-between align-items-center">
-                                <div class="d-block text-capitalize w-100">
-                                    <h5 class="f-15 f-w-500 mb-20 text-darkest-grey">@lang('modules.dashboard.weekTimelog') <span class="badge badge-secondary ml-1 f-10">{{ minute_to_hour($weekWiseTimelogs - $weekWiseTimelogBreak) . ' ' . __('modules.timeLogs.thisWeek') }}</span></h5>
-
-                                    <div id="weekly-timelogs">
-                                        <nav class="mb-3">
-                                            <ul class="pagination pagination-sm week-pagination">
-                                                @foreach ($weekPeriod->toArray() as $date)
-                                                    <li
-                                                    @class([
-                                                        'page-item',
-                                                        'week-timelog-day',
-                                                        'active' => (now(company()->timezone)->toDateString() == $date->toDateString()),
-                                                    ])
-                                                    data-toggle="tooltip" data-original-title="{{ $date->translatedFormat(company()->date_format) }}" data-date="{{ $date->toDateString() }}">
-                                                        <a class="page-link" href="javascript:;">{{ $date->isoFormat('dd') }}</a>
-                                                    </li>
-                                                @endforeach
-                                            </ul>
-                                        </nav>
-                                        <div class="progress" style="height: 7px;">
-                                            @php
-                                                $totalDayMinutes = $dateWiseTimelogs->sum('total_minutes');
-                                                $totalDayBreakMinutes = $dateWiseTimelogBreak->sum('total_minutes');
-                                                $totalDayMinutesPercent = ($totalDayMinutes > 0) ? floatval((floatval($totalDayMinutes - $totalDayBreakMinutes)/$totalDayMinutes) * 100) : 0;
-                                            @endphp
-                                            <div class="progress-bar bg-primary" role="progressbar" style="width: {{ $totalDayMinutesPercent }}%" aria-valuenow="{{ $totalDayMinutesPercent }}" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-original-title="{{ minute_to_hour($totalDayMinutes - $totalDayBreakMinutes) }}"></div>
-
-                                            <div class="progress-bar bg-secondary" role="progressbar" style="width: {{ (100 - $totalDayMinutesPercent) }}%" aria-valuenow="{{ $totalDayMinutesPercent }}" aria-valuemin="0" aria-valuemax="100" data-toggle="tooltip" data-original-title="{{ minute_to_hour($totalDayBreakMinutes) }}"></div>
-                                        </div>
-
-                                        <div class="d-flex justify-content-between mt-1 text-dark-grey f-12">
-                                            <small>@lang('app.duration'): {{ minute_to_hour($dateWiseTimelogs->sum('total_minutes') - $dateWiseTimelogBreak->sum('total_minutes')) }}</small>
-                                            <small>@lang('modules.timeLogs.break'): {{ minute_to_hour($dateWiseTimelogBreak->sum('total_minutes')) }}</small>
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                            </div>
-                        </div>
-                    @endif
+                    @include('dashboard.employee.widgets.projects')
+                    @include('dashboard.employee.widgets.lead')
+                    @include('dashboard.employee.widgets.week_timelog')
                 </div>
                 <!-- EMP DASHBOARD TASKS PROJECTS END -->
-
-                @if (in_array('my_task', $activeWidgets) && (!is_null($viewTaskPermission) && $viewTaskPermission != 'none'))
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="card border-0 b-shadow-4 mb-3 e-d-info">
-                            <x-cards.data :title="__('modules.tasks.myTask')" padding="false" otherClasses="h-200">
-                                <x-table>
-                                    <x-slot name="thead">
-                                        <th>@lang('app.task')#</th>
-                                        <th>@lang('app.task')</th>
-                                        <th>@lang('app.status')</th>
-                                        <th class="text-right pr-20">@lang('app.dueDate')</th>
-                                    </x-slot>
-
-                                    @forelse ($pendingTasks as $task)
-                                        <tr>
-                                            <td class="pl-20">
-                                                <a
-                                                    href="{{ route('tasks.show', [$task->id]) }}"
-                                                    class="openRightModal f-12 mb-1 text-darkest-grey">#{{ $task->task_short_code }}</a>
-
-                                            </td>
-                                            <td>
-                                                <div class="media align-items-center">
-                                                    <div class="media-body">
-                                                        <h5 class="f-12 mb-1 text-darkest-grey"><a
-                                                                href="{{ route('tasks.show', [$task->id]) }}"
-                                                                class="openRightModal">{{ ucfirst($task->heading) }}</a>
-                                                        </h5>
-                                                        <p class="mb-0">
-                                                            @foreach ($task->labels as $label)
-                                                                <span class="badge badge-secondary mr-1"
-                                                                    style="background-color: {{ $label->label_color }}">{{ $label->label_name }}</span>
-                                                            @endforeach
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="pr-20">
-                                                <i class="fa fa-circle mr-1 text-yellow"
-                                                    style="color: {{ $task->boardColumn->label_color }}"></i>
-                                                {{ $task->boardColumn->column_name }}
-                                            </td>
-                                            <td class="pr-20" align="right">
-                                                @if (is_null($task->due_date))
-                                                    --
-                                                @elseif ($task->due_date->endOfDay()->isPast())
-                                                    <span
-                                                        class="text-danger">{{ $task->due_date->translatedFormat(company()->date_format) }}</span>
-                                                @elseif ($task->due_date->setTimezone(company()->timezone)->isToday())
-                                                    <span class="text-success">{{ __('app.today') }}</span>
-                                                @else
-                                                    <span>{{ $task->due_date->translatedFormat(company()->date_format) }}</span>
-                                                @endif
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="4" class="shadow-none">
-                                                <x-cards.no-record icon="tasks" :message="__('messages.noRecordFound')" />
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </x-table>
-                            </x-cards.data>
-                        </div>
-                    </div>
-                </div>
-                @endif
-
-                <!-- EMP DASHBOARD TICKETS STARTS -->
-                @if (in_array('ticket', $activeWidgets) && $sidebarUserPermissions['view_tickets'] != 5 && $sidebarUserPermissions['view_tickets'] != 'none')
-                <div class="row">
-                    <div class="col-sm-12">
-                        <div class="card border-0 b-shadow-4 mb-3 e-d-info">
-                            <x-cards.data :title="__('modules.module.tickets')" padding="false" otherClasses="h-200">
-                                <x-table>
-                                    <x-slot name="thead">
-                                        <th>@lang('modules.module.tickets')#</th>
-                                        <th>@lang('modules.tickets.ticketSubject')</th>
-                                        <th>@lang('app.status')</th>
-                                        <th class="text-right pr-20">@lang('modules.tickets.requestedOn')</th>
-                                    </x-slot>
-
-                                    @forelse ($tickets as $ticket)
-                                        <tr>
-                                            <td class="pl-20">
-                                                <a href="{{ route('tickets.show', [$ticket->ticket_number]) }}" class="text-darkest-grey">#{{ $ticket->id }}</a>
-                                            </td>
-                                            <td>
-                                                <div class="media align-items-center">
-                                                    <div class="media-body">
-                                                        <h5 class="f-12 mb-1 text-darkest-grey">
-                                                            <a href="{{ route('tickets.show', [$ticket->ticket_number]) }}">{{ ucfirst($ticket->subject) }}</a>
-                                                        </h5>
-                                                    </div>
-                                                </div>
-                                            </td>
-                                            <td class="pr-20">
-                                                @if( $ticket->status == 'open')
-                                                    <i class="fa fa-circle mr-1 text-red"></i>
-                                                @else
-                                                    <i class="fa fa-circle mr-1 text-yellow"></i>
-                                                @endif
-                                                {{ ucfirst($ticket->status) }}
-                                            </td>
-                                            <td class="pr-20" align="right">
-                                                <span>{{ $ticket->updated_at->translatedFormat(company()->date_format) }}</span>
-                                            </td>
-                                        </tr>
-                                    @empty
-                                        <tr>
-                                            <td colspan="4" class="shadow-none">
-                                                <x-cards.no-record icon="tasks" :message="__('messages.noRecordFound')" />
-                                            </td>
-                                        </tr>
-                                    @endforelse
-                                </x-table>
-                            </x-cards.data>
-                        </div>
-                    </div>
-                </div>
-                @endif
-
-                <!-- EMP DASHBOARD EVENTS START -->
-                @if (in_array('my_calender', $activeWidgets) &&
-                (in_array('tasks', user_modules()) || in_array('events', user_modules()) || in_array('holidays', user_modules()) ||
-                in_array('tickets', user_modules()) || in_array('leaves', user_modules())))
-                    <div class="row">
-                        <div class="col-md-12">
-                            <x-cards.data :title="__('app.menu.myCalendar')">
-                                <div id="calendar"></div>
-                                <x-slot name="action">
-                                    <div class="dropdown ml-auto calendar-action">
-                                        <button id="event-btn" class="btn btn-lg f-14 p-0 text-lightest text-capitalize rounded  dropdown-toggle cal-event" type="button"
-                                            aria-haspopup="true" aria-expanded="false">
-                                            <i class="fa fa-ellipsis-h"></i>
-                                        </button>
-
-                                            <div id="cal-drop" class="dropdown-menu dropdown-menu-right border-grey rounded b-shadow-4 p-2">
-                                                @if(in_array('tasks', user_modules()))
-                                                <div class="custom-control custom-checkbox cal-filter">
-                                                    <input type="checkbox" value="task"
-                                                        class="form-check-input filter-check" name="calendar[]"
-                                                        id="customCheck1" @if(in_array('task',$event_filter)) checked @endif>
-                                                    <label
-                                                        class="form-check-label form_custom_label text-dark-grey pl-2 mr-3 justify-content-start cursor-pointer checkmark-20 pt-2 text-wrap"
-                                                        for="customCheck1">@lang('app.menu.tasks')</label>
-                                                </div>
-                                                @endif
-                                                @if(in_array('events', user_modules()))
-                                                <div class="custom-control custom-checkbox cal-filter">
-                                                    <input type="checkbox" value="events"
-                                                        class="form-check-input filter-check" name="calendar[]"
-                                                        id="customCheck2" @if(in_array('events',$event_filter)) checked @endif>
-                                                    <label
-                                                        class="form-check-label form_custom_label text-dark-grey pl-2 mr-3 justify-content-start cursor-pointer checkmark-20 pt-2 text-wrap"
-                                                        for="customCheck2">@lang('app.menu.Events')</label>
-                                                </div>
-                                                @endif
-                                                @if(in_array('holidays', user_modules()))
-                                                <div class="custom-control custom-checkbox cal-filter">
-                                                    <input type="checkbox" value="holiday"
-                                                        class="form-check-input filter-check" name="calendar[]"
-                                                        id="customCheck3" @if(in_array('holiday',$event_filter)) checked @endif>
-                                                    <label
-                                                        class="form-check-label form_custom_label text-dark-grey pl-2 mr-3 justify-content-start cursor-pointer checkmark-20 pt-2 text-wrap"
-                                                        for="customCheck3">@lang('app.menu.holiday')</label>
-                                                </div>
-                                                @endif
-                                                @if(in_array('tickets', user_modules()))
-                                                <div class="custom-control custom-checkbox cal-filter">
-                                                    <input type="checkbox" value="tickets"
-                                                        class="form-check-input filter-check" name="calendar[]"
-                                                        id="customCheck4" @if(in_array('tickets',$event_filter)) checked @endif>
-                                                    <label
-                                                        class="form-check-label form_custom_label text-dark-grey pl-2 mr-3 justify-content-start cursor-pointer checkmark-20 pt-2 text-wrap"
-                                                        for="customCheck4">@lang('app.menu.tickets')</label>
-                                                </div>
-                                                @endif
-                                                @if(in_array('leaves', user_modules()))
-                                                <div class="custom-control custom-checkbox cal-filter">
-                                                    <input type="checkbox" value="leaves"
-                                                        class="form-check-input filter-check" name="calendar[]"
-                                                        id="customCheck5" @if(in_array('leaves',$event_filter)) checked @endif>
-                                                    <label
-                                                        class="form-check-label form_custom_label text-dark-grey pl-2 mr-3 justify-content-start cursor-pointer checkmark-20 pt-2 text-wrap"
-                                                        for="customCheck5">@lang('app.menu.leaves')</label>
-                                                </div>
-                                                @endif
-                                            </div>
-                                    </div>
-                                </x-slot>
-                            </x-cards.data>
-                        </div>
-                    </div>
-                @endif
-                <!-- EMP DASHBOARD EVENTS END -->
-
-
-                @if (in_array('notices', $activeWidgets) && $sidebarUserPermissions['view_notice'] != 5 && $sidebarUserPermissions['view_notice'] != 'none')
-                    @isset($notices)
-                        <div class="row">
-                            <!-- EMP DASHBOARD NOTICE START -->
-                            <div class="col-md-12">
-                                <div class="my-3 b-shadow-4 rounded bg-white pb-2">
-                                    <!-- NOTICE HEADING START -->
-                                    <div class="d-flex align-items-center b-shadow-4 p-20">
-                                        <p class="mb-0 f-18 f-w-500"> @lang('app.menu.notices') </p>
-                                    </div>
-                                    <!-- NOTICE HEADING END -->
-                                    <!-- NOTICE DETAIL START -->
-                                    <div class="b-shadow-4 cal-info scroll ps" data-menu-vertical="1" data-menu-scroll="1"
-                                        data-menu-dropdown-timeout="500" id="empDashNotice" style="overflow: hidden;">
-
-
-                                        @foreach ($notices as $notice)
-                                            <div class="card border-0 b-shadow-4 p-20 rounded-0">
-                                                <div class="card-horizontal">
-                                                    <div class="card-header m-0 p-0 bg-white rounded">
-                                                        <x-date-badge :month="$notice->created_at->translatedFormat('M')" :date="$notice->created_at
-                                                            ->timezone(company()->timezone)
-                                                            ->translatedFormat('d')" />
-                                                    </div>
-                                                    <div class="card-body border-0 p-0 ml-3">
-                                                        <h4 class="card-title f-14 font-weight-normal text-capitalize mb-0">
-                                                            <a href="{{ route('notices.show', $notice->id) }}"
-                                                                class="openRightModal text-darkest-grey">{{ $notice->heading }}</a>
-                                                        </h4>
-                                                    </div>
-                                                </div>
-                                            </div><!-- card end -->
-                                        @endforeach
-
-
-                                        <div class="ps__rail-x" style="left: 0px; top: 0px;">
-                                            <div class="ps__thumb-x" tabindex="0" style="left: 0px; width: 0px;"></div>
-                                        </div>
-                                        <div class="ps__rail-y" style="top: 0px; left: 0px;">
-                                            <div class="ps__thumb-y" tabindex="0" style="top: 0px; height: 0px;"></div>
-                                        </div>
-                                    </div>
-                                    <!-- NOTICE DETAIL END -->
-                                </div>
-                            </div>
-                            <!-- EMP DASHBOARD NOTICE END -->
-                        </div>
-                    @endisset
-                @endif
-
+                @include('dashboard.employee.widgets.my_tasks')
+                @include('dashboard.employee.widgets.tickets')
+                @include('dashboard.employee.widgets.my_calendar')
+                @include('dashboard.employee.widgets.notices')
 
             </div>
             <!-- EMP DASHBOARD TASKS PROJECTS EVENTS END -->
@@ -805,6 +402,7 @@
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 locale: initialLocaleCode,
                 timeZone: '{{ company()->timezone }}',
+                firstDay: parseInt("{{ attendance_setting()?->week_start_from }}"),
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',
@@ -1001,7 +599,9 @@
 
         $('.request-shift-change').click(function() {
             var id = $(this).data('shift-schedule-id');
-            var url = "{{ route('shifts-change.edit', ':id') }}";
+            var date = $(this).data('shift-schedule-date');
+            var shiftId = $(this).data('shift-id');
+            var url = "{{ route('shifts-change.edit', ':id') }}?date="+date+"&shift_id="+shiftId;
             url = url.replace(':id', id);
 
             $(MODAL_DEFAULT + ' ' + MODAL_HEADING).html('...');
@@ -1010,8 +610,8 @@
 
         $('#view-shifts').click(function() {
             const url = "{{ route('employee-shifts.index') }}";
-            $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
-            $.ajaxModal(MODAL_LG, url);
+            $(MODAL_XL + ' ' + MODAL_HEADING).html('...');
+            $.ajaxModal(MODAL_XL, url);
         });
 
         @if (!is_null($currentClockIn))

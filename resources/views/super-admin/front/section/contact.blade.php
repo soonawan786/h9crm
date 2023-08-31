@@ -26,10 +26,14 @@
 
                             @if ($global->google_recaptcha_status == 'active' && $global->google_recaptcha_v2_status == 'active')
                                 <div class="form-group col-12" id="captcha_container"></div>
+                                <input type="hidden" id="g_recaptcha" name="g_recaptcha">
+                            @endif
+                            @if ($global->google_recaptcha_status == 'active' && $global->google_recaptcha_v3_status == 'active')
+                                <div class="form-group col-12">
+                                    <input type="hidden" id="g_recaptcha" name="g_recaptcha">
+                                </div>
                             @endif
 
-                            <input type="hidden" id="g_recaptcha" name="g_recaptcha">
-                           
 
                             <button class="btn btn-lg btn-block btn-primary " type="button" id="save-form">@lang('superadmin.frontCms.submitEnquiry')</button>
                         </div>

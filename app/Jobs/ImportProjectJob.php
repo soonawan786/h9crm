@@ -22,16 +22,18 @@ class ImportProjectJob implements ShouldQueue
 
     private $row;
     private $columns;
+    private $company;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($row, $columns)
+    public function __construct($row, $columns, $company = null)
     {
         $this->row = $row;
         $this->columns = $columns;
+        $this->company = $company;
     }
 
     /**
@@ -54,6 +56,7 @@ class ImportProjectJob implements ShouldQueue
             DB::beginTransaction();
             try {
                 $project = new Project();
+                $project->company_id = $this->company?->id;
                 $project->project_name = $this->row[array_keys($this->columns, 'project_name')[0]];
 
                 $project->project_summary = !empty(array_keys($this->columns, 'project_summary')) ? $this->row[array_keys($this->columns, 'project_summary')[0]] : null;
@@ -69,13 +72,13 @@ class ImportProjectJob implements ShouldQueue
 
                 $project->project_budget = !empty(array_keys($this->columns, 'project_budget')) ? $this->row[array_keys($this->columns, 'project_budget')[0]] : null;
 
-                $project->currency_id = company()->currency_id;
+                $project->currency_id = $this->company?->currency_id;
 
                 $project->status = !empty(array_keys($this->columns, 'status')) ? strtolower(trim($this->row[array_keys($this->columns, 'status')[0]])) : 'not started';
 
                 $project->save();
 
-                $this->logSearchEntry($project->id, $project->project_name, 'projects.show', 'project');
+                $this->logSearchEntry($project->id, $project->project_name, 'projects.show', 'project', $project->company_id);
                 $this->logProjectActivity($project->id, 'messages.updateSuccess');
                 DB::commit();
             } catch (\Carbon\Exceptions\InvalidFormatException $e) {

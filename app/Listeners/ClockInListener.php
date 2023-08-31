@@ -31,7 +31,7 @@ class ClockInListener
     public function handle(ClockInEvent $event)
     {
         $company = $event->attendance->company;
-        Notification::send(User::allAdmins($company->id), new ClockIn($event->attendance));
+        Notification::send(User::allAdmins($company->id)->first(), new ClockIn($event->attendance));
 
     }
 

@@ -7,6 +7,7 @@ use App\Http\Controllers\AccountBaseController;
 use App\Http\Requests\CustomField\StoreCustomField;
 use App\Models\CustomField;
 use App\Models\CustomFieldGroup;
+use App\Models\GlobalSetting;
 use Illuminate\Http\Request;
 use Yajra\DataTables\Facades\DataTables;
 
@@ -19,8 +20,7 @@ class CustomFieldController extends AccountBaseController
         $this->pageTitle = 'app.menu.customFields';
         $this->activeSettingMenu = 'custom_fields';
         $this->middleware(function ($request, $next) {
-            abort_403(user()->permission('manage_custom_field_setting') !== 'all' && !user()->is_superadmin);
-
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_custom_field_settings'));
             return $next($request);
         });
     }
@@ -113,10 +113,11 @@ class CustomFieldController extends AccountBaseController
      */
     public function store(StoreCustomField $request)
     {
+        $name = CustomField::generateUniqueSlug($request->get('label'), $request->module);
         $group = [
             'fields' => [
                 [
-                    'name' => $request->get('name'),
+                    'name' => $name,
                     'custom_field_group_id' => $request->module,
                     'label' => $request->get('label'),
                     'type' => $request->get('type'),
@@ -130,7 +131,7 @@ class CustomFieldController extends AccountBaseController
 
         $this->addCustomField($group);
 
-        return Reply::success('messages.customFieldCreateSuccess');
+        return Reply::success('messages.recordSaved');
     }
 
     /**

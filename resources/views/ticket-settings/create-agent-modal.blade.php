@@ -7,30 +7,20 @@
         <x-form id="createMethods" method="POST" class="ajax-form">
             <div class="row">
                 <div class="col-md-6">
-                    <x-forms.select fieldId="user_id" :fieldLabel="__('modules.tickets.chooseAgents')"
-                        fieldName="user_id[]" search="true" fieldRequired="true" multiple="true">
+                    <x-forms.select fieldId="agent_id" :fieldLabel="__('modules.tickets.chooseAgents')"
+                        fieldName="user_id" search="true" fieldRequired="true">
                         @foreach ($employees as $emp)
                             <x-user-option :user="$emp" />
                         @endforeach
                     </x-forms.select>
                 </div>
-
                 <div class="col-md-6">
-                    <x-forms.label class="mt-3" fieldId="category_id" fieldRequired="true"
-                        :fieldLabel="__('modules.tickets.assignGroup')">
-                    </x-forms.label>
-                    <x-forms.input-group>
-                        <select class="form-control select-picker" id="group_id" name="group_id"
-                            data-live-search="true">
-                            @foreach ($groups as $group)
-                                <option value="{{ $group->id }}">{{ mb_ucwords($group->group_name) }}</option>
-                            @endforeach
-                        </select>
-                        <x-slot name="append">
-                            <button id="manage-groups" type="button"
-                                class="btn btn-outline-secondary border-grey">@lang('app.add')</button>
-                        </x-slot>
-                    </x-forms.input-group>
+                    <x-forms.select fieldId="ticket_group_id" :fieldLabel="__('modules.tickets.assignGroup')"
+                        fieldName="group_id[]" search="true" fieldRequired="true" multiple="true">
+                        @foreach ($groups as $group)
+                                <option value="{{ $group->id }}">{{ $group->group_name }}</option>
+                        @endforeach
+                    </x-forms.select>
                 </div>
             </div>
         </x-form>
@@ -65,4 +55,38 @@
         $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
         $.ajaxModal(MODAL_LG, url);
     });
+
+    var id = $('#agent_id').val();
+    agentGroups(id);
+
+    $('#agent_id').change(function(){
+        var agentId = $(this).val();
+        agentGroups(agentId);
+    });
+
+        function agentGroups(agentId) {
+            $.easyAjax({
+                url: "{{ route('ticket_agents.agent_groups') }}",
+                container: '#createMethods',
+                type: "GET",
+                blockUI: true,
+                data: {agent_id:agentId},
+                success: function(response) {
+                        var options = [];
+                        var rData = [];
+                        rData = response.data;
+                        $.each(rData, function(index, value) {
+                            var selectData = '';
+                            selectData = '<option value="' + value.id + '">' +
+                                value
+                                .group_name + '</option>';
+                                options.push(selectData);
+                        });
+                        $('#ticket_group_id').html(options);
+                        $('#ticket_group_id').selectpicker('refresh');
+
+                }
+            })
+        }
+
 </script>

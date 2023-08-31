@@ -44,7 +44,7 @@
             </div>
         </div>
 
-        <button type="submit" id="submit-login"
+        <button type="button" id="submit-login"
                 class="btn-primary f-w-500 rounded w-100 height-50 f-18">
             @lang('app.saveLogin') <i class="fa fa-arrow-right pl-1"></i>
         </button>

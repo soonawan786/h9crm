@@ -52,6 +52,7 @@ class NewCreditNote extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $newCreditNote = parent::build();
 
         if (!is_null($this->creditNotes->client_id)) {
             // For Sending pdf to email
@@ -66,7 +67,6 @@ class NewCreditNote extends BaseNotification
 
                 $content = __('email.creditNote.text') . '<br>';
 
-                $newCreditNote = parent::build();
                 $newCreditNote->subject(__('email.creditNote.subject') . ' - ' . config('app.name') . '.')
                     ->markdown('mail.email', [
                         'url' => $url,

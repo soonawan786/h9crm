@@ -70,12 +70,12 @@
     <div class="content-wrapper">
 
         <!-- Add Task Export Buttons Start -->
-        <div class="d-block d-lg-flex d-md-flex justify-content-between action-bar">
+        <div class="d-grid d-lg-flex d-md-flex action-bar">
             <div id="table-actions" class="flex-grow-1 align-items-center">
                 @if ($addDepartmentPermission == 'all')
                     <x-forms.link-primary :link="route('departments.create')" class="mr-3 openRightModal float-left"
                                           icon="plus">
-                        @lang('app.add') @lang('modules.department.title')
+                        @lang('modules.department.addTitle')
                     </x-forms.link-primary>
                 @endif
             </div>
@@ -89,7 +89,7 @@
                 </div>
             </x-datatable.actions>
 
-            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-3" role="group" aria-label="Basic example">
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group" aria-label="Basic example">
                 <a href="{{ route('departments.index') }}" class="btn btn-secondary f-14 btn-active"
                    data-toggle="tooltip"
                    data-original-title="@lang('modules.leaves.tableView')"><i class="side-icon bi bi-list-ul"></i></a>

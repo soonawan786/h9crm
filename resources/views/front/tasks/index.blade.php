@@ -25,7 +25,7 @@
                     <option value="not finished">@lang('modules.tasks.hideCompletedTask')</option>
                     <option value="all">@lang('app.all')</option>
                     @foreach ($taskBoardStatus as $status)
-                        <option value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : mb_ucwords($status->column_name) }}</option>
+                        <option value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : $status->column_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -66,7 +66,7 @@
                             data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($projects as $project)
-                                <option value="{{ $project->id }}">{{ mb_ucwords($project->project_name) }}</option>
+                                <option value="{{ $project->id }}">{{ $project->project_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -137,7 +137,7 @@
                         <select class="form-control select-picker" id="category_id" data-live-search="true" data-container="body" data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($taskCategories as $categ)
-                                <option value="{{ $categ->id }}">{{ mb_ucwords($categ->category_name) }}</option>
+                                <option value="{{ $categ->id }}">{{ $categ->category_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -210,7 +210,7 @@ $addTaskPermission = user()->permission('add_tasks');
                 <div class="select-status mr-3 d-none quick-action-field" id="change-status-action">
                     <select name="status" class="form-control select-picker">
                         @foreach ($taskBoardStatus as $status)
-                            <option value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : mb_ucwords($status->column_name) }}</option>
+                            <option value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : $status->column_name }}</option>
                         @endforeach
                     </select>
                 </div>

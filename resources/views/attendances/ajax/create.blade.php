@@ -14,7 +14,7 @@
                             fieldName="department_id" search="true">
                             <option value="0">--</option>
                             @foreach ($departments as $team)
-                                <option value="{{ $team->id }}">{{ mb_ucwords($team->team_name) }}</option>
+                                <option value="{{ $team->id }}">{{ $team->team_name }}</option>
                             @endforeach
                         </x-forms.select>
                     </div>
@@ -43,7 +43,7 @@
                         search="true">
                             @foreach ($location as $locations)
                                 <option @if ($locations->is_default == 1) selected @endif value="{{ $locations->id }}">
-                                    {{ mb_ucwords($locations->location) }}</option>
+                                    {{ $locations->location }}</option>
                             @endforeach
                         </x-forms.select>
                     </div>
@@ -152,7 +152,11 @@
                         <x-forms.text fieldId="working_from" :fieldLabel="__('modules.attendance.otherPlace')" fieldName="working_from" fieldRequired="true" >
                         </x-forms.text>
                     </div>
-
+                    <div class="col-lg-4 col-md-6 mt-5">
+                        <x-forms.checkbox class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.overwriteAttendance')"
+                                          fieldName="overwrite_attendance" fieldId="overwrite_attendance" fieldValue="yes"
+                                          fieldRequired="true" :popover="__('messages.overwriteAttendanceTooltip')"/>
+                    </div>
                 </div>
 
                 <x-form-actions>

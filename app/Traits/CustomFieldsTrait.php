@@ -63,42 +63,24 @@ trait CustomFieldsTrait
         }
     }
 
-    public function getCustomFieldGroups()
+    public function getCustomFieldGroups($fields = false)
     {
-        return CustomFieldGroup::where('model', $this->getModelName())->get();
+        $customFieldGroup = CustomFieldGroup::where('model', $this->getModelName());
+
+        $customFieldGroup = $customFieldGroup->when(method_exists($this, 'company'), function ($query) {
+            return $query->where('company_id', $this->company_id ?: company()->id);
+        })->first();
+
+        if ($fields && $customFieldGroup) {
+            $customFieldGroup->load(['customField'])->append(['fields']);
+        }
+
+        return $customFieldGroup;
     }
 
     public function getCustomFieldGroupsWithFields()
     {
-        $fields = [];
-
-        $groups = $this->getCustomFieldGroups();
-
-        foreach ($groups as $group) {
-
-            $customFields = CustomField::where('custom_field_group_id', $group->id)->get();
-            $customFields = collect($customFields);
-
-            // convert values to json array if type is select
-            $customFields = $customFields->map(function ($item) {
-                if ($item->type == 'select' || $item->type == 'radio' || $item->type == 'checkbox') {
-                    $item->values = json_decode($item->values);
-
-                    return $item;
-                }
-
-                return $item;
-            });
-
-            $group->fields = $customFields;
-            $fields[] = $group;
-        }
-
-        if (!empty($fields)) {
-            return $fields[0];
-        }
-
-        return $fields;
+        return $this->getCustomFieldGroups(true);
     }
 
     public function getCustomFieldsData()
@@ -147,6 +129,11 @@ trait CustomFieldsTrait
                 ->first();
 
             if ($entry) {
+                if ($fieldType == 'file' && (!is_null($entry->value) && $entry->value != $value )) {
+                    Files::deleteFile($entry->value, 'custom_fields');
+                }
+
+                // Update entry
                 DB::table('custom_fields_data')
                     ->where('model', $this->getModelName())
                     ->where('model_id', $this->id)

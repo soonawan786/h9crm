@@ -3,7 +3,7 @@
 
 
 <div class="row">
-    @if (in_array('tickets', $modules) && in_array('total_tickets', $activeWidgets))
+    @if (in_array('tickets', user_modules()) && in_array('total_tickets', $activeWidgets))
         <div class="col-lg-6 col-md-6 mb-3">
 
                 <div
@@ -33,7 +33,7 @@
         </div>
     @endif
 
-    @if (in_array('tickets', $modules) && in_array('total_unassigned_ticket', $activeWidgets))
+    @if (in_array('tickets', user_modules()) && in_array('total_unassigned_ticket', $activeWidgets))
         <div class="col-lg-6 col-md-6 mb-3">
             <a href="javascript:;" id="totalUnassignedTicket">
                 <x-cards.widget :title="__('modules.dashboard.totalUnassignedTicket')" :value="$totalUnassignedTicket"
@@ -45,7 +45,7 @@
 </div>
 
 <div class="row">
-    @if (in_array('tickets', $modules) && in_array('type_wise_ticket', $activeWidgets))
+    @if (in_array('tickets', user_modules()) && in_array('type_wise_ticket', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.typeWiseTicket')">
                 <x-pie-chart id="task-chart1" :labels="$ticketTypeChart['labels']" :values="$ticketTypeChart['values']"
@@ -54,7 +54,7 @@
         </div>
     @endif
 
-    @if (in_array('tickets', $modules) && in_array('status_wise_ticket', $activeWidgets))
+    @if (in_array('tickets', user_modules()) && in_array('status_wise_ticket', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.statusWiseTicket')">
                 <x-pie-chart id="task-chart2" :labels="$ticketStatusChart['labels']"
@@ -63,16 +63,18 @@
         </div>
     @endif
 
-    @if (in_array('tickets', $modules) && in_array('channel_wise_ticket', $activeWidgets))
+    @if (in_array('tickets', user_modules()) && in_array('channel_wise_ticket', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.channelWiseTicket')">
-                <x-pie-chart id="task-chart3" :labels="$ticketChannelChart['labels']"
-                    :values="$ticketChannelChart['values']" :colors="$ticketChannelChart['colors']" height="300" width="300" />
+                @if(isset($ticketChannelChart['colors']) && $ticketChannelChart['labels'])
+                    <x-pie-chart id="task-chart3" :labels="$ticketChannelChart['labels']"
+                        :values="$ticketChannelChart['values']" :colors="$ticketChannelChart['colors']" height="300" width="300" />
+                @endif
             </x-cards.data>
         </div>
     @endif
 
-    @if (in_array('tickets', $modules) && in_array('new_tickets', $activeWidgets))
+    @if (in_array('tickets', user_modules()) && in_array('new_tickets', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.openTickets')" padding="false" otherClasses="h-200">
                 <x-table>
@@ -84,8 +86,8 @@
                                         title="{{ $item->requester->name }}">
                                 </div>
                             </td>
-                            <td width="50%"><a href="{{ route('tickets.show', $item->id) }}"
-                                    class="text-darkest-grey">{{ ucfirst($item->subject) }}</a>
+                            <td width="50%"><a href="{{ route('tickets.show', $item->ticket_number) }}"
+                                    class="text-darkest-grey">{{ $item->subject }}</a>
                                 <br />
                                 <span class="f-10 text-lightest mt-1">{{ $item->requester->name }}</span>
                             </td>

@@ -26,9 +26,13 @@
 @if(!in_array('client', user_roles()))
     @if(!is_null($invoice->last_viewed))
         <x-alert type="info">
-            {{$invoice->lead->client_name}} @lang('app.viewedOn') {{$invoice->last_viewed->timezone($settings->timezone)->translatedFormat($settings->date_format)}}
+            @lang('app.viewedOn') {{$invoice->last_viewed->timezone($settings->timezone)->translatedFormat($settings->date_format)}}
             @lang('app.at') {{$invoice->last_viewed->timezone($settings->timezone)->translatedFormat($settings->time_format)}}
             @lang('app.using') @lang('modules.attendance.ipAddress'):{{$invoice->ip_address}}
+
+            @if (request()->ip() == $invoice->ip_address)
+                <strong>(@lang('modules.invoices.sameIp'))</strong>
+            @endif
         </x-alert>
     @endif
 @endif
@@ -41,7 +45,7 @@
         <div class="invoice-table-wrapper">
             <table width="100%" class="">
                 <tr class="inv-logo-heading">
-                    <td><img src="{{ invoice_setting()->logo_url }}" alt="{{ mb_ucwords(company()->company_name) }}"
+                    <td><img src="{{ invoice_setting()->logo_url }}" alt="{{ company()->company_name }}"
                             id="logo" /></td>
                     <td align="right" class="font-weight-bold f-21 text-dark text-uppercase mt-4 mt-lg-0 mt-md-0">
                         @lang('modules.lead.proposal')</td>
@@ -49,7 +53,7 @@
                 <tr class="inv-num">
                     <td class="f-14 text-dark">
                         <p class="mt-3 mb-0">
-                            {{ mb_ucwords(company()->company_name) }}<br>
+                            {{ company()->company_name }}<br>
                             @if (!is_null($settings))
                                 {!! nl2br(default_address()->address) !!}<br>
                                 {{ company()->company_phone }}
@@ -89,16 +93,16 @@
                             </span><br>
 
                             @if ($invoice->lead && $invoice->lead->client_name && invoice_setting()->show_client_name == 'yes')
-                                {{ mb_ucwords($invoice->lead->client_name) }}<br>
+                                {{ $invoice->lead->client_name }}<br>
                             @endif
                             @if ($invoice->lead && $invoice->lead->client_email && invoice_setting()->show_client_email == 'yes')
-                                {{ mb_ucwords($invoice->lead->client_email) }}<br>
+                                {{ $invoice->lead->client_email }}<br>
                             @endif
                             @if ($invoice->lead && $invoice->lead->mobile && invoice_setting()->show_client_phone == 'yes')
                                 {{ $invoice->lead->mobile }}<br>
                             @endif
                             @if ($invoice->lead && $invoice->lead->company_name && invoice_setting()->show_client_company_name == 'yes')
-                                {{ mb_ucwords($invoice->lead->company_name) }}<br>
+                                {{ $invoice->lead->company_name }}<br>
                             @endif
                             @if ($invoice->lead && $invoice->lead->address && invoice_setting()->show_client_company_address == 'yes')
                                 {!! nl2br($invoice->lead->address) !!}
@@ -131,7 +135,7 @@
                                     @if($invoiceSetting->hsn_sac_code_show == 1)
                                         <td class="border-right-0 border-left-0" align="right">@lang("app.hsnSac")</td>
                                     @endif
-                                    <td class="border-right-0 border-left-0" align="right">{{ isset($invoice->unit) ? $invoice->unit->unit_type : 'Qty\hrs' }}</td>
+                                    <td class="border-right-0 border-left-0" align="right">@lang('modules.invoices.qty')</td>
                                     <td class="border-right-0 border-left-0" align="right">
                                         @lang("modules.invoices.unitPrice") ({{ $invoice->currency->currency_code }})
                                     </td>
@@ -145,11 +149,11 @@
                                 @foreach ($invoice->items as $item)
                                     @if ($item->type == 'item')
                                         <tr class="text-dark font-weight-semibold f-13">
-                                            <td>{{ ucfirst($item->item_name) }}</td>
+                                            <td>{{ $item->item_name }}</td>
                                             @if($invoiceSetting->hsn_sac_code_show == 1)
                                                 <td align="right">{{ $item->hsn_sac_code }}</td>
                                             @endif
-                                            <td align="right">{{ $item->quantity }}</td>
+                                            <td align="right">{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                                             <td align="right">
                                                 {{ currency_format($item->unit_price, $invoice->currency_id, false) }}
                                             </td>
@@ -193,7 +197,7 @@
                                             @foreach ($taxes as $key => $tax)
                                                 <tr class="text-dark-grey" align="right">
                                                     <td class="w-50 border-top-0 border-left-0">
-                                                        {{ mb_strtoupper($key) }}</td>
+                                                        {{ $key }}</td>
                                                 </tr>
                                             @endforeach
                                             <tr class="bg-light-grey text-dark f-w-500 f-16" align="right">
@@ -244,7 +248,7 @@
                                     <table>
                                         <tr width="100%" class="font-weight-semibold f-13">
                                             <td class="border-left-0 border-right-0 border-top-0">
-                                                {{ ucfirst($item->item_name) }}</td>
+                                                {{ $item->item_name }}</td>
                                         </tr>
                                         @if ($item->item_summary != '' || $item->proposalItemImage)
                                             <tr>
@@ -265,7 +269,7 @@
                             </tr>
                             <tr>
                                 <th width="50%" class="bg-light-grey text-dark-grey font-weight-bold">
-                                    {{ isset($invoice->unit) ? $invoice->unit->unit_type : 'Qty\hrs' }}
+                                    @lang('modules.invoices.qty')
                                 </th>
                                 <td width="50%">{{ $item->quantity }}</td>
                             </tr>
@@ -304,7 +308,7 @@
 
                     @foreach ($taxes as $key => $tax)
                         <tr>
-                            <th width="50%" class="text-dark-grey font-weight-normal">{{ mb_strtoupper($key) }}</th>
+                            <th width="50%" class="text-dark-grey font-weight-normal">{{ $key }}</th>
                             <td width="50%" class="text-dark-grey font-weight-normal">
                                 {{ currency_format($tax, $invoice->currency_id, false) }}</td>
                         </tr>
@@ -320,7 +324,7 @@
                         <td height="30" colspan="2"></td>
                     </tr>
                     <tr>
-                        <td>
+                        <td style="vertical-align: text-top">
                             <table>
                                 <tr>@lang('app.note')</tr>
                                 <tr>
@@ -369,10 +373,12 @@
         @endif
 
          @if ($invoice->client_comment)
-            <hr>
-            <div class="col-md-12">
-                <h4 class="name" style="margin-bottom: 20px;">@lang('app.rejectReason')</h4>
-                <p> {{ $invoice->client_comment }} </p>
+             <div class="row">
+                <div class="col-md-12">
+                    <hr>
+                    <h4 class="name heading-h4" style="margin-bottom: 20px;">@lang('app.rejectReason')</h4>
+                    <p> {{ $invoice->client_comment }} </p>
+                </div>
             </div>
         @endif
 
@@ -399,6 +405,22 @@
                             <i class="fa fa-download f-w-500 mr-2 f-11"></i> @lang('app.download')
                         </a>
                     </li>
+                    @if (!$invoice->signature || $invoice->status == 'waiting')
+                        <li>
+                            <a class="dropdown-item openRightModal"
+                                href="{{ route('proposals.edit', [$invoice->id]) }}">
+                                <i class="fa fa-edit f-w-500 mr-2 f-11"></i> @lang('app.edit')
+                            </a>
+                        </li>
+                    @endif
+                    @if (!$invoice->signature || $firstProposal->id == $invoice->id)
+                            <li>
+                                <a class="dropdown-item delete-table-row" href="javascript:;"
+                                    data-proposal-id="{{ $invoice->id }}">
+                                    <i class="fa fa-trash mr-2"></i>@lang('app.delete')
+                                </a>
+                            </li>
+                    @endif
                 </ul>
             </div>
 
@@ -412,3 +434,53 @@
     <!-- CARD FOOTER END -->
 </div>
 <!-- INVOICE CARD END -->
+
+@push('scripts')
+    <script>
+
+        $('body').on('click', '.delete-table-row', function() {
+                var id = $(this).data('proposal-id');
+
+                Swal.fire({
+                    title: "@lang('messages.sweetAlertTitle')",
+                    text: "@lang('messages.recoverRecord')",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    focusConfirm: false,
+                    confirmButtonText: "@lang('messages.confirmDelete')",
+                    cancelButtonText: "@lang('app.cancel')",
+                    customClass: {
+                        confirmButton: 'btn btn-primary mr-3',
+                        cancelButton: 'btn btn-secondary'
+                    },
+                    showClass: {
+                        popup: 'swal2-noanimation',
+                        backdrop: 'swal2-noanimation'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        var url = "{{ route('proposals.destroy', ':id') }}";
+                        url = url.replace(':id', id);
+
+                        var token = "{{ csrf_token() }}";
+
+                        $.easyAjax({
+                            type: 'POST',
+                            url: url,
+                            blockUI: true,
+                            data: {
+                                '_token': token,
+                                '_method': 'DELETE'
+                            },
+                            success: function(response) {
+                                if (response.status == "success") {
+                                    window.location.href = "{{ route('proposals.index') }}";
+                                }
+                            }
+                        });
+                    }
+                });
+            });
+    </script>
+@endpush

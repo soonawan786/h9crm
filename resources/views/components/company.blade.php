@@ -11,9 +11,15 @@
             </h5>
 
             @if(module_enabled('Subdomain'))
+                @if(!is_null($company->sub_domain))
                 <p class="mb-0 f-12 text-dark-grey">
                     <a href="http://{{ $company->sub_domain }}"  class="text-dark-grey" target="_blank">{{ $company->sub_domain }}</a>
                 </p>
+                @else
+                    <p class="mb-0 f-11 text-red">
+                        {{__('superadmin.subdomainNotAdded')}}
+                    </p>
+                @endif
              @endif
         </div>
     @else

@@ -25,7 +25,7 @@ class AutoFollowUpReminderListener
         $adminUserIds = User::allAdmins($companyId)->pluck('id')->toArray();
 
         /** @phpstan-ignore-next-line */
-        $notifyUser = (is_null($event->followup->lead->leadAgent)) ? User::whereIn('id', $adminUserIds)->get() : $event->lead->leadAgent->user;
+        $notifyUser = (is_null($event->followup->lead->leadAgent)) ? User::whereIn('id', $adminUserIds)->get() : $event->followup->lead->leadAgent->user;
 
         if ($notifyUser) {
             Notification::send($notifyUser, new AutoFollowUpReminder($event->followup));

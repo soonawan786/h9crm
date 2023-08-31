@@ -5,12 +5,7 @@
     <!-- SETTINGS START -->
     <div class="w-100 d-flex ">
 
-        {{-- WORKSUITESAAS --}}
-        @if(user()->is_superadmin)
-            <x-super-admin.setting-sidebar :activeMenu="$activeSettingMenu"/>
-        @else
-            <x-setting-sidebar :activeMenu="$activeSettingMenu"/>
-        @endif
+        @include('sections.setting-sidebar')
 
         <x-setting-card method="POST" id="backup-box">
             <x-slot name="buttons">

@@ -1,5 +1,5 @@
 <div class="modal-header">
-    <h5 class="modal-title" id="modelHeading">@lang('app.add') @lang('modules.tickets.ticketChannel')</h5>
+    <h5 class="modal-title" id="modelHeading">@lang('modules.tickets.addTicketChannel')</h5>
     <button type="button"  class="close" data-dismiss="modal" aria-label="Close"><span
             aria-hidden="true">×</span></button>
 </div>
@@ -10,7 +10,7 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <x-forms.text fieldId="channel_name" :fieldLabel="__('modules.tickets.ticketChannel')"
-                            fieldName="channel_name" fieldRequired="true" fieldPlaceholder="e.g. Facebook, Phone, etc.">
+                            fieldName="channel_name" fieldRequired="true" :fieldPlaceholder="__('placeholders.tickets.ticketChannel')">
                         </x-forms.text>
                     </div>
                 </div>

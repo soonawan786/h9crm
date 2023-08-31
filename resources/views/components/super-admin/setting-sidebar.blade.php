@@ -19,68 +19,89 @@
 
     <!-- SETTINGS MENU START -->
     <ul class="settings-menu" id="settingsMenu">
-
-        <x-setting-menu-item :active="$activeMenu" menu="app_settings" :href="route('app-settings.index')"
+        @if (user()->permission('manage_superadmin_app_settings') == 'all')
+            <x-setting-menu-item :active="$activeMenu" menu="app_settings" :href="route('app-settings.index')"
                              :text="__('app.menu.appSettings')"/>
-
-        <x-setting-menu-item :active="$activeMenu" menu="profile_settings"
+        @endif
+            <x-setting-menu-item :active="$activeMenu" menu="profile_settings"
                              :href="route('superadmin.settings.super-admin-profile.index')"
                              :text="__('app.menu.profileSettings')"/>
 
+        @if (user()->permission('manage_superadmin_notification_settings') == 'all')
         <x-setting-menu-item :active="$activeMenu" menu="notification_settings" :href="route('notifications.index')"
                              :text="__('app.menu.notificationSettings')"/>
-
+        @endif
+        @if (user()->permission('manage_superadmin_language_settings') == 'all')
         <x-setting-menu-item :active="$activeMenu" menu="language_settings"
                              :href="route('language-settings.index')"
                              :text="__('app.menu.languageSettings')"/>
-
+        @endif
+        @if (user()->permission('manage_superadmin_currency_settings') == 'all')
         <x-setting-menu-item :active="$activeMenu" menu="currency_settings"
                              :href="route('superadmin.settings.global-currency-settings.index')"
                              :text="__('app.menu.currencySettings')"/>
-
+        @endif
+        @if (user()->permission('manage_superadmin_payment_settings') == 'all')
         <x-setting-menu-item :active="$activeMenu" menu="payment_gateway_settings"
                              :href="route('superadmin.settings.global-payment-gateway-settings.index')"
                              :text="__('app.menu.paymentGatewayCredential')"/>
+        @endif
+        @if (user()->permission('manage_superadmin_finance_settings') == 'all')
         <x-setting-menu-item :active="$activeMenu" menu="global_invoice_settings" :href="route('superadmin.settings.global-invoice-settings.index')"
                              :text="__('app.menu.financeSettings')"/>
+        @endif
+        @if (user()->permission('manage_superadmin_custom_field_settings') == 'all')
         <x-setting-menu-item :active="$activeMenu" menu="custom_fields"
                              :href="route('superadmin.settings.global-custom-fields.index')"
                              :text="__('app.menu.customFields')"/>
-
+        @endif
+        @if (user()->permission('manage_superadmin_permission_settings') == 'all')
+        <x-setting-menu-item :active="$activeMenu" menu="superadmin_role_permissions"
+                             :href="route('superadmin.settings.superadmin-permissions.index')"
+                             :text="__('superadmin.superadminRoleAndPermission')"/>
+        @endif
+        @if (user()->permission('manage_superadmin_storage_settings') == 'all')
         <x-setting-menu-item :active="$activeMenu" menu="storage_settings" :href="route('storage-settings.index')"
                              :text="__('app.menu.storageSettings')"/>
-
+        @endif
+        @if (user()->permission('manage_superadmin_social_settings') == 'all')
         <x-setting-menu-item :active="$activeMenu" menu="social_auth_settings"
                              :href="route('social-auth-settings.index')" :text="__('app.menu.socialLogin')"/>
+        @endif
 
         <x-setting-menu-item :active="$activeMenu" menu="security_settings" :href="route('security-settings.index')"
                              :text="__('app.menu.securitySettings')"/>
 
-        <x-setting-menu-item :active="$activeMenu" menu="google_calendar_settings"
+        @if (user()->permission('manage_superadmin_calendar_settings') == 'all')
+            <x-setting-menu-item :active="$activeMenu" menu="google_calendar_settings"
                              :href="route('google-calendar-settings.index')"
                              :text="__('app.menu.googleCalendarSetting')"/>
-
-        <x-setting-menu-item :active="$activeMenu" menu="theme_settings"
+        @endif
+        @if (user()->permission('manage_superadmin_theme_settings') == 'all')
+            <x-setting-menu-item :active="$activeMenu" menu="theme_settings"
                              :href="route('superadmin.settings.super-admin-theme-settings.index')"
                              :text="__('app.menu.themeSettings')"/>
-
+        @endif
+        @if (user()->permission('manage_superadmin_custom_module_settings') == 'all')
         <x-setting-menu-item :active="$activeMenu" menu="module_settings"
                              :href="route('superadmin.settings.custom-module-settings.index')"
                              :text="__('app.menu.moduleSettings')"/>
+        @endif
 
         @foreach (worksuite_plugins() as $item)
             @includeIf(strtolower($item).'::sections.superadmin.setting-sidebar')
         @endforeach
 
-
+        @if (user()->permission('manage_superadmin_database_backup_settings') == 'all')
         <x-setting-menu-item :active="$activeMenu" menu="database_backup_settings"
                              :href="route('database-backup-settings.index')"
                              :text="__('app.menu.databaseBackupSetting')"/>
+        @endif
 
-        {{-- @if (global_setting()->system_update)
+        @if (global_setting()->system_update && user()->permission('manage_superadmin_update_settings') == 'all')
             <x-setting-menu-item :active="$activeMenu" menu="update_settings" :href="route('update-settings.index')"
                                  :text="__('app.menu.updates')"/>
-        @endif --}}
+        @endif
     </ul>
     <!-- SETTINGS MENU END -->
 

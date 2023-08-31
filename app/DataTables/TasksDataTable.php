@@ -8,6 +8,7 @@ use App\Models\Task;
 use App\Models\CustomField;
 use App\Models\TaskboardColumn;
 use App\Models\CustomFieldGroup;
+use App\Models\TaskSetting;
 use Carbon\CarbonInterval;
 use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
@@ -21,6 +22,7 @@ class TasksDataTable extends BaseDataTable
     private $viewTaskPermission;
     private $changeStatusPermission;
     private $viewUnassignedTasksPermission;
+    private $hasTimelogModule;
 
     public function __construct()
     {
@@ -31,12 +33,13 @@ class TasksDataTable extends BaseDataTable
         $this->viewTaskPermission = user()->permission('view_tasks');
         $this->changeStatusPermission = user()->permission('change_status');
         $this->viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
+        $this->hasTimelogModule = (in_array('timelogs', user_modules()));
     }
 
     /**
      * Build DataTable class.
      *
-     * @param mixed $query Results from query() method.
+     * @param  mixed $query Results from query() method.
      * @return \Yajra\DataTables\DataTableAbstract
      */
     public function dataTable($query)
@@ -44,13 +47,16 @@ class TasksDataTable extends BaseDataTable
         $taskBoardColumns = TaskboardColumn::orderBy('priority')->get();
 
         $datatables = datatables()->eloquent($query);
-        $datatables->addColumn('check', function ($row) {
-            return '<input type="checkbox" class="select-table-row" id="datatable-row-' . $row->id . '"  name="datatable_ids[]" value="' . $row->id . '" onclick="dataTableRowCheck(' . $row->id . ')">';
-        });
-        $datatables->addColumn('action', function ($row) {
-            $taskUsers = $row->users->pluck('id')->toArray();
+        $datatables->addColumn(
+            'check', function ($row) {
+                return '<input type="checkbox" class="select-table-row" id="datatable-row-' . $row->id . '"  name="datatable_ids[]" value="' . $row->id . '" onclick="dataTableRowCheck(' . $row->id . ')">';
+            }
+        );
+        $datatables->addColumn(
+            'action', function ($row) {
+                $taskUsers = $row->users->pluck('id')->toArray();
 
-            $action = '<div class="task_view">
+                $action = '<div class="task_view">
 
                     <div class="dropdown">
                         <a class="task_view_more d-flex align-items-center justify-content-center dropdown-toggle" type="link"
@@ -59,252 +65,339 @@ class TasksDataTable extends BaseDataTable
                         </a>
                         <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink-' . $row->id . '" tabindex="0">';
 
-            $action .= '<a href="' . route('tasks.show', [$row->id]) . '" class="dropdown-item openRightModal"><i class="fa fa-eye mr-2"></i>' . __('app.view') . '</a>';
+                $action .= '<a href="' . route('tasks.show', [$row->id]) . '" class="dropdown-item openRightModal"><i class="fa fa-eye mr-2"></i>' . __('app.view') . '</a>';
 
-            if ($this->editTaskPermission == 'all'
-                || ($this->editTaskPermission == 'owned' && in_array(user()->id, $taskUsers))
-                || ($this->editTaskPermission == 'added' && $row->added_by == user()->id)
-                || ($row->project_admin == user()->id)
-                || ($this->editTaskPermission == 'both' && (in_array(user()->id, $taskUsers) || $row->added_by == user()->id))
-                || ($this->editTaskPermission == 'both' && (in_array(user()->id, $taskUsers) || $row->added_by == user()->id || in_array('client', user_roles())))
-                || ($this->editTaskPermission == 'owned' && in_array('client', user_roles()))
-            ) {
-                $action .= '<a class="dropdown-item openRightModal" href="' . route('tasks.edit', [$row->id]) . '">
+                if ($this->editTaskPermission == 'all'
+                    || ($this->editTaskPermission == 'owned' && in_array(user()->id, $taskUsers))
+                    || ($this->editTaskPermission == 'added' && $row->added_by == user()->id)
+                    || ($row->project_admin == user()->id)
+                    || ($this->editTaskPermission == 'both' && (in_array(user()->id, $taskUsers) || $row->added_by == user()->id))
+                    || ($this->editTaskPermission == 'both' && (in_array(user()->id, $taskUsers) || $row->added_by == user()->id || in_array('client', user_roles())))
+                    || ($this->editTaskPermission == 'owned' && in_array('client', user_roles()))
+                ) {
+                    $action .= '<a class="dropdown-item openRightModal" href="' . route('tasks.edit', [$row->id]) . '">
                                 <i class="fa fa-edit mr-2"></i>
                                 ' . trans('app.edit') . '
                             </a>';
-            }
+                }
 
-            if ($this->deleteTaskPermission == 'all'
-                || ($this->deleteTaskPermission == 'owned' && in_array(user()->id, $taskUsers))
-                || ($this->deleteTaskPermission == 'added' && $row->added_by == user()->id)
-                || ($row->project_admin == user()->id)
-                || ($this->deleteTaskPermission == 'both' && (in_array(user()->id, $taskUsers) || $row->added_by == user()->id))
-                || ($this->deleteTaskPermission == 'both' && (in_array(user()->id, $taskUsers) || $row->added_by == user()->id || in_array('client', user_roles())))
-                || ($this->deleteTaskPermission == 'owned' && in_array('client', user_roles()))
-            ) {
-                $action .= '<a class="dropdown-item delete-table-row" href="javascript:;" data-user-id="' . $row->id . '">
+                if ($this->deleteTaskPermission == 'all'
+                    || ($this->deleteTaskPermission == 'owned' && in_array(user()->id, $taskUsers))
+                    || ($this->deleteTaskPermission == 'added' && $row->added_by == user()->id)
+                    || ($row->project_admin == user()->id)
+                    || ($this->deleteTaskPermission == 'both' && (in_array(user()->id, $taskUsers) || $row->added_by == user()->id))
+                    || ($this->deleteTaskPermission == 'both' && (in_array(user()->id, $taskUsers) || $row->added_by == user()->id || in_array('client', user_roles())))
+                    || ($this->deleteTaskPermission == 'owned' && in_array('client', user_roles()))
+                ) {
+                    $action .= '<a class="dropdown-item delete-table-row" href="javascript:;" data-user-id="' . $row->id . '">
                                 <i class="fa fa-trash mr-2"></i>
                                 ' . trans('app.delete') . '
                             </a>';
-            }
+                }
 
-            if ($this->editTaskPermission == 'all'
-                || ($this->editTaskPermission == 'owned' && in_array(user()->id, $taskUsers))
-                || ($this->editTaskPermission == 'added' && $row->added_by == user()->id)
-                || ($this->editTaskPermission == 'both' && (in_array(user()->id, $taskUsers) || $row->added_by == user()->id))
-                || ($row->project_admin == user()->id)
-            ) {
-                $action .= '<a class="dropdown-item openRightModal" href="' . route('tasks.create') . '?duplicate_task=' . $row->id . '">
+                if ($this->editTaskPermission == 'all'
+                    || ($this->editTaskPermission == 'owned' && in_array(user()->id, $taskUsers))
+                    || ($this->editTaskPermission == 'added' && $row->added_by == user()->id)
+                    || ($this->editTaskPermission == 'both' && (in_array(user()->id, $taskUsers) || $row->added_by == user()->id))
+                    || ($row->project_admin == user()->id)
+                ) {
+                    $action .= '<a class="dropdown-item openRightModal" href="' . route('tasks.create') . '?duplicate_task=' . $row->id . '">
                                 <i class="fa fa-clone"></i>
                                 ' . trans('app.duplicate') . '
                             </a>';
-            }
+                }
 
-            $action .= '</div>
+                $action .= '</div>
                     </div>
                 </div>';
 
-            return $action;
-        });
-
-
-        $datatables->editColumn('due_date', function ($row) {
-            if (is_null($row->due_date)) {
-                return '--';
+                return $action;
             }
+        );
 
-            if ($row->due_date->endOfDay()->isPast()) {
-                return '<span class="text-danger">' . $row->due_date->translatedFormat($this->company->date_format) . '</span>';
-            }
-            elseif ($row->due_date->isToday()) {
-                return '<span class="text-success">' . __('app.today') . '</span>';
-            }
 
-            return '<span >' . $row->due_date->translatedFormat($this->company->date_format) . '</span>';
-        });
-        $datatables->editColumn('users', function ($row) {
-            if (count($row->users) == 0) {
-                return '--';
-            }
-
-            $members = '<div class="position-relative">';
-
-            foreach ($row->users as $key => $member) {
-                if ($key < 4) {
-                    $img = '<img data-toggle="tooltip" data-original-title="' . mb_ucwords($member->name) . '" src="' . $member->image_url . '">';
-                    $position = $key > 0 ? 'position-absolute' : '';
-
-                    $members .= '<div class="taskEmployeeImg rounded-circle ' . $position . '" style="left:  ' . ($key * 13) . 'px"><a href="' . route('employees.show', $member->id) . '">' . $img . '</a></div> ';
+        $datatables->editColumn(
+            'start_date', function ($row) {
+                if (is_null($row->start_date)) {
+                    return '--';
                 }
+
+                if ($row->start_date->endOfDay()->isPast()) {
+                    return '<span class="text-black">' . $row->start_date->translatedFormat($this->company->date_format) . '</span>';
+                }
+                elseif ($row->start_date->isToday()) {
+
+                    return '<span class="text-success">' . __('app.today') . '</span>';
+                }
+
+                return '<span >' . $row->start_date->translatedFormat($this->company->date_format) . '</span>';
             }
+        );
 
-            if (count($row->users) > 4 && $key) {
-                $members .= '<div class="taskEmployeeImg more-user-count text-center rounded-circle border bg-amt-grey position-absolute" style="left:  ' . (($key - 1) * 13) . 'px"><a href="' . route('tasks.show', [$row->id]) . '" class="text-dark f-10">+' . (count($row->users) - 4) . '</a></div> ';
+        $datatables->editColumn(
+            'due_date', function ($row) {
+                if (is_null($row->due_date)) {
+                    return '--';
+                }
+
+                if ($row->due_date->endOfDay()->isPast()) {
+                    if ($row->boardColumn->column_name == 'Completed') {
+                        return '<span class="text-black">'. $row->due_date->translatedFormat($this->company->date_format) . '</span>';
+                    }
+                    else{
+                        return '<span class="text-danger">'. $row->due_date->translatedFormat($this->company->date_format) . '</span>';
+                    }
+                }
+                elseif ($row->due_date->isToday()) {
+                    return '<span class="text-success">' . __('app.today') . '</span>';
+                }
+
+                return '<span>' . $row->due_date->translatedFormat($this->company->date_format) . '</span>';
             }
+        );
+        $datatables->editColumn(
+            'completed_on', function ($row) {
+                if (is_null($row->completed_on)) {
+                    return '--';
+                }
 
-            $members .= '</div>';
+                if ($row->completed_on->endOfDay()->isPast()) {
+                    return '<span class="text-black">' . $row->completed_on->translatedFormat($this->company->date_format) . '</span>';
+                }
+                elseif ($row->completed_on->isToday()) {
+                    return '<span class="text-success">' . __('app.today') . '</span>';
 
-            return $members;
-        });
-
-        $datatables->editColumn('short_code', function ($row) {
-
-            if (is_null($row->task_short_code)) {
-                return ' -- ';
+                }
+                return '<span>' . $row->completed_on->translatedFormat($this->company->date_format) . '</span>';
             }
+        );
+        $datatables->editColumn(
+            'users', function ($row) {
+                if (count($row->users) == 0) {
+                    return '--';
+                }
 
-            return '<a href="' . route('tasks.show', [$row->id]) . '" class="text-darkest-grey">' . $row->task_short_code . '</a>';
-        });
+                $key = '';
+                $members = '<div class="position-relative">';
 
-        $datatables->addColumn('name', function ($row) {
-            $members = [];
+                foreach ($row->users as $key => $member) {
+                    if ($key < 4) {
+                        $img = '<img data-toggle="tooltip" data-original-title="' . $member->name . '" src="' . $member->image_url . '">';
+                        $position = $key > 0 ? 'position-absolute' : '';
 
-            foreach ($row->users as $member) {
-                $members[] = $member->name;
+                        $members .= '<div class="taskEmployeeImg rounded-circle ' . $position . '" style="left:  ' . ($key * 13) . 'px"><a href="' . route('employees.show', $member->id) . '">' . $img . '</a></div> ';
+                    }
+                }
+
+                if (count($row->users) > 4 && $key) {
+                    $members .= '<div class="taskEmployeeImg more-user-count text-center rounded-circle border bg-amt-grey position-absolute" style="left:  ' . (($key - 1) * 13) . 'px"><a href="' . route('tasks.show', [$row->id]) . '" class="text-dark f-10">+' . (count($row->users) - 4) . '</a></div> ';
+                }
+
+                $members .= '</div>';
+
+                return $members;
             }
+        );
 
-            return implode(',', $members);
-        });
-        $datatables->addColumn('timer', function ($row) {
-            if ($row->boardColumn->slug == 'completed' || is_null($row->is_task_user)) {
-                return null;
+        $datatables->editColumn(
+            'short_code', function ($row) {
+
+                if (is_null($row->task_short_code)) {
+                    return ' -- ';
+                }
+
+                return '<a href="' . route('tasks.show', [$row->id]) . '" class="text-darkest-grey openRightModal">' . $row->task_short_code . '</a>';
             }
+        );
 
-            if (is_null($row->userActiveTimer)) {
-                return '<a href="javascript:;" class="text-primary btn border f-15 start-timer" data-task-id="' . $row->id . '" data-toggle="tooltip" data-original-title="' . __('modules.timeLogs.startTimer') . '"><i class="bi bi-play-circle-fill"></i></a>';
+        $datatables->addColumn(
+            'name', function ($row) {
+                $members = [];
+
+                foreach ($row->users as $member) {
+                    $members[] = $member->name;
+                }
+
+                return implode(',', $members);
             }
+        );
+        $datatables->addColumn(
+            'timer', function ($row) {
+                if ($row->boardColumn->slug == 'completed' || is_null($row->is_task_user)) {
+                    return null;
+                }
 
-            if (is_null($row->userActiveTimer->activeBreak)) {
+                if (is_null($row->userActiveTimer)) {
+                    return '<a href="javascript:;" class="text-primary btn border f-15 start-timer" data-task-id="' . $row->id . '" data-toggle="tooltip" data-original-title="' . __('modules.timeLogs.startTimer') . '"><i class="bi bi-play-circle-fill"></i></a>';
+                }
+
+                if (is_null($row->userActiveTimer->activeBreak)) {
+                    $timerButtons = '<div class="btn-group" role="group">';
+                    $timerButtons .= '<a href="javascript:;" class="text-secondary btn border f-15 pause-timer" data-time-id="' . $row->userActiveTimer->id . '" data-toggle="tooltip" data-original-title="' . __('modules.timeLogs.pauseTimer') . '"><i class="bi bi-pause-circle-fill"></i></a>';
+                    $timerButtons .= '<a href="javascript:;" class="text-secondary btn border f-15 stop-timer" data-time-id="' . $row->userActiveTimer->id . '" data-toggle="tooltip" data-original-title="' . __('modules.timeLogs.stopTimer') . '"><i class="bi bi-stop-circle-fill"></i></a>';
+                    $timerButtons .= '</div>';
+                    return $timerButtons;
+                }
+
                 $timerButtons = '<div class="btn-group" role="group">';
-                $timerButtons .= '<a href="javascript:;" class="text-secondary btn border f-15 pause-timer" data-time-id="' . $row->userActiveTimer->id . '" data-toggle="tooltip" data-original-title="' . __('modules.timeLogs.pauseTimer') . '"><i class="bi bi-pause-circle-fill"></i></a>';
+                $timerButtons .= '<a href="javascript:;" class="text-secondary btn border f-15 resume-timer" data-time-id="' . $row->userActiveTimer->activeBreak->id . '" data-toggle="tooltip" data-original-title="' . __('modules.timeLogs.resumeTimer') . '"><i class="bi bi-play-circle-fill"></i></a>';
                 $timerButtons .= '<a href="javascript:;" class="text-secondary btn border f-15 stop-timer" data-time-id="' . $row->userActiveTimer->id . '" data-toggle="tooltip" data-original-title="' . __('modules.timeLogs.stopTimer') . '"><i class="bi bi-stop-circle-fill"></i></a>';
                 $timerButtons .= '</div>';
                 return $timerButtons;
             }
+        );
 
-            $timerButtons = '<div class="btn-group" role="group">';
-            $timerButtons .= '<a href="javascript:;" class="text-secondary btn border f-15 resume-timer" data-time-id="' . $row->userActiveTimer->activeBreak->id . '" data-toggle="tooltip" data-original-title="' . __('modules.timeLogs.resumeTimer') . '"><i class="bi bi-play-circle-fill"></i></a>';
-            $timerButtons .= '<a href="javascript:;" class="text-secondary btn border f-15 stop-timer" data-time-id="' . $row->userActiveTimer->id . '" data-toggle="tooltip" data-original-title="' . __('modules.timeLogs.stopTimer') . '"><i class="bi bi-stop-circle-fill"></i></a>';
-            $timerButtons .= '</div>';
-            return $timerButtons;
+        $datatables->editColumn(
+            'clientName', function ($row) {
+                return ($row->clientName) ? $row->clientName : '--';
+            }
+        );
+
+        $datatables->addColumn(
+            'task', function ($row) {
+                return $row->heading;
+            }
+        );
+        $datatables->addColumn(
+            'timeLogged', function ($row) {
+
+                $timeLog = '--';
+
+                if (count($row->timeLogged) > 0) {
+                    $totalMinutes = $row->timeLogged->sum('total_minutes');
+
+                    $breakMinutes = $row->breakMinutes();
+
+                    $timeLog = CarbonInterval::formatHuman($totalMinutes - $breakMinutes); /** @phpstan-ignore-line */
+
+                }
+            }
+        );
+
+        $datatables->addColumn('task_project_name', function ($row) {
+            return !is_null($row->project_id) ? $row->project_name : '--';
         });
+        $datatables->addColumn(
+            'timeLogged', function ($row) {
 
-        $datatables->editColumn('clientName', function ($row) {
-            return ($row->clientName) ? mb_ucwords($row->clientName) : '-';
-        });
+                $timeLog = '--';
 
-        $datatables->addColumn('task', function ($row) {
-            return ucfirst($row->heading);
-        });
-        $datatables->addColumn('timeLogged', function ($row) {
+                if ($row->timeLogged) {
+                    $totalMinutes = $row->timeLogged->sum('total_minutes');
 
-            $timeLog = '--';
+                    $breakMinutes = $row->breakMinutes();
 
-            if ($row->timeLogged) {
-                $totalMinutes = $row->timeLogged->sum('total_minutes');
-
-                $breakMinutes = $row->breakMinutes();
-
-                $timeLog = CarbonInterval::formatHuman($totalMinutes - $breakMinutes);
-            }
-
-            return $timeLog;
-        });
-        $datatables->editColumn('heading', function ($row) {
-            $subTask = $labels = $private = $pin = $timer = '';
-
-            if ($row->is_private) {
-                $private = '<span class="badge badge-secondary mr-1"><i class="fa fa-lock"></i> ' . __('app.private') . '</span>';
-            }
-
-            if (($row->pinned_task)) {
-                $pin = '<span class="badge badge-secondary mr-1"><i class="fa fa-thumbtack"></i> ' . __('app.pinned') . '</span>';
-            }
-
-            if ($row->active_timer_all_count > 1) {
-                $timer .= '<span class="badge badge-primary mr-1" ><i class="fa fa-clock"></i> ' . $row->active_timer_all_count . ' ' . __('modules.projects.activeTimers') . '</span>';
-            }
-
-            if ($row->activeTimer && $row->active_timer_all_count == 1) {
-                $timer .= '<span class="badge badge-primary mr-1" data-toggle="tooltip" data-original-title="' . __('modules.projects.activeTimers') . '" ><i class="fa fa-clock"></i> ' . $row->activeTimer->timer . '</span>';
-            }
-
-            if ($row->subtasks_count > 0) {
-                $subTask .= '<a href="' . route('tasks.show', [$row->id]) . '?view=sub_task" class="openRightModal"><span class="border rounded p-1 f-11 mr-1 text-dark-grey" data-toggle="tooltip" data-original-title="' . __('modules.tasks.subTask') . '"><i class="bi bi-diagram-2"></i> ' . $row->completed_subtasks_count .'/' . $row->subtasks_count . '</span></a>';
-            }
-
-            foreach ($row->labels as $label) {
-                $labels .= '<span class="badge badge-secondary mr-1" style="background-color: ' . $label->label_color . '">' . $label->label_name . '</span>';
-            }
-
-            return BaseModel::clickAbleLink(route('tasks.show', [$row->id]), $row->heading, $subTask . ' ' . $private . ' ' . $pin . ' ' . $timer . ' ' . $labels);
-
-        });
-        $datatables->editColumn('board_column', function ($row) use ($taskBoardColumns) {
-            $taskUsers = $row->users->pluck('id')->toArray();
-
-            if (
-                $this->changeStatusPermission == 'all'
-                || ($this->changeStatusPermission == 'added' && $row->added_by == user()->id)
-                || ($this->changeStatusPermission == 'owned' && in_array(user()->id, $taskUsers))
-                || ($this->changeStatusPermission == 'both' && (in_array(user()->id, $taskUsers) || $row->added_by == user()->id))
-                || ($row->project_admin == user()->id)
-            ) {
-                $status = '<select class="form-control select-picker change-status" data-task-id="' . $row->id . '">';
-
-                foreach ($taskBoardColumns as $item) {
-                    $status .= '<option ';
-
-                    if ($item->id == $row->board_column_id) {
-                        $status .= 'selected';
-                    }
-
-                    $status .= '  data-content="<i class=\'fa fa-circle mr-2\' style=\'color: ' . $item->label_color . '\'></i> ' . $item->column_name . '" value="' . $item->slug . '">' . $item->column_name . '</option>';
+                    $timeLog = CarbonInterval::formatHuman($totalMinutes - $breakMinutes); /** @phpstan-ignore-line */
                 }
 
-                $status .= '</select>';
+                return $timeLog;
+            }
+        );
+        $datatables->editColumn(
+            'heading', function ($row) {
+                $subTask = $labels = $private = $pin = $timer = '';
 
-                return $status;
+                if ($row->is_private) {
+                    $private = '<span class="badge badge-secondary mr-1"><i class="fa fa-lock"></i> ' . __('app.private') . '</span>';
+                }
+
+                if (($row->pinned_task)) {
+                    $pin = '<span class="badge badge-secondary mr-1"><i class="fa fa-thumbtack"></i> ' . __('app.pinned') . '</span>';
+                }
+
+                if ($row->active_timer_all_count > 1) {
+                    $timer .= '<span class="badge badge-primary mr-1" ><i class="fa fa-clock"></i> ' . $row->active_timer_all_count . ' ' . __('modules.projects.activeTimers') . '</span>';
+                }
+
+                if ($row->activeTimer && $row->active_timer_all_count == 1) {
+                    $timer .= '<span class="badge badge-primary mr-1" data-toggle="tooltip" data-original-title="' . __('modules.projects.activeTimers') . '" ><i class="fa fa-clock"></i> ' . $row->activeTimer->timer . '</span>';
+                }
+
+                if ($row->subtasks_count > 0) {
+                    $subTask .= '<a href="' . route('tasks.show', [$row->id]) . '?view=sub_task" class="openRightModal"><span class="border rounded p-1 f-11 mr-1 text-dark-grey" data-toggle="tooltip" data-original-title="' . __('modules.tasks.subTask') . '"><i class="bi bi-diagram-2"></i> ' . $row->completed_subtasks_count .'/' . $row->subtasks_count . '</span></a>';
+                }
+
+                foreach ($row->labels as $label) {
+                    $labels .= '<span class="badge badge-secondary mr-1" style="background-color: ' . $label->label_color . '">' . $label->label_name . '</span>';
+                }
+
+                $name = '';
+
+                if (!is_null($row->project_id) && !is_null($row->id)) {
+                    $name .= '<h5 class="f-13 text-darkest-grey mb-0">' . $row->heading . '</a></h5><div class="text-muted f-11">' . $row->project_name . '</div>';
+                }
+                else if (!is_null($row->id)) {
+                    $name .= $row->heading;
+                }
+
+                return BaseModel::clickAbleLink(route('tasks.show', [$row->id]), $name, $subTask . ' ' . $private . ' ' . $pin . ' ' . $timer . ' ' . $labels);
 
             }
-            else {
-                return '<i class="fa fa-circle mr-1 text-yellow"
-                    style="color: ' . $row->boardColumn->label_color . '"></i>' . $row->boardColumn->column_name;
+        );
+        $datatables->editColumn(
+            'board_column', function ($row) use ($taskBoardColumns) {
+                $taskUsers = $row->users->pluck('id')->toArray();
+
+                if ($this->changeStatusPermission == 'all'
+                    || ($this->changeStatusPermission == 'added' && $row->added_by == user()->id)
+                    || ($this->changeStatusPermission == 'owned' && in_array(user()->id, $taskUsers))
+                    || ($this->changeStatusPermission == 'both' && (in_array(user()->id, $taskUsers) || $row->added_by == user()->id))
+                    || ($row->project_admin == user()->id)
+                ) {
+                    $status = '<select class="form-control select-picker change-status" data-task-id="' . $row->id . '">';
+
+                    foreach ($taskBoardColumns as $item) {
+                        $status .= '<option ';
+
+                        if ($item->id == $row->board_column_id) {
+                            $status .= 'selected';
+                        }
+
+                        $status .= '  data-content="<i class=\'fa fa-circle mr-2\' style=\'color: ' . $item->label_color . '\'></i> ' . $item->column_name . '" value="' . $item->slug . '">' . $item->column_name . '</option>';
+                    }
+
+                    $status .= '</select>';
+
+                    return $status;
+
+                }
+                else {
+                    return '<span class="p-2"><i class="fa fa-circle mr-1 text-yellow"
+                    style="color: ' . $row->boardColumn->label_color . '"></i>' . $row->boardColumn->column_name.'</span>';
+                }
             }
-        });
-        $datatables->addColumn('status', function ($row) {
-            return ucfirst($row->boardColumn->column_name);
-        });
-        $datatables->editColumn('project_name', function ($row) {
-
-            if (is_null($row->project_id)) {
-                return ' -- ';
+        );
+        $datatables->addColumn(
+            'status', function ($row) {
+                return $row->boardColumn->column_name;
             }
+        );
 
-            return '<a href="' . route('projects.show', $row->project_id) . '" class="text-darkest-grey">' . ucfirst($row->project_name) . '</a>';
-        });
-
-        $datatables->setRowId(function ($row) {
-            return 'row-' . $row->id;
-        });
-        $datatables->setRowClass(function ($row) {
-            return $row->pinned_task ? 'alert-primary' : '';
-        });
-        $datatables->rawColumns(['short_code', 'board_column', 'action', 'project_name', 'clientName', 'due_date', 'users', 'heading', 'check', 'timeLogged', 'timer']);
+        $datatables->setRowId(
+            function ($row) {
+                return 'row-' . $row->id;
+            }
+        );
+        $datatables->setRowClass(
+            function ($row) {
+                return $row->pinned_task ? 'alert-primary' : '';
+            }
+        );
         $datatables->removeColumn('project_id');
         $datatables->removeColumn('image');
         $datatables->removeColumn('created_image');
         $datatables->removeColumn('label_color');
 
         // CustomField For export
-        CustomField::customFieldData($datatables, Task::CUSTOM_FIELD_MODEL);
+        $customFieldColumns = CustomField::customFieldData($datatables, Task::CUSTOM_FIELD_MODEL);
+
+        $datatables->rawColumns(array_merge(['short_code', 'board_column','completed_on', 'action', 'clientName', 'due_date', 'users', 'heading', 'check', 'timeLogged', 'timer', 'start_date'], $customFieldColumns));
 
         return $datatables;
     }
 
     /**
-     * @param Task $model
+     * @param  Task $model
      * @return mixed
      */
     public function query(Task $model)
@@ -326,31 +419,34 @@ class TasksDataTable extends BaseDataTable
 
         $model = $model->leftJoin('projects', 'projects.id', '=', 'tasks.project_id')
             ->leftJoin('users as client', 'client.id', '=', 'projects.client_id')
-            ->join('taskboard_columns', 'taskboard_columns.id', '=', 'tasks.board_column_id');
+            ->join('taskboard_columns', 'taskboard_columns.id', '=', 'tasks.board_column_id')
+            ->leftJoin('mention_users', 'mention_users.task_id', 'tasks.id');
 
         if (($this->viewUnassignedTasksPermission == 'all'
-                && !in_array('client', user_roles())
-                && ($request->assignedTo == 'unassigned' || $request->assignedTo == 'all'))
+            && !in_array('client', user_roles())
+            && ($request->assignedTo == 'unassigned' || $request->assignedTo == 'all'))
             || ($request->has('project_admin') && $request->project_admin == 1)
         ) {
             $model->leftJoin('task_users', 'task_users.task_id', '=', 'tasks.id')
                 ->leftJoin('users as member', 'task_users.user_id', '=', 'member.id');
         }
         else {
-            $model->join('task_users', 'task_users.task_id', '=', 'tasks.id')
-                ->join('users as member', 'task_users.user_id', '=', 'member.id');
+            $model->leftJoin('task_users', 'task_users.task_id', '=', 'tasks.id')
+                ->leftJoin('users as member', 'task_users.user_id', '=', 'member.id');
+
         }
 
         $model->leftJoin('users as creator_user', 'creator_user.id', '=', 'tasks.created_by')
             ->leftJoin('task_labels', 'task_labels.task_id', '=', 'tasks.id')
-            ->selectRaw('tasks.id, tasks.task_short_code, tasks.added_by, projects.project_name, projects.project_admin, tasks.heading, client.name as clientName, creator_user.name as created_by, creator_user.image as created_image, tasks.board_column_id,
+            ->selectRaw(
+                'tasks.id, tasks.completed_on, tasks.task_short_code, tasks.start_date, tasks.added_by, projects.project_name, projects.project_admin, tasks.heading, client.name as clientName, creator_user.name as created_by, creator_user.image as created_image, tasks.board_column_id,
              tasks.due_date, taskboard_columns.column_name as board_column, taskboard_columns.label_color,
-              tasks.project_id, tasks.is_private ,( select count("id") from pinned where pinned.task_id = tasks.id and pinned.user_id = ' . user()->id . ') as pinned_task')
+              tasks.project_id, tasks.is_private ,( select count("id") from pinned where pinned.task_id = tasks.id and pinned.user_id = ' . user()->id . ') as pinned_task'
+            )
             ->addSelect('tasks.company_id') // Company_id is fetched so the we have fetch company relation with it)
             ->with('users', 'activeTimerAll', 'boardColumn', 'activeTimer', 'timeLogged', 'timeLogged.breaks', 'userActiveTimer', 'userActiveTimer.activeBreak', 'labels', 'taskUsers')
             ->withCount('activeTimerAll', 'completedSubtasks', 'subtasks')
             ->groupBy('tasks.id');
-
 
         if ($request->pinned == 'pinned') {
             $model->join('pinned', 'pinned.task_id', 'tasks.id');
@@ -397,20 +493,22 @@ class TasksDataTable extends BaseDataTable
         }
 
         if ($startDate !== null && $endDate !== null) {
-            $model->where(function ($q) use ($startDate, $endDate) {
-                if (request()->date_filter_on == 'due_date') {
-                    $q->whereBetween(DB::raw('DATE(tasks.`due_date`)'), [$startDate, $endDate]);
+            $model->where(
+                function ($q) use ($startDate, $endDate) {
+                    if (request()->date_filter_on == 'due_date') {
+                        $q->whereBetween(DB::raw('DATE(tasks.`due_date`)'), [$startDate, $endDate]);
+
+                    }
+                    elseif (request()->date_filter_on == 'start_date') {
+                        $q->whereBetween(DB::raw('DATE(tasks.`start_date`)'), [$startDate, $endDate]);
+
+                    }
+                    elseif (request()->date_filter_on == 'completed_on') {
+                        $q->whereBetween(DB::raw('DATE(tasks.`completed_on`)'), [$startDate, $endDate]);
+                    }
 
                 }
-                elseif (request()->date_filter_on == 'start_date') {
-                    $q->whereBetween(DB::raw('DATE(tasks.`start_date`)'), [$startDate, $endDate]);
-
-                }
-                elseif (request()->date_filter_on == 'completed_on') {
-                    $q->whereBetween(DB::raw('DATE(tasks.`completed_on`)'), [$startDate, $endDate]);
-                }
-
-            });
+            );
         }
 
         if ($request->overdue == 'yes' && $request->status != 'all') {
@@ -431,43 +529,62 @@ class TasksDataTable extends BaseDataTable
 
         if (($request->has('project_admin') && $request->project_admin != 1) || !$request->has('project_admin')) {
             if ($this->viewTaskPermission == 'owned') {
-                $model->where(function ($q) use ($request) {
-                    $q->where('task_users.user_id', '=', user()->id);
+                $model->where(
+                    function ($q) use ($request) {
+                        $q->where('task_users.user_id', '=', user()->id);
+                          $q->orWhere('mention_users.user_id', user()->id);
 
-                    if ($this->viewUnassignedTasksPermission == 'all' && !in_array('client', user_roles()) && $request->assignedTo == 'all') {
-                        $q->orWhereDoesntHave('users');
-                    }
+                        if ($this->viewUnassignedTasksPermission == 'all' && !in_array('client', user_roles()) && $request->assignedTo == 'all') {
+                            $q->orWhereDoesntHave('users');
+                        }
 
-                    if (in_array('client', user_roles())) {
-                        $q->orWhere('projects.client_id', '=', user()->id);
+                        if (in_array('client', user_roles())) {
+                            $q->orWhere('projects.client_id', '=', user()->id);
+                        }
                     }
-                });
+                );
 
                 if ($projectId != 0 && $projectId != null && $projectId != 'all' && !in_array('client', user_roles())) {
-                    $model->where('projects.project_admin', '<>', user()->id);
+                    $model->where(
+                        function ($q) {
+                            $q->where('projects.project_admin', '<>', user()->id)
+                                ->orWhere('mention_users.user_id', user()->id);
+
+                        }
+                    );
+
                 }
 
             }
 
             if ($this->viewTaskPermission == 'added') {
-                $model->where('tasks.added_by', '=', user()->id);
+                $model->where(
+                    function ($q) {
+                        $q->where('tasks.added_by', '=', user()->id)
+                            ->orWhere('mention_users.user_id', user()->id);
+
+                    }
+                );
             }
 
             if ($this->viewTaskPermission == 'both') {
-                $model->where(function ($q) use ($request) {
-                    $q->where('task_users.user_id', '=', user()->id);
 
-                    $q->orWhere('tasks.added_by', '=', user()->id);
+                $model->where(
+                    function ($q) use ($request) {
+                        $q->where('task_users.user_id', '=', user()->id);
+                        $q->orWhere('tasks.added_by', '=', user()->id)
+                            ->orWhere('mention_users.user_id', user()->id);
 
-                    if (in_array('client', user_roles())) {
-                        $q->orWhere('projects.client_id', '=', user()->id);
+                        if (in_array('client', user_roles())) {
+                            $q->orWhere('projects.client_id', '=', user()->id);
+                        }
+
+                        if ($this->viewUnassignedTasksPermission == 'all' && !in_array('client', user_roles()) && ($request->assignedTo == 'unassigned' || $request->assignedTo == 'all')) {
+                            $q->orWhereDoesntHave('users');
+                        }
+
                     }
-
-                    if ($this->viewUnassignedTasksPermission == 'all' && !in_array('client', user_roles()) && ($request->assignedTo == 'unassigned' || $request->assignedTo == 'all')) {
-                        $q->orWhereDoesntHave('users');
-                    }
-
-                });
+                );
 
             }
         }
@@ -502,13 +619,15 @@ class TasksDataTable extends BaseDataTable
         }
 
         if ($request->searchText != '') {
-            $model->where(function ($query) {
-                $query->where('tasks.heading', 'like', '%' . request('searchText') . '%')
-                    ->orWhere('member.name', 'like', '%' . request('searchText') . '%')
-                    ->orWhere('projects.project_name', 'like', '%' . request('searchText') . '%')
-                    ->orWhere('projects.project_short_code', 'like', '%' . request('searchText') . '%')
-                    ->orWhere('tasks.task_short_code', 'like', '%' . request('searchText') . '%');
-            });
+            $model->where(
+                function ($query) {
+                    $query->where('tasks.heading', 'like', '%' . request('searchText') . '%')
+                        ->orWhere('member.name', 'like', '%' . request('searchText') . '%')
+                        ->orWhere('projects.project_name', 'like', '%' . request('searchText') . '%')
+                        ->orWhere('projects.project_short_code', 'like', '%' . request('searchText') . '%')
+                        ->orWhere('tasks.task_short_code', 'like', '%' . request('searchText') . '%');
+                }
+            );
         }
 
         if ($request->trashedData == 'true') {
@@ -523,7 +642,6 @@ class TasksDataTable extends BaseDataTable
         }
 
         $model->orderbyRaw('pinned_task desc');
-
         return $model;
     }
 
@@ -535,7 +653,8 @@ class TasksDataTable extends BaseDataTable
     public function html()
     {
         return parent::setBuilder('allTasks-table')
-            ->parameters([
+            ->parameters(
+                [
                 'initComplete' => 'function () {
                    window.LaravelDataTables["allTasks-table"].buttons().container()
                     .appendTo("#table-actions")
@@ -544,7 +663,8 @@ class TasksDataTable extends BaseDataTable
                     $("#allTasks-table .select-picker").selectpicker();
                     $(".bs-tooltip-top").removeClass("show");
                 }',
-            ])
+                ]
+            )
             ->buttons(Button::make(['extend' => 'excel', 'text' => '<i class="fa fa-file-export"></i> ' . trans('app.exportExcel')]));
     }
 
@@ -555,7 +675,7 @@ class TasksDataTable extends BaseDataTable
      */
     protected function getColumns()
     {
-
+        $taskSettings = TaskSetting::first();
 
         $data = [
             'check' => [
@@ -566,16 +686,25 @@ class TasksDataTable extends BaseDataTable
             ],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id'), 'visible' => showId()],
             __('modules.taskCode') => ['data' => 'short_code', 'name' => 'task_short_code', 'title' => __('modules.taskCode')],
-            __('timer') . ' ' => ['data' => 'timer', 'name' => 'timer', 'exportable' => false, 'searchable' => false, 'sortable' => false, 'title' => '', 'class' => 'text-right'],
+            __('app.timer') . ' ' => ['data' => 'timer', 'name' => 'timer', 'exportable' => false, 'searchable' => false, 'sortable' => false, 'title' => '', 'class' => 'text-right'],
             __('app.task') => ['data' => 'heading', 'name' => 'heading', 'exportable' => false, 'title' => __('app.task')],
             __('app.menu.tasks') . ' ' => ['data' => 'task', 'name' => 'heading', 'visible' => false, 'title' => __('app.menu.tasks')],
-            __('app.project') => ['data' => 'project_name', 'name' => 'projects.project_name', 'title' => __('app.project')],
+            __('app.project') => ['data' => 'task_project_name', 'visible' => false, 'name' => 'task_project_name', 'title' => __('app.project')],
             __('modules.tasks.assigned') => ['data' => 'name', 'name' => 'name', 'visible' => false, 'title' => __('modules.tasks.assigned')],
+            __('app.startDate') => ['data' => 'start_date', 'name' => 'start_date', 'title' => __('app.startDate')],
             __('app.dueDate') => ['data' => 'due_date', 'name' => 'due_date', 'title' => __('app.dueDate')],
-            __('modules.employees.hoursLogged') => ['data' => 'timeLogged', 'name' => 'timeLogged', 'title' => __('modules.employees.hoursLogged')],
-            __('modules.tasks.assignTo') => ['data' => 'users', 'name' => 'member.name', 'exportable' => false, 'title' => __('modules.tasks.assignTo')],
-            __('app.columnStatus') => ['data' => 'board_column', 'name' => 'board_column', 'exportable' => false, 'searchable' => false, 'title' => __('app.columnStatus')],
-            __('app.task') . ' ' . __('app.status') => ['data' => 'status', 'name' => 'board_column_id', 'visible' => false, 'title' => __('app.task')],
+            __('app.completedOn') => ['data' => 'completed_on', 'name' => 'completed_on', 'title' => __('app.completedOn')]
+        ];
+
+        if ($taskSettings->hours_logged == 'yes' && in_array('client', user_roles())) {
+            $data[__('modules.employees.hoursLogged')] = ['data' => 'timeLogged', 'name' => 'timeLogged', 'title' => __('modules.employees.hoursLogged')];
+        }
+
+        $data[ __('modules.tasks.assignTo')] = ['data' => 'users', 'name' => 'member.name', 'exportable' => false, 'title' => __('modules.tasks.assignTo')];
+        $data[__('app.columnStatus')] = ['data' => 'board_column', 'name' => 'board_column', 'exportable' => false, 'searchable' => false, 'title' => __('app.columnStatus')];
+        $data[__('app.task') . ' ' . __('app.status')] = ['data' => 'status', 'name' => 'board_column_id', 'visible' => false, 'title' => __('app.task')];
+
+        $action = [
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -584,18 +713,8 @@ class TasksDataTable extends BaseDataTable
                 ->addClass('text-right pr-20')
         ];
 
-        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Task()));
+        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Task()), $action);
 
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'task-' . now()->format('Y-m-d-H-i-s');
     }
 
 }

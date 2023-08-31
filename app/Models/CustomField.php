@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\HasCompany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string $type
  * @property string $required
  * @property string|null $values
+ * @property string|null $visible
  * @method static \Illuminate\Database\Eloquent\Builder|CustomField newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|CustomField newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|CustomField query()
@@ -27,7 +29,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @method static \Illuminate\Database\Eloquent\Builder|CustomField whereRequired($value)
  * @method static \Illuminate\Database\Eloquent\Builder|CustomField whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|CustomField whereValues($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @property-read \App\Models\LeadCustomForm|null $leadCustomForm
@@ -35,6 +36,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @method static \Illuminate\Database\Eloquent\Builder|CustomField whereCompanyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|CustomField whereExport($value)
  * @property-read \App\Models\CustomFieldGroup|null $customFieldGroup
+ * @property-read \App\Models\CustomFieldGroup|null $fieldGroup
+ * @method static \Illuminate\Database\Eloquent\Builder|CustomField whereVisible($value)
+ * @mixin \Eloquent
  */
 class CustomField extends BaseModel
 {
@@ -57,7 +61,12 @@ class CustomField extends BaseModel
 
     public function customFieldGroup(): HasOne
     {
-        return $this->hasOne(CustomFieldGroup::class, 'custom_fields_group_id');
+        return $this->hasOne(CustomFieldGroup::class, 'custom_field_group_id');
+    }
+
+    public function fieldGroup(): BelongsTo
+    {
+        return $this->belongsTo(CustomFieldGroup::class, 'custom_field_group_id');
     }
 
     public static function exportCustomFields($model)
@@ -66,24 +75,27 @@ class CustomField extends BaseModel
         $customFields = collect();
 
         if ($customFieldsGroupsId) {
-            $customFields = CustomField::where('custom_field_group_id', $customFieldsGroupsId->id)->where('export', 1)->get();
+            $customFields = CustomField::where('custom_field_group_id', $customFieldsGroupsId->id)->where(function ($q)
+            {
+                return $q->where('export', 1)->orWhere('visible', 'true');
+            })->get();
         }
 
         return $customFields;
     }
 
-    public static function customFieldData($datatables, $model)
+    public static function customFieldData($datatables, $model, $relation = null)
     {
         $customFields = CustomField::exportCustomFields($model);
-
+        $customFieldNames = [];
         $customFieldsId = $customFields->pluck('id');
         $fieldData = DB::table('custom_fields_data')->where('model', $model)->whereIn('custom_field_id', $customFieldsId)->select('id', 'custom_field_id', 'model_id', 'value')->get();
 
         foreach ($customFields as $customField) {
-            $datatables->addColumn($customField->name, function ($row) use ($fieldData, $customField) {
+            $datatables->addColumn($customField->name, function ($row) use ($fieldData, $customField, $relation) {
 
-                $finalData = $fieldData->filter(function ($value) use ($customField, $row) {
-                    return ($value->custom_field_id == $customField->id) && ($value->model_id == $row->id);
+                $finalData = $fieldData->filter(function ($value) use ($customField, $row, $relation) {
+                    return ($value->custom_field_id == $customField->id) && ($value->model_id == ($relation ? $row->{$relation}->id : $row->id));
                 })->first();
 
                 if ($customField->type == 'select') {
@@ -93,9 +105,21 @@ class CustomField extends BaseModel
                     return $finalData ? (($finalData->value >= 0 && $finalData->value != null) ? $data[$finalData->value] : '--') : '--';
                 }
 
+                if($customField->type == 'file') {
+                    return $finalData ? '<a href="'.asset_url_local_s3('custom_fields/' .$finalData->value).'" target="__blank" class="text-dark-grey">'.__('app.storageSetting.viewFile').'</a>' : '--';
+                }
+
                 return $finalData ? $finalData->value : '--';
             });
+
+            // This will use for datatable raw column
+            if($customField->type == 'file') {
+                $customFieldNames[] = $customField->name;
+            }
+
         }
+
+        return $customFieldNames;
     }
 
     public static function generateUniqueSlug($label, $moduleId)

@@ -1,6 +1,13 @@
 @extends('layouts.app')
 
 @section('content')
+
+@php
+$addFaqPermission = user()->permission('add_admin_faq');
+$manageFaqCategoryPermission = user()->permission('manage_faq_category');
+$viewFaqPermission = user()->permission('view_admin_faq');
+$deleteFaqPermission = user()->permission('delete_admin_faq');
+@endphp
     <!-- SETTINGS START -->
     <div class="w-100 d-flex ">
 
@@ -43,20 +50,24 @@
 
             <x-slot name="buttons">
                 <form action="" id="filter-form">
-                    <div class="d-flex justify-conten mb-2">
+                    <div class="d-lg-flex justify-conten mb-2">
 
                         <div class="form-group flex-grow-1">
                             @if (user()->is_superadmin)
-                            <x-forms.link-primary :link="route('superadmin.faqs.create', ['id'=> request()->id])" class="mr-3 float-left openRightModal" icon="plus">
-                                @lang('app.add')
-                                @lang('app.new')
-                                @lang('superadmin.menu.adminFaq')
-                            </x-forms.link-primary>
-                            <x-forms.button-secondary id="manage-category" class="mr-3 mb-2 mb-lg-0" icon="plus">
-                                @lang('app.manage') @lang('app.category')
-                            </x-forms.button-secondary>
+                                @if ($addFaqPermission == 'all')
+                                    <x-forms.link-primary :link="route('superadmin.faqs.create', ['id'=> request()->id])" class="mr-3 mb-2 float-left openRightModal" icon="plus">
+                                        @lang('app.add')
+                                        @lang('app.new')
+                                        @lang('superadmin.menu.adminFaq')
+                                    </x-forms.link-primary>
+                                @endif
+                                @if($manageFaqCategoryPermission == 'all')
+                                    <x-forms.button-secondary id="manage-category" class="mr-3 mb-2 mb-lg-0" icon="plus">
+                                        @lang('app.manage') @lang('app.category')
+                                    </x-forms.button-secondary>
+                                @endif
                             @elseif(in_array('admin', user_roles()))
-                                <x-forms.link-primary :link="route('superadmin.support-tickets.index')" class="mr-3 float-left" icon="headset">
+                                <x-forms.link-primary :link="route('superadmin.support-tickets.index')" class="mr-3 mb-2 float-left" icon="headset">
                                     @lang('superadmin.contactSupport')
                                 </x-forms.link-primary>
                             @endif
@@ -77,8 +88,6 @@
                             icon="times-circle">
                             @lang('app.clearFilters')
                         </x-forms.button-secondary>
-
-
                     </div>
                 </form>
             </x-slot>

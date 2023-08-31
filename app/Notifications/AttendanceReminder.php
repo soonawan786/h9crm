@@ -31,6 +31,7 @@ class AttendanceReminder extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $this->company = $notifiable->company;
 
         $url = route('dashboard');
@@ -38,7 +39,7 @@ class AttendanceReminder extends BaseNotification
 
         $content = __('email.AttendanceReminder.text');
 
-        return parent::build()
+        return $build
             ->subject(__('email.AttendanceReminder.subject'))
             ->markdown('mail.email', [
                 'url' => $url,

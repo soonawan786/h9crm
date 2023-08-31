@@ -7,7 +7,7 @@
 
         @forelse($ticketTypes as $key => $ticketType)
             <tr class="row{{ $ticketType->id }}">
-                <td>{{ mb_ucwords($ticketType->type) }}</td>
+                <td>{{ $ticketType->type }}</td>
                 <td class="text-right">
                     <div class="task_view">
                         <a href="javascript:;" data-type-id="{{ $ticketType->id }}" class="edit-type task_view_more d-flex align-items-center justify-content-center" > <i class="fa fa-edit icons mr-2"></i>  @lang('app.edit')

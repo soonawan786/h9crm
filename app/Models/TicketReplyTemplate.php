@@ -21,10 +21,10 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|TicketReplyTemplate whereReplyHeading($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketReplyTemplate whereReplyText($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketReplyTemplate whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|TicketReplyTemplate whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class TicketReplyTemplate extends BaseModel
 {

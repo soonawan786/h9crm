@@ -16,7 +16,7 @@
                 <select class="form-control select-picker" name="category_id" id="category_id">
                     <option value="all">@lang('app.all')</option>
                     @foreach ($categories as $category)
-                        <option value="{{ $category->id }}">{{ mb_ucwords($category->category_name) }}</option>
+                        <option value="{{ $category->id }}">{{ $category->category_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -34,6 +34,23 @@
             </div>
         </div>
         <!-- SUBCATEGORY END -->
+
+        <!-- UNITTYPE START-->
+
+        <div class="select-box d-flex py-2 px-lg-2 px-md-2 px-0 border-right-grey border-right-grey-sm-0">
+            <p class="mb-0 pr-2 f-14 text-dark-grey d-flex align-items-center">
+                @lang('modules.invoices.unitType')</p>
+            <div class="select-status d-flex">
+                <select class="form-control select-picker" name="unit_type_id" id="unit_type_id">
+                    <option value="all">@lang('app.all')</option>
+                    @foreach ($unitTypes  as $unitType)
+                        <option value="{{ $unitType->id }}">{{ $unitType->unit_type }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+
+        <!-- UNITTYPE END-->
 
         <!-- SEARCH BY TASK START -->
         <div class="task-search d-flex  py-1 px-lg-3 px-0 border-right-grey align-items-center">
@@ -71,7 +88,7 @@ $addOrderPermission = user()->permission('add_order');
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
-
+        {{-- <input type="hidden" name="user_id" class="user_id" value={{user()->id}}> --}}
         <div class="d-flex justify-content-between action-bar">
             <div id="table-actions" class="flex-grow-1 align-items-center">
                 @if ($addProductPermission == 'all' || $addProductPermission == 'added')
@@ -82,12 +99,16 @@ $addOrderPermission = user()->permission('add_order');
                     </x-forms.link-primary>
                 @endif
             </div>
+            <div id="emptyCartBox">
+                <a href="javascript:;" class="f-20 mt-2 text-lightest d-flex align-items-center mr-3 empty-cart fa fa-trash" data-user-id = {{ user()->id }} data-toggle="tooltip" data-original-title="@lang('app.emptyCart')" ><i
+                    ></i></a>
+            </div>
 
             @if (in_array('client', user_roles()) && $addOrderPermission == 'all')
                 <div class="btn-group" role="group">
                     <x-forms.link-primary :link="route('products.cart')" icon="shopping-bag">
                         @lang('app.cart') <span
-                            class="badge badge-light ml-2 productCounter">{{ sizeof($productDetails) }}</span>
+                            class="badge badge-light ml-2 productCounter">{{ $cartProductCount }}</span>
                     </x-forms.link-primary>
                 </div>
             @endif
@@ -116,7 +137,7 @@ $addOrderPermission = user()->permission('add_order');
 
         <!-- Add Task Export Buttons End -->
         <!-- Task Box Start -->
-        <div class="d-flex flex-column w-tables rounded mt-3 bg-white">
+        <div class="d-flex flex-column w-tables rounded mt-3 bg-white table-responsive">
 
             {!! $dataTable->table(['class' => 'table table-hover border-0 w-100']) !!}
 
@@ -131,6 +152,13 @@ $addOrderPermission = user()->permission('add_order');
     @include('sections.datatable_js')
 
     <script>
+
+        $(window).on('load', function() {
+            @if($cartProductCount == 0)
+              $('#emptyCartBox').hide();
+            @endif
+        });
+
         var subCategories = @json($subCategories);
 
         $('#category_id').change(function(e) {
@@ -153,23 +181,28 @@ $addOrderPermission = user()->permission('add_order');
             var categoryID = $('#category_id').val();
             var subCategoryID = $('#sub_category').val();
             var searchText = $('#search-text-field').val();
+            var unitTypeID  = $('#unit_type_id').val();
 
             data['category_id'] = categoryID;
             data['sub_category_id'] = subCategoryID;
             data['searchText'] = searchText;
+            data['unit_type_id'] = unitTypeID;
         });
         const showTable = () => {
             window.LaravelDataTables["products-table"].draw(false);
         }
 
-        $('#category_id, #sub_category').on('change keyup', function() {
+        $('#category_id, #sub_category, #unit_type_id').on('change keyup', function() {
             if ($('#category_id').val() != "") {
                 $('#reset-filters').removeClass('d-none');
                 showTable();
             } else if ($('#sub_category').val() != "") {
                 $('#reset-filters').removeClass('d-none');
                 showTable();
-            } else {
+            } else if ($('#unit_type_id').val() != "") {
+                $('#reset-filters').removeClass('d-none');
+                showTable();
+            }else{
                 $('#reset-filters').addClass('d-none');
                 showTable();
             }
@@ -190,7 +223,10 @@ $addOrderPermission = user()->permission('add_order');
 
             $('#sub_category').html('<option value="all">@lang("app.all")</option>');
 
+            $('#unit_type_id').val('all');
+
             $('.select-picker').selectpicker("refresh");
+
             $('#reset-filters').addClass('d-none');
 
             showTable();
@@ -336,11 +372,36 @@ $addOrderPermission = user()->permission('add_order');
                     '_token': "{{ csrf_token() }}"
                 },
                 success: function(response) {
-                    cartItems = response.productItems;
-                    $('.productCounter').html(cartItems.length);
+                         $('#emptyCartBox').show();
+                        cartItems = response.cartProduct;
+                        $('.productCounter').html(cartItems);
+
                 }
             })
 
+        });
+
+        $('body').on('click', '.empty-cart', function() {
+            let id = $(this).data('user-id');
+
+            var url = "{{ route('products.remove_cart_item', ':id') }}";
+            url = url.replace(':id', id);
+            $.easyAjax({
+                url: url,
+                container: '#saveInvoiceForm',
+                type: "POST",
+                blockUI: true,
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    type: "all_data",
+                },
+                success: function(response) {
+                    cartItems = response.productItems;
+                    $('.productCounter').html(cartItems);
+                    $('#emptyCartBox').hide();
+
+                }
+            });
         });
 
     </script>

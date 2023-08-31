@@ -5,7 +5,7 @@
                 <div class="col-12 text-center">
                     <h2 class="text-uppercase mb-4">{{ ucfirst($pageTitle) }}</h2>
                     <ul class="breadcrumb mb-0 justify-content-center">
-                        <li class="breadcrumb-item"><a href="#"> @lang('app.menu.home')</a></li>
+                        <li class="breadcrumb-item"><a href="/"> @lang('app.menu.home')</a></li>
                         <li class="breadcrumb-item active">{{ ucfirst($pageTitle) }}</li>
                     </ul>
                 </div>

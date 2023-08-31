@@ -27,10 +27,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|ContractSign whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ContractSign whereSignature($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ContractSign whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ContractSign whereCompanyId($value)
+ * @property string|null $place
+ * @property string|null $date
+ * @method static \Illuminate\Database\Eloquent\Builder|ContractSign whereDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ContractSign wherePlace($value)
+ * @mixin \Eloquent
  */
 class ContractSign extends BaseModel
 {
@@ -39,7 +43,7 @@ class ContractSign extends BaseModel
 
     public function getSignatureAttribute()
     {
-        return asset_url('contract/sign/' . $this->attributes['signature']);
+        return asset_url_local_s3('contract/sign/' . $this->attributes['signature']);
     }
 
     /**

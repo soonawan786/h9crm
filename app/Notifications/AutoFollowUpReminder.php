@@ -48,16 +48,21 @@ class AutoFollowUpReminder extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('leads.show', $this->leadFollowup->lead->id) . '?tab=follow-up';
 
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $followUpDate = (!is_null($this->leadFollowup->next_follow_up_date)) ? $this->leadFollowup->next_follow_up_date->format($this->company->date_format) : null;
+        $followUpLead = $this->leadFollowup?->lead?->client_name;
 
-        $content = __('email.followUpReminder.nextFollowUpDate') . ' :- ' . $followUpDate . '<br>' . ucfirst($this->leadFollowup->remark);
+        $followUpDate = $this->leadFollowup?->next_follow_up_date->format($this->company->date_format);
 
-        return parent::build()
-            ->subject(__('email.followUpReminder.subject') . ' #' . $this->leadFollowup->id . ' - ' . config('app.name') . '.')
+        $followUpTime = $this->leadFollowup?->next_follow_up_date->format($this->company->time_format);
+
+        $content = __('email.followUpReminder.followUpLeadText') .'<br><br>' .__('email.followUpReminder.followUpLead') . ' :- ' . $followUpLead . '<br>' . __('email.followUpReminder.nextFollowUpDate') . ' :- ' . $followUpDate . '<br>' . __('email.followUpReminder.nextFollowUpTime') . ' :- ' . $followUpTime . '<br>' . $this->leadFollowup->remark;
+
+        return $build
+            ->subject(__('email.followUpReminder.subject') . ' #' . $this->leadFollowup->lead->id . ' - ' . config('app.name') . '.')
             ->markdown('mail.email', [
                 'url' => $url,
                 'content' => $content,

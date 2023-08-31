@@ -30,10 +30,12 @@ use Illuminate\Support\Carbon;
  * @method static Builder|EmailNotificationSetting whereSettingName($value)
  * @method static Builder|EmailNotificationSetting whereSlug($value)
  * @method static Builder|EmailNotificationSetting whereUpdatedAt($value)
- * @mixin Eloquent
  * @property int|null $company_id
  * @property-read Company|null $company
  * @method static Builder|EmailNotificationSetting whereCompanyId($value)
+ * @property string $send_twilio
+ * @method static Builder|EmailNotificationSetting whereSendTwilio($value)
+ * @mixin Eloquent
  */
 class EmailNotificationSetting extends BaseModel
 {
@@ -227,6 +229,27 @@ class EmailNotificationSetting extends BaseModel
             'setting_name' => 'Message Notification',
             'slug' => 'message-notification',
         ],
+        [
+            'send_email' => 'yes',
+            'send_push' => 'no',
+            'send_slack' => 'no',
+            'setting_name' => 'Project Mention Notification',
+            'slug' => 'project-mention-notification',
+        ],
+        [
+            'send_email' => 'yes',
+            'send_push' => 'no',
+            'send_slack' => 'no',
+            'setting_name' => 'Task Mention',
+            'slug' => 'task-mention-notification',
+        ],
+        [
+            'send_email' => 'yes',
+            'send_push' => 'no',
+            'send_slack' => 'no',
+            'setting_name' => 'Shift Assign Notification',
+            'slug' => 'shift-assign-notification',
+        ]
     ];
 
     public static function userAssignTask()

@@ -18,7 +18,7 @@
                 @forelse($groups as $key=>$group)
                     <tr id="group-{{ $group->id }}">
                         <td>{{ $key+1 }}</td>
-                        <td>{{ mb_ucwords($group->group_name) }}</td>
+                        <td>{{ $group->group_name }}</td>
                         <td class="text-right">
                             <div class="task_view">
                                 <a href="javascript:;" class="delete-group task_view_more d-flex align-items-center justify-content-center" data-group-id="{{ $group->id }}">
@@ -42,7 +42,7 @@
                 <div class="row">
                     <div class="col-lg-12">
                         <x-forms.text class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.tickets.groupName')"
-                            fieldPlaceholder="e.g. Space X" fieldRequired="true" fieldName="group_name"
+                            :fieldPlaceholder="__('placeholders.tickets.ticketGroup')" fieldRequired="true" fieldName="group_name"
                             fieldId="group_name"/>
                     </div>
                 </div>
@@ -118,6 +118,7 @@
                     $('#group_id').html(response.data);
                     $('#group_id').selectpicker('refresh');
                     $("[data-dismiss=modal]").trigger({ type: "click" });
+                    window.location.reload();
                 }
             }
         })

@@ -7,19 +7,22 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8">
-    <title>@lang('app.estimate')</title>
 
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>@lang('app.estimate')</title>
+    <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <meta name="description" content="Invoice">
+    @includeIf('estimates.pdf.estimate_pdf_css')
 
     <style>
-        /*! Invoice Templates @author: Invoicebus @email: info@invoicebus.com @web: https://invoicebus.com @version: 1.0.0 @updated: 2015-03-27 14:03:24 @license: Invoicebus */
-        /* Reset styles */
-        /*@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,400italic,700&subset=cyrillic,cyrillic-ext,latin,greek-ext,greek,latin-ext,vietnamese");*/
-        /*@import url("https://fonts.googleapis.com/css?family=Sanchez&subset=latin,latin-ext");*/
+        /**
+         * IMPORTANT NOTICE: DON'T USE '!important' otherwise this may lead to broken print layout.
+         * Some browsers may require '!important' in oder to work properly but be careful with it.
+         */
+        @if($invoiceSetting->locale != 'th')
         html,
         body,
         div,
@@ -66,6 +69,9 @@
         dl,
         dt,
         dd,
+        ol,
+        ul,
+        li,
         fieldset,
         form,
         label,
@@ -104,11 +110,16 @@
             font: inherit;
             font-size: 12px;
             vertical-align: baseline;
-            font-family: Verdana, Arial, Helvetica, sans-serif;
+            /* font-family: Verdana, Arial, Helvetica, sans-serif; */
         }
 
         html {
             line-height: 1;
+        }
+
+        ol,
+        ul {
+            list-style: none;
         }
 
         table {
@@ -157,21 +168,12 @@
             display: block;
         }
 
-        /* Invoice styles */
-        /**
-         * DON'T override any styles for the <html> and <body> tags, as this may break the layout.
-         * Instead wrap everything in one main <div id="container"> element where you may change
-         * something like the font or the background of the invoice
-         */
         html,
         body {
             /* MOVE ALONG, NOTHING TO CHANGE HERE! */
         }
+        @endif
 
-        /**
-         * IMPORTANT NOTICE: DON'T USE '!important' otherwise this may lead to broken print layout.
-         * Some browsers may require '!important' in oder to work properly but be careful with it.
-         */
         .clearfix {
             display: block;
             clear: both;
@@ -580,6 +582,23 @@
             margin-top: 10px;
             margin-left: 10px;
         }
+        .description {
+            line-height: 12px;
+        }
+
+        @if($invoiceSetting->locale == 'th')
+
+        table td {
+        font-weight: bold !important;
+        font-size: 20px !important;
+        }
+        .description
+        {
+            font-weight: bold !important;
+            font-size: 16px !important;
+        }
+
+        @endif
 
     </style>
 
@@ -587,29 +606,27 @@
 
 <body>
     <div id="container">
-
-        <div class="right-invoice ">
-
-            <section id="memo ">
-                <div class="client-logo">
+        <div class="right-invoice description">
+            <section id="memo" class="description">
+                <div class="client-logo description">
                     <div>
-                        <img src="{{ invoice_setting()->logo_url }}" />
+                        <img src="{{ $invoiceSetting->logo_url }}" />
                     </div>
-                    <div class="company-info">
-                        <div>
-                            {{ mb_ucwords($company->company_name) }}
+                    <div class="company-info description">
+                        <div class="description">
+                            {{ $company->company_name }}
                         </div>
                         <br>
-                        <span>{!! nl2br(default_address()->address) !!}</span>
+                        <span class="description">{!! nl2br($company->defaultAddress->address) !!}</span>
                         <br>
-                        <span>{{ $company->company_phone }}</span>
+                        <span  class="description">{{ $company->company_phone }}</span>
 
                     </div>
                 </div>
                 <div class="logo">
                     @if($estimate->clientDetails->company_logo)
                         <img src="{{ $estimate->clientDetails->image_url }}"
-                            alt="{{ mb_ucwords($estimate->clientDetails->company_name) }}" class="logo"/>
+                            alt="{{ $estimate->clientDetails->company_name }}" class="logo"/>
                     @endif
                 </div>
             </section>
@@ -620,7 +637,7 @@
 
             </section>
 
-            <section id="client-info">
+            <section id="client-info" class="description">
                 @if (
                     ($estimate->client || $estimate->clientDetails)
                     && ($estimate->client->name
@@ -635,11 +652,11 @@
                     || $invoiceSetting->show_client_company_name == 'yes'
                     || $invoiceSetting->show_client_company_address == 'yes')
                 )
-                    <span>@lang('modules.invoices.billedTo'):</span>
+                    <span class="description">@lang('modules.invoices.billedTo'):</span>
 
                     @if ($estimate->client && $estimate->client->name && $invoiceSetting->show_client_name == 'yes')
                     <div>
-                        <span class="bold">{{ mb_ucwords($estimate->client->name) }}</span>
+                        <span class="bold">{{ $estimate->client->name }}</span>
                     </div>
                     @endif
 
@@ -657,7 +674,7 @@
 
                     @if ($estimate->clientDetails && $estimate->clientDetails->company_name && $invoiceSetting->show_client_company_name == 'yes')
                     <div>
-                        <span>{{ mb_ucwords($estimate->clientDetails->company_name) }}</span>
+                        <span>{{ $estimate->clientDetails->company_name }}</span>
                     </div>
                     @endif
 
@@ -687,7 +704,7 @@
                     </div>
                 @endif
                 <div>
-                    <span>@lang('app.status'):</span> <span>{{ mb_ucwords($estimate->status) }}</span>
+                    <span>@lang('app.status'):</span> <span>{{ $estimate->status }}</span>
                 </div>
 
             </section>
@@ -707,14 +724,14 @@
 
                     <tr>
                         <th>#</th> <!-- Dummy cell for the row number and row commands -->
-                        <th>@lang("modules.invoices.item")</th>
+                        <th class="description">@lang("modules.invoices.item")</th>
                         @if ($invoiceSetting->hsn_sac_code_show)
-                            <th>@lang("app.hsnSac")</th>
+                            <th class="description">@lang("app.hsnSac")</th>
                         @endif
-                        <th>{{ isset($estimate->unit) ? $estimate->unit->unit_type : 'Qty\hrs' }}</th>
-                        <th>@lang("modules.invoices.unitPrice")</th>
-                        <th>@lang("modules.invoices.tax")</th>
-                        <th>@lang("modules.invoices.price") ({!! htmlentities($estimate->currency->currency_code) !!})</th>
+                        <th class="description">@lang('modules.invoices.qty')</th>
+                        <th class="description">@lang("modules.invoices.unitPrice")</th>
+                        <th class="description">@lang("modules.invoices.tax")</th>
+                        <th class="description">@lang("modules.invoices.price") ({!! htmlentities($estimate->currency->currency_code) !!})</th>
                     </tr>
 
                     <?php $count = 0; ?>
@@ -724,7 +741,7 @@
                                 <td>{{ ++$count }}</td>
                                 <!-- Don't remove this column as it's needed for the row commands -->
                                 <td>
-                                    {{ ucfirst($item->item_name) }}
+                                    {{ $item->item_name }}
                                     @if (!is_null($item->item_summary))
                                         <p class="item-summary mb-3">{!! nl2br(strip_tags($item->item_summary, ['p', 'b', 'strong', 'a'])) !!}</p>
                                     @endif
@@ -738,9 +755,9 @@
                                 @if ($invoiceSetting->hsn_sac_code_show)
                                     <td>{{ $item->hsn_sac_code ?  : '--' }}</td>
                                 @endif
-                                <td>{{ $item->quantity }}</td>
+                                <td>{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                                 <td>{{ currency_format($item->unit_price, $estimate->currency_id, false) }}</td>
-                                <td>{{ strtoupper($item->tax_list) }}</td>
+                                <td>{{ $item->tax_list }}</td>
                                 <td>{{ currency_format($item->amount, $estimate->currency_id, false) }}</td>
                             </tr>
                         @endif
@@ -765,7 +782,7 @@
                     @endif
                     @foreach ($taxes as $key => $tax)
                         <tr data-iterate="tax">
-                            <th>{{ mb_strtoupper($key) }}:</th>
+                            <th>{{ $key }}:</th>
                             <td>{{ currency_format($tax, $estimate->currency_id, false) }}</td>
                         </tr>
                     @endforeach
@@ -779,20 +796,18 @@
 
             <div class="clearfix"></div>
             <br>
-
-            <section class="terms">
-                <div class="notes">
+            <section class="terms description">
+                <div class="notes description">
                     @if (!is_null($estimate->note))
                         <br>@lang('app.note') <br> {!! nl2br($estimate->note) !!}
                     @endif
-                    <br>@lang('modules.invoiceSettings.invoiceTerms') <br>{!! nl2br($invoiceSetting->invoice_terms) !!}
+                    <br><br>@lang('modules.invoiceSettings.invoiceTerms') <br>{!! nl2br($invoiceSetting->invoice_terms) !!}
                 </div>
             </section>
-
             @if (isset($taxes) && $invoiceSetting->tax_calculation_msg == 1)
                 <div class="clearfix"></div>
                 <br>
-                <section class="terms">
+                <section class="terms description">
                     <div class="notes">
                         @if ($estimate->calculate_tax == 'after_discount')
                             @lang('messages.calculateTaxAfterDiscount')
@@ -803,8 +818,8 @@
                 </section>
             @endif
             <br>
-            <section class="terms">
-                <div class="notes">
+            <section class="terms description">
+                <div class="notes description">
                     @if ($estimate->sign)
                         <h5 style="margin-bottom: 20px;">@lang('app.signature')</h5>
                         <img src="{{ $estimate->sign->signature }}" style="height: 75px;">
@@ -823,7 +838,7 @@
                             @foreach($fields as $field)
                                 <tr>
                                     <td style="text-align: left;background: none;" >
-                                        <div id="field-title">{{ ucfirst($field->label) }}</div>
+                                        <div id="field-title">{{ $field->label }}</div>
                                         <p id="notes">
                                             @if( $field->type == 'text' || $field->type == 'password' || $field->type == 'number' || $field->type == 'textarea')
                                                 {{$estimate->custom_fields_data['field_'.$field->id] ?? '-'}}

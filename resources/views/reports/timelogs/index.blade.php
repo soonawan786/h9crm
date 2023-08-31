@@ -42,7 +42,7 @@
                     data-size="8">
                     <option value="all">@lang('app.all')</option>
                     @foreach ($projects as $project)
-                        <option value="{{ $project->id }}">{{ mb_ucwords($project->project_name) }}</option>
+                        <option value="{{ $project->id }}">{{ $project->project_name }}</option>
                     @endforeach
                 </select>
             </div>

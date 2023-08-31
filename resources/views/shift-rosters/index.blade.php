@@ -24,7 +24,7 @@
 
     @if ($manageEmployeeShifts != 'all')
         <style>
-            .change-shift {
+            .change-shift, .change-shift-week {
                 cursor: unset !important;
             }
         </style>
@@ -38,7 +38,7 @@
             <div class="select-status">
                 <select class="form-control select-picker" name="user_id" id="user_id" data-live-search="true"
                         data-size="8">
-                    @if ($employees->count() > 1)
+                    @if ($employees->count() > 1 || in_array('admin', user_roles()))
                         <option value="all">@lang('app.all')</option>
                     @endif
                     @forelse ($employees as $item)
@@ -57,7 +57,7 @@
                     data-size="8">
                     <option value="all">@lang('app.all')</option>
                     @foreach ($departments as $department)
-                        <option value="{{ $department->id }}">{{ ucfirst($department->team_name) }}</option>
+                        <option value="{{ $department->id }}">{{ $department->team_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -92,29 +92,32 @@
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper px-4">
 
-        <div class="d-flex">
+        <div class="d-grid d-lg-flex d-md-flex action-bar">
             <div id="table-actions" class="flex-grow-1 align-items-center">
-                <x-forms.link-primary :link="route('shifts.create')" class="mr-3 openRightModal float-left"
-                icon="plus">
-                    @lang('modules.attendance.bulkShiftAssign')
-                </x-forms.link-primary>
+                @if ($manageEmployeeShifts == 'all')
+                    <x-forms.link-primary :link="route('shifts.create')" class="mr-3 openRightModal float-left"
+                    icon="plus">
+                        @lang('modules.attendance.bulkShiftAssign')
+                    </x-forms.link-primary>
+                @endif
                 <x-forms.button-secondary id="export-all" class="mr-3 mb-2 mb-lg-0" icon="file-export">
                     @lang('app.exportExcel')
                 </x-forms.button-secondary>
             </div>
 
-            <div class="btn-group" role="group">
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group">
                 <a href="{{ route('shifts.index') }}" class="btn btn-secondary f-14 btn-active" data-toggle="tooltip"
                     data-original-title="@lang('app.summary')"><i class="side-icon bi bi-list-ul"></i></a>
-
-                <a href="{{ route('shifts-change.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
-                    data-original-title="@lang('modules.attendance.shiftChangeRequests')"><i
-                        class="side-icon bi bi-hourglass-split"></i>
-                    @if ($employeeShiftChangeRequest->request_count > 0)
-                        <span
-                            class="badge badge-primary shift-request-change-count position-absolute">{{ $employeeShiftChangeRequest->request_count }}</span>
-                    @endif
-                </a>
+                @if ($manageEmployeeShifts == 'all')
+                    <a href="{{ route('shifts-change.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
+                        data-original-title="@lang('modules.attendance.shiftChangeRequests')"><i
+                            class="side-icon bi bi-hourglass-split"></i>
+                        @if ($employeeShiftChangeRequest->request_count > 0)
+                            <span
+                                class="badge badge-primary shift-request-change-count position-absolute">{{ $employeeShiftChangeRequest->request_count }}</span>
+                        @endif
+                    </a>
+                @endif
 
             </div>
 

@@ -178,7 +178,7 @@
                                                         @if (isset($item->taxes) && array_search($tax->id, json_decode($item->taxes)) !== false)
                                                         selected
                                                         @endif
-                                                        value="{{ $tax->id }}">{{ strtoupper($tax->tax_name) }}:
+                                                        value="{{ $tax->id }}">{{ $tax->tax_name }}:
                                                         {{ $tax->rate_percent }}%</option>
                                                 @endforeach
                                             </select>
@@ -391,7 +391,7 @@
                                                 +'<div class="select-others height-35 rounded border-0">'
                                                     +'<select id="multiselect'+i+'" name="taxes['+i+'][]" multiple="multiple" class="select-picker type customSequence" data-size="3">'
                                                     @foreach ($taxes as $tax)
-                                                        +'<option data-rate="{{ $tax->rate_percent }}" value="{{ $tax->id }}">{{ strtoupper($tax->tax_name) }}: {{ $tax->rate_percent }}%</option>'
+                                                        +'<option data-rate="{{ $tax->rate_percent }}" value="{{ $tax->id }}">{{ $tax->tax_name }}: {{ $tax->rate_percent }}%</option>'
                                                     @endforeach
                                                     +'</select>'
                                                 +'</div>'
@@ -491,7 +491,7 @@
             calculateTotal();
         });
 
-        $('#saveInvoiceForm').on('change', '.type, #discount_type', function() {
+        $('#saveInvoiceForm').on('change', '.type, #discount_type, #calculate_tax', function() {
             var quantity = $(this).closest('.item-row').find('.quantity').val();
             var perItemCost = $(this).closest('.item-row').find('.cost_per_item').val();
             var amount = (quantity * perItemCost);

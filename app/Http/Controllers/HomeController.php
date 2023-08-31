@@ -20,12 +20,15 @@ use GuzzleHttp\Client;
 use App\Models\Company;
 use App\Models\Invoice;
 use App\Models\Payment;
+use App\Models\Product;
 use App\Models\Project;
 use App\Models\Proposal;
 use App\Models\TaskFile;
+use App\Models\LeadSource;
 use App\Models\LeadStatus;
 use App\Models\TicketType;
 use App\Models\CreditNotes;
+use App\Models\LeadProduct;
 use App\Models\TicketReply;
 use App\Models\InvoiceItems;
 use App\Models\ProposalItem;
@@ -48,6 +51,7 @@ use App\Http\Requests\Lead\StorePublicLead;
 use App\Http\Requests\ProposalAcceptRequest;
 use App\Http\Requests\Stripe\StoreStripeDetail;
 use App\Http\Requests\Tickets\StoreCustomTicket;
+use App\Models\TicketGroup;
 
 class HomeController extends Controller
 {
@@ -75,7 +79,7 @@ class HomeController extends Controller
         $this->pageTitle = 'app.menu.invoices';
         $this->pageIcon = 'icon-money';
 
-        $this->invoice = Invoice::with('currency', 'project', 'project.client', 'items.invoiceItemImage', 'items', 'unit')->where('hash', $hash)->firstOrFail();
+        $this->invoice = Invoice::with('currency', 'project', 'project.client', 'items.invoiceItemImage', 'items', 'items.unit')->where('hash', $hash)->firstOrFail();
         $this->paidAmount = $this->invoice->getPaidAmount();
 
         $this->discount = 0;
@@ -409,7 +413,7 @@ class HomeController extends Controller
 
             $data[] = [
                 'id' => 'task-' . $task->id,
-                'name' => ucfirst($task->heading),
+                'name' => $task->heading,
                 'start' => ((!is_null($task->start_date)) ? $task->start_date->format('Y-m-d') : ((!is_null($task->due_date)) ? $task->due_date->format('Y-m-d') : null)),
                 'end' => ((!is_null($task->due_date)) ? $task->due_date->format('Y-m-d') : $task->start_date->format('Y-m-d')),
                 'progress' => 0,
@@ -428,7 +432,7 @@ class HomeController extends Controller
 
     public function taskDetail($hash)
     {
-        $this->task = Task::with('company:id,favicon,light_logo,date_format,company_name', 'boardColumn', 'project', 'users', 'label', 'approvedTimeLogs', 'approvedTimeLogs.user', 'comments', 'comments.user')
+        $this->task = Task::with('company:id,timezone,favicon,light_logo,date_format,time_format,company_name', 'boardColumn', 'project', 'users', 'label', 'approvedTimeLogs', 'approvedTimeLogs.user', 'comments', 'comments.user')
             ->withCount('subtasks', 'files', 'comments', 'activeTimerAll')
             ->where('hash', $hash)
             ->firstOrFail()
@@ -436,7 +440,7 @@ class HomeController extends Controller
 
         $this->pageTitle = __('app.task') . ' # ' . $this->task->task_short_code;
 
-        if (!empty($this->task->getCustomFieldGroupsWithFields())) {
+        if ($this->task->getCustomFieldGroupsWithFields()) {
             $this->fields = $this->task->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -639,6 +643,8 @@ class HomeController extends Controller
         $this->company = Company::where('hash', $id)->firstOrFail();
         $this->globalSetting = global_setting();
         $this->countries = countries();
+        $this->sources = LeadSource::where('company_id', $this->company->id)->get();
+        $this->products = Product::where('company_id', $this->company->id)->get();
 
         $this->leadFormFields = LeadCustomForm::with('customField')
             ->where('status', 'active')
@@ -659,9 +665,8 @@ class HomeController extends Controller
         $company = Company::findOrFail($request->company_id);
 
         if (global_setting()->google_recaptcha_status == 'active') {
-
             // Checking is google recaptcha is valid
-            $gRecaptchaResponseInput = 'g-recaptcha-response';
+            $gRecaptchaResponseInput = global_setting()->google_recaptcha_v3_status == 'active' ? 'g_recaptcha' : 'g-recaptcha-response';
             $gRecaptchaResponse = $request->{$gRecaptchaResponseInput};
             $validateRecaptcha = $this->validateGoogleRecaptcha($gRecaptchaResponse);
 
@@ -684,10 +689,24 @@ class HomeController extends Controller
         $lead->state = (request()->has('state') ? $request->state : '');
         $lead->country = (request()->has('country') ? $request->country : '');
         $lead->postal_code = (request()->has('postal_code') ? $request->postal_code : '');
+        $lead->source_id = (request()->has('source') ? $request->source : '');
         $lead->status_id = $leadStatus->id;
         $lead->value = 0;
         $lead->currency_id = $company->currency_id;
         $lead->save();
+
+        if (!is_null($request->product)) {
+
+            $products = $request->product;
+
+            foreach($products as $product)
+            {
+                $leadProduct = new LeadProduct();
+                $leadProduct->lead_id = $lead->id;
+                $leadProduct->product_id = $product;
+                $leadProduct->save();
+            }
+        }
 
         // To add custom fields data
         if ($request->custom_fields_data) {
@@ -709,6 +728,8 @@ class HomeController extends Controller
         $this->styled = \request()->get('styled');
 
         $this->company = Company::where('hash', $id)->firstOrFail();
+
+        $this->groups = TicketGroup::where('company_id', $this->company->id)->get();
         $this->ticketFormFields = TicketCustomForm::with('customField')
             ->where('company_id', $this->company->id)
             ->where('status', 'active')
@@ -735,7 +756,7 @@ class HomeController extends Controller
         if (global_setting()->google_recaptcha_status == 'active') {
 
             // Checking is google recaptcha is valid
-            $gRecaptchaResponseInput = 'g-recaptcha-response';
+            $gRecaptchaResponseInput = global_setting()->google_recaptcha_v3_status == 'active' ? 'g_recaptcha' : 'g-recaptcha-response';
             $gRecaptchaResponse = $request->{$gRecaptchaResponseInput};
             $validateRecaptcha = $this->validateGoogleRecaptcha($gRecaptchaResponse);
 
@@ -766,7 +787,7 @@ class HomeController extends Controller
                 ->select('id')
                 ->first();
 
-            $client->attachRole($role->id);
+            $role ? $client->attachRole($role->id) : null;
 
             $clientDetail = new ClientDetails();
             $clientDetail->company_id = $client->company_id;
@@ -788,11 +809,12 @@ class HomeController extends Controller
         $ticket->user_id = $newUser->id;
         $ticket->type_id = (request()->has('type') ? $request->type : null);
         $ticket->priority = (request()->has('priority') ? $request->priority : 'medium');
+        $ticket->group_id = (request()->has('assign_group') ? $request->assign_group : null);
         $ticket->save();
 
         // Save first message
         $reply = new TicketReply();
-        $reply->message = (request()->has('message') ? $request->message : '');
+        $reply->message = (request()->has('ticket_description') ? $request->ticket_description : '');
         $reply->ticket_id = $ticket->id;
         $reply->user_id = $newUser->id; // Current logged in user
         $reply->save();
@@ -802,7 +824,7 @@ class HomeController extends Controller
             $ticket->updateCustomFieldData($request->custom_fields_data);
         }
 
-        return Reply::success(__('messages.recordSaved'));
+        return Reply::success(__('messages.ticketCreateSuccess'));
     }
 
     public function validateGoogleRecaptcha($googleRecaptchaResponse)
@@ -858,7 +880,7 @@ class HomeController extends Controller
         }
 
         if (((int)str_replace('.', '', $enableModules['worksuite'])) < 400) {
-            $message .= 'Please update' . ucfirst(config('app.name')) . ' greater then 4.0.0 version';
+            $message .= 'Please update' . config('app.name') . ' greater then 4.0.0 version';
         }
 
         $enableModules['message'] = $message;
@@ -968,10 +990,11 @@ class HomeController extends Controller
                 Files::createDirectoryIfNotExist('proposal/sign');
 
                 File::put(public_path() . '/' . Files::UPLOAD_FOLDER . '/proposal/sign/' . $imageName, base64_decode($image));
+                Files::uploadLocalFile($imageName, 'proposal/sign', $this->proposal->company_id);
             }
             else {
                 if ($request->hasFile('image')) {
-                    $imageName = Files::upload($request->image, 'proposal/sign', 300);
+                    $imageName = Files::uploadLocalOrS3($request->image, 'proposal/sign', 300);
                 }
             }
 
@@ -993,7 +1016,7 @@ class HomeController extends Controller
     public function domPdfObjectProposalDownload($id)
     {
 
-        $this->proposal = Proposal::findOrFail($id);
+        $this->proposal = Proposal::where('hash', $id)->firstOrFail();
         $this->company = $this->proposal->company;
 
         if ($this->proposal->discount > 0) {
@@ -1057,7 +1080,8 @@ class HomeController extends Controller
         $pdf = app('dompdf.wrapper');
 
         $pdf->setOption('enable_php', true);
-        $pdf->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
 
         $pdf->loadView('proposals.pdf.' . $this->invoiceSetting->template, $this->data);
         $dom_pdf = $pdf->getDomPDF();
@@ -1078,11 +1102,11 @@ class HomeController extends Controller
     public function downloadProposal($id)
     {
 
-        $this->proposal = Proposal::whereRaw('md5(id) = ?', $id)->first();
+        $this->proposal = Proposal::where('hash', $id)->firstOrFail();
         $this->company = $this->proposal->company;
         App::setLocale(isset($this->company->locale) ? $this->company->locale : 'en');
 
-        $pdfOption = $this->domPdfObjectProposalDownload($this->proposal->id);
+        $pdfOption = $this->domPdfObjectProposalDownload($id);
         $pdf = $pdfOption['pdf'];
         $filename = $pdfOption['fileName'];
 
@@ -1121,7 +1145,7 @@ class HomeController extends Controller
     {
         $this->imageUrl = request()->image_url;
 
-        return view('invoices.ajax.show_image', $this->data);
+        return view('front.image.show_image', $this->data);
     }
 
     public function syncPermissions()

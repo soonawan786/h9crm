@@ -60,11 +60,12 @@ class NewDiscussion extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('discussion.show', $this->discussion->id);
         $url = getDomainSpecificUrl($url, $this->company);
         $content = __('email.discussion.subject') . ' ' . $this->discussion->title . ':-';
 
-        return parent::build()
+        return $build
             ->subject(__('email.discussion.subject') . $this->discussion->title . ' - ' . config('app.name') . '.')
             ->markdown('mail.email', [
                 'url' => $url,
@@ -120,8 +121,8 @@ class NewDiscussion extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.discussion.subject'))
-            ->body(ucfirst($this->discussion->title));
+            ->setSubject(__('email.discussion.subject'))
+            ->setBody($this->discussion->title);
     }
 
 }

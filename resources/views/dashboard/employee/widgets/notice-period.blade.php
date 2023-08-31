@@ -1,4 +1,4 @@
-@if (in_array('notice_period_duration', $activeWidgets))
+@if (in_array('notice_period_duration', $activeWidgets) && in_array('employees', user_modules()))
     @php
         $currentDay = \Carbon\Carbon::parse(now(company()->timezone)->toDateTimeString())
             ->startOfDay()

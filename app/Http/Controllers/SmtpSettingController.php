@@ -34,7 +34,9 @@ class SmtpSettingController extends AccountBaseController
     public function update(UpdateSmtpSetting $request, $id)
     {
         // save all email notification settings
-        $this->saveEmailNotificationSettings($request);
+        if (!user()->is_superadmin) {
+            $this->saveEmailNotificationSettings($request);
+        }
 
         if (!user()->is_superadmin){
             return Reply::success(__('messages.updateSuccess'));

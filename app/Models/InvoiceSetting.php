@@ -49,7 +49,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereShowGst($value)
  * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereTemplate($value)
  * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property string|null $estimate_terms
  * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereEstimateTerms($value)
  * @property int $tax_calculation_msg
@@ -73,6 +72,34 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereShowClientName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereShowClientPhone($value)
  * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereShowProject($value)
+ * @property string $invoice_number_separator
+ * @property string $estimate_number_separator
+ * @property string $credit_note_number_separator
+ * @property string $contract_prefix
+ * @property string $contract_number_separator
+ * @property int $contract_digit
+ * @property int $show_status
+ * @property int $authorised_signatory
+ * @property string|null $authorised_signatory_signature
+ * @property-read mixed $authorised_signatory_signature_url
+ * @property-read mixed $is_chinese_lang
+ * @property-read \App\Models\UnitType|null $unit
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereAuthorisedSignatory($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereAuthorisedSignatorySignature($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereContractDigit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereContractNumberSeparator($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereContractPrefix($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereCreditNoteNumberSeparator($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereEstimateNumberSeparator($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereInvoiceNumberSeparator($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereShowStatus($value)
+ * @property string $order_prefix
+ * @property string $order_number_separator
+ * @property int $order_digit
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereOrderDigit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereOrderNumberSeparator($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceSetting whereOrderPrefix($value)
+ * @mixin \Eloquent
  */
 class InvoiceSetting extends BaseModel
 {
@@ -83,12 +110,12 @@ class InvoiceSetting extends BaseModel
 
     public function getLogoUrlAttribute()
     {
-        return (is_null($this->logo)) ? $this->company->logo_url : asset_url('app-logo/' . $this->logo);
+        return (is_null($this->logo)) ? $this->company->logo_url : asset_url_local_s3('app-logo/' . $this->logo);
     }
 
     public function getAuthorisedSignatorySignatureUrlAttribute()
     {
-        return (is_null($this->authorised_signatory_signature)) ? '' : asset_url('app-logo/' . $this->authorised_signatory_signature);
+        return (is_null($this->authorised_signatory_signature)) ? '' : asset_url_local_s3('app-logo/' . $this->authorised_signatory_signature);
     }
 
     public function getIsChineseLangAttribute()

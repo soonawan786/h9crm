@@ -22,7 +22,11 @@ class BroadcastServiceProvider extends ServiceProvider
 
                     $driver = ($pusherSetting->status == 1) ? 'pusher' : 'null';
 
-                    Config::set('brodcasting.default', $driver);
+                    Config::set('broadcasting.default', $driver);
+                    Config::set('broadcasting.connections.pusher.key', $pusherSetting->pusher_app_key);
+                    Config::set('broadcasting.connections.pusher.secret', $pusherSetting->pusher_app_secret);
+                    Config::set('broadcasting.connections.pusher.app_id', $pusherSetting->pusher_app_id);
+                    Config::set('broadcasting.connections.pusher.options.host', 'api-'.$pusherSetting->pusher_cluster.'.pusher.com');
                 }
             }
         }

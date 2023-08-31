@@ -34,9 +34,7 @@ class EmailVerified extends EnsureEmailIsVerified
                 return $next($request);
             }
 
-            return $request->expectsJson() ?
-                abort(403, $message) :
-                Redirect::guest(URL::route($redirectToRoute ?: 'verification.notice'));
+            return $request->expectsJson() ? abort(403, $message) : Redirect::guest(URL::route($redirectToRoute ?: 'verification.notice'));
         }
 
         return $next($request);

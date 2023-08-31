@@ -24,11 +24,14 @@ use App\Models\Country as ModelsCountry;
  * @method static \Illuminate\Database\Eloquent\Builder|Country whereNicename($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Country whereNumcode($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Country wherePhonecode($value)
+ * @property-read mixed $nationality
  * @mixin \Eloquent
  */
 class Country extends BaseModel
 {
+
     protected $appends = ['nationality'];
+    public $timestamps = false;
 
     const NATIONALITY = array(
         'AF' => 'Afghan',
@@ -280,6 +283,11 @@ class Country extends BaseModel
     public function getNationalityAttribute()
     {
         return Country::NATIONALITY[$this->iso] ?? 'unknown';
+    }
+
+    public function flagSpanCountryCode()
+    {
+        return '<span class="flag-icon  flag-icon-squared flag-icon-' . strtolower($this->iso) . '"></span> +' . $this->phonecode;
     }
 
 }

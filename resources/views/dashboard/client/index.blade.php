@@ -100,7 +100,7 @@
                                         <td class="pl-20">{{ $key + 1 }}</td>
                                         <td>
                                             <a href="javascript:;" class="milestone-detail text-darkest-grey f-w-500"
-                                               data-milestone-id="{{ $item->id }}">{{ ucfirst($item->milestone_title) }}</a>
+                                               data-milestone-id="{{ $item->id }}">{{ $item->milestone_title }}</a>
                                         </td>
                                         <td>
                                             @if (!is_null($item->currency_id))

@@ -53,23 +53,22 @@ class EventInvite extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $eventInvite = parent::build();
         $vCalendar = new \Eluceo\iCal\Component\Calendar('www.example.com');
         $vEvent = new \Eluceo\iCal\Component\Event();
         $vEvent
             ->setDtStart(new \DateTime($this->event->start_date_time))
             ->setDtEnd(new \DateTime($this->event->end_date_time))
             ->setNoTime(true)
-            ->setSummary(ucfirst($this->event->event_name));
+            ->setSummary($this->event->event_name);
         $vCalendar->addComponent($vEvent);
         $vFile = $vCalendar->render();
 
         $url = route('events.show', $this->event->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('email.newEvent.text') . '<br>' . __('modules.events.eventName') . ': ' . $this->event->event_name . '<br>' . __('modules.events.startOn') . ': ' . $this->event->start_date_time->format($this->company->date_format . ' - ' . $this->company->time_format) . '<br>' . __('modules.events.endOn') . ': ' . $this->event->end_date_time->format($this->company->date_format . ' - ' . $this->company->time_format);
+        $content = __('email.newEvent.text') . '<br><br>' . __('modules.events.eventName') . ': <strong>' . $this->event->event_name . '<strong><br>' . __('modules.events.startOn') . ': ' . $this->event->start_date_time->translatedFormat($this->company->date_format . ' - ' . $this->company->time_format) . '<br>' . __('modules.events.endOn') . ': ' . $this->event->end_date_time->translatedFormat($this->company->date_format . ' - ' . $this->company->time_format);
 
-
-        $eventInvite = parent::build();
         $eventInvite->subject(__('email.newEvent.subject') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,

@@ -1,4 +1,4 @@
-@if (in_array('work_from_home', $activeWidgets) && $sidebarUserPermissions['view_attendance'] != 5 && $sidebarUserPermissions['view_attendance'] != 'none')
+@if (in_array('work_from_home', $activeWidgets) && $sidebarUserPermissions['view_attendance'] != 5 && $sidebarUserPermissions['view_attendance'] != 'none' && in_array('attendance', user_modules()))
     <!-- ON WORK FROM HOME START -->
     <div class="col-sm-12">
         <x-cards.data class="e-d-info mb-3" :title="__('modules.dashboard.workFromHome')" padding="false">

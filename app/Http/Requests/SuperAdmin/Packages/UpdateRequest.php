@@ -35,14 +35,14 @@ class UpdateRequest extends FormRequest
             'storage_unit' => 'required|in:gb,mb',
         ];
 
-        if ($this->get('no_of_days')) {
-            $data['no_of_days'] = 'sometimes|required';
+        $package = Package::find($this->route('package'));
+
+        if ($package->default === 'trial') {
+            $data['no_of_days'] = 'sometimes|required|numeric|gt:0';
             $data['trial_message'] = 'sometimes|required';
 
             return $data;
         }
-
-        $package = Package::find($this->route('package'));
 
         if($package->default === 'yes'){
             return $data;
@@ -50,21 +50,33 @@ class UpdateRequest extends FormRequest
 
         $data['description'] = 'required';
 
-        if (!$this->has('is_free')) {
-            $data['annual_price'] = 'required';
-            $data['monthly_price'] = 'required';
-
+        if (request()->package_type == 'paid') {
 
             $gateways = GlobalPaymentGatewayCredentials::first();
 
-            if(($this->get('annual_price') > 0 && $this->get('monthly_price') > 0 ) && $gateways->razorpay_status == 'active'){
-                $data['razorpay_annual_plan_id'] = 'required';
-                $data['razorpay_monthly_plan_id'] = 'required';
+            if ($this->has('monthly_status')) {
+
+                $data['monthly_price'] = 'required|numeric|gt:0';
+
+                if($gateways->razorpay_status == 'active'){
+                    $data['razorpay_monthly_plan_id'] = 'required';
+                }
+
+                if($gateways->stripe_status == 'active'){
+                    $data['stripe_monthly_plan_id'] = 'required';
+                }
             }
 
-            if($this->get('annual_price') > 0 && $this->get('monthly_price') > 0 && $gateways->stripe_status == 'active'){
-                $data['stripe_annual_plan_id'] = 'required';
-                $data['stripe_monthly_plan_id'] = 'required';
+            if ($this->has('annual_status')) {
+                $data['annual_price'] = 'required|numeric|gt:0';
+
+                if($gateways->razorpay_status == 'active'){
+                    $data['razorpay_annual_plan_id'] = 'required';
+                }
+
+                if($gateways->stripe_status == 'active'){
+                    $data['stripe_annual_plan_id'] = 'required';
+                }
             }
         }
 

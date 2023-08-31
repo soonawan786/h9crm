@@ -23,7 +23,7 @@
             <div class="select-status">
                 <select class="form-control select-picker" name="employee" id="employee" data-live-search="true"
                         data-size="8">
-                    @if ($employees->count() > 1)
+                    @if ($employees->count() > 1 || in_array('admin', user_roles()))
                         <option value="all">@lang('app.all')</option>
                     @endif
                     @foreach ($employees as $employee)
@@ -71,7 +71,7 @@
                                 data-container="body" data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($projects as $project)
-                                <option value="{{ $project->id }}">{{ mb_ucwords($project->project_name) }}</option>
+                                <option value="{{ $project->id }}">{{ $project->project_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -152,20 +152,12 @@
 
 
             <div class="btn-group ml-3" role="group">
-                <a href="{{ route('timelogs.index') }}" class="btn btn-secondary f-14 btn-active" data-toggle="tooltip"
-                   data-original-title="@lang('app.menu.timeLogs')"><i class="side-icon bi bi-list-ul"></i></a>
-
-                <a href="{{ route('timelog-calendar.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
-                   data-original-title="@lang('app.menu.calendar')"><i class="side-icon bi bi-calendar"></i></a>
-
-                <a href="{{ route('timelogs.by_employee') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
-                   data-original-title="@lang('app.employee') @lang('app.menu.timeLogs')"><i
-                        class="side-icon bi bi-person"></i></a>
+              @include('timelogs.timelog-menu')
             </div>
         </div>
         <!-- Add Task Export Buttons End -->
         <!-- Task Box Start -->
-        <div class="d-flex flex-column w-tables rounded mt-3 bg-white">
+        <div class="d-flex flex-column w-tables rounded mt-3 bg-white table-responsive">
 
             {!! $dataTable->table(['class' => 'table table-hover border-0 w-100']) !!}
 

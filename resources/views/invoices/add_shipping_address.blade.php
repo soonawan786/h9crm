@@ -1,5 +1,5 @@
 <div class="modal-header">
-    <h5 class="modal-title" id="modelHeading">@lang('app.add') @lang('app.shippingAddress')</h5>
+    <h5 class="modal-title" id="modelHeading">@lang('app.addShippingAddress')</h5>
     <button type="button"  class="close" data-dismiss="modal" aria-label="Close"><span
             aria-hidden="true">×</span></button>
 </div>
@@ -11,7 +11,7 @@
                 <div class="form-group my-3">
                     <x-forms.textarea class="mr-0 mr-lg-2 mr-md-2"
                         :fieldLabel="__('app.shippingAddress')" fieldName="shipping_address"
-                        fieldId="shipping_address" fieldPlaceholder="e.g. Rocket Road"
+                        fieldId="shipping_address" :fieldPlaceholder="__('placeholders.address')"
                         fieldValue="" fieldRequired="true">
                     </x-forms.textarea>
                 </div>

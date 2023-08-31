@@ -217,7 +217,7 @@ class PayFastController extends AccountBaseController
                 $company->save();
 
                 // Send superadmin notification
-                $generatedBy = $generatedBy = User::allSuperAdmin();
+                $generatedBy = User::allSuperAdmin();
                 $allAdmins = User::allAdmins($company->id);
                 Notification::send($generatedBy, new CompanyUpdatedPlan($company, $subscription->package_id));
                 Notification::send($allAdmins, new CompanyUpdatedPlan($company, $subscription->package_id));

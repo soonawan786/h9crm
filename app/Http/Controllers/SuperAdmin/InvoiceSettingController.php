@@ -7,6 +7,7 @@ use App\Helper\Reply;
 use App\Http\Controllers\AccountBaseController;
 use App\Models\SuperAdmin\GlobalInvoiceSetting;
 use App\Http\Requests\SuperAdmin\GlobalInvoiceSetting\UpdateInvoiceSetting;
+use App\Models\GlobalSetting;
 
 class InvoiceSettingController extends AccountBaseController
 {
@@ -17,6 +18,11 @@ class InvoiceSettingController extends AccountBaseController
 
         $this->pageTitle = 'app.menu.financeSettings';
         $this->activeSettingMenu = 'global_invoice_settings';
+
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_finance_settings'));
+            return $next($request);
+        });
     }
 
     /**
@@ -55,12 +61,12 @@ class InvoiceSettingController extends AccountBaseController
 
         if ($request->hasFile('logo')) {
             Files::deleteFile($setting->logo, 'app-logo');
-            $setting->logo = Files::upload($request->logo, 'app-logo');
+            $setting->logo = Files::uploadLocalOrS3($request->logo, 'app-logo');
         }
 
         if ($request->hasFile('authorised_signatory_signature')) {
             Files::deleteFile($setting->authorised_signatory_signature, 'app-logo');
-            $setting->authorised_signatory_signature = Files::upload($request->authorised_signatory_signature, 'app-logo');
+            $setting->authorised_signatory_signature = Files::uploadLocalOrS3($request->authorised_signatory_signature, 'app-logo');
         }
 
         $setting->save();

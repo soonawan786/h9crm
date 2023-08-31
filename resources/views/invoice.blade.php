@@ -128,7 +128,7 @@
                         <table width="100%" class="___class_+?14___">
                             <tr class="inv-logo-heading">
                                 <td><img src="{{ $company->invoiceSetting->logo_url }}"
-                                         alt="{{ mb_ucwords($company->company_name) }}" id="logo"/></td>
+                                         alt="{{ $company->company_name }}" id="logo"/></td>
                                 <td align="right"
                                     class="font-weight-bold f-21 text-dark text-uppercase mt-4 mt-lg-0 mt-md-0">
                                     @lang('app.invoice')</td>
@@ -136,7 +136,7 @@
                             <tr class="inv-num">
                                 <td class="f-14 text-dark">
                                     <p class="mt-3 mb-0">
-                                        {{ mb_ucwords($company->company_name) }}<br>
+                                        {{ $company->company_name }}<br>
                                         @if (!is_null($company))
                                             {!! $invoice->address ? nl2br($invoice->address->address) : '' !!}<br>
                                             {{ $company->company_phone }}
@@ -186,7 +186,7 @@
                                             class="text-dark-grey text-capitalize">@lang('modules.invoices.billedTo')</span><br>
 
                                         @if ($invoice->client && $invoice->client->name && $invoice->company->invoiceSetting->show_client_name == 'yes')
-                                            {{ mb_ucwords($invoice->client->name) }}<br>
+                                            {{ $invoice->client->name }}<br>
                                         @endif
 
                                         @if ($invoice->client && $invoice->client->email && $invoice->company->invoiceSetting->show_client_email == 'yes')
@@ -198,7 +198,7 @@
                                         @endif
 
                                         @if ($invoice->clientDetails && $invoice->clientDetails->company_name && $invoice->company->invoiceSetting->show_client_company_name == 'yes')
-                                            {{ mb_ucwords($invoice->clientDetails->company_name) }}<br>
+                                            {{ $invoice->clientDetails->company_name }}<br>
                                         @endif
 
                                         @if ($invoice->clientDetails && $invoice->clientDetails->address && $invoice->company->invoiceSetting->show_client_company_address == 'yes')
@@ -225,7 +225,7 @@
                                 <td align="right" class="mt-4 mt-lg-0 mt-md-0">
                                     @if($invoice->clientDetails->company_logo)
                                         <img src="{{ $invoice->clientDetails->image_url }}"
-                                            alt="{{ mb_ucwords($invoice->clientDetails->company_name) }}" class="logo" style="height:50px;" />
+                                            alt="{{ $invoice->clientDetails->company_name }}" class="logo" style="height:50px;" />
                                             <br><br><br>
                                     @endif
                                         <span
@@ -253,14 +253,17 @@
                                     <table class="inv-detail f-14 table-responsive-sm" width="100%">
                                         <tr class="i-d-heading bg-light-grey text-dark-grey font-weight-bold">
                                             <td class="border-right-0">@lang('app.description')</td>
+                                            @if ($invoiceSetting->hsn_sac_code_show)
+                                                <td class="border-right-0 border-left-0" align="right">@lang('app.hsnSac')</td>
+                                            @endif
                                             <td class="border-right-0 border-left-0" align="right">
-                                               {{ isset($invoice->unit) ? $invoice->unit->unit_type : 'Qty\hrs' }}
+                                               @lang('modules.invoices.qty')
                                             </td>
                                             <td class="border-right-0 border-left-0" align="right">
                                                 @lang('modules.invoices.unitPrice')
                                                 ({{ $invoice->currency->currency_code }})
                                             </td>
-                                            <td class="border-left-0" align="right">@lang('modules.invoices.tax')</td>
+                                            <td class="border-left-0 border-right-0 " align="right">@lang('modules.invoices.tax')</td>
                                             <td class="border-left-0" align="right">
                                                 @lang('modules.invoices.amount')
                                                 ({{ $invoice->currency->currency_code }})
@@ -269,8 +272,11 @@
                                         @foreach ($invoice->items as $item)
                                             @if ($item->type == 'item')
                                                 <tr class="text-dark font-weight-semibold f-13">
-                                                    <td>{{ ucfirst($item->item_name) }}</td>
-                                                    <td align="right">{{ $item->quantity }}</td>
+                                                    <td>{{ $item->item_name }}</td>
+                                                    @if ($invoiceSetting->hsn_sac_code_show)
+                                                        <td align="right">{{ $item->hsn_sac_code }}</td>
+                                                    @endif
+                                                    <td align="right">{{ $item->quantity }} @if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                                                     <td align="right">
                                                         {{ currency_format($item->unit_price, $invoice->currency_id, false) }}
                                                     </td>
@@ -281,7 +287,7 @@
                                                 </tr>
                                                 @if ($item->item_summary || $item->invoiceItemImage)
                                                     <tr class="text-dark f-12">
-                                                        <td colspan="4" class="border-bottom-0">
+                                                        <td colspan="{{ $invoiceSetting->hsn_sac_code_show ? '6' : '5' }}" class="border-bottom-0">
                                                             {!! nl2br(strip_tags($item->item_summary)) !!}
                                                             @if ($item->invoiceItemImage)
                                                                 <p class="mt-2">
@@ -302,46 +308,62 @@
 
 
                                         <tr>
-                                            <td colspan="3"
+                                            <td colspan="{{ $invoiceSetting->hsn_sac_code_show ? '4' : '3' }}"
                                                 class="blank-td border-bottom-0 border-left-0 border-right-0"></td>
-                                            <td colspan="2" class="p-0 ">
+                                            <td class="p-0 border-right-0" align="right">
                                                 <table width="100%">
                                                     <tr class="text-dark-grey" align="right">
                                                         <td class="w-50 border-top-0 border-left-0">
                                                             @lang('modules.invoices.subTotal')</td>
+                                                    </tr>
+                                                    @if ($discount != 0 && $discount != '')
+                                                        <tr class="text-dark-grey" align="right">
+                                                            <td class="w-50 border-top-0 border-left-0">
+                                                                @lang('modules.invoices.discount')</td>
+                                                        </tr>
+                                                    @endif
+                                                    @foreach ($taxes as $key => $tax)
+                                                        <tr class="text-dark-grey" align="right">
+                                                            <td class="w-50 border-top-0 border-left-0">
+                                                                {{ $key }}</td>
+                                                        </tr>
+                                                    @endforeach
+                                                    <tr class=" text-dark-grey font-weight-bold" align="right">
+                                                        <td class="w-50 border-bottom-0 border-left-0">
+                                                            @lang('modules.invoices.total')</td>
+                                                    </tr>
+                                                    <tr class="bg-light-grey text-dark f-w-500 f-16" align="right">
+                                                        <td class="w-50 border-bottom-0 border-left-0">
+                                                            @lang('modules.invoices.total')
+                                                            @lang('modules.invoices.due')</td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                            <td class="p-0 border-left-0" align="right">
+                                                <table width="100%">
+                                                    <tr class="text-dark-grey" align="right">
                                                         <td class="border-top-0 border-right-0">
                                                             {{ currency_format($invoice->sub_total, $invoice->currency_id, false) }}
                                                         </td>
                                                     </tr>
                                                     @if ($discount != 0 && $discount != '')
                                                         <tr class="text-dark-grey" align="right">
-                                                            <td class="w-50 border-top-0 border-left-0">
-                                                                @lang('modules.invoices.discount')</td>
                                                             <td class="border-top-0 border-right-0">
-                                                                {{ currency_format($discount, $invoice->currency_id, false) }}
-                                                            </td>
+                                                                {{ currency_format($discount, $invoice->currency_id, false) }}</td>
                                                         </tr>
                                                     @endif
                                                     @foreach ($taxes as $key => $tax)
                                                         <tr class="text-dark-grey" align="right">
-                                                            <td class="w-50 border-top-0 border-left-0">
-                                                                {{ mb_strtoupper($key) }}</td>
                                                             <td class="border-top-0 border-right-0">
-                                                                {{ currency_format($tax, $invoice->currency_id, false) }}
-                                                            </td>
+                                                                {{ currency_format($tax, $invoice->currency_id, false) }}</td>
                                                         </tr>
                                                     @endforeach
                                                     <tr class=" text-dark-grey font-weight-bold" align="right">
-                                                        <td class="w-50 border-bottom-0 border-left-0">
-                                                            @lang('modules.invoices.total')</td>
                                                         <td class="border-bottom-0 border-right-0">
                                                             {{ currency_format($invoice->total, $invoice->currency_id, false) }}
                                                         </td>
                                                     </tr>
                                                     <tr class="bg-light-grey text-dark f-w-500 f-16" align="right">
-                                                        <td class="w-50 border-bottom-0 border-left-0">
-                                                            @lang('modules.invoices.total')
-                                                            @lang('modules.invoices.due')</td>
                                                         <td class="border-bottom-0 border-right-0">
                                                             {{ currency_format($invoice->amountDue(), $invoice->currency_id, false) }}
                                                             {{ $invoice->currency->currency_code }}</td>
@@ -365,7 +387,7 @@
                                             <table>
                                                 <tr width="100%" class="font-weight-semibold f-13">
                                                     <td class="border-left-0 border-right-0 border-top-0">
-                                                        {{ ucfirst($item->item_name) }}</td>
+                                                        {{ $item->item_name }}</td>
                                                 </tr>
                                                 @if ($item->item_summary != '' || $item->invoiceItemImage)
                                                     <tr>
@@ -391,7 +413,7 @@
                                     </tr>
                                     <tr>
                                         <th width="50%" class="bg-light-grey text-dark-grey font-weight-bold">
-                                            {{ isset($invoice->unit) ? $invoice->unit->unit_type : 'Qty\hrs' }}</th>
+                                            @lang('modules.invoices.qty')</th>
                                         <td width="50%">{{ $item->quantity }}</td>
                                     </tr>
                                     <tr>
@@ -436,7 +458,7 @@
                             @foreach ($taxes as $key => $tax)
                                 <tr>
                                     <th width="50%" class="text-dark-grey font-weight-normal">
-                                        {{ mb_strtoupper($key) }}</th>
+                                        {{ $key }}</th>
                                     <td width="50%" class="text-dark-grey font-weight-normal">
                                         {{ currency_format($tax, $invoice->currency_id, false) }}</td>
                                 </tr>
@@ -461,7 +483,7 @@
                                 <td height="30" colspan="2"></td>
                             </tr>
                             <tr>
-                                <td>
+                                <td style="vertical-align: text-top">
                                     <table>
                                         <tr>@lang('app.note')</tr>
                                         <tr>
@@ -633,7 +655,7 @@
 <script>
     const MODAL_LG = '#myModal';
     const MODAL_HEADING = '#modelHeading';
-
+    document.loading = '@lang('app.loading')';
     const dropifyMessages = {
         default: '@lang('app.dragDrop')',
         replace: '@lang('app.dragDropReplace')',
@@ -643,7 +665,7 @@
 
     $('body').on('click', '.img-lightbox', function () {
         var imageUrl = $(this).data('image-url');
-        const url = "{{ route('invoices.public.show_image') . '?image_url=' }}" + imageUrl;
+        const url = "{{ route('front.public.show_image') . '?image_url=' }}" + imageUrl;
 
         $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
         $.ajaxModal(MODAL_LG, url);

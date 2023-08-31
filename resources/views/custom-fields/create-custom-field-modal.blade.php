@@ -11,7 +11,7 @@
                     <x-forms.select fieldId="module" :fieldLabel="__('app.module')" fieldName="module"
                                     search="true">
                         @foreach ($customFieldGroups as $item)
-                            <option value="{{ $item->id }}">{{ $item->name }}</option>
+                            <option value="{{ $item->id }}">@lang('app.'.strtolower($item->name))</option>
                         @endforeach
                     </x-forms.select>
                 </div>
@@ -39,16 +39,23 @@
                                     fieldName="type"
                                     search="true">
                         @foreach ($types as $type)
-                            <option value="{{ $type }}">{{ $type }}</option>
+                            <option value="{{ $type }}">@lang('app.'.$type)</option>
                         @endforeach
                     </x-forms.select>
                 </div>
 
                 <div class="col-lg-6">
                     <div class="form-group my-5">
-                        <x-forms.checkbox fieldId="export"
-                                          :fieldLabel="__('modules.customFields.export')" fieldName="export"
-                                          fieldValue="1"/>
+                        <x-forms.checkbox fieldId="visible"
+                        :fieldLabel="__('modules.customFields.showInTable')" fieldName="visible"
+                        fieldValue="true"/>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="form-group my-5">
+                    <x-forms.checkbox fieldId="export"
+                        :fieldLabel="__('modules.customFields.export')" fieldName="export"
+                        fieldValue="1"  />
                     </div>
                 </div>
 

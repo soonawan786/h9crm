@@ -153,7 +153,7 @@ class ProjectNotesDataTable extends BaseDataTable
             }
         }
 
-        $projects->select('project_notes.*');
+        $projects->select('project_notes.*')->groupBy('id');
 
         return $projects;
     }
@@ -194,7 +194,7 @@ class ProjectNotesDataTable extends BaseDataTable
                 'orderable' => false,
                 'searchable' => false
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'visible' => false, 'title' => __('app.id')],
             __('modules.client.noteTitle') => ['data' => 'note_title', 'name' => 'title', 'title' => __('modules.client.noteTitle')],
             __('modules.client.noteType') => ['data' => 'note_type', 'name' => 'type', 'title' => __('modules.client.noteType')],
@@ -205,17 +205,6 @@ class ProjectNotesDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-
-    protected function filename()
-    {
-        return 'project_note_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

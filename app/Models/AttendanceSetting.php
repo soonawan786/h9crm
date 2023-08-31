@@ -40,7 +40,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|AttendanceSetting whereRadius($value)
  * @method static \Illuminate\Database\Eloquent\Builder|AttendanceSetting whereRadiusCheck($value)
  * @method static \Illuminate\Database\Eloquent\Builder|AttendanceSetting whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $alert_after
  * @property int $alert_after_status
  * @method static \Illuminate\Database\Eloquent\Builder|AttendanceSetting whereAlertAfter($value)
@@ -63,30 +62,20 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|AttendanceSetting whereWeekStartFrom($value)
  * @property string $restrict_clockin
  * @method static \Illuminate\Database\Eloquent\Builder|AttendanceSetting whereRestrictClockin($value)
+ * @property string $auto_clock_in_location
+ * @property int $monthly_report
+ * @property string|null $monthly_report_roles
+ * @method static \Illuminate\Database\Eloquent\Builder|AttendanceSetting whereAutoClockInLocation($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|AttendanceSetting whereMonthlyReport($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|AttendanceSetting whereMonthlyReportRoles($value)
+ * @property string|null $early_clock_in
+ * @method static \Illuminate\Database\Eloquent\Builder|AttendanceSetting whereEarlyClockIn($value)
+ * @mixin \Eloquent
  */
 class AttendanceSetting extends BaseModel
 {
 
     use HasCompany;
-
-    const DAYS = [
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday',
-        'Sunday'
-    ];
-    const WEEKDAYS = [
-        'Sunday',
-        'Monday',
-        'Tuesday',
-        'Wednesday',
-        'Thursday',
-        'Friday',
-        'Saturday'
-    ];
 
     public function shift(): BelongsTo
     {

@@ -12,7 +12,7 @@ $addProductPermission = user()->permission('add_product');
 
 <div class="row">
     <div class="col-sm-12">
-        <x-form id="save-lead-data-form" method="put">
+        <x-form id="save-lead-data-form" method="PUT">
             <div class="add-client bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
                     @lang('modules.lead.leadDetails')</h4>
@@ -100,7 +100,7 @@ $addProductPermission = user()->permission('add_product');
                                     data-live-search="true">
                                     <option value="">--</option>
                                     @forelse($categories as $category)
-                                        <option value="{{ $category->id }}" @if ($lead->category_id == $category->id) selected @endif>{{ mb_ucwords($category->category_name) }}</option>
+                                        <option value="{{ $category->id }}" @if ($lead->category_id == $category->id) selected @endif>{{ $category->category_name }}</option>
                                     @empty
                                         <option value="">@lang('messages.noCategoryAdded')</option>
                                     @endforelse
@@ -117,9 +117,16 @@ $addProductPermission = user()->permission('add_product');
                         </div>
                     @endif
 
-                    <div class="col-lg-4 col-md-6">
-                        <x-forms.number class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.lead') .' '. __('app.value')"
-                                        fieldName="value" fieldId="value" :fieldValue="$lead->value" />
+                    <div class="col-lg-4 col-md-6 my-3">
+                        <x-forms.label fieldId="value" :fieldLabel="__('app.lead') .' '. __('app.value')">
+                        </x-forms.label>
+                        <x-forms.input-group>
+                            <x-slot name="prepend">
+                                <span
+                                    class="input-group-text f-14">{{!is_null($lead->currency_id) ? $lead->currency->currency_code : company()->currency->currency_code}} ( {{ !is_null($lead->currency_id) ? $lead->currency->currency_symbol : company()->currency->currency_symbol }} )</span>
+                            </x-slot>
+                            <input type="number" name="value" id="value" class="form-control height-35 f-14" value="{{$lead->value}}"/>
+                        </x-forms.input-group>
                     </div>
 
                     <div class="col-md-6 col-lg-4">
@@ -143,7 +150,7 @@ $addProductPermission = user()->permission('add_product');
                                 data-size="8">
                                 @forelse($status as $sts)
                                     <option @if ($lead->status_id == $sts->id) selected @endif value="{{ $sts->id }}">
-                                        {{ ucfirst($sts->type) }}</option>
+                                        {{ $sts->type }}</option>
                                 @empty
                                     <option value="">--</option>
                                 @endforelse
@@ -156,7 +163,7 @@ $addProductPermission = user()->permission('add_product');
                             <x-forms.label fieldId="selectProduct" :fieldLabel="__('app.menu.products')" >
                             </x-forms.label>
                             <x-forms.input-group>
-                                <select class="form-control select-picker" data-live-search="true" data-size="8"  name="product_id[]" multiple>
+                                <select class="form-control select-picker" data-live-search="true" data-size="8"  name="product_id[]" multiple  id="add-products" title="{{ __('app.menu.selectProduct') }}">
                                     @foreach ($products as $item)
                                         <option @if(in_array($item->id, $productIds)) selected @endif data-content="{{ $item->name }}" value="{{ $item->id }}">
                                             {{ $item->name }}</option>
@@ -164,7 +171,7 @@ $addProductPermission = user()->permission('add_product');
                                 </select>
                                 @if ($addProductPermission == 'all' || $addProductPermission == 'added')
                                     <x-slot name="append">
-                                        <a href="{{ route('products.create') }}" data-redirect-url="{{ url()->full() }}"
+                                        <a href="{{ route('products.create') }}" data-redirect-url="no"
                                             class="btn btn-outline-secondary border-grey openRightModal"
                                             data-toggle="tooltip" data-original-title="{{ __('app.add').' '.__('modules.dashboard.newproduct') }}">@lang('app.add')</a>
                                     </x-slot>
@@ -216,24 +223,24 @@ $addProductPermission = user()->permission('add_product');
 
                     <div class="col-lg-3 col-md-6">
                         <x-forms.text :fieldLabel="__('modules.stripeCustomerAddress.state')" fieldName="state"
-                            fieldId="state" fieldPlaceholder="" :fieldValue="$lead->state" />
+                            fieldId="state" :fieldPlaceholder="__('placeholders.state')" :fieldValue="$lead->state" />
                     </div>
 
                     <div class="col-lg-3 col-md-6">
                         <x-forms.text :fieldLabel="__('modules.stripeCustomerAddress.city')" fieldName="city"
-                            fieldId="city" fieldPlaceholder="" :fieldValue="$lead->city" />
+                            fieldId="city" :fieldPlaceholder="__('placeholders.city')" />
                     </div>
 
                     <div class="col-lg-3 col-md-6">
                         <x-forms.text :fieldLabel="__('modules.stripeCustomerAddress.postalCode')"
-                            fieldName="postal_code" fieldId="postal_code" fieldPlaceholder=""
+                            fieldName="postal_code" fieldId="postal_code" :fieldPlaceholder="__('placeholders.postalCode')"
                             :fieldValue="$lead->postal_code" />
                     </div>
 
                     <div class="col-md-12">
                         <div class="form-group my-3">
                             <x-forms.textarea class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.address')"
-                                fieldName="address" fieldId="address" fieldPlaceholder="e.g. Rocket Road"
+                                fieldName="address" fieldId="address" :fieldPlaceholder="__('placeholders.address')"
                                 :fieldValue="$lead->address">
                             </x-forms.textarea>
                         </div>
@@ -260,12 +267,12 @@ $addProductPermission = user()->permission('add_product');
 <script>
     $(document).ready(function() {
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         $('#save-lead-form').click(function() {
             const url = "{{ route('leads.update', [$lead->id]) }}";
@@ -275,6 +282,7 @@ $addProductPermission = user()->permission('add_product');
                 type: "POST",
                 disableButton: true,
                 blockUI: true,
+                file: true,
                 buttonSelector: "#save-lead-form",
                 data: $('#save-lead-data-form').serialize(),
                 success: function(response) {
@@ -375,6 +383,8 @@ $addProductPermission = user()->permission('add_product');
                 }
             });
         });
+
+        <x-forms.custom-field-filejs/>
 
         init(RIGHT_MODAL);
     });

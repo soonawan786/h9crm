@@ -13,6 +13,17 @@ use Yajra\DataTables\Services\DataTable;
 class FaqDataTable extends BaseDataTable
 {
 
+    private $editFaqPermission;
+    private $viewFaqPermission;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->editFaqPermission = user()->permission('edit_admin_faq');
+        $this->viewFaqPermission = user()->permission('view_admin_faq');
+    }
+
     /**
      * Build DataTable class.
      *
@@ -21,6 +32,7 @@ class FaqDataTable extends BaseDataTable
      */
     public function dataTable($query)
     {
+
         return datatables()
             ->eloquent($query)
             ->addIndexColumn()
@@ -32,27 +44,36 @@ class FaqDataTable extends BaseDataTable
             })
             ->addColumn('action', function ($row) {
                 $action = '<div class="task_view">
-                <div class="dropdown">
-                    <a class="task_view_more d-flex align-items-center justify-content-center dropdown-toggle" type="link" id="dropdownMenuLink-' . $row->id . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="icon-options-vertical icons"></i>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink-' . $row->id . '" tabindex="0">
+                <div class="dropdown">';
+
+                if ($this->viewFaqPermission == 'all') {
+                    $action .= '<a class="task_view_more d-flex align-items-center justify-content-center dropdown-toggle" type="link" id="dropdownMenuLink-' . $row->id . '" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="icon-options-vertical icons"></i>
+                        </a>';
+                }
+
+                if ($this->editFaqPermission == 'all') {
+                    $action .= '<div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink-' . $row->id . '" tabindex="0">
                         <a class="dropdown-item openRightModal" href="' . route('superadmin.faqs.edit', $row->id) . '" >
                             <i class="fa fa-edit mr-2"></i>
                             ' . trans('app.edit') . '
-                        </a>
-                        <a class="dropdown-item delete-table-row" href="javascript:;" data-toggle="tooltip"  data-faq-id="' . $row->id . '">
-                            <i class="fa fa-trash mr-2"></i>
-                            ' . trans('app.delete') . '
-                        </a>
-                    </div>
+                        </a>';
+                }
+
+                if ($this->editFaqPermission == 'all') {
+                    $action .= ' <a class="dropdown-item delete-table-row" href="javascript:;" data-toggle="tooltip"  data-faq-id="' . $row->id . '">
+                        <i class="fa fa-trash mr-2"></i>
+                        ' . trans('app.delete') . '
+                    </a>';
+                }
+
+                        $action .= '</div>
                 </div>
             </div>';
                 return $action;
             })
             ->rawColumns(['action', 'description']);
     }
-
 
     /**
      * Get query source of dataTable.
@@ -113,16 +134,6 @@ class FaqDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'SuperAdmin_Faq_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

@@ -3,7 +3,7 @@
         <x-form id="save-bankaccount-data-form">
             <div class="add-client bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
-                    @lang('app.add') @lang('app.menu.bankaccount')</h4>
+                    @lang('app.menu.addBankAccount')</h4>
                 <div class="row p-20">
                     <div class="col-md-12">
                         <div class="form-group">
@@ -35,8 +35,8 @@
                     </div>
 
                     <div class="col-md-4 accountNumber">
-                        <x-forms.number fieldId="account_number" :fieldLabel="__('modules.bankaccount.accountNumber')" fieldName="account_number"
-                            :fieldPlaceholder="__('placeholders.bankaccount.accountNumber')" fieldRequired="true"></x-forms.number>
+                        <x-forms.text fieldId="account_number" :fieldLabel="__('modules.bankaccount.accountNumber')" fieldName="account_number"
+                            :fieldPlaceholder="__('placeholders.bankaccount.accountNumber')" fieldRequired="true"></x-forms.text>
                     </div>
 
                     <div class="col-md-4 accountType">
@@ -82,7 +82,7 @@
                     </div>
 
                     <div class="col-md-12 bankLogo">
-                        <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2"
+                        <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2"
                             :fieldLabel="__('modules.bankaccount.bankLogo')" fieldName="bank_logo"
                             fieldId="bank_logo" :popover="__('modules.themeSettings.logoSize')">
                         </x-forms.file>

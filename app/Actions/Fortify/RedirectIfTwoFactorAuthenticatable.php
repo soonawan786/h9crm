@@ -3,6 +3,7 @@
 namespace App\Actions\Fortify;
 
 use App\Events\TwoFactorCodeEvent;
+use GuzzleHttp\Client;
 use Illuminate\Auth\Events\Failed;
 use Illuminate\Contracts\Auth\StatefulGuard;
 use Illuminate\Validation\ValidationException;
@@ -135,6 +136,26 @@ class RedirectIfTwoFactorAuthenticatable
      */
     protected function twoFactorChallengeResponse($request, $user)
     {
+        // Check for google reCaptcha validation
+        if (global_setting()->google_recaptcha_status == 'active') {
+            $gRecaptchaResponseInput = 'g-recaptcha-response';
+            $gRecaptchaResponse = $request->{$gRecaptchaResponseInput};
+
+            $gRecaptchaResponse = global_setting()->google_recaptcha_v2_status == 'active' ? $gRecaptchaResponse : $request->g_recaptcha;
+
+            if (is_null($gRecaptchaResponse)) {
+                return $this->googleRecaptchaMessage();
+            }
+
+            $secret = global_setting()->google_recaptcha_v2_status == 'active' ? global_setting()->google_recaptcha_v2_secret_key : global_setting()->google_recaptcha_v3_secret_key;
+
+            $validateRecaptcha = $this->validateGoogleRecaptcha($gRecaptchaResponse, $secret);
+
+            if (!$validateRecaptcha) {
+                return $this->googleRecaptchaMessage();
+            }
+        }
+
         switch ($user->two_fa_verify_via) {
         case 'email':
             $twoFaVerifyVia = 'email';
@@ -165,6 +186,34 @@ class RedirectIfTwoFactorAuthenticatable
                     'two_factor' => true,
                     'authenticate_via' => $twoFaVerifyVia,
                 ]) : redirect()->route('two-factor.login');
+    }
+
+    public function validateGoogleRecaptcha($googleRecaptchaResponse, $secret)
+    {
+        $secret = global_setting()->google_recaptcha_v2_status == 'active' ? global_setting()->google_recaptcha_v2_secret_key : global_setting()->google_recaptcha_v3_secret_key;
+
+        $client = new Client();
+        $response = $client->post(
+            'https://www.google.com/recaptcha/api/siteverify',
+            [
+                'form_params' => [
+                    'secret' => $secret,
+                    'response' => $googleRecaptchaResponse,
+                    'remoteip' => $_SERVER['REMOTE_ADDR']
+                ]
+            ]
+        );
+
+        $body = json_decode((string)$response->getBody());
+
+        return $body->success;
+    }
+
+    public function googleRecaptchaMessage()
+    {
+        throw ValidationException::withMessages([
+            'g-recaptcha-response' => [__('auth.recaptchaFailed')],
+        ]);
     }
 
 }

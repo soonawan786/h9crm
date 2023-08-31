@@ -39,10 +39,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|UserchatFile whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|UserchatFile whereUserId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|UserchatFile whereUsersChatId($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|UserchatFile whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class UserchatFile extends BaseModel
 {

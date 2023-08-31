@@ -6,6 +6,7 @@ use App\Models\CustomField;
 use App\Models\CustomFieldGroup;
 use App\Models\LeadCustomForm;
 use App\Models\TicketCustomForm;
+use Illuminate\Support\Facades\DB;
 
 class CustomFieldsObserver
 {
@@ -110,6 +111,15 @@ class CustomFieldsObserver
             $ticketField->field_name = $customField->name;
             $ticketField->field_type = $customField->type;
             $ticketField->save();
+        }
+
+        // remove select values that is deleted from custom field
+        if ($customField->type == 'select')
+        {
+            $valuesIndexCount = count(json_decode($customField->values)) - 1;
+
+            // delete values that is greater than the index count
+            DB::table('custom_fields_data')->where('custom_field_id', $customField->id)->where('value', '>', $valuesIndexCount)->delete();
         }
 
     }

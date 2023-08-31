@@ -28,17 +28,20 @@ $iteration = 0;
                         @endphp
                         <td class="px-2">
                             @if ($day == 'Leave')
-                                <span data-toggle="tooltip" data-original-title="@lang('modules.attendance.leave')"><i
-                                        class="fa fa-plane-departure text-warning"></i></span>
+                                <span data-toggle="tooltip" data-original-title="{{ $leaveReasons[$userId][$key2] }}"><i
+                                class="fa fa-plane-departure text-red"></i></span>
+                            @elseif ($day == 'Day Off')
+                                <span data-toggle="tooltip" data-original-title="@lang('modules.attendance.dayOff')"><i
+                                        class="fa fa-calendar-week text-red"></i></span>
                             @elseif ($day == 'Half Day')
                                 @if ($attendanceDate->isFuture())
                                     <span data-toggle="tooltip" data-original-title="@lang('modules.attendance.halfDay')"><i
-                                        class="fa fa-star-half-alt text-warning"></i></span>                        
+                                        class="fa fa-star-half-alt text-red"></i></span>                        
                                 @else
                                     <a href="javascript:;" @if ($addAttendancePermission == 'all') class="edit-attendance" @endif data-user-id="{{ $userId }}"
                                             data-attendance-date="{{ $key2 }}">
                                         <span data-toggle="tooltip" data-original-title="@lang('modules.attendance.halfDay')"><i
-                                                class="fa fa-star-half-alt text-warning"></i></span>
+                                                class="fa fa-star-half-alt text-red"></i></span>
                                     </a>
                                 @endif
                             @elseif ($day == 'Absent')

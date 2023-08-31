@@ -4,12 +4,10 @@ namespace App\Observers;
 
 use App\Events\LeadEvent;
 use App\Models\Lead;
-use App\Models\Notification as ModelsNotification;
 use App\Notifications\LeadAgentAssigned;
 use App\Models\UniversalSearch;
 use App\Models\User;
 use Illuminate\Support\Facades\Notification;
-use Illuminate\Support\Str;
 
 class LeadObserver
 {
@@ -47,6 +45,15 @@ class LeadObserver
 
     public function created(Lead $lead)
     {
+        // Save lead note
+        if (!empty($lead->note)) {
+            $lead->note()->create([
+                'lead_id' => $lead->id,
+                'title' => 'Note',
+                'details' => $lead->note
+            ]);
+        }
+
         if (!isRunningInConsoleOrSeeding()) {
             if (request('agent_id') != '') {
                 event(new LeadEvent($lead, $lead->leadAgent, 'LeadAgentAssigned'));

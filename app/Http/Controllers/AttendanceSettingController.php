@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helper\Reply;
 use App\Http\Requests\AttendanceSetting\UpdateAttendanceSetting;
 use App\Models\AttendanceSetting;
+use App\Models\Company;
 use App\Models\EmployeeShift;
 use App\Models\Holiday;
 use App\Models\Role;
@@ -19,7 +20,7 @@ class AttendanceSettingController extends AccountBaseController
         $this->pageTitle = 'app.menu.attendanceSettings';
         $this->activeSettingMenu = 'attendance_settings';
         $this->middleware(function ($request, $next) {
-            abort_403(user()->permission('manage_attendance_setting') !== 'all');
+            abort_403(!(user()->permission('manage_attendance_setting') == 'all' && in_array('attendance', user_modules())));
 
             return $next($request);
         });

@@ -37,6 +37,9 @@ class DatabaseSeeder extends Seeder
         $this->call(FrontSeeder::class);
         $this->call(GlobalCurrencyFormatSetting::class);
 
+        // WORKSUITESAAS
+        $this->call(SuperAdminRoleTableSeeder::class);
+
         if (!App::environment('codecanyon')) {
 
             // WORKSUITESAAS
@@ -71,10 +74,11 @@ class DatabaseSeeder extends Seeder
 
                 $this->call(EmployeePermissionSeeder::class, false, ['companyId' => $company->id]);
             }
+
         }
 
         if (!App::environment('codecanyon')) {
-            Artisan::call('sync-user-permissions all fresh');
+            Artisan::call('sync-user-permissions all');
         }
 
         config(['app.seeding' => false]);

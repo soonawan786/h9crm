@@ -9,7 +9,7 @@
         @forelse($leadSources as $key => $source)
             <tr class="row{{ $source->id }}">
                 <td>{{ ($key+1) }}</td>
-                <td>{{ mb_ucwords($source->type) }}</td>
+                <td>{{ $source->type }}</td>
                 <td class="text-right">
                     <div class="task_view">
                         <a href="javascript:;" data-source-id="{{ $source->id }}"

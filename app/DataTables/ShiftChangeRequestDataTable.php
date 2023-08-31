@@ -63,7 +63,7 @@ class ShiftChangeRequestDataTable extends BaseDataTable
                 return $row->shiftSchedule->date->translatedFormat(company()->date_format);
             })
             ->editColumn('status', function ($row) {
-                return ucfirst($row->status);
+                return $row->status;
             })
             ->addIndexColumn()
             ->setRowId(function ($row) {
@@ -172,16 +172,6 @@ class ShiftChangeRequestDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'shift_change_request_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

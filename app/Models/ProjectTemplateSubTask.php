@@ -33,7 +33,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ProjectTemplateSubTask extends BaseModel
 {
 
-    protected $dates = ['start_date', 'due_date'];
+    protected $casts = [
+        'start_date' => 'datetime',
+        'due_date' => 'datetime',
+    ];
 
     public function task(): BelongsTo
     {

@@ -286,7 +286,7 @@ function calculateTotal() {
             .find("select.type option:selected")
             .each(function (index) {
                 itemTax[index] = $(this).data("rate");
-                itemTaxName[index] = $(this).text();
+                itemTaxName[index] = $(this).data('tax-text');
             });
         var itemTaxId = $(this).closest(".item-row").find("select.type").val();
 
@@ -447,4 +447,8 @@ $(document).ready(function () {
             }
         });
     }
+});
+
+$('#mobile_menu_collapse').on('click', '.dropdown-item', function() {
+    $("#dropdownMenuLink").dropdown("toggle");
 });

@@ -8,7 +8,7 @@
         <x-form id="updateAppreciationType" method="PUT">
             <div class="add-client bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
-                    @lang('app.edit') @lang('modules.appreciations.appreciationType')</h4>
+                    @lang('modules.appreciations.editAppreciationType')</h4>
                 <div class="row p-20">
                     <div class="col-lg-12">
                         <div class="row">
@@ -28,9 +28,9 @@
                                     data-live-search="true">
                                         <option value="">--</option>
                                         @foreach ($icons as $item)
-                                            <option data-icon="{{ $item->icon }}"  {{ ($appreciationType->award_icon_id == $item->id) ? 'selected' : '' }} data-content="<i class='bi bi-{{ $item->icon }}'></i> {{ $item->title }}" value="{{ $item->id }}">
-                                                {{ mb_ucwords($item->title) }}
-                                            </option>
+                                        <option data-icon="{{ $item->icon }}"  {{ ($appreciationType->award_icon_id == $item->id) ? 'selected' : '' }} data-content="<i class='bi bi-{{ $item->icon }}'></i> {{ $item->title }}" value="{{ $item->id }}">
+                                            {{ $item->title }}
+                                        </option>
                                         @endforeach
                                     </select>
                                 </x-forms.input-group>
@@ -53,8 +53,7 @@
                             </div>
                             <div class="col-sm-2">
                                 <div class="position-relative icon-preview d-flex d-none mt-5">
-                                    <i class="bi bi-{{ $appreciationType->awardIcon->icon }} f-15 text-white position-absolute appreciation-icon"></i>
-                                    <i class="bi bi-hexagon-fill fs-40" style="color:{{ $appreciationType->color_code }};"></i>
+
                                 </div>
                             </div>
 
@@ -99,16 +98,21 @@
         });
 
         $('#icon, #colorselector').on('change', function(e) {
+            showIconPreview();
+        });
+
+        function showIconPreview() {
             var iconData = $('#icon').find(':selected').data('icon');
 
             var color = $('#colorselector').val();
 
             $('.icon-preview').show();
-            var iconDataBackground = '<i class="bi bi-'+iconData+' f-15 text-white position-absolute appreciation-icon"></i>'+
-                '<i class="bi bi-hexagon-fill fs-40" style="color: '+color+'; font-size:40px !important;"></i>';
 
+            var iconDataBackground = `<span class="align-items-center d-inline-flex height-40 justify-content-center rounded width-40" style="background-color: ${color}20;">
+                    <i class="bi bi-${iconData} f-15 text-white appreciation-icon" style="color: ${color}  !important"></i>
+                </span>`;
             $('.icon-preview').html(iconDataBackground);
-        });
+        }
 
         $('#save-appreciation-type').click(function() {
             const url = "{{ route('awards.update', $appreciationType->id) }}";
@@ -133,6 +137,8 @@
                 }
             });
         });
+
+        showIconPreview();
 
         init(RIGHT_MODAL);
     });

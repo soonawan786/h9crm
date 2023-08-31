@@ -20,13 +20,13 @@ class ProfileController extends AccountBaseController
     public function update(UpdateProfile $request, $id)
     {
         // For profile image to be uploaded locally
-        config(['filesystems.default' => 'local']);
         $user = User::withoutGlobalScope(ActiveScope::class)->findOrFail($id);
         $user->name = $request->name;
         $user->email = $request->email;
         $user->salutation = $request->salutation;
         $user->gender = $request->gender;
-        $user->country_id = $request->phone_code;
+        $user->country_id = $request->country_id;
+        $user->country_phonecode = $request->country_phonecode;
         $user->mobile = $request->mobile;
         $user->email_notifications = $request->email_notifications;
         $user->locale = $request->locale;
@@ -40,7 +40,7 @@ class ProfileController extends AccountBaseController
 
         if ($request->hasFile('image')) {
             Files::deleteFile($user->image, 'avatar');
-            $user->image = Files::upload($request->image, 'avatar', 300);
+            $user->image = Files::uploadLocalOrS3($request->image, 'avatar', 300);
         }
 
         if ($request->has('telegram_user_id')) {
@@ -103,6 +103,12 @@ class ProfileController extends AccountBaseController
         $employee->address = $request->address;
         $employee->slack_username = $request->slack_username;
         $employee->about_me = $request->about_me;
+
+        if (in_array('employee', user_roles())) {
+            $employee->marital_status = $request->marital_status;
+            $employee->marriage_anniversary_date = $request->marriage_anniversary_date ? Carbon::createFromFormat($this->company->date_format, $request->marriage_anniversary_date)->format('Y-m-d') : null;
+        }
+
         $employee->save();
     }
 

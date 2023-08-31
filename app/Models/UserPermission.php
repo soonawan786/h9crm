@@ -27,8 +27,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|UserPermission wherePermissionTypeId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|UserPermission whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|UserPermission whereUserId($value)
- * @mixin \Eloquent
  * @property-read \App\Models\User $user
+ * @mixin \Eloquent
  */
 class UserPermission extends BaseModel
 {

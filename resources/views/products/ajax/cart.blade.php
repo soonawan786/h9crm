@@ -20,14 +20,26 @@
 <!-- CREATE INVOICE START -->
 <div class="bg-white rounded b-shadow-4 create-inv">
     <!-- HEADING START -->
-    <div class="px-lg-4 px-md-4 px-3 py-3">
-        <h4 class="mb-0 f-21 font-weight-normal text-capitalize"><i class="bi bi-cart3"></i> @lang('app.cart')</h4>
+    <div class="d-block d-lg-flex d-md-flex justify-content-between action-bar">
+        <div class="px-lg-4 px-md-4 px-3 py-3">
+            <h4 class="mb-0 f-21 font-weight-normal text-capitalize"><i class="bi bi-cart3"></i> @lang('app.cart')</h4>
+        </div>
+
+        <div class="px-lg-4 px-md-4 px-3 py-3 cart_empty">
+            <x-forms.link-primary :link="route('products.empty_cart')" class="empty-cart"
+                icon="trash">
+                @lang('app.emptyCart')
+             </x-forms.link-primary>
+
+
+        </div>
+        <input type ="hidden" name="user_id" class="userId" value={{ user()->id }}>
     </div>
+
     <!-- HEADING END -->
     <hr class="m-0 border-top-grey">
     <!-- FORM START -->
     <x-form class="c-inv-form" id="saveInvoiceForm">
-
         @if (count($products) == 0)
             <div class="row px-lg-4 px-md-4 px-3 py-5">
                 <div class="col-sm-12">
@@ -39,7 +51,7 @@
              <x-form-actions class="c-inv-btns d-block d-lg-flex d-md-flex">
                 <div class="d-flex mb-3 mb-lg-0 mb-md-0">
 
-                    <x-forms.button-cancel :link="route('products.index')" class="border-0 mr-3">@lang('app.cancel')
+                    <x-forms.button-cancel :link="route('products.index')" class="border-0 mr-3">@lang('app.view') @lang('app.menu.products')
                     </x-forms.button-cancel>
 
                 </div>
@@ -55,6 +67,7 @@
                     <span class="f-21 f-w-500 text-dark" id="basic-addon1">
                         @lang('app.order')#{{ is_null($lastOrder) ? 1 : $lastOrder }}
                     </span>
+                    <input type ="hidden" name="order_number" value={{ is_null($lastOrder) ? 1 : $lastOrder }}>
                 </div>
                 <!-- INVOICE NUMBER END -->
 
@@ -67,12 +80,12 @@
                 <div class="row">
                     <div class="col-10">
                         <h4 class="card-title f-15 f-w-500 text-darkest-grey mb-0">
-                            {{ mb_ucfirst(user()->name) }}
+                            {{ user()->name }}
                         </h4>
                     </div>
                 </div>
                 <p class="f-13 font-weight-normal text-dark-grey mb-0">
-                    {{ mb_ucwords(user()->clientDetails->company_name) }}
+                    {{ user()->clientDetails->company_name }}
                 </p>
                 <p class="card-text f-12 text-lightest">@lang('app.lastLogin')
 
@@ -104,7 +117,7 @@
                                             </td>
                                         @endif
                                         <td width="10%" class="border-0" align="right">
-                                            @lang("modules.invoices.qty")
+                                            @lang('modules.invoices.qty')
                                         </td>
                                         <td width="10%" class="border-0" align="right">
                                             @lang("modules.invoices.unitPrice")</td>
@@ -116,10 +129,11 @@
                                     </tr>
                                     <tr>
                                         <td class="border-bottom-0 btrr-mbl btlr">
-                                            <input hidden name="item_ids[]" value="{{ $item->id }}">
+                                            <input hidden name="item_ids[]" class= "product_id" value="{{ $item->product_id }}">
+                                            <input hidden name ="product_unit_id" value="{{ $item->product->unit_id }}">
                                             <input type="text" class="f-14 border-0 w-100 item_name bg-additional-grey" readonly
                                                 name="item_name[]" placeholder="@lang('modules.expenses.itemName')"
-                                                value="{{ $item->name }}">
+                                                value="{{ $item->item_name }}">
                                         </td>
                                         @if ($invoiceSetting->hsn_sac_code_show)
                                             <td class="border-bottom-0">
@@ -132,36 +146,40 @@
                                         <td class="border-bottom-0 d-block d-lg-none d-md-none">
                                             <input type="text" readonly class="f-14 border-0 w-100 mobile-description bg-additional-grey"
                                                 placeholder="@lang('placeholders.invoices.description')"
-                                                name="item_summary[]" value="{{ strip_tags($item->description) }}">
+                                                name="item_summary[]" value="{{ strip_tags($item->item_summary) }}">
                                         </td>
+
                                         <td class="border-bottom-0">
-                                            <input type="number" min="1" class="f-14 border-0 w-100 text-right quantity"
-                                                value="{{ $quantityArray[$item->id] }}" name="quantity[]">
+                                            <input type="number" min="1" class="f-14 border-0 w-100 text-right quantity mt-3"
+                                                value="{{ $item->quantity }}" id="quantity" name="quantity[]">
+                                            <span class="text-dark-grey float-right border-0 f-12">{{ $item->unit->unit_type }}</span>
+                                            <input type="hidden" name="product_id[]" value="{{ $item->product_id }}">
+                                            <input type="hidden" name="unit_id[]" value="{{ $item->unit_id }}">
                                         </td>
                                         <td class="border-bottom-0">
                                             <input type="number" min="1"
                                                 class="f-14 border-0 w-100 text-right cost_per_item bg-additional-grey" placeholder="0.00"
-                                                value="{{ $item->price }}" name="cost_per_item[]" readonly>
+                                                value="{{ $item->unit_price }}" name="cost_per_item[]" readonly>
                                         </td>
                                         <td class="border-bottom-0">
                                             <div class="select-others height-35 rounded border-0">
                                                 <select id="multiselect" disabled name="taxes[{{ $key }}][]"
                                                     multiple="multiple"
-                                                    class="select-picker type customSequence border-0 bg-additional-grey" data-size="3">
+                                                    class="select-picker type customSequence border-0 bg-additional-grey tax" data-size="3">
                                                     @foreach ($taxes as $tax)
-                                                        <option data-rate="{{ $tax->rate_percent }}"
-                                                            @if (isset($item->taxes) && array_search($tax->id, json_decode($item->taxes)) !== false) selected @endif value="{{ $tax->id }}">
-                                                            {{ strtoupper($tax->tax_name) }}:
-                                                            {{ $tax->rate_percent }}%</option>
+                                                            <option data-rate="{{ $tax->rate_percent }}"
+                                                                @if (isset($item->product->taxes) && array_search($tax->id, json_decode($item->product->taxes)) !== false) selected @endif value="{{ $tax->id }}">
+                                                                {{ $tax->tax_name }}:
+                                                                {{ $tax->rate_percent }}%</option>
                                                     @endforeach
                                                 </select>
                                             </div>
                                         </td>
                                         <td rowspan="2" align="right" valign="top" class="bg-amt-grey btrr-bbrr">
                                             <span
-                                                class="amount-html">{{ number_format((float) ($quantityArray[$item->id] * $item->price), 2, '.', '') }}</span>
+                                                class="amount-html">{{ number_format((float) ($item->amount), 2, '.', '') }}</span>
                                             <input type="hidden" class="amount" name="amount[]"
-                                                value="{{ number_format((float) ($quantityArray[$item->id] * $item->price), 2, '.', '') }}">
+                                                value="{{ number_format((float) ($item->amount), 2, '.', '') }}">
                                         </td>
                                     </tr>
                                     <tr class="d-none d-md-block d-lg-table-row">
@@ -172,8 +190,8 @@
                                                 placeholder="@lang('placeholders.invoices.description')">{{ strip_tags($item->description) }}</textarea>
                                         </td>
                                         <td class="border-left-0">
-                                            <input type="file" class="dropify" disabled name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg" data-messages-default="test" data-height="70" data-default-file="{{ $item->image_url }}" data-show-remove="false" />
-                                            <input type="hidden" name="invoice_item_image_url[]" value="{{ $item->image_url }}">
+                                            <input type="file" class="dropify" disabled name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg bmp" data-messages-default="test" data-height="70" data-default-file="{{ $item->product->image_url }}" data-show-remove="false" />
+                                            <input type="hidden" name="invoice_item_image_url[]" value="{{ $item->product->image_url }}">
                                         </td>
                                     </tr>
                                 </tbody>
@@ -186,6 +204,7 @@
                         </div>
                     </div>
                     <!-- DESKTOP DESCRIPTION TABLE END -->
+
                 @endforeach
             </div>
 
@@ -358,7 +377,7 @@
         });
 
         $('#saveInvoiceForm').on('click', '.remove-item', function() {
-            $(this).closest('.item-row').fadeOut(300, function() {
+            $(this).closest('.item-row').fadeOut(100, function() {
                 $(this).remove();
                 $('select.customSequence').each(function(index) {
                     $(this).attr('name', 'taxes[' + index + '][]');
@@ -376,10 +395,27 @@
             $(this).closest('.item-row').find('.amount').val(decimalupto2(amount));
             $(this).closest('.item-row').find('.amount-html').html(decimalupto2(amount));
 
+            var productID = $(this).closest('.item-row').find('.product_id').val();
+
+            $.easyAjax({
+                url: "{{ route('products.add_cart_item') }}",
+                container: '#saveInvoiceForm',
+                type: "POST",
+                blockUI: true,
+                redirect: true,
+                buttonSelector: ".save-form",
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    productID: productID,
+                    quantity: quantity,
+                    cartType: "1",
+                },
+            })
+
             calculateTotal();
         });
 
-        $('#saveInvoiceForm').on('change', '.type, #discount_type', function() {
+        $('#saveInvoiceForm').on('change', '.type, #discount_type','.quantity', function() {
             var quantity = $(this).closest('.item-row').find('.quantity').val();
             var perItemCost = $(this).closest('.item-row').find('.cost_per_item').val();
             var amount = (quantity * perItemCost);
@@ -399,6 +435,28 @@
             $(this).closest('.item-row').find('.amount-html').html(decimalupto2(amount));
 
             calculateTotal();
+        });
+
+        $('body').on('click', '.empty-cart', function() {
+            let id = $('.userId').val();
+            var url = "{{ route('products.remove_cart_item', ':id') }}";
+            url = url.replace(':id', id);
+            $.easyAjax({
+                url: url,
+                container: '#saveInvoiceForm',
+                type: "POST",
+                blockUI: true,
+                data: {
+                    _token: "{{ csrf_token() }}",
+                    type: "all_data",
+                },
+                success: function(response) {
+                   if(response.productItems == 0){
+                        $('.cart_empty').hide();
+                    }
+
+                }
+            });
         });
 
         calculateTotal();

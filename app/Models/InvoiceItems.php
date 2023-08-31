@@ -37,9 +37,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|InvoiceItems whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|InvoiceItems whereUnitPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder|InvoiceItems whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read \App\Models\InvoiceItemImage|null $invoiceItemImage
  * @property-read mixed $tax_list
+ * @property int|null $product_id
+ * @property int|null $unit_id
+ * @property-read \App\Models\UnitType|null $unit
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceItems whereProductId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|InvoiceItems whereUnitId($value)
+ * @property-read \App\Models\Invoice $invoice
+ * @mixin \Eloquent
  */
 class InvoiceItems extends BaseModel
 {
@@ -62,7 +68,7 @@ class InvoiceItems extends BaseModel
     {
         return $this->belongsTo(UnitType::class, 'unit_id');
     }
-    
+
     public function getTaxListAttribute()
     {
         $invoiceItem = $this;
@@ -83,6 +89,11 @@ class InvoiceItems extends BaseModel
         }
 
         return $taxes;
+    }
+
+    public function invoice(): BelongsTo
+    {
+        return $this->belongsTo(Invoice::class, 'invoice_id');
     }
 
 }

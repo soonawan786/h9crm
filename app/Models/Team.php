@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * App\Models\Team
  *
- * @mixin \Eloquent
  * @property int $id
  * @property string $team_name
  * @property \Illuminate\Support\Carbon|null $created_at
@@ -36,6 +35,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Team whereCompanyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Team whereParentId($value)
+ * @mixin \Eloquent
  */
 class Team extends BaseModel
 {

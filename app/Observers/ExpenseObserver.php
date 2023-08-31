@@ -46,6 +46,7 @@ class ExpenseObserver
 
 
         if (!isRunningInConsoleOrSeeding()) {
+
             if(!is_null($expense->bank_account_id) && $expense->status == 'approved'){
 
                 $bankAccount = BankAccount::find($expense->bank_account_id);
@@ -70,13 +71,16 @@ class ExpenseObserver
 
     public function updating(Expense $expense)
     {
+
         if (!isRunningInConsoleOrSeeding()) {
+
             if ($expense->isDirty('status') && $expense->status == 'approved') {
                 $expense->approver_id = user()->id;
             }
         }
 
         if (!isRunningInConsoleOrSeeding()) {
+
             if(!is_null($expense->bank_account_id) && $expense->status == 'approved'){
 
                 if($expense->isDirty('bank_account_id'))
@@ -206,7 +210,7 @@ class ExpenseObserver
             if($expense->isDirty('status') && $expense->status != 'approved')
             {
                 $bankAccount = BankAccount::find($expense->bank_account_id);
-                
+
                 if(!is_null($bankAccount)){
                     $bankBalance = $bankAccount->bank_balance;
 

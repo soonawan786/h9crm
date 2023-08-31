@@ -54,6 +54,11 @@ class UpdateTask extends CoreRequest
             'priority' => 'required'
         ];
 
+        if(in_array('client', user_roles()))
+        {
+            $rules['project_id'] = 'required';
+        }
+
         if(!$this->has('without_duedate'))
         {
             if(is_null($milestoneEndDate))

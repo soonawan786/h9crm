@@ -64,7 +64,7 @@ class CreditNoteController extends AccountBaseController
         abort_if(!request()->has('invoice'), 404);
 
         $this->invoiceId = $id = request('invoice');
-        $this->creditNote = Invoice::with(['items', 'project', 'client', 'unit'])->findOrFail($id);
+        $this->creditNote = Invoice::with(['items', 'project', 'client'])->findOrFail($id);
 
 
         abort_if(!in_array($this->creditNote->status, ['paid', 'partial']), 404);
@@ -78,7 +78,7 @@ class CreditNoteController extends AccountBaseController
         $this->products = Product::all();
         $this->zero = '';
         $this->invoiceSetting = invoice_setting();
-        $this->pageTitle = __('app.add') . ' ' . __('app.menu.credit-note');
+        $this->pageTitle = __('app.addCreditNote');
 
         if (strlen($this->lastCreditNote) < $this->creditNoteSetting->credit_note_digit) {
             $condition = $this->creditNoteSetting->credit_note_digit - strlen($this->lastCreditNote);
@@ -131,6 +131,8 @@ class CreditNoteController extends AccountBaseController
         $tax = $request->taxes;
         $itemSummary = $request->item_summary;
         $invoice_item_image_url = $request->invoice_item_image_url;
+        $unitId = request()->unit_id;
+        $product = request()->product_id;
 
         foreach ($quantity as $qty) {
             if (!is_numeric($qty) && (intval($qty) < 1)) {
@@ -182,8 +184,6 @@ class CreditNoteController extends AccountBaseController
         $creditNote->total = round($request->total, 2);
         $creditNote->adjustment_amount = round($request->adjustment_amount, 2);
         $creditNote->currency_id = $request->currency_id;
-        $creditNote->unit_id = $request->unit_type_id;
-        $creditNote->note = trim_editor($request->note);
         $creditNote->save();
 
         if ($invoice) {
@@ -227,6 +227,8 @@ class CreditNoteController extends AccountBaseController
                     'credit_note_id' => $creditNote->id,
                     'item_name' => $item,
                     'type' => 'item',
+                    'unit_id' => (isset($unitId[$key]) && !is_null($unitId[$key])) ? $unitId[$key] : null,
+                    'product_id' => (isset($product[$key]) && !is_null($product[$key])) ? $product[$key] : null,
                     'hsn_sac_code' => (isset($hsn_sac_code[$key]) && !is_null($hsn_sac_code[$key])) ? $hsn_sac_code[$key] : null,
                     'item_summary' => $itemSummary[$key],
                     'quantity' => $quantity[$key],
@@ -256,6 +258,7 @@ class CreditNoteController extends AccountBaseController
 
     public function download($id)
     {
+        $this->invoiceSetting = invoice_setting();
         $this->viewPermission = user()->permission('view_invoices');
         $this->creditNote = CreditNotes::with('unit')->findOrFail($id);
 
@@ -349,7 +352,8 @@ class CreditNoteController extends AccountBaseController
 
         $pdf = app('dompdf.wrapper');
         $pdf->setOption('enable_php', true);
-        $pdf->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
 
         $pdf->loadView('credit-notes.pdf.' . $this->creditNoteSetting->template, $this->data);
 
@@ -419,7 +423,6 @@ class CreditNoteController extends AccountBaseController
         $creditNote->discount_type = $request->discount_type;
         $creditNote->total = round($request->total, 2);
         $creditNote->currency_id = $request->currency_id;
-        $creditNote->unit_id = $request->unit_type_id;
         $creditNote->adjustment_amount = round($request->adjustment_amount, 2);
         $creditNote->note = trim_editor($request->note);
         $creditNote->save();
@@ -593,7 +596,8 @@ class CreditNoteController extends AccountBaseController
         }
 
         foreach ($request->invoices as $invoice) {
-            if ($invoice['value'] !== '0') {
+
+            if ($invoice['value'] !== '0' && !is_null($invoice['value'])) {
                 $creditTotalAmount += (float)$invoice['value'];
 
                 $reqInvoice = Invoice::findOrFail($invoice['invoiceId']);

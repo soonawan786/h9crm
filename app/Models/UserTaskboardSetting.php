@@ -23,10 +23,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder|UserTaskboardSetting whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|UserTaskboardSetting whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|UserTaskboardSetting whereUserId($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|UserTaskboardSetting whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class UserTaskboardSetting extends BaseModel
 {

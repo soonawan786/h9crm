@@ -4,7 +4,7 @@ namespace App\Models\SuperAdmin;
 
 use App\Models\User;
 use App\Scopes\CompanyScope;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Observers\SuperAdmin\SupportTicketReplyObserver;
 
@@ -37,11 +37,13 @@ use App\Observers\SuperAdmin\SupportTicketReplyObserver;
  * @method static \Illuminate\Database\Eloquent\Builder|SupportTicketReply whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SupportTicketReply whereUserId($value)
  */
-class SupportTicketReply extends Model
+class SupportTicketReply extends BaseModel
 {
     use SoftDeletes;
 
     protected $dates = ['deleted_at'];
+
+    protected $casts = ['deleted_at'];
 
     protected static function boot()
     {

@@ -44,6 +44,7 @@
                             <textarea name="description" id="description-text" class="d-none"></textarea>
                         </div>
                     </div>
+                    <input type = "hidden" name = "mention_user_ids" id = "mentionUserId" class ="mention_user_ids">
 
                     <div class="col-lg-3 col-md-6">
                         <x-forms.datepicker fieldId="start_date" fieldRequired="true"
@@ -100,7 +101,7 @@
                                 <select class="form-control multiple-users" multiple name="user_id[]"
                                     id="selectAssignee2" data-live-search="true" data-size="8">
                                     @foreach ($clients as $item)
-                                        <x-user-option :user="$item" :pill="true"/>
+                                        <x-user-option :user="$item" :pill="true" :additionalText="$item->clientDetails->company_name" />
                                     @endforeach
                                 </select>
                             </x-forms.input-group>
@@ -161,11 +162,11 @@
                     </div>
                     <div class="col-lg-6 col-md-6">
                         <x-forms.text :fieldLabel="__('modules.events.eventLink')" fieldName="event_link"
-                            fieldId="event_link" fieldPlaceholder="https://www.example.com/" />
+                            fieldId="event_link" :fieldPlaceholder="__('placeholders.website')" />
                     </div>
 
                     <div class="col-lg-12">
-                        <x-forms.file-multiple class="mr-0" :fieldLabel="__('app.add') . ' ' .__('app.file')"
+                        <x-forms.file-multiple class="mr-0" :fieldLabel="__('app.menu.addFile')"
                             fieldName="file" fieldId="file-upload-dropzone" />
                             <input type="hidden" name="eventId" id="eventId">
                     </div>
@@ -200,11 +201,11 @@
             },
             paramName: "file",
             maxFilesize: DROPZONE_MAX_FILESIZE,
-            maxFiles: 10,
+            maxFiles: DROPZONE_MAX_FILES,
             autoProcessQueue: false,
             uploadMultiple: true,
             addRemoveLinks: true,
-            parallelUploads: 10,
+            parallelUploads: DROPZONE_MAX_FILES,
             acceptedFiles: DROPZONE_FILE_ALLOW,
             init: function() {
                 eventDropzone = this;
@@ -218,8 +219,30 @@
         eventDropzone.on('uploadprogress', function() {
             $.easyBlockUI();
         });
-        eventDropzone.on('completemultiple', function() {
+        eventDropzone.on('queuecomplete', function() {
             window.location.href = '{{ route("events.index") }}';
+        });
+        eventDropzone.on('removedfile', function () {
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).removeClass("has-error");
+            $(label).removeClass("is-invalid");
+        });
+        eventDropzone.on('error', function (file, message) {
+            eventDropzone.removeFile(file);
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).find(".help-block").remove();
+            var helpBlockContainer = $(grp);
+
+            if (helpBlockContainer.length == 0) {
+                helpBlockContainer = $(grp);
+            }
+
+            helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+            $(grp).addClass("has-error");
+            $(label).addClass("is-invalid");
+
         });
 
         $('#repeat-event').change(function() {
@@ -249,8 +272,9 @@
                 return selected + " {{ __('app.membersSelected') }} ";
             }
         });
+        const atValues = @json($userData);
 
-        quillImageLoad('#description');
+        quillMention(atValues, '#description');
 
         const dp1 = datepicker('#start_date', {
             position: 'bl',
@@ -278,6 +302,10 @@
         $('#save-event-form').click(function() {
             var note = document.getElementById('description').children[0].innerHTML;
             document.getElementById('description-text').value = note;
+            var mention_user_id = $('#description span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
+            $('#mentionUserId').val(mention_user_id.join(','));
 
             const url = "{{ route('events.store') }}";
 

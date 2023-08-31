@@ -158,14 +158,4 @@ class DiscussionDataTable extends BaseDataTable
         ];
     }
 
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'discussions_' .now()->format('Y-m-d-H-i-s');
-    }
-
 }

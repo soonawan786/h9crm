@@ -4,12 +4,17 @@ namespace App\Models\SuperAdmin;
 
 use App\Models\Company;
 use App\Models\OfflinePaymentMethod;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 
-class GlobalInvoice extends Model
+class GlobalInvoice extends BaseModel
 {
-    protected $dates = ['pay_date', 'next_pay_date'];
+
+    protected $casts = [
+        'pay_date' => 'datetime',
+        'next_pay_date' => 'datetime',
+    ];
+
     protected $appends = ['invoice_number'];
 
     protected $guarded = ['id'];
@@ -53,7 +58,6 @@ class GlobalInvoice extends Model
                 }
 
                 return str($invoiceNumber)->padLeft(2, '0');
-                // $invoiceNumber = $this->invoice_id;
             },
         );
     }

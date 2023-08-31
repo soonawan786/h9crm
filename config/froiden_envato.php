@@ -69,5 +69,17 @@ return [
      */
     'versionLog' => $verifyDomain . '/version-log/' . $product,
 
-    'xss_ignore_index' => ['header_script', 'footer_script'],
+    'xss_ignore_index' => [
+        'description',
+        'summery',
+        'note',
+        'notes',
+        'project_summary',
+        'reply_heading',
+        'comment',
+        'message',
+        'header_script',
+        'footer_script'
+    ],
+
 ];

@@ -14,7 +14,7 @@
                                               format="true"
                                               :fieldLabel="__('superadmin.requestedForCompany')"
                                               :route="route('superadmin.get.company-ajax')"
-                                              placeholder="Search for a company"
+                                              :placeholder="__('placeholders.searchForCompany')"
                         ></x-forms.select2-ajax>
                     </div>
                     @else

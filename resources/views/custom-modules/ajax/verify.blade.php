@@ -24,7 +24,7 @@
             <div class="col-sm-12">
                 <x-forms.text fieldId="purchase_code" fieldLabel="Enter your purchase code"
                               fieldName="purchase_code" fieldRequired="true"
-                              fieldPlaceholder="e.g. 147778a2-dfa2-424e-a29f-xxxxxxxxx">
+                              :fieldPlaceholder="__('placeholders.purchaseCode')">
                 </x-forms.text>
                 <input type="hidden" id="module" name="module" value="{{ $module }}">
             </div>

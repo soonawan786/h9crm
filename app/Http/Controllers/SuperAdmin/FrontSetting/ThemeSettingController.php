@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\SuperAdmin\FrontSetting;
 
+use App\Helper\Files;
 use App\Helper\Reply;
 use App\Models\ThemeSetting;
 use App\Models\GlobalSetting;
@@ -19,6 +20,12 @@ class ThemeSettingController extends AccountBaseController
         parent::__construct();
         $this->pageTitle = 'superadmin.menu.frontThemeSettings';
         $this->activeSettingMenu = 'front_theme_settings';
+
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_front_settings'));
+
+            return $next($request);
+        });
     }
 
     /**
@@ -64,9 +71,25 @@ class ThemeSettingController extends AccountBaseController
 
         $setting = FrontDetail::first();
         $setting->locale = $request->default_language;
+        $setting->homepage_background = $request->homepage_background;
 
-        if ($this->global->front_design == 0) {
+        if ($request->has('primary_color')){
             $setting->primary_color = $request->primary_color;
+        }
+
+        if ($request->has('homepage_background') && $request->homepage_background != 'default') {
+            $setting->background_color = $request->background_color;
+
+            if ($request->background_image_delete == 'yes') {
+                Files::deleteFile($setting->background_image, 'front/homepage-background');
+                $setting->background_image = null;
+                $setting->homepage_background = 'default';
+            }
+
+            if ($request->hasFile('background_image')) {
+                Files::deleteFile($setting->background_image, 'front/homepage-background');
+                $setting->background_image = Files::uploadLocalOrS3($request->background_image, 'front/homepage-background');
+            }
         }
 
         $setting->save();

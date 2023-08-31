@@ -36,7 +36,7 @@
                                     @foreach ($categories as $category)
                                         <option
                                             @if (!is_null($task) && $task->task_category_id == $category->id) selected
-                                            @endif value="{{ $category->id }}">{{ mb_ucwords($category->category_name) }}
+                                            @endif value="{{ $category->id }}">{{ $category->category_name }}
                                         </option>
 
                                     @endforeach
@@ -78,7 +78,7 @@
                                     <option
                                         @if ((isset($project) && $project->id == $data->id) || ( !is_null($task) && $data->id == $task->project_id)) selected
                                         @endif value="{{ $data->id }}">
-                                        {{ mb_ucwords($data->project_name) }}
+                                        {{ $data->project_name }}
                                     </option>
                                 @endforeach
                             </x-forms.select>
@@ -97,8 +97,8 @@
                     <div class="col-md-5 col-lg-3 dueDateBox"
                          @if($task && is_null($task->due_date)) style="display: none" @endif>
                         <x-forms.datepicker fieldId="due_date" fieldRequired="true" :fieldLabel="__('app.dueDate')"
-                                            fieldName="due_date" :fieldPlaceholder="__('placeholders.date')"
-                                            :fieldValue="(($task && $task->due_date) ? $task->due_date->format(company()->date_format) : \Carbon\Carbon::now(company()->timezone)->translatedFormat(company()->date_format))"/>
+                                fieldName="due_date" :fieldPlaceholder="__('placeholders.date')"
+                                :fieldValue="(($task && $task->due_date) ? $task->due_date->format(company()->date_format) : \Carbon\Carbon::now(company()->timezone)->translatedFormat(company()->date_format))"/>
                     </div>
                     <div class="col-md-2 col-lg-2 pt-5">
                         <x-forms.checkbox class="mr-0 mr-lg-2 mr-md-2" :checked="$task ? is_null($task->due_date) : ''"
@@ -144,6 +144,7 @@
                             </x-forms.input-group>
                         </div>
                     </div>
+                    <div class="col-md-6 show-leave"></div>
 
                     <div class="col-md-12">
                         <div class="form-group my-3">
@@ -378,12 +379,12 @@
                             </div>
                         </div>
                     @endif
-
+                    <input type = "hidden" name = "mention_user_ids" id = "mentionUserId" class ="mention_user_ids">
                     @if ($addTaskFilePermission == 'all' || $addTaskFilePermission == 'added')
                         <div class="col-lg-12">
                             <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2"
-                                                   :fieldLabel="__('app.add') . ' ' .__('app.file')" fieldName="file"
-                                                   fieldId="task-file-upload-dropzone"/>
+                                                   :fieldLabel="__('app.menu.addFile')" fieldName="file"
+                                                   fieldId="file-upload-dropzone"/>
                             <input type="hidden" name="image_url" id="image_url">
                         </div>
                         <input type="hidden" name="taskID" id="taskID">
@@ -459,18 +460,20 @@
             });
         }
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         if (add_task_files == "all" || add_task_files == "added") {
 
+            let checkSize = false;
+
             Dropzone.autoDiscover = false;
             //Dropzone class
-            taskDropzone = new Dropzone("div#task-file-upload-dropzone", {
+            taskDropzone = new Dropzone("div#file-upload-dropzone", {
                 dictDefaultMessage: "{{ __('app.dragDrop') }}",
                 url: "{{ route('task-files.store') }}",
                 headers: {
@@ -478,17 +481,18 @@
                 },
                 paramName: "file",
                 maxFilesize: DROPZONE_MAX_FILESIZE,
-                maxFiles: 10,
+                maxFiles: DROPZONE_MAX_FILES,
                 autoProcessQueue: false,
                 uploadMultiple: true,
                 addRemoveLinks: true,
-                parallelUploads: 10,
+                parallelUploads: DROPZONE_MAX_FILES,
                 acceptedFiles: DROPZONE_FILE_ALLOW,
                 init: function () {
                     taskDropzone = this;
                 }
             });
             taskDropzone.on('sending', function (file, xhr, formData) {
+                checkSize = false;
                 var ids = $('#taskID').val();
                 formData.append('task_id', ids);
                 $.easyBlockUI();
@@ -496,8 +500,33 @@
             taskDropzone.on('uploadprogress', function () {
                 $.easyBlockUI();
             });
-            taskDropzone.on('completemultiple', function () {
-                window.location.href = localStorage.getItem("redirect_task");
+            taskDropzone.on('queuecomplete', function () {
+                if (checkSize == false) {
+                    window.location.href = localStorage.getItem("redirect_task");
+                }
+            });
+            taskDropzone.on('removedfile', function () {
+                var grp = $('div#file-upload-dropzone').closest(".form-group");
+                var label = $('div#file-upload-box').siblings("label");
+                $(grp).removeClass("has-error");
+                $(label).removeClass("is-invalid");
+            });
+            taskDropzone.on('error', function (file, message) {
+                taskDropzone.removeFile(file);
+                var grp = $('div#file-upload-dropzone').closest(".form-group");
+                var label = $('div#file-upload-box').siblings("label");
+                $(grp).find(".help-block").remove();
+                var helpBlockContainer = $(grp);
+
+                if (helpBlockContainer.length == 0) {
+                    helpBlockContainer = $(grp);
+                }
+
+                helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+                $(grp).addClass("has-error");
+                $(label).addClass("is-invalid");
+
+                checkSize = true;
             });
         }
 
@@ -513,8 +542,6 @@
             }
         });
 
-        quillImageLoad('#description');
-
 
         const dp1 = datepicker('#task_start_date', {
             position: 'bl',
@@ -526,17 +553,102 @@
                     dp2.setDate(date, true)
                 }
                 dp2.setMin(date);
+
+                var startDate = $('#task_start_date').val();
+                var dueDate = $('#due_date').val();
+                var userId = $('#selectAssignee').val();
+
+                $.easyAjax({
+                    url:"{{ route('tasks.checkLeaves')}}",
+                    type:'GET',
+                    data:{due_date:dueDate, start_date:startDate, user_id:userId},
+                    success:function(response) {
+                    if (response.data === null) {
+                        $(".show-leave").html('');
+                        return;
+                    }
+                    var rData = [];
+                    var leaveData = [];
+                        rData = response.data;
+                        $.each(rData, function(index, value) {
+                            var data = '';
+                            data = index + " {{ __('modules.tasks.leaveOn') }} "  + value + "\n";
+                            leaveData.push(data);
+                            var label = '<label id="leave-date"> {{ __("modules.tasks.leaveMessage") }} <i class="fa fa-question-circle" data-toggle="tooltip"  data-original-title="'+leaveData+'" id="leave-tooltip"></i></label>'
+                            $(".show-leave").html(label);
+                        });
+                }
+                });
             },
             ...datepickerConfig
+
         });
 
         const dp2 = datepicker('#due_date', {
             position: 'bl',
             onSelect: (instance, date) => {
                 dp1.setMax(date);
+
+                var dueDate = $('#due_date').val();
+                var startDate = $('#task_start_date').val();
+                var userId = $('#selectAssignee').val();
+
+                $.easyAjax({
+                    url:"{{ route('tasks.checkLeaves')}}",
+                    type:'GET',
+                    data:{start_date:startDate, due_date:dueDate, user_id:userId},
+                    success:function(response) {
+                    if (response.data === null) {
+                        $(".show-leave").html('');
+                        return;
+                    }
+
+                    var rData = [];
+                    var leaveData = [];
+                        rData = response.data;
+                        $.each(rData, function(index, value) {
+                            var data = '';
+                            data = index + " {{ __('modules.tasks.leaveOn') }} "  + value + "\n";
+                            leaveData.push(data);
+                            var label = '<label id="leave-date"> {{ __("modules.tasks.leaveMessage") }} <i class="fa fa-question-circle" data-toggle="tooltip"  data-original-title="'+leaveData+'" id="leave-tooltip"></i></label>'
+                            $(".show-leave").html(label);
+                        });
+                }
+                });
+
             },
             ...datepickerConfig
+
         });
+
+        $('#selectAssignee').change(function(){
+            var dueDate = $('#due_date').val();
+            var startDate = $('#task_start_date').val();
+            var userId = $('#selectAssignee').val();
+
+            $.easyAjax({
+                url:"{{ route('tasks.checkLeaves')}}",
+                type:'GET',
+                data:{start_date:startDate, due_date:dueDate, user_id:userId},
+                success:function(response) {
+                    if (response.data === null) {
+                        $(".show-leave").html('');
+                        return;
+                    }
+
+                    var rData = [];
+                    var leaveData = [];
+                        rData = response.data;
+                        $.each(rData, function(index, value) {
+                            var data = '';
+                            data = index + " {{ __('modules.tasks.leaveOn') }} "  + value + "\n";
+                            leaveData.push(data);
+                            var label = '<label id="leave-date"> {{ __("modules.tasks.leaveMessage") }} <i class="fa fa-question-circle" data-toggle="tooltip"  data-original-title="'+leaveData+'" id="leave-tooltip"></i></label>'
+                            $(".show-leave").html(label);
+                        });
+                }
+            });
+        })
 
         $('#save-task-data-form').on('change', '#project_id', function () {
             let id = $(this).val();
@@ -580,6 +692,10 @@
                 }
             })
         });
+             const atValues = @json($userData);
+
+            quillMention(atValues, '#description');
+
 
         $('#save-task-data-form').on('change', '#project_id', function () {
             let id = $(this).val();
@@ -595,6 +711,9 @@
                 blockUI: true,
                 redirect: true,
                 success: function (data) {
+                    var atValues = data.userData;
+                    destory_editor('#description')
+                    quillMention(atValues, '#description');
                     $('#selectAssignee').html(data.data);
                     $('.projectId').text(data.unique_id + '-');
                     $('#selectAssignee').selectpicker('refresh');
@@ -636,9 +755,14 @@
         $('#save-task-form').click(function () {
             let note = document.getElementById('description').children[0].innerHTML;
             document.getElementById('description-text').value = note;
+            var mention_user_id = $('#description span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
+            $('#mentionUserId').val(mention_user_id.join(','));
 
             const url = "{{ route('tasks.store') }}?taskId={{$task ? $task->id : ''}}";
-            var data = $('#save-task-data-form').serialize();
+            var taskData = $('#save-task-data-form').serialize();
+            var data = 'mention_user_id=' + mention_user_id+'&'+taskData;
 
             saveTask(data, url, "#save-task-form");
 
@@ -651,6 +775,7 @@
                 type: "POST",
                 disableButton: true,
                 blockUI: true,
+                file: true,
                 buttonSelector: buttonSelector,
                 data: data,
                 success: function (response) {

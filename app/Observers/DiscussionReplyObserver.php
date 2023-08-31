@@ -2,9 +2,12 @@
 
 namespace App\Observers;
 
+use App\Events\DiscussionEvent;
+use App\Events\DiscussionMentionEvent;
 use App\Models\DiscussionFile;
 use App\Models\DiscussionReply;
 use App\Events\DiscussionReplyEvent;
+use App\Models\User;
 use Carbon\Carbon;
 
 class DiscussionReplyObserver
@@ -19,14 +22,42 @@ class DiscussionReplyObserver
 
     public function created(DiscussionReply $discussionReply)
     {
-        if (!isRunningInConsoleOrSeeding()) {
-            $discussion = $discussionReply->discussion;
-            $discussion->last_reply_at = now()->toDateTimeString();
-            $discussion->last_reply_by_id = user()->id;
-            $discussion->save();
+        if (isset(request()->discussion_type) && request()->discussion_type == 'discussion_reply') {
+               $discussion = $discussionReply->discussion;
 
-            event(new DiscussionReplyEvent($discussionReply, $discussion->user));
+                $project = $discussion->project;
+
+                $mentionIds = explode(',', request()->mention_user_id);
+
+                $projectUsers = json_decode($project->projectMembers->pluck('id'));
+                $mentionUserId = array_intersect($mentionIds, $projectUsers);
+
+            if ($mentionUserId != null && $mentionUserId != '') {
+
+                $discussionReply->mentionUser()->sync($mentionIds);
+                event(new DiscussionMentionEvent($discussion, $mentionUserId));
+
+            } else {
+
+                $unmentionIds = array_diff($projectUsers, $mentionIds);
+
+                if ($unmentionIds != null && $unmentionIds != '') {
+
+                    $project_member = User::whereIn('id', $unmentionIds)->get();
+                    event(new DiscussionEvent($discussion, $project_member));
+
+                } else {
+                    if (!isRunningInConsoleOrSeeding()) {
+                        $discussion->last_reply_at = now()->toDateTimeString();
+                        $discussion->last_reply_by_id = user()->id;
+                        $discussion->save();
+
+                        event(new DiscussionReplyEvent($discussionReply, $discussion->user));
+                    }
+                }
+            }
         }
+
     }
 
     public function deleted(DiscussionReply $discussionReply)

@@ -100,7 +100,6 @@
         }
 
         .chartHeading-org{
-            background: #fff;
             position: relative;
             padding: 20px;
         }
@@ -124,6 +123,19 @@
         }
 
     </style>
+    @if (!user()->dark_theme)
+        <style>
+            .chartHeading-org{
+                background: #fff;
+            }
+        </style>
+    @else
+        <style>
+            #dragRoot {
+                margin-top: 1.5rem !important;
+            }
+        </style>
+    @endif
 @endpush
 
 @php
@@ -165,16 +177,16 @@ $editDesignationPermission = user()->permission('edit_designation');
     <div class="content-wrapper">
 
         <!-- Add Task Export Buttons Start -->
-        <div class="d-block d-lg-flex d-md-flex justify-content-between action-bar">
+        <div class="d-grid d-lg-flex d-md-flex action-bar">
             <div id="table-actions" class="flex-grow-1 align-items-center">
                 @if ($addDesignationPermission == 'all' || $addDesignationPermission == 'added')
                 <x-forms.link-primary :link="route('designations.create')" class="mr-3 openRightModal float-left" icon="plus" data-redirect-url="{{ route('designation.hierarchy') }}">
-                    @lang('app.add') @lang('app.designation')
+                    @lang('app.menu.addDesignation')
                 </x-forms.link-primary>
                 @endif
             </div>
 
-            <div class="btn-group" role="group">
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group">
                 <a href="{{ route('designations.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
                 data-original-title="@lang('modules.leaves.tableView')"><i class="side-icon bi bi-list-ul"></i></a>
 

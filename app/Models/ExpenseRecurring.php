@@ -67,7 +67,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|ExpenseRecurring whereUnlimitedRecurring($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ExpenseRecurring whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ExpenseRecurring whereUserId($value)
- * @mixin \Eloquent
  * @property int|null $added_by
  * @property int|null $last_updated_by
  * @method static \Illuminate\Database\Eloquent\Builder|ExpenseRecurring whereAddedBy($value)
@@ -77,13 +76,26 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ExpenseRecurring whereCompanyId($value)
+ * @property \Illuminate\Support\Carbon|null $next_expense_date
+ * @method static \Illuminate\Database\Eloquent\Builder|ExpenseRecurring whereImmediateExpense($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ExpenseRecurring whereIssueDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ExpenseRecurring whereNextExpenseDate($value)
+ * @property int|null $bank_account_id
+ * @property-read \App\Models\BankAccount|null $bank
+ * @method static \Illuminate\Database\Eloquent\Builder|ExpenseRecurring whereBankAccountId($value)
+ * @mixin \Eloquent
  */
 class ExpenseRecurring extends BaseModel
 {
 
     use CustomFieldsTrait, HasCompany;
 
-    protected $dates = ['issue_date', 'created_at', 'next_expense_date'];
+    protected $casts = [
+        'issue_date' => 'datetime',
+        'created_at' => 'datetime',
+        'next_expense_date' => 'datetime',
+    ];
+    protected $with = ['currency', 'company:id'];
 
     protected $appends = ['total_amount', 'created_on', 'bill_url'];
 
@@ -129,6 +141,11 @@ class ExpenseRecurring extends BaseModel
         return $this->hasMany(Expense::class, 'expenses_recurring_id');
     }
 
+    public function bank(): BelongsTo
+    {
+        return $this->belongsTo(BankAccount::class, 'bank_account_id');
+    }
+
     public function getTotalAmountAttribute()
     {
         if (!is_null($this->price) && !is_null($this->currency_id)) {
@@ -149,7 +166,7 @@ class ExpenseRecurring extends BaseModel
 
     public function getBillUrlAttribute()
     {
-        return ($this->bill) ? asset_url(Expense::FILE_PATH . '/' . $this->bill) : '';
+        return ($this->bill) ? asset_url_local_s3(Expense::FILE_PATH . '/' . $this->bill) : '';
     }
 
 }

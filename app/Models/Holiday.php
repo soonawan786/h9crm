@@ -30,12 +30,14 @@ use Illuminate\Support\Facades\DB;
  * @method static \Illuminate\Database\Eloquent\Builder|Holiday whereLastUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Holiday whereOccassion($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Holiday whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property string|null $event_id
  * @method static \Illuminate\Database\Eloquent\Builder|Holiday whereEventId($value)
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Holiday whereCompanyId($value)
+ * @property-read \App\Models\Holiday|null $hdate
+ * @property-read \App\Models\Leave|null $ldate
+ * @mixin \Eloquent
  */
 class Holiday extends BaseModel
 {
@@ -56,12 +58,13 @@ class Holiday extends BaseModel
 
     const SATURDAY = 6;
 
-
     // Don't forget to fill this array
     protected $fillable = ['date', 'occassion'];
 
     protected $guarded = ['id'];
-    protected $dates = ['date'];
+    protected $casts = [
+        'date' => 'datetime',
+    ];
 
     public static function getHolidayByDates($startDate, $endDate)
     {

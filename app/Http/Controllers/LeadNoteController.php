@@ -36,7 +36,7 @@ class LeadNoteController extends AccountBaseController
 
         $this->employees = User::allEmployees();
 
-        $this->pageTitle = __('app.add') . ' ' . __('app.lead') . ' ' . __('app.note');
+        $this->pageTitle = __('app.addLeadNote');
         $this->leadId = request('lead');
 
         if (request()->ajax()) {
@@ -111,7 +111,7 @@ class LeadNoteController extends AccountBaseController
 
     public function edit($id)
     {
-        $this->pageTitle = __('app.edit') . ' ' . __('app.lead') . ' ' . __('app.note');
+        $this->pageTitle = __('app.editLeadNote');
 
         $this->note = LeadNote::findOrFail($id);
         $editClientNotePermission = user()->permission('view_lead_note');

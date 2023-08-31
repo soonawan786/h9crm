@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Helper\Reply;
 use App\Http\Requests\StoreBusinessAddress;
 use App\Models\CompanyAddress;
-use Illuminate\Http\Request;
 
 class BusinessAddressController extends AccountBaseController
 {
@@ -73,6 +72,8 @@ class BusinessAddressController extends AccountBaseController
         $companyAddress = CompanyAddress::findOrfail(request()->addressId);
         $companyAddress->is_default = 1;
         $companyAddress->save();
+
+        session()->forget(['default_address', 'company']);
 
         return Reply::success(__('messages.recordSaved'));
     }

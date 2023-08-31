@@ -17,6 +17,7 @@ class ContractTemplatesDataTable extends BaseDataTable
     private $deleteContractPermission;
     private $addContractPermission;
     private $viewContractPermission;
+    private $manageContractTemplate;
 
     public function __construct()
     {
@@ -80,7 +81,7 @@ class ContractTemplatesDataTable extends BaseDataTable
                 return $action;
             })
             ->addColumn('contract_subject', function ($row) {
-                return ucfirst($row->subject);
+                return $row->subject;
             })
             ->editColumn('subject', function ($row) {
                 $signed = '';
@@ -91,7 +92,7 @@ class ContractTemplatesDataTable extends BaseDataTable
 
                 return '<div class="media align-items-center">
                         <div class="media-body">
-                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('contract-template.show', [$row->id]) . '">' . ucfirst($row->subject) . '</a></h5>
+                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('contract-template.show', [$row->id]) . '">' . $row->subject . '</a></h5>
                     <p class="mb-0">' . $signed . '</p>
                     </div>
                   </div>';
@@ -167,7 +168,7 @@ class ContractTemplatesDataTable extends BaseDataTable
                 'searchable' => false,
                 'visible' => !in_array('client', user_roles())
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.subject') => ['data' => 'subject', 'name' => 'subject', 'exportable' => false, 'title' => __('app.subject')],
             __('app.menu.contract') . ' ' . __('app.subject') => ['data' => 'contract_subject', 'name' => 'subject', 'visible' => false, 'title' => __('app.menu.contract')],
             __('app.amount') => ['data' => 'amount', 'name' => 'amount', 'title' => __('app.amount')],
@@ -178,16 +179,6 @@ class ContractTemplatesDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'ContractTemplates_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

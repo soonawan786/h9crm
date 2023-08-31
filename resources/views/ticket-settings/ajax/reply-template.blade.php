@@ -7,7 +7,7 @@
 
         @forelse($templates as $key=> $template)
             <tr class="row{{ $template->id }}">
-                <td>{{ mb_ucwords($template->reply_heading) }}</td>
+                <td>{{ $template->reply_heading }}</td>
                 <td class="text-right">
                     <div class="task_view">
                         <a class="task_view_more d-flex align-items-center justify-content-center edit-template" href="javascript:;" data-template-id="{{ $template->id }}" >

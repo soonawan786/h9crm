@@ -30,7 +30,7 @@ class TimelogCalendarController extends AccountBaseController
     {
         $viewPermission = $this->viewTimelogPermission;
         abort_403(!in_array($viewPermission, ['all', 'added', 'owned', 'both']));
-        
+
         if (request('start') && request('end')) {
             $viewTimelogPermission = user()->permission('view_timelogs');
             $startDate = Carbon::parse(request('start'))->startOfDay()->toDateTimeString();
@@ -43,7 +43,8 @@ class TimelogCalendarController extends AccountBaseController
 
             $timelogs = ProjectTimeLog::select(
                 DB::raw('sum(total_minutes) as total_minutes'),
-                DB::raw("DATE_FORMAT(start_time,'%Y-%m-%d') as start")
+                DB::raw("DATE_FORMAT(start_time,'%Y-%m-%d') as start"),
+                'start_time', 'end_time'
             )
                 ->leftJoin('projects', 'projects.id', '=', 'project_time_logs.project_id')
                 ->where('approved', 1)
@@ -83,7 +84,7 @@ class TimelogCalendarController extends AccountBaseController
             if ($viewTimelogPermission == 'owned') {
                 $timelogs = $timelogs->where(function ($q) {
                     $q->where('project_time_logs.user_id', '=', user()->id);
-    
+
                     if (in_array('client', user_roles())) {
                         $q->orWhere('projects.client_id', '=', user()->id);
                     }
@@ -110,7 +111,7 @@ class TimelogCalendarController extends AccountBaseController
             foreach ($timelogs as $key => $value) {
                 $calendarData[] = [
                     'id' => $key + 1,
-                    'title' => $value->hours,
+                    'title' => $value->hours_only,
                     'start' => $value->start
                 ];
             }
@@ -118,6 +119,8 @@ class TimelogCalendarController extends AccountBaseController
             return $calendarData;
         }
 
+        $this->timelogMenuType = 'calendar';
+        
         if (!request()->ajax()) {
             $this->employees = User::allEmployees(null, true, ($viewPermission == 'all' ? 'all' : null));
             $this->projects = Project::allProjects();

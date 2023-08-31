@@ -74,7 +74,7 @@
                             data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($bankAccounts as $bankAccount)
-                                <option value="{{ $bankAccount->id }}">{{ mb_ucwords($bankAccount->account_name) }}</option>
+                                <option value="{{ $bankAccount->id }}">{{ $bankAccount->account_name }}</option>
                             @endforeach
                         </select>
                     </div>

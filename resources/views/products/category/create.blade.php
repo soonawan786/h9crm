@@ -19,7 +19,7 @@
         @forelse($categories as $key=>$category)
             <tr id="cat-{{ $category->id }}">
                 <td>{{ $key + 1 }}</td>
-                <td data-row-id="{{ $category->id }}" contenteditable="true">{{ mb_ucwords($category->category_name) }}
+                <td data-row-id="{{ $category->id }}" contenteditable="true">{{ $category->category_name }}
                 </td>
                 <td class="text-right">
                     @if ($deleteProductCategoryPermission == 'all' || ($deleteProductCategoryPermission == 'added' && $category->id == user()->id))

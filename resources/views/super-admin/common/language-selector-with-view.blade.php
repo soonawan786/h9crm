@@ -161,7 +161,7 @@
 
         function addBadge(response) {
             $(`.lang-${response.lang} .fa-circle`).remove()
-            if (response.data) {
+            if (response.lang) {
                 $(`.lang-${response.lang}`).append("<i class='fa fa-circle ml-1 text-light-green'></i>")
             }
         }

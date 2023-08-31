@@ -18,7 +18,7 @@ $memberIds = $project->members->pluck('user_id')->toArray();
                         <select class="form-control select-picker change-status height-35">
                             @foreach ($projectStatus as $status)
                                 <option
-                                data-content="<i class='fa fa-circle mr-1 f-15' style='color:{{$status->color}}'></i>{{ ucfirst($status->status_name) }}"
+                                data-content="<i class='fa fa-circle mr-1 f-15' style='color:{{$status->color}}'></i>{{ $status->status_name }}"
                                 @if ($project->status == $status->status_name)
                                 selected @endif
                                 value="{{$status->status_name}}"> {{ $status->status_name }}
@@ -146,7 +146,7 @@ $memberIds = $project->members->pluck('user_id')->toArray();
                                             alt="{{ $project->client->name }}">
                                     </div>
                                     <div class="card-body border-0 p-0 ml-4 ml-xl-4 ml-lg-3 ml-md-3">
-                                        <h4 class="card-title f-15 font-weight-normal mb-0 text-capitalize">
+                                        <h4 class="card-title f-15 font-weight-normal mb-0">
                                             @if (!in_array('client', user_roles()))
                                                <a href="{{ route('clients.show', $project->client_id) }}" class="text-dark">
                                                     {{ $project->client->name }}

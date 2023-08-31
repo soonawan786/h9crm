@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Helper\Reply;
 use App\Http\Requests\TicketAgentGroups\StoreAgentGroup;
+use App\Http\Requests\TicketAgentGroups\UpdateAgentGroup;
 use App\Models\TicketAgentGroups;
 use App\Models\TicketGroup;
 use App\Models\User;
@@ -26,8 +27,7 @@ class TicketAgentController extends AccountBaseController
      */
     public function create()
     {
-        $this->employees = User::doesntHave('agent')
-            ->join('role_user', 'role_user.user_id', '=', 'users.id')
+        $this->employees = User::join('role_user', 'role_user.user_id', '=', 'users.id')
             ->join('roles', 'roles.id', '=', 'role_user.role_id')
             ->select('users.id', 'users.name', 'users.email', 'users.created_at')
             ->where('roles.name', 'employee')
@@ -39,12 +39,12 @@ class TicketAgentController extends AccountBaseController
 
     public function store(StoreAgentGroup $request)
     {
-        $users = $request->user_id;
+        $groups = $request->group_id;
 
-        foreach ($users as $user) {
+        foreach ($groups as $group) {
             $agent = new TicketAgentGroups();
-            $agent->agent_id = $user;
-            $agent->group_id = $request->group_id;
+            $agent->agent_id = $request->user_id;
+            $agent->group_id = $group;
             $agent->added_by = user()->id;
             $agent->save();
         }
@@ -81,20 +81,20 @@ class TicketAgentController extends AccountBaseController
      */
     public function update(Request $request, $id)
     {
-        $agent = TicketAgentGroups::findOrFail($id);
-        $agent->status = $request->status;
-        $agent->last_updated_by = user()->id;
-        $agent->save();
-
+        TicketAgentGroups::where('agent_id', $id)->update(['status' => $request->status]);
         return Reply::success(__('messages.updateSuccess'));
     }
 
-    public function updateGroup(Request $request, $id)
+    public function updateGroup(UpdateAgentGroup $request, $id)
     {
-        $agent = TicketAgentGroups::findOrFail($id);
-        $agent->group_id = $request->groupId;
-        $agent->last_updated_by = user()->id;
-        $agent->save();
+        TicketAgentGroups::where('agent_id', $id)->delete();
+
+        foreach($request->groupId as $groupId) {
+            TicketAgentGroups::firstOrCreate([
+                'agent_id' => $id,
+                'group_id' => $groupId
+            ]);
+        }
 
         return Reply::success(__('messages.updateSuccess'));
     }
@@ -107,9 +107,22 @@ class TicketAgentController extends AccountBaseController
      */
     public function destroy($id)
     {
-        TicketAgentGroups::destroy($id);
+        TicketAgentGroups::where('agent_id', $id)->delete();
 
         return Reply::success(__('messages.agentRemoveSuccess'));
+    }
+
+    public function agentGroups()
+    {
+        $ticketAgentGroup = TicketAgentGroups::where('agent_id', request()->agent_id)->pluck('group_id')->toArray();
+
+        if(!empty($ticketAgentGroup))
+        {
+            $ticketGroup = TicketGroup::whereNotIn('id', $ticketAgentGroup)->get();
+
+            return Reply::dataOnly(['data' => $ticketGroup]);
+
+        }
     }
 
 }

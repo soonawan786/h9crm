@@ -16,8 +16,10 @@ use App\Events\SuperAdmin\OfflinePackageChangeConfirmationEvent;
 use App\Listeners\SuperAdmin\CompanyRegisteredListener;
 use App\Listeners\SuperAdmin\OfflinePackageChangeRequestListener;
 use App\Listeners\SuperAdmin\OfflinePackageChangeConfirmationListener;
+use App\Models\SuperAdmin\FooterMenu;
 use App\Models\SuperAdmin\OfflinePlanChange;
 use App\Models\SuperAdmin\Package;
+use App\Observers\SuperAdmin\FooterMenuObserver;
 use App\Observers\SuperAdmin\OfflinePlanChangeObserver;
 use App\Observers\SuperAdmin\PackageObserver;
 use Illuminate\Foundation\Support\Providers\EventServiceProvider as ServiceProvider;
@@ -42,7 +44,8 @@ class EventServiceProvider extends ServiceProvider
 
     protected $observers = [
         OfflinePlanChange::class => [OfflinePlanChangeObserver::class],
-        Package::class => [PackageObserver::class]
+        Package::class => [PackageObserver::class],
+        FooterMenu::class => [FooterMenuObserver::class],
     ];
 
 }

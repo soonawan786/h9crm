@@ -14,9 +14,10 @@ trait UniversalSearchTrait
      * @param string $type
      * @throws \Froiden\RestAPI\Exceptions\RelatedResourceNotFoundException
      */
-    public function logSearchEntry($searchableId, $title, $route, $type)
+    public function logSearchEntry($searchableId, $title, $route, $type, $company_id = null)
     {
         $search = new UniversalSearch();
+        $search->company_id = $company_id;
         $search->searchable_id = $searchableId;
         $search->title = $title;
         $search->route_name = $route;

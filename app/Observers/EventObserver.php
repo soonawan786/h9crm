@@ -90,49 +90,55 @@ class EventObserver
                 }
             }
 
-            // Create event
-            $google = $google->connectUsing($googleAccount->token);
+            if ($event->start_date_time && $event->end_date_time) {
 
-            $eventData = new \Google_Service_Calendar_Event(array(
-                'summary' => $event->event_name,
-                'location' => $event->where,
-                'description' => $event->description,
-                'colorId' => 3,
-                'start' => array(
-                    'dateTime' => $event->start_date_time,
-                    'timeZone' => $googleAccount->timezone,
-                ),
-                'end' => array(
-                    'dateTime' => $event->end_date_time,
-                    'timeZone' => $googleAccount->timezone,
-                ),
-                'attendees' => $attendiesData,
-                'reminders' => array(
-                    'useDefault' => false,
-                    'overrides' => array(
-                        array('method' => 'email', 'minutes' => 24 * 60),
-                        array('method' => 'popup', 'minutes' => 10),
+                $startDate = \Carbon\Carbon::parse($event->start_date_time)->shiftTimezone($googleAccount->timezone);
+                $endDate = \Carbon\Carbon::parse($event->end_date_time)->shiftTimezone($googleAccount->timezone);
+
+                // Create event
+                $google = $google->connectUsing($googleAccount->token);
+
+                $eventData = new \Google_Service_Calendar_Event(array(
+                    'summary' => $event->event_name,
+                    'location' => $event->where,
+                    'description' => $event->description,
+                    'colorId' => 3,
+                    'start' => array(
+                        'dateTime' => $startDate,
+                        'timeZone' => $googleAccount->timezone,
                     ),
-                ),
-            ));
+                    'end' => array(
+                        'dateTime' => $endDate,
+                        'timeZone' => $googleAccount->timezone,
+                    ),
+                    'attendees' => $attendiesData,
+                    'reminders' => array(
+                        'useDefault' => false,
+                        'overrides' => array(
+                            array('method' => 'email', 'minutes' => 24 * 60),
+                            array('method' => 'popup', 'minutes' => 10),
+                        ),
+                    ),
+                ));
 
-            try {
-                if ($event->event_id) {
-                    $results = $google->service('Calendar')->events->patch('primary', $event->event_id, $eventData);
-                }
-                else {
-                    $results = $google->service('Calendar')->events->insert('primary', $eventData);
-                }
+                try {
+                    if ($event->event_id) {
+                        $results = $google->service('Calendar')->events->patch('primary', $event->event_id, $eventData);
+                    }
+                    else {
+                        $results = $google->service('Calendar')->events->insert('primary', $eventData);
+                    }
 
-                return $results->id;
-            } catch (\Google\Service\Exception $error) {
-                if (is_null($error->getErrors())) {
-                    // Delete google calendar connection data i.e. token, name, google_id
-                    $googleAccount->name = null;
-                    $googleAccount->token = null;
-                    $googleAccount->google_id = null;
-                    $googleAccount->google_calendar_verification_status = 'non_verified';
-                    $googleAccount->save();
+                    return $results->id;
+                } catch (\Google\Service\Exception $error) {
+                    if (is_null($error->getErrors())) {
+                        // Delete google calendar connection data i.e. token, name, google_id
+                        $googleAccount->name = null;
+                        $googleAccount->token = null;
+                        $googleAccount->google_id = null;
+                        $googleAccount->google_calendar_verification_status = 'non_verified';
+                        $googleAccount->save();
+                    }
                 }
             }
 

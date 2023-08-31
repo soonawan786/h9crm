@@ -52,7 +52,7 @@ class SocialAuthSetting extends BaseModel
     public function getSocialAuthEnableAttribute()
     {
         return in_array('enable', [
-            $this->linkedin_status,
+
             $this->linkedin_status,
             $this->google_status,
             $this->twitter_status

@@ -45,12 +45,13 @@ class InvitationEmail extends BaseNotification
     // phpcs:ignore
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $url = route('invitation', $this->invite->invitation_code);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $content = $this->invite->user->name . ' ' . __('email.invitation.subject') . config('app.name') . '.'  . '<br>' . $this->invite->message;
 
-        return parent::build()
+        return $build
             ->subject($this->invite->user->name . ' ' . __('email.invitation.subject') . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,

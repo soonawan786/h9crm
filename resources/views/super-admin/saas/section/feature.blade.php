@@ -1,10 +1,10 @@
 @if(!empty($featureWithImages))
     <!-- START Saas Features -->
-    <section class="saas-features bg-white overflow-hidden">
-        <div class="container">
-            @foreach($featureWithImages as $key => $value)
+    @foreach($featureWithImages as $key => $value)
+        <section class="saas-features overflow-hidden">
+            <div class="container">
                 @if($loop->iteration % 2 == 0)
-                    <div class="sp-100 pt-0">
+                    <div class="sp-100">
                         <div class="row align-items-center">
                             <div class="col-lg-6 order-lg-1 wow fadeIn  d-lg-block" data-wow-delay="0.2s">
                                 <div class="mock-img">
@@ -33,9 +33,9 @@
                         </div>
                     </div>
                 @endif
-            @endforeach
-        </div>
-    </section>
+            </div>
+        </section>
+    @endforeach
 @endif
 <!-- END Saas Features -->
 @if(sizeof($featureWithIcons) > 0)
@@ -55,7 +55,7 @@
             <div class="row">
                 @foreach($featureWithIcons as $featureWithIcon)
                     <div class="col-lg-4 col-md-6 col-12 mb-30 wow fadeIn" data-wow-delay="0.2s">
-                        <div class="feature-box bg-white br-10 text-center">
+                        <div class="feature-box bg-white br-5 text-center">
                             <span class="align-items-center d-inline-flex icon justify-content-center mx-auto">
                                 <i class="{{ $featureWithIcon->icon }}"></i>
                             </span>

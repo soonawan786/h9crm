@@ -14,7 +14,7 @@
         @forelse($categories as $key=>$category)
             <tr id="cat-{{ $category->id }}">
                 <td>{{ $key + 1 }}</td>
-                <td data-row-id="{{ $category->id }}" contenteditable="true">{{ mb_ucwords($category->name) }}
+                <td data-row-id="{{ $category->id }}" contenteditable="true">{{ $category->name }}
                 </td>
                 <td class="text-right">
                     {{-- @if ($deletePermission == 'all' || $deletePermission == 'added') --}}
@@ -35,7 +35,7 @@
         <div class="row border-top-grey ">
             <div class="col-sm-12">
                 <x-forms.text fieldId="category_name" :fieldLabel="__('modules.projectCategory.categoryName')"
-                              fieldName="category_name" fieldRequired="true" fieldPlaceholder="e.g. Finance">
+                              fieldName="category_name" fieldRequired="true" :fieldPlaceholder="__('placeholders.categoryName')">
                 </x-forms.text>
             </div>
 

@@ -28,10 +28,10 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|Menu whereSettingMenu($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Menu whereTranslateName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Menu whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Menu whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class Menu extends BaseModel
 {

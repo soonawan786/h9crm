@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helper\Reply;
 use App\Http\Requests\EmployeeShift\StoreEmployeeShift;
 use App\Models\AttendanceSetting;
+use App\Models\Company;
 use App\Models\EmployeeShift;
 use App\Models\Holiday;
 use Carbon\Carbon;
@@ -37,6 +38,7 @@ class EmployeeShiftController extends AccountBaseController
         $setting->late_mark_duration = $request->late_mark_duration;
         $setting->clockin_in_day = $request->clockin_in_day;
         $setting->office_open_days = json_encode($request->office_open_days);
+        $setting->early_clock_in = $request->early_clock_in;
         $setting->save();
         session()->forget('attendance_setting');
         return Reply::success(__('messages.employeeShiftAdded'));
@@ -78,6 +80,7 @@ class EmployeeShiftController extends AccountBaseController
         $setting->late_mark_duration = $request->late_mark_duration;
         $setting->clockin_in_day = $request->clockin_in_day;
         $setting->office_open_days = json_encode($request->office_open_days);
+        $setting->early_clock_in = $request->early_clock_in;
         $setting->save();
         session()->forget('attendance_setting');
         return Reply::success(__('messages.updateSuccess'));
@@ -87,6 +90,8 @@ class EmployeeShiftController extends AccountBaseController
     {
         $this->weekMap = Holiday::weekMap();
         $this->employeeShifts = EmployeeShift::where('shift_name', '<>', 'Day Off')->get();
+        $generalShift = Company::with(['attendanceSetting', 'attendanceSetting.shift'])->first();
+            $this->defaultShift = ($generalShift && $generalShift->attendanceSetting && $generalShift->attendanceSetting->shift) ? $generalShift->attendanceSetting->shift : '--';
         return view('employee-shifts.index', $this->data);
     }
 

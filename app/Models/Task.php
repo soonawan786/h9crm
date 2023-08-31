@@ -53,6 +53,7 @@ use Illuminate\Notifications\Notifiable;
  * @property-read int|null $completed_subtasks_count
  * @property-read \App\Models\User|null $createBy
  * @property-read \App\Models\User|null $addedByUser
+ * @property-read \App\Models\ProjectMilestone|null $milestone
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\TaskFile[] $files
  * @property-read int|null $files_count
  * @property-read mixed $create_on
@@ -109,7 +110,6 @@ use Illuminate\Notifications\Notifiable;
  * @method static \Illuminate\Database\Eloquent\Builder|Task whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Task whereTaskCategoryId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Task whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property string|null $hash
  * @method static \Illuminate\Database\Eloquent\Builder|Task whereHash($value)
  * @property int $repeat
@@ -139,6 +139,13 @@ use Illuminate\Notifications\Notifiable;
  * @method static \Illuminate\Database\Eloquent\Builder|Task whereTaskShortCode($value)
  * @method static \Illuminate\Database\Query\Builder|Task withTrashed()
  * @method static \Illuminate\Database\Query\Builder|Task withoutTrashed()
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionTask
+ * @property-read int|null $mention_task_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @property-read int|null $mention_user_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionTask
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @mixin \Eloquent
  */
 class Task extends BaseModel
 {
@@ -147,7 +154,11 @@ class Task extends BaseModel
     use CustomFieldsTrait;
     use HasCompany;
 
-    protected $dates = ['due_date', 'completed_on', 'start_date'];
+    protected $casts = [
+        'due_date' => 'datetime',
+        'completed_on' => 'datetime',
+        'start_date' => 'datetime',
+    ];
     protected $appends = ['due_on', 'create_on'];
     protected $guarded = ['id'];
     protected $with = ['company:id,date_format'];
@@ -278,6 +289,11 @@ class Task extends BaseModel
         return $this->hasMany(Task::class, 'recurring_task_id');
     }
 
+    public function milestone(): BelongsTo
+    {
+        return $this->belongsTo(ProjectMilestone::class, 'milestone_id');
+    }
+
     public function scopePending($query)
     {
         $taskBoardColumn = TaskboardColumn::completeColumn();
@@ -375,7 +391,7 @@ class Task extends BaseModel
                     $q->where('is_private', 0);
 
                     if (auth()->user()) {
-                        $q->orWhere('created_by', auth()->user()->id);
+                        $q->orWhere('created_by', user()->id);
                     }
                 }
             );
@@ -411,7 +427,7 @@ class Task extends BaseModel
                     $q->where('is_private', 0);
 
                     if (auth()->user()) {
-                        $q->orWhere('created_by', auth()->user()->id);
+                        $q->orWhere('created_by', user()->id);
                     }
                 }
             );
@@ -491,6 +507,30 @@ class Task extends BaseModel
     public function breakMinutes()
     {
         return ProjectTimeLogBreak::taskBreakMinutes($this->id);
+    }
+
+    public function mentionUser(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'mention_users')->withoutGlobalScope(ActiveScope::class)->using(MentionUser::class);
+    }
+
+    public function mentionTask(): HasMany
+    {
+        return $this->hasMany(MentionUser::class, 'task_id');
+    }
+
+    public static function projectTaskCount($projectID)
+    {
+        $task = Task::where('project_id', $projectID)->orderBy('id', 'desc')->first();
+
+        if ($task) {
+            $taskID = explode('-', $task->task_short_code);
+            $taskCode = array_pop($taskID);
+            return $taskCode;
+        }
+
+        return 0;
+
     }
 
 }

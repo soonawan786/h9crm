@@ -30,7 +30,7 @@
                 </div>
                 </div>
 
-                <div class="col-md-12" style="overflow-x: auto;">
+                <div class="col-md-12 import-table" style="overflow-x: auto;">
                 <input type="hidden" name="file" value="{{ $file }}">
                 <input type="hidden" name="has_heading" value="{{ $hasHeading }}">
                 <table>
@@ -536,4 +536,14 @@
             });
         });
     });
+
+    $('.import-table').on('shown.bs.select', function () {
+        $('.import-table').css("overflow", "inherit");
+        $('#import_table').css("overflow-x", "hidden");
+    });
+
+    $('.import-table').on('hidden.bs.select', function () {
+        $('.import-table').css("overflow", "auto");
+        $('#import_table').css("overflow-x", "auto");
+    })
 </script>

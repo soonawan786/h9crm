@@ -7,17 +7,16 @@ use App\Models\Ticket;
 use App\Models\CustomField;
 use App\Models\CustomFieldGroup;
 use App\DataTables\BaseDataTable;
-use Illuminate\Database\Eloquent\Model;
 use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
 use Illuminate\Support\Facades\DB;
-use Yajra\DataTables\EloquentDataTable;
 
 class   TicketDataTable extends BaseDataTable
 {
 
     private $deleteTicketPermission;
     private $viewTicketPermission;
+    private $editTicketPermission;
 
     public function __construct()
     {
@@ -131,21 +130,17 @@ class   TicketDataTable extends BaseDataTable
 
                 return $status;
             }
-            else {
-                if ($row->status == 'open') {
-                    return '<i class="fa fa-circle mr-2 text-red"></i>' . __('app.open');
 
-                }
-                elseif ($row->status == 'pending') {
-                    return '<i class="fa fa-circle mr-2 text-warning"></i>' . __('app.pending');
-                }
-                elseif ($row->status == 'resolved') {
-                    return '<i class="fa fa-circle mr-2 text-dark-green"></i>' . __('app.resolved');
-                }
-                else {
-                    return '<i class="fa fa-circle mr-2 text-blue"></i>' . __('app.closed');
-                }
-            }
+            $statuses = [
+                'open' => ['red', __('app.open')],
+                'pending' => ['warning', __('app.pending')],
+                'resolved' => ['dark-green', __('app.resolved')],
+                'closed' => ['blue', __('app.closed')],
+            ];
+
+            $status = $statuses[$row->status] ?? $statuses['closed'];
+
+            return '<i class="fa fa-circle mr-2 text-' . $status[0] . '"></i>' . $status[1];
 
             /* status end */
         });
@@ -153,7 +148,7 @@ class   TicketDataTable extends BaseDataTable
             return $row->status;
         });
         $datatables->editColumn('subject', function ($row) {
-            return '<a href="' . route('tickets.show', $row->ticket_number) . '" class="text-darkest-grey" >' . ucfirst($row->subject) . '</a>';
+            return '<a href="' . route('tickets.show', $row->ticket_number) . '" class="text-darkest-grey" >' . $row->subject . '</a>' . $row->badge();
         });
         $datatables->addColumn('name', function ($row) {
             return $row->requester ? $row->requester->name : $row->ticket_number;
@@ -168,29 +163,32 @@ class   TicketDataTable extends BaseDataTable
                     'user' => $row->requester
                 ]);
             }
-            else {
-                return view('components.client', [
-                    'user' => $row->requester
-                ]);
-            }
+
+            return view('components.client', [
+                'user' => $row->requester
+            ]);
+
         });
         $datatables->editColumn('updated_at', function ($row) {
-            return $row->updated_at->timezone($this->company->timezone)->translatedFormat($this->company->date_format . ' ' . $this->company->time_format);
+            return $row->created_at->timezone($this->company->timezone)->translatedFormat($this->company->date_format . ' ' . $this->company->time_format);
         });
+
         $datatables->setRowId(function ($row) {
             return 'row-' . $row->id;
         });
+
         $datatables->orderColumn('user_id', 'name $1');
         $datatables->orderColumn('status', 'id $1');
 
-        $datatables->rawColumns(['others', 'action', 'subject', 'check', 'user_id', 'status']);
         $datatables->removeColumn('agent_id');
         $datatables->removeColumn('channel_id');
         $datatables->removeColumn('type_id');
         $datatables->removeColumn('deleted_at');
 
         // Custom Fields For export
-        CustomField::customFieldData($datatables, Ticket::CUSTOM_FIELD_MODEL);
+        $customFieldColumns = CustomField::customFieldData($datatables, Ticket::CUSTOM_FIELD_MODEL);
+
+        $datatables->rawColumns(array_merge(['others', 'action', 'subject', 'check', 'user_id', 'status'], $customFieldColumns));
 
         return $datatables;
     }
@@ -219,6 +217,10 @@ class   TicketDataTable extends BaseDataTable
 
         if (!is_null($request->agentId) && $request->agentId != 'all' && $request->ticketFilterStatus != 'unassigned') {
             $model->where('tickets.agent_id', '=', $request->agentId);
+        }
+
+        if (!is_null($request->groupId) && $request->groupId != 'all') {
+            $model->where('tickets.group_id', '=', $request->groupId);
         }
 
         if (!is_null($request->client_id) && $request->client_id != 'all') {
@@ -337,14 +339,17 @@ class   TicketDataTable extends BaseDataTable
                 'searchable' => false,
                 'visible' => !in_array('client', user_roles())
             ],
-            __('modules.tickets.ticket') . ' #' => ['data' => 'ticket_number', 'name' => 'ticket_number', 'title' => __('modules.tickets.ticket') . ' #','visible' => showId()],
+            __('modules.tickets.ticket') . ' #' => ['data' => 'ticket_number', 'name' => 'ticket_number', 'title' => __('modules.tickets.ticket') . ' #'],
             __('modules.tickets.ticketSubject') => ['data' => 'subject', 'name' => 'subject', 'title' => __('modules.tickets.ticketSubject'), 'width' => '20%'],
             __('app.name') => ['data' => 'name', 'name' => 'user_id', 'visible' => false, 'title' => __('app.name')],
             __('modules.tickets.requesterName') => ['data' => 'user_id', 'name' => 'user_id', 'visible' => !in_array('client', user_roles()), 'exportable' => false, 'title' => __('modules.tickets.requesterName'), 'width' => '20%'],
             __('modules.tickets.requestedOn') => ['data' => 'updated_at', 'name' => 'updated_at', 'title' => __('modules.tickets.requestedOn')],
             __('app.others') => ['data' => 'others', 'name' => 'others', 'sortable' => false, 'title' => __('app.others')],
             __('app.status') => ['data' => 'status', 'name' => 'status', 'exportable' => false, 'title' => __('app.status')],
-            __('modules.ticketStatus') => ['data' => 'ticket_status', 'name' => 'ticket_status', 'visible' => false, 'title' => __('modules.ticketStatus')],
+            __('modules.ticketStatus') => ['data' => 'ticket_status', 'name' => 'ticket_status', 'visible' => false, 'title' => __('modules.ticketStatus')]
+        ];
+
+        $action = [
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -353,18 +358,8 @@ class   TicketDataTable extends BaseDataTable
                 ->addClass('text-right pr-20')
         ];
 
-        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Ticket()));
+        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Ticket()), $action);
 
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Tickets_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

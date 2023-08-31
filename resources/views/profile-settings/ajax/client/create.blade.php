@@ -3,7 +3,7 @@
 $viewDocumentPermission = user()->permission('view_client_document');
 @endphp
 <div class="modal-header">
-    <h5 class="modal-title" id="modelHeading">@lang('app.add') @lang('app.file')</h5>
+    <h5 class="modal-title" id="modelHeading">@lang('app.menu.addFile')</h5>
     <button type="button"  class="close" data-dismiss="modal" aria-label="Close"><span
             aria-hidden="true">×</span></button>
 </div>

@@ -14,8 +14,6 @@ class ProposalTemplateObserver
 
     public function creating(ProposalTemplate $proposal)
     {
-        $this->unitType($proposal);
-
         if(company()) {
             $proposal->company_id = company()->id;
         }
@@ -30,6 +28,8 @@ class ProposalTemplateObserver
                 $cost_per_item = request()->cost_per_item;
                 $hsn_sac_code = request()->hsn_sac_code;
                 $quantity = request()->quantity;
+                $unitId = request()->unit_id;
+                $product = request()->product_id;
                 $amount = request()->amount;
                 $tax = request()->taxes;
                 $invoice_item_image = request()->invoice_item_image;
@@ -44,11 +44,13 @@ class ProposalTemplateObserver
                                 'item_name' => $item,
                                 'item_summary' => $itemsSummary[$key],
                                 'type' => 'item',
+                                'unit_id' => (isset($unitId[$key]) && !is_null($unitId[$key])) ? $unitId[$key] : null,
+                                'product_id' => (isset($product[$key]) && !is_null($product[$key])) ? $product[$key] : null,
                                 'hsn_sac_code' => (isset($hsn_sac_code[$key])) ? $hsn_sac_code[$key] : null,
                                 'quantity' => $quantity[$key],
                                 'unit_price' => round($cost_per_item[$key], 2),
                                 'amount' => round($amount[$key], 2),
-                                'taxes' => $tax ? array_key_exists($key, $tax) ? json_encode($tax[$key]) : null : null
+                                'taxes' => ($tax ? (array_key_exists($key, $tax) ? json_encode($tax[$key]) : null) : null)
                             ]
                         );
                     }
@@ -102,6 +104,9 @@ class ProposalTemplateObserver
             $proposal_item_image = $request->invoice_item_image;
             $proposal_item_image_url = $request->invoice_item_image_url;
             $item_ids = $request->item_ids;
+            $unitId = request()->unit_id;
+            $productId = request()->product_id;
+
 
             if (!empty($request->item_name) && is_array($request->item_name)) {
                 // Step1 - Delete all invoice items which are not avaialable
@@ -113,7 +118,7 @@ class ProposalTemplateObserver
                 foreach ($items as $key => $item) {
                     $invoice_item_id = $item_ids[$key] ?? 0;
 
-                    $proposalTemplateItem = ProposalTemplateItem::findOrFail($invoice_item_id);
+                    $proposalTemplateItem = ProposalTemplateItem::find($invoice_item_id);
 
                     if ($proposalTemplateItem === null) {
                         $proposalTemplateItem = new ProposalTemplateItem();
@@ -124,6 +129,8 @@ class ProposalTemplateObserver
                     $proposalTemplateItem->item_name = $item;
                     $proposalTemplateItem->item_summary = $itemsSummary[$key];
                     $proposalTemplateItem->type = 'item';
+                    $proposalTemplateItem->unit_id = (isset($unitId[$key]) && !is_null($unitId[$key])) ? $unitId[$key] : null;
+                    $proposalTemplateItem->product_id = (isset($productId[$key]) && !is_null($productId[$key])) ? $productId[$key] : null;
                     $proposalTemplateItem->hsn_sac_code = (isset($hsn_sac_code[$key]) && !is_null($hsn_sac_code[$key])) ? $hsn_sac_code[$key] : null;
                     $proposalTemplateItem->quantity = $quantity[$key];
                     $proposalTemplateItem->unit_price = round($cost_per_item[$key], 2);

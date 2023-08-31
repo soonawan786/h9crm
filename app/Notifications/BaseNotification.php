@@ -9,6 +9,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
+use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Config;
 
 class BaseNotification extends Notification implements ShouldQueue
@@ -27,6 +28,11 @@ class BaseNotification extends Notification implements ShouldQueue
     {
         // Set the company in every Notification class
         $company = $this->company;
+
+        if (!is_null($company)) {
+            App::setLocale($company->locale ?? 'en');
+        }
+
         $smtpSetting = SmtpSetting::first();
 
         $build = (new MailMessage);
@@ -35,12 +41,12 @@ class BaseNotification extends Notification implements ShouldQueue
         $replyEmail = $companyEmail = $smtpSetting->mail_from_email;
 
 
+        $globalSetting = GlobalSetting::first();
+        Config::set('app.logo', $globalSetting->logo_url);
+
         if (isWorksuite()) {
             return $build->from($companyEmail, $companyName);
         }
-
-        $globalSetting = GlobalSetting::first();
-        Config::set('app.logo', $globalSetting->logo_url);
 
         if (!is_null($company)) {
             $replyName = $company->company_name;
@@ -49,6 +55,7 @@ class BaseNotification extends Notification implements ShouldQueue
         }
 
         $companyEmail = config('mail.verified') === true ? $companyEmail : $replyEmail;
+        $companyName = config('mail.verified') === true ? $companyName : $replyName;
 
         return $build->from($companyEmail, $companyName)->replyTo($replyEmail, $replyName);
     }

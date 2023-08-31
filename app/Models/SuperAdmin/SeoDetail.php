@@ -4,7 +4,7 @@ namespace App\Models\SuperAdmin;
 
 use App\Models\LanguageSetting;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\SuperAdmin\SeoDetail
@@ -35,7 +35,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $og_image
  * @method static \Illuminate\Database\Eloquent\Builder|SeoDetail whereOgImage($value)
  */
-class SeoDetail extends Model
+class SeoDetail extends BaseModel
 {
     protected $guarded = ['id'];
 
@@ -48,7 +48,7 @@ class SeoDetail extends Model
 
     public function getOgImageUrlAttribute()
     {
-        return ($this->og_image) ? asset_url('front/seo-detail/' . $this->og_image) : asset('img/home-crm.png');
+        return ($this->og_image) ? asset_url_local_s3('front/seo-detail/' . $this->og_image) : asset('img/home-crm.png');
     }
 
 }

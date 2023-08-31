@@ -1,4 +1,4 @@
-<div class="d-block d-lg-flex d-md-flex justify-content-end action-bar">
+<div class="d-grid d-lg-flex d-md-flex action-bar">
 
     <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-3" role="group" aria-label="Basic example">
         <a href="{{ route('leaves.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
@@ -21,7 +21,7 @@
                 <div class="row">
                     <div class="col-10">
                         <h4 class="card-title f-15 f-w-500 text-darkest-grey mb-0">
-                            {{ ucfirst($employee->salutation) . ' ' . mb_ucwords($employee->name) }}
+                            {{ $employee->salutation . ' ' . $employee->name }}
                             @isset($employee->country)
                                 <x-flag :country="$employee->country" />
                             @endisset
@@ -31,9 +31,9 @@
                 </div>
 
                 <p class="f-13 font-weight-normal text-dark-grey mb-0">
-                    {{ !is_null($employee->employeeDetail) && !is_null($employee->employeeDetail->designation) ? mb_ucwords($employee->employeeDetail->designation->name) : '' }}
+                    {{ !is_null($employee->employeeDetail) && !is_null($employee->employeeDetail->designation) ? $employee->employeeDetail->designation->name : '' }}
                     &bull;
-                    {{ isset($employee->employeeDetail) && !is_null($employee->employeeDetail->department) && !is_null($employee->employeeDetail->department) ? mb_ucwords($employee->employeeDetail->department->team_name) : '' }}
+                    {{ isset($employee->employeeDetail) && !is_null($employee->employeeDetail->department) && !is_null($employee->employeeDetail->department) ? $employee->employeeDetail->department->team_name : '' }}
                 </p>
 
                 @if ($employee->status == 'active')

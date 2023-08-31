@@ -3,7 +3,23 @@
     <div class="col-sm-12">
         <x-form id="update-company-package-form" method="PUT">
 
+            <input type="hidden" name="request_from" value="{{ $pageInfo }}">
+
             <div class="add-company bg-white rounded">
+                @if ($latestInvoice)
+                    <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">{{__('superadmin.companyCurrentPackage')}}</h4>
+                    <div class="row p-20 border-bottom-grey">
+                        <div class="col-12">
+                            <x-cards.data-row :label="__('superadmin.package')" :value="$company->package->name ?? '--'" />
+                            <x-cards.data-row :label="__('superadmin.packageType')" :value="__('superadmin.' . $company->package_type) ?? '--'" />
+                            <x-cards.data-row :label="__('app.amount')" :value="$latestInvoice->total ?? '--'" />
+                            <x-cards.data-row :label="__('superadmin.paymentDate')" :value="$latestInvoice->pay_date?->format($global->date_format) ?? '--'" />
+                            <x-cards.data-row :label="__('superadmin.nextPaymentDate')" :value="$latestInvoice->next_pay_date?->format($global->date_format) ?? '--'" />
+                            <x-cards.data-row :label="__('superadmin.packages.licenseExpiresOn')" :value="$company->licence_expire_on?->format($global->date_format) ?? '--'" />
+                        </div>
+                    </div>
+                @endif
+
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">@lang('app.change') @lang('superadmin.company') {{__('superadmin.package')}}</h4>
                 <div class="row p-20">
                     <div class="col-md-12 mb-2">
@@ -13,31 +29,29 @@
                     <div class="col-md-4">
                         <x-forms.select fieldId="package" :fieldLabel="__('superadmin.packages.packages')" search
                                         fieldName="package">
-                            @foreach($packages as $package)
+                            <option value=""> @lang('superadmin.packages.selectPackage')</option>
+                            @foreach($allPackages as $package)
                                 <option value="{{ $package->id }}"
-                                        @if($company->package_id == $package->id) selected @endif >{{ $package->name ?? '' }}
+                                        data-type="{{ $package->type }}"
+                                        data-days="{{ $package->days }}">
+                                        {{ $package->name ?? '' }}
                                         @if($package->is_free) ({{__('superadmin.freePlan') }}) @endif
-
                                         @if($package->default==='no')
-                                            (@lang('app.monthly'): {{global_currency_format($package->monthly_price, $package->currency_id)}},
-                                            @lang('app.annually'): {{global_currency_format($package->annual_price, $package->currency_id)}})
+                                            @if ($package->type != 'annual')
+                                               @lang('app.monthly'): {{global_currency_format($package->monthly_price, $package->currency_id)}}
+                                            @else
+                                                @lang('app.annually'): {{global_currency_format($package->annual_price, $package->currency_id)}}
+                                            @endif
                                         @endif
-
                                 </option>
                             @endforeach
                         </x-forms.select>
                     </div>
 
-                    <div class="col-md-4">
-                        <x-forms.select fieldId="package_type" :fieldLabel="__('superadmin.packageType')"
-                            fieldName="package_type">
-                            <option value="monthly" @if($company->package_type == 'monthly') selected @endif>@lang('app.monthly')</option>
-                            <option value="annual" @if($company->package_type == 'annual') selected @endif>@lang('app.annually')</option>
-                        </x-forms.select>
-                    </div>
+                    <input type="hidden" name="package_type" id="package_type" value="{{ $company->package_type }}">
 
                     <div class="col-md-4">
-                        <x-forms.number fieldId="amount" :fieldLabel="__('app.amount')" fieldName="amount" :fieldValue="(!empty($currentPackage) ? $currentPackage->{$company->package_type . '_price'} : 0)"></x-forms.number>
+                        <x-forms.number fieldId="amount" :fieldLabel="__('app.amount')" fieldName="amount"></x-forms.number>
                     </div>
 
 
@@ -54,8 +68,10 @@
                     </div>
 
                     <div class="col-md-4">
-                        <x-forms.text fieldId="licence_expire_on" fieldReadOnly
-                            :fieldLabel="__('superadmin.packages.licenseExpiresOn')" fieldName="licence_expire_on" />
+                        <x-forms.text fieldId="licence_expire_on"
+                            :fieldLabel="__('superadmin.packages.licenseExpiresOn')"
+                            fieldName="licence_expire_on"
+                            :fieldPlaceholder="__('placeholders.date')"/>
                     </div>
                 </div>
                 <x-form-actions>
@@ -74,37 +90,64 @@
     $(document).ready(function() {
         var packageInfo = @json($packageInfo);
 
-        datepicker('#pay_date', {
+        var payDatepicker = datepicker('#pay_date', {
             position: 'bl',
             minDate: new Date("{{ str_replace('-', '/', now()->translatedFormat('Y-m-d')) }}"),
             onSelect: function(date) {
-                updateExpiryDate()
+                updateDates()
             },
             ...datepickerConfig
         });
 
-        datepicker('#next_pay_date', {
+        var nexPayDatepicker = datepicker('#next_pay_date', {
+            position: 'bl',
+            minDate: new Date("{{ str_replace('-', '/', now()->translatedFormat('Y-m-d')) }}"),
+            onSelect: function(date, instance) {
+                $('#licence_expire_on').val(moment(instance).add(7, 'days').format('{{ $global->moment_date_format }}'));
+            },
+
+            ...datepickerConfig
+        });
+
+        var licenceExpDatepicker = datepicker('#licence_expire_on', {
             position: 'bl',
             minDate: new Date("{{ str_replace('-', '/', now()->translatedFormat('Y-m-d')) }}"),
             ...datepickerConfig
         });
 
-        $('#update-company-package-form').on('change', '#package_type', function () {
-
-            $('#amount').val(packageInfo[$('#update-company-package-form #package').val()][$('#update-company-package-form #package_type').val()]);
-            updateExpiryDate();
-        });
-
-
         $('#update-company-package-form').on('change', '#package', function () {
-            $('#amount').val(packageInfo[$('#update-company-package-form #package').val()][$('#update-company-package-form #package_type').val()]);
+            $('#package_type').val($(this).find(':selected').data('type'));
+            $('#amount').val(packageInfo[$('#update-company-package-form #package').val()][$(this).find(':selected').data('type')]);
+            updateDates();
         });
 
-        function updateExpiryDate() {
-            let startDate = moment($("#pay_date").val(), '{{ $global->moment_date_format }}');
-            let endDate = startDate.add(1, ($('#package_type').val() === 'monthly') ? 'months' : 'year').format('{{ $global->moment_date_format }}');
-            $('#licence_expire_on').val(endDate);
+        function updateLicenceExpireDate(nextPayDate) {
+            let endDate = nextPayDate;
+
+            if (endDate.isValid()) {
+                endDate = endDate.add(7, 'days');
+                $('#licence_expire_on').val(endDate.format('{{ $global->moment_date_format }}'));
+
+                licenceExpDatepicker.setDate(endDate.toDate());
+            }
         }
+
+        function updateNextPayDate(endDate) {
+            nexPayDatepicker.setDate(endDate.toDate());
+            updateLicenceExpireDate(endDate);
+        }
+
+        function updateDates() {
+            if ($('#pay_date').val() !== '') {
+                let startDate = moment($("#pay_date").val(), '{{ $global->moment_date_format }}');
+                let endDate = startDate.add($('#package').find(':selected').data('days'), 'days');
+
+                if (endDate.isValid()) {
+                    updateNextPayDate(endDate);
+                }
+            }
+        }
+
 
         $('#update-company-package').click(function() {
             const url = "{{ route('superadmin.companies.update_package', [$company->id])}}";

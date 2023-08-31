@@ -116,7 +116,6 @@
                 'more-filter-items pl-4',
                 'd-none' => !user()->is_superadmin
             ])>
-                <x-forms.checkbox fieldName=""  fieldValue="yes" checked  :fieldLabel="__('superadmin.selfTickets')" fieldId="self"/>
             </div>
 
         </x-filters.more-filter-box>
@@ -126,15 +125,25 @@
 @endsection
 
 @section('content')
+@php
+$addSuperAdminTicketPermission = user()->permission('add_superadmin_ticket');
+@endphp
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
         <div class="d-flex justify-content-between action-bar">
             <div id="table-actions" class="flex-grow-1 align-items-center mt-3">
-                    <x-forms.link-primary :link="route('superadmin.support-tickets.create')" class="mr-3 openRightModal float-left"
-                        icon="plus">
-                        @lang('modules.tickets.addTicket')
-                    </x-forms.link-primary>
+                    @if(user()->is_superadmin && $addSuperAdminTicketPermission == 'all' || in_array('admin', user_roles()))
+                        <x-forms.link-primary :link="route('superadmin.support-tickets.create')" class="mr-3 openRightModal float-left"
+                            icon="plus">
+                            @lang('modules.tickets.addTicket')
+                        </x-forms.link-primary>
+                    @endif
+                    @if (user()->is_superadmin)
+                        <x-forms.button-secondary id="filter-my-ticket" class="mr-3 float-left" icon="user">
+                            @lang('superadmin.myTickets')
+                        </x-forms.button-primary>
+                    @endif
                     <x-forms.link-secondary :link="route('superadmin.faqs.index')" class="mr-3 float-left"
                         icon="book-open">
                         @lang('superadmin.menu.faq')
@@ -208,13 +217,6 @@
 
             var typeId = $('#type_id').val();
 
-            var self = 'no';
-            @if (user()->is_superadmin)
-            if($('#self').is(':checked')){
-                self = 'yes';
-            }
-            @endif
-
             var searchText = $('#search-text-field').val();
 
             data['startDate'] = startDate;
@@ -224,14 +226,20 @@
             data['typeId'] = typeId;
             data['ticketStatus'] = status;
             data['searchText'] = searchText;
-            data['self'] = self;
 
         });
         const showTable = () => {
             window.LaravelDataTables["supportticket-table"].draw();
         }
 
-        $('#agent_id, #ticket-status, #search-text-field, #priority, #type_id, #self')
+        $('#filter-my-ticket').click(function () {
+            $('.filter-box #agent_id').val('{{ user()->id }}');
+            $('.filter-box .select-picker').selectpicker("refresh");
+            $('#reset-filters').removeClass('d-none');
+            showTable();
+        });
+
+        $('#agent_id, #ticket-status, #search-text-field, #priority, #type_id')
             .on('change keyup',
                 function() {
                     if ($('#ticket-status').val() != "not finished") {
@@ -244,9 +252,6 @@
                         $('#reset-filters').removeClass('d-none');
                         showTable();
                     } else if ($('#type_id').val() != "all") {
-                        $('#reset-filters').removeClass('d-none');
-                        showTable();
-                    } else if (!$('#self').is(':checked')) {
                         $('#reset-filters').removeClass('d-none');
                         showTable();
                     } else if ($('#search-text-field').val() != "") {

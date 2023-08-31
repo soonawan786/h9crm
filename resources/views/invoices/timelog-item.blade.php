@@ -10,7 +10,7 @@
                         @if ($invoiceSetting->hsn_sac_code_show)
                             <td width="10%" class="border-0" align="right">@lang('app.hsnSac')</td>
                         @endif
-                        <td width="10%" class="border-0 qtyValue" align="right">{{ $qtyVal }}</td>
+                        <td width="10%" class="border-0 qtyValue" align="right">@lang('modules.invoices.qty')</td>
                         <td width="10%" class="border-0" align="right">@lang('modules.invoices.unitPrice')</td>
                         <td width="13%" class="border-0" align="right">@lang('modules.invoices.tax')</td>
                         <td width="17%" class="border-0 bblr-mbl" align="right">@lang('modules.invoices.amount')</td>
@@ -31,8 +31,16 @@
                             </td>
                         @endif
                         <td class="border-bottom-0">
-                            <input type="number" min="1" class="f-14 border-0 w-100 text-right quantity"
+                            <input type="number" min="1" class="f-14 border-0 w-100 text-right quantity mt-3"
                                 value="1" name="quantity[]">
+                            <select class="text-dark-grey float-right border-0 f-12" name="unit_id[]">
+                                @foreach ($units as $unit)
+                                    <option
+                                    @if ($unit->default == 1) selected @endif
+                                    value="{{ $unit->id }}">{{ $unit->unit_type }}</option>
+                                @endforeach
+                            </select>
+                            <input type="hidden" name="product_id[]" value="">
                         </td>
                         <td class="border-bottom-0">
                             <input type="number" min="1" class="f-14 border-0 w-100 text-right cost_per_item"
@@ -43,8 +51,8 @@
                                 <select id="multiselect" name="taxes[{{ $key }}][]" multiple="multiple"
                                     class="select-picker type customSequence border-0" data-size="3">
                                     @foreach ($taxes as $tax)
-                                        <option data-rate="{{ $tax->rate_percent }}" value="{{ $tax->id }}">
-                                            {{ strtoupper($tax->tax_name) }}: {{ $tax->rate_percent }}%</option>
+                                        <option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%" value="{{ $tax->id }}">
+                                            {{ $tax->tax_name }}: {{ $tax->rate_percent }}%</option>
                                     @endforeach
                                 </select>
                             </div>
@@ -81,7 +89,7 @@
                         @if ($invoiceSetting->hsn_sac_code_show)
                             <td width="10%" class="border-0" align="right">@lang('app.hsnSac')</td>
                         @endif
-                        <td width="10%" class="border-0 qtyValue" align="right">{{ $qtyVal }}</td>
+                        <td width="10%" class="border-0 qtyValue" align="right">@lang('modules.invoices.qty')</td>
                         <td width="10%" class="border-0" align="right">@lang('modules.invoices.unitPrice')
                         </td>
                         <td width="13%" class="border-0" align="right">@lang('modules.invoices.tax')</td>
@@ -106,8 +114,16 @@
                         @endif
                         <td class="border-bottom-0">
                             <input type="number" min="1"
-                                class="form-control f-14 border-0 w-100 text-right quantity" value="1"
+                                class="form-control f-14 border-0 w-100 text-right quantity mt-3" value="1"
                                 name="quantity[]">
+                            <select class="text-dark-grey float-right border-0 f-12" name="unit_id[]">
+                                @foreach ($units as $unit)
+                                    <option
+                                    @if ($unit->default == 1) selected @endif
+                                    value="{{ $unit->id }}">{{ $unit->unit_type }}</option>
+                                @endforeach
+                            </select>
+                            <input type="hidden" name="product_id[]" value="">
                         </td>
                         <td class="border-bottom-0">
                             <input type="number" min="1" class="f-14 border-0 w-100 text-right cost_per_item"
@@ -118,8 +134,8 @@
                                 <select id="multiselect" name="taxes[0][]" multiple="multiple"
                                     class="select-picker type customSequence border-0" data-size="3">
                                     @foreach ($taxes as $tax)
-                                        <option data-rate="{{ $tax->rate_percent }}" value="{{ $tax->id }}">
-                                            {{ strtoupper($tax->tax_name) }}:
+                                        <option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%" value="{{ $tax->id }}">
+                                            {{ $tax->tax_name }}:
                                             {{ $tax->rate_percent }}%</option>
                                     @endforeach
                                 </select>

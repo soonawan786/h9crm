@@ -22,10 +22,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|TicketChannel whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketChannel whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketChannel whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|TicketChannel whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class TicketChannel extends BaseModel
 {

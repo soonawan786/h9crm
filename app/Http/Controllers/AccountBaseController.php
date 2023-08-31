@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CustomLinkSetting;
+use App\Models\GlobalSetting;
 use Carbon\Carbon;
 use App\Models\User;
 use App\Models\UserChat;
 use App\Models\TaskHistory;
 use App\Models\UserActivity;
-use App\Models\GlobalSetting;
 use App\Models\ProjectTimeLog;
 use App\Models\ProjectActivity;
 use Illuminate\Support\Facades\App;
@@ -33,6 +34,11 @@ class AccountBaseController extends Controller
         }
 
         $this->middleware(function ($request, $next) {
+
+            if(!user() && !auth()->check())
+            {
+                return redirect()->route('login');
+            }
 
             // Keep this function at top
             $this->adminSpecific();
@@ -76,6 +82,7 @@ class AccountBaseController extends Controller
         $this->viewTimelogPermission = user()->permission('view_timelogs');
 
         $this->activeTimerCount = ProjectTimeLog::whereNull('end_time')
+            ->doesntHave('activeBreak')
             ->join('users', 'users.id', 'project_time_logs.user_id')
             ->select('project_time_logs.id');
 
@@ -85,16 +92,13 @@ class AccountBaseController extends Controller
 
         $this->activeTimerCount = $this->activeTimerCount->count();
 
-        $this->selfActiveTimer = ProjectTimeLog::with('activeBreak')
-            ->where('user_id', user()->id)
-            ->whereNull('end_time')
-            ->first();
-
-        $this->userCompanies = userCompanies();
+        $this->selfActiveTimer = ProjectTimeLog::selfActiveTimer();
+        $this->userCompanies = user_companies(user());
     }
 
     public function common()
     {
+        $this->fields = [];
         $this->languageSettings = language_setting();
         $this->pushSetting = push_setting();
         $this->smtpSetting = smtp_setting();
@@ -129,6 +133,7 @@ class AccountBaseController extends Controller
         }
 
         $this->sidebarUserPermissions = sidebar_user_perms();
+        $this->customLink = CustomLinkSetting::all();
     }
 
     public function logProjectActivity($projectId, $text)
@@ -170,10 +175,42 @@ class AccountBaseController extends Controller
     {
         // WORKSUITESAAS
         if (user()->is_superadmin) {
+            $viewTicketPermission = user()->permission('view_superadmin_ticket');
+
             $this->totalPendingOfflineRequests = OfflinePlanChange::where('status', 'pending')->count();
-            $this->totalOpenTickets = SupportTicket::where('status', 'open')->count();
+            $totalOpenTickets = SupportTicket::where('status', 'open');
+
+            if ($viewTicketPermission == 'added') {
+                $totalOpenTickets->where(
+                    function ($query) {
+                        return $query->where('created_by', user()->id);
+                    }
+                );
+            }
+
+            if ($viewTicketPermission == 'owned') {
+                $totalOpenTickets->where(
+                    function ($query) {
+                        return $query->where('user_id', user()->id)
+                            ->orWhere('agent_id', user()->id);
+                    }
+                );
+            }
+
+            if ($viewTicketPermission == 'both') {
+                $totalOpenTickets->where(
+                    function ($query) {
+                        return $query->where('created_by', user()->id)
+                            ->orWhere('user_id', user()->id)
+                            ->orWhere('agent_id', user()->id);
+                    }
+                );
+            }
+
+            $this->totalOpenTickets = $totalOpenTickets->count();
             $this->appTheme = superadmin_theme();
             $this->checkListCompleted = GlobalSetting::checkListCompleted();
+            $this->sidebarSuperadminPermissions = sidebar_superadmin_perms();
         }
     }
 

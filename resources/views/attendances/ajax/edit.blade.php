@@ -2,33 +2,30 @@
 $editAttendancePermission = user()->permission('add_attendance');
 $deleteAttendancePermission = user()->permission('delete_attendance');
 @endphp
-
 <div class="modal-header">
     <h5 class="modal-title" id="modelHeading">
         @if ($type == 'edit')
-            @lang('app.menu.attendance') @lang('app.details')
+        @lang('app.menu.attendance') @lang('app.details')
         @else
-            @lang('app.mark')  @lang('app.menu.attendance')
+        @lang('app.mark')  @lang('app.menu.attendance')
         @endif
     </h5>
     <button type="button"  class="close" data-dismiss="modal" aria-label="Close"><span
-            aria-hidden="true">×</span></button>
-</div>
-<div class="modal-body">
-    <div class="row">
-        <div class="col-md-12 mb-4">
-            <x-employee :user="$attendanceUser" />
-        </div>
+        aria-hidden="true">×</span></button>
     </div>
-
-    <div class="row">
-        <div class="col-sm-12">
-
-            <h5 class="f-w-500 f-15 d-flex justify-content-between">{{ __('app.date').' - '.\Carbon\Carbon::parse($date)->translatedFormat(company()->date_format) }}
-                @if ($attendanceSettings->shift_name != 'Day Off')
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <x-employee :user="$attendanceUser" />
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-sm-12">
+                <h5 class="f-w-500 f-15 d-flex justify-content-between">{{ __('app.date').' - '.\Carbon\Carbon::parse($date)->translatedFormat(company()->date_format) }}
+                    @if ($attendanceSettings->shift_name != 'Day Off')
                     <span class="badge badge-info ml-2" style="background-color: {{ $attendanceSettings->color }}">{{ $attendanceSettings->shift_name }}</span>
-                @else
-                    <span class="badge badge-secondary ml-2">{{ $attendanceSettings->shift_name }}</span>
+                    @else
+                    <span class="badge badge-secondary ml-2">{{ __('modules.attendance.' . str($attendanceSettings->shift_name)->camel()) }}</span>
                 @endif
             </h5>
 
@@ -109,7 +106,7 @@ $deleteAttendancePermission = user()->permission('delete_attendance');
                             search="true">
                                 @foreach ($location as $locations)
                                     <option @if (($row->location_id == $locations->id) || (is_null($row->location_id) && $locations->is_default == 1)) selected @endif value="{{ $locations->id }}">
-                                        {{ mb_ucwords($locations->location) }}</option>
+                                        {{ $locations->location }}</option>
                                 @endforeach
                             </x-forms.select>
                         </div>
@@ -139,16 +136,12 @@ $deleteAttendancePermission = user()->permission('delete_attendance');
             @endif
         </div>
     </div>
-
 </div>
 <div class="modal-footer">
     <x-forms.button-cancel data-dismiss="modal" class="border-0 mr-3">@lang('app.close')</x-forms.button-cancel>
 
-    @if($attendanceSettings->shift_name != 'Day Off')
-        <x-forms.button-primary id="save-attendance" icon="check">@lang('app.save')</x-forms.button-primary>
-    @endif
+    <x-forms.button-primary id="save-attendance" icon="check">@lang('app.save')</x-forms.button-primary>
 </div>
-
 <script>
     $('.select-picker').selectpicker();
 

@@ -26,7 +26,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|TicketAgentGroups whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketAgentGroups whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketAgentGroups whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property int|null $added_by
  * @property int|null $last_updated_by
@@ -34,6 +33,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|TicketAgentGroups whereAddedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketAgentGroups whereCompanyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketAgentGroups whereLastUpdatedBy($value)
+ * @mixin \Eloquent
  */
 class TicketAgentGroups extends BaseModel
 {

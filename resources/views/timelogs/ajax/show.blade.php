@@ -113,12 +113,12 @@
                                         {{ $item->start_time->timezone(company()->timezone)->translatedFormat(company()->time_format) . ' - ' . $item->end_time->timezone(company()->timezone)->translatedFormat(company()->time_format) }}
 
                                         @if (
-                                            $editTimelogPermission == 'all'
+                                            !is_null($timeLog->end_time) &&                                             ($editTimelogPermission == 'all'
                                             || ($editTimelogPermission == 'added' && $timeLog->added_by == user()->id)
                                             || ($editTimelogPermission == 'owned'
                                                 && (($timeLog->project && $timeLog->project->client_id == user()->id) || $timeLog->user_id == user()->id)
                                                 )
-                                            || ($editTimelogPermission == 'both' && (($timeLog->project && $timeLog->project->client_id == user()->id) || $timeLog->user_id == user()->id || $timeLog->added_by == user()->id))
+                                            || ($editTimelogPermission == 'both' && (($timeLog->project && $timeLog->project->client_id == user()->id) || $timeLog->user_id == user()->id || $timeLog->added_by == user()->id)))
                                         )
                                             <a href="javascript:;" data-break-id="{{ $item->id }}" class="text-lightest ml-1 edit-time-break"><i class="fa fa-edit"></i></a>
                                         @endif

@@ -17,14 +17,14 @@ $deleteAttendancePermission = user()->permission('delete_attendance');
                     <div class="col-12">
                         <h4 class="card-title f-15 f-w-500 text-darkest-grey mb-0">
                             <a href="{{ route('employees.show', [$attendance->user->id]) }}"
-                                class="text-darkest-grey">{{ ucfirst($attendance->user->name) }}</a>
+                                class="text-darkest-grey">{{ $attendance->user->name }}</a>
 
                             @isset($attendance->user->country)
                                 <x-flag :country="$attendance->user->country" />
                             @endisset
                         </h4>
                         <p class="mb-0 f-13 text-dark-grey">
-                            {{ (!is_null($attendance->user->employeeDetail) && !is_null($attendance->user->employeeDetail->designation)) ? mb_ucwords($attendance->user->employeeDetail->designation->name) : ' ' }}
+                            {{ (!is_null($attendance->user->employeeDetail) && !is_null($attendance->user->employeeDetail->designation)) ? $attendance->user->employeeDetail->designation->name : ' ' }}
                         </p>
                     </div>
                 </div>
@@ -34,7 +34,7 @@ $deleteAttendancePermission = user()->permission('delete_attendance');
 
     <div class="row">
         <div class="col-md-6">
-            <x-cards.data :title="__('app.date').' - '.$attendanceDate->translatedFormat(company()->date_format)">
+            <x-cards.data :title="__('app.date').' - '.$attendanceDate->translatedFormat(company()->date_format) .' ('.$attendanceDate->translatedFormat('l').')'">
                 <div class="punch-status">
                     <div class="border rounded p-3 mb-3 bg-light">
                         <h6 class="f-13">@lang('modules.attendance.clock_in')</h6>
@@ -77,10 +77,10 @@ $deleteAttendancePermission = user()->permission('delete_attendance');
                                 <li>
                                     <p class="mb-0">@lang('modules.attendance.clock_in')
                                         @if (!is_null($item->employee_shift_id))
-                                            @if ($attendanceSettings->shift_name != 'Day Off')
-                                                <span class="badge badge-info ml-2" style="background-color: {{ $attendanceSettings->color }}">{{ $attendanceSettings->shift_name }}</span>
+                                            @if ($item->shift->shift_name != 'Day Off')
+                                                <span class="badge badge-info ml-2" style="background-color: {{ $item->shift->color }}">{{ $item->shift->shift_name }}</span>
                                             @else
-                                                <span class="badge badge-secondary ml-2" >{{ $attendanceSettings->shift_name }}</span>
+                                                <span class="badge badge-secondary ml-2" >{{ __('modules.attendance.' . str($attendanceSettings->shift_name)->camel()) }}</span>
                                             @endif
                                         @endif
                                     </p>
@@ -94,7 +94,7 @@ $deleteAttendancePermission = user()->permission('delete_attendance');
                                                 {{ $item->location }} {{ $item->working_from != '' ? '(' . $item->working_from . ')' : ''  }}
                                             @else
                                                 <i class="fa fa-map-marker-alt ml-2"></i>
-                                                {{ $item->location }} ({{ucfirst($item->work_from_type)}})
+                                                {{ $item->location }} ({{$item->work_from_type}})
                                             @endif
                                         @endif
 
@@ -109,7 +109,8 @@ $deleteAttendancePermission = user()->permission('delete_attendance');
                                         @endif
 
                                         @if ($item->latitude != '' && $item->longitude != '')
-                                        <a href="https://www.google.com/maps/{{ '@'.$item->latitude }},{{ $item->longitude }},17z" target="_blank">
+
+                                        <a href="https://www.google.com/maps/search/?api=1&query={{ $item->latitude }}%2C{{ $item->longitude }}" target="_blank">
                                             <i class="fa fa-map-marked-alt ml-2"></i> @lang('modules.attendance.showOnMap')</a>
                                         @endif
                                     </p>
@@ -182,6 +183,26 @@ $deleteAttendancePermission = user()->permission('delete_attendance');
 
 </div>
 <script>
+
+    function addAttendance(userID) {
+            var date = $('#date').val();
+            const attendanceDate = date.split("-");
+            let dayTime = attendanceDate[2];
+            dayTime = dayTime.split(' ');
+            let day = dayTime[0];
+            let month = attendanceDate[1];
+            let year = attendanceDate[0];
+
+            var url = "{{ route('attendances.add-user-attendance', [':userid', ':day', ':month', ':year']) }}";
+            url = url.replace(':userid', userID);
+            url = url.replace(':day', day);
+            url = url.replace(':month', month);
+            url = url.replace(':year', year);
+
+            $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
+            $.ajaxModal(MODAL_LG, url);
+        }
+
     function deleteAttendance(id) {
         var url = "{{ route('attendances.destroy', ':id') }}";
         url = url.replace(':id', id);

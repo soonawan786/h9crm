@@ -114,7 +114,7 @@
     <?php
     $error = false;
 
-    if (version_compare(PHP_VERSION, '8.0.1') >= 0) {
+    if (version_compare(PHP_VERSION, '8.1.0') >= 0) {
         $requirement1 = "<span class='label label-success'>v." . PHP_VERSION . '</span>';
     }
     else {
@@ -224,6 +224,14 @@
         $requirement14 = "<span class='label label-success'>Enabled</span>";
     }
 
+    if(!function_exists('proc_close')) {
+        $error = true;
+        $requirement15 = "<span class='label label-warning'>Proc Close is not enabled</span>";
+    }
+    else {
+        $requirement15 = "<span class='label label-success'>Enabled</span>";
+    }
+
 
     ?>
     <div id="container">
@@ -271,7 +279,7 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>PHP 8.0.1+</td>
+                    <td>PHP 8.1.0+</td>
                     <td><?php echo $requirement1; ?></td>
                 </tr>
                 <tr>
@@ -318,6 +326,10 @@
                 </tr>
                 <tr>
                     <td>Proc_open</td>
+                    <td><?php echo $requirement14; ?></td>
+                </tr>
+                <tr>
+                    <td>Proc_close</td>
                     <td><?php echo $requirement14; ?></td>
                 </tr>
             </tbody>

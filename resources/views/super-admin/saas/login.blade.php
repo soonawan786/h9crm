@@ -31,13 +31,13 @@
           href="{{ asset('saas/vendor/material-design-iconic-font/css/material-design-iconic-font.min.css') }}">
 
     @if($global->google_recaptcha_status  && $global->google_captcha_version=="v3")
-        <script src="https://www.google.com/recaptcha/api.js?render={{ $global->google_recaptcha_key }}"></script>
+        <script src="https://www.google.com/recaptcha/api.js?render={{ $global->google_recaptcha_v3_site_key }}"></script>
 
         <script>
             setInterval(function () {
 
                 grecaptcha.ready(function () {
-                    grecaptcha.execute('{{ $global->google_recaptcha_key }}', {action: 'submit'}).then(function (token) {
+                    grecaptcha.execute('{{ $global->google_recaptcha_v3_site_key }}', {action: 'submit'}).then(function (token) {
                         document.getElementById("recaptcha_token").value = token;
                     });
                 });
@@ -97,6 +97,12 @@
         </style>
     @endif
 
+    @foreach ($frontWidgets as $item)
+        @if(!is_null($item->header_script))
+            {!! $item->header_script !!}
+        @endif
+
+    @endforeach
 </head>
 
 <body id="home">
@@ -166,22 +172,21 @@
                                 <label for="checkbox-signup" class="text-dark"> @lang('app.rememberMe') </label>
                             </div>
                             <a href="{{ route('password.request') }}" class="text-dark float-right"><i
-                                    class="fa fa-lock m-r-5"></i> @lang('app.forgotPassword')?</a></div>
+                                    class="fa fa-lock m-r-5"></i> @lang('app.forgotPassword')</a></div>
                     </div>
-                    <div class="form-group text-center m-t-20">
+                    <div class="form-group text-center m-t-10">
                         <div class="col-xs-12">
                             <button
-                                class="btn btn-custom btn-block btn-rounded text-uppercase waves-effect waves-light"
+                                class="btn btn-custom btn-block btn-rounded text-uppercase waves-effect waves-light "
                                 id="submit-login"
                                 type="submit">@lang('app.login')</button>
                         </div>
                     </div>
-                    @if($setting->enable_register == true)
+                    @if($setting->enable_register)
                         <div class="form-group m-b-0">
                             <div class="col-sm-12 text-center">
                                 <p>@lang('superadmin.dontHaveAccount')<br>
-                                    <a href="{{ route('front.signup.index') }}"
-                                                                             class="text-primary m-l-5"><b>@lang('app.signUp')</b></a>
+                                    <a href="{{ route('front.signup.index') }}" class="text-primary m-l-5 font-bold"><b>@lang('app.signUp')</b></a>
                                 </p>
                             </div>
                             @endif
@@ -211,8 +216,8 @@
                             @if($socialAuthSettings->google_status == 'enable')
 
                                 <a href="javascript:;" class="btn btn-primary btn-google" data-toggle="tooltip"
-                                   title="@lang('auth.loginWithGoogle')" onclick="window.location.href = google;"
-                                   data-original-title="@lang('auth.loginWithGoogle')">@lang('auth.signInGoogle') <i
+                                   title="@lang('auth.signInGoogle')" onclick="window.location.href = google;"
+                                   data-original-title="@lang('auth.signInGoogle')">@lang('auth.signInGoogle') <i
                                         aria-hidden="true" class="zmdi zmdi-google"></i> </a>
                             @endif
                         </div>
@@ -260,7 +265,12 @@
 <script src="{{ asset('saas/js/main.js') }}"></script>
 <script src="{{ asset('front/plugin/froiden-helper/helper.js') }}"></script>
 <!-- Global Required JS -->
+@foreach ($frontWidgets as $item)
+@if(!is_null($item->footer_script))
+    {!! $item->footer_script !!}
+@endif
 
+@endforeach
 <script>
     $("form#save-form").submit(function () {
         const button = $('form#save-form').find('#submit-login');

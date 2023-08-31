@@ -2,10 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Helper\Reply;
-use App\Models\BaseModel;
-use App\Models\LeaveType;
 use App\Models\Designation;
 use App\Models\EmployeeDetails;
 use Illuminate\Http\Request;
@@ -90,7 +87,18 @@ class DesignationController extends AccountBaseController
     public function edit($id)
     {
         $this->designation = Designation::findOrFail($id);
-        $this->designations = Designation::all();
+
+        $designations = Designation::where('id', '!=', $this->designation->id)->get();
+
+        $childDesignations = $designations->where('parent_id', $this->designation->id)->pluck('id')->toArray();
+
+        $designations = $designations->where('parent_id', '!=', $this->designation->id);
+
+        // remove child designations
+        $this->designations = $designations->filter(function ($value, $key) use ($childDesignations) {
+            return !in_array($value->parent_id, $childDesignations);
+        });
+
 
         if (request()->ajax())
         {
@@ -133,7 +141,7 @@ class DesignationController extends AccountBaseController
         $group->save();
 
         $redirectUrl = route('designations.index');
-        return Reply::successWithData(__('messages.designationUpdated'), ['redirectUrl' => $redirectUrl]);
+        return Reply::successWithData(__('messages.updateSuccess'), ['redirectUrl' => $redirectUrl]);
     }
 
     /**

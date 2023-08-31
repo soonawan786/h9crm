@@ -37,7 +37,7 @@ class PushNotificationSetting extends BaseModel
             return 'http://via.placeholder.com/200x150.png?text=' . __('modules.slackSettings.uploadSlackLogo');
         }
 
-        return asset_url('notification-logo/' . $this->notification_logo);
+        return asset_url_local_s3('notification-logo/' . $this->notification_logo);
     }
 
 }

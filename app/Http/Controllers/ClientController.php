@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Lead;
+use App\Models\ProjectStatusSetting;
 use App\Models\Role;
 use App\Models\User;
 use App\Helper\Files;
@@ -14,6 +15,7 @@ use App\Models\BaseModel;
 use App\Models\ClientNote;
 use App\Scopes\ActiveScope;
 use App\Traits\ImportExcel;
+use App\Models\Notification;
 use App\Models\ContractType;
 use App\Models\UserAuth;
 use Illuminate\Http\Request;
@@ -109,7 +111,7 @@ class ClientController extends AccountBaseController
             $this->employees = User::allEmployees();
         }
 
-        $this->pageTitle = __('app.add') . ' ' . __('app.client');
+        $this->pageTitle = __('app.addClient');
         $this->countries = countries();
         $this->categories = ClientCategory::all();
         $this->salutations = ['mr', 'mrs', 'miss', 'dr', 'sir', 'madam'];
@@ -117,7 +119,7 @@ class ClientController extends AccountBaseController
 
         $client = new ClientDetails();
 
-        if (!empty($client->getCustomFieldGroupsWithFields())) {
+        if ($client->getCustomFieldGroupsWithFields()) {
             $this->fields = $client->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -165,14 +167,13 @@ class ClientController extends AccountBaseController
         }
 
         if ($request->hasFile('image')) {
-            $data['image'] = Files::upload($request->image, 'avatar', 300);
+            $data['image'] = Files::uploadLocalOrS3($request->image, 'avatar', 300);
         }
 
         if ($request->hasFile('company_logo')) {
-            $data['company_logo'] = Files::upload($request->company_logo, 'client-logo', 300);
+            $data['company_logo'] = Files::uploadLocalOrS3($request->company_logo, 'client-logo', 300);
         }
-        //add date_of_birth for create
-        $data['date_of_birth']= date("Y-m-d", strtotime($request->date_of_birth));
+
         $user = User::create($data);
         $user->clientDetails()->create($data);
 
@@ -197,7 +198,7 @@ class ClientController extends AccountBaseController
         $role = Role::where('name', 'client')->select('id')->first();
         $user->attachRole($role->id);
 
-        $user->insertUserRolePermission($role->id);
+        $user->assignUserRolePermission($role->id);
 
         // Log search
         $this->logSearchEntry($user->id, $user->name, 'clients.show', 'client');
@@ -232,7 +233,10 @@ class ClientController extends AccountBaseController
         }
 
         if ($request->has('ajax_create')) {
+            $projects = Project::all();
             $teams = User::allClients();
+            $options = BaseModel::options($projects, null, 'project_name');
+
             $teamData = '';
 
             foreach ($teams as $team) {
@@ -244,19 +248,19 @@ class ClientController extends AccountBaseController
 
                 $teamData .= '<div class=\'position-relative\'><img src='.$team->image_url.' class=\'mr-2 taskEmployeeImg rounded-circle\'></div>';
                 $teamData .= '<div class=\'media-body\'>';
-                $teamData .= '<h5 class=\'mb-0 f-13\'>'.ucfirst($team->name).'</h5>';
+                $teamData .= '<h5 class=\'mb-0 f-13\'>'.$team->name.'</h5>';
                 $teamData .= '<p class=\'my-0 f-11 text-dark-grey\'>'.$team->email.'</p>';
 
                 $teamData .= (!is_null($team->clientDetails->company_name)) ? '<p class=\'my-0 f-11 text-dark-grey\'>'. $team->clientDetails->company_name .'</p>' : '';
                 $teamData .= '</div>';
                 $teamData .= '</div>"';
 
-                $teamData .= 'value="' . $team->id . '"> ' . mb_ucwords($team->name) . '';
+                $teamData .= 'value="' . $team->id . '"> ' . $team->name . '';
 
                 $teamData .= '</option>';
             }
 
-            return Reply::successWithData(__('messages.recordSaved'), ['teamData' => $teamData, 'redirectUrl' => $redirectUrl]);
+            return Reply::successWithData(__('messages.recordSaved'), ['teamData' => $teamData, 'project' => $options, 'redirectUrl' => $redirectUrl]);
         }
 
         return Reply::successWithData(__('messages.recordSaved'), ['redirectUrl' => $redirectUrl]);
@@ -271,7 +275,10 @@ class ClientController extends AccountBaseController
     {
         $this->client = User::withoutGlobalScope(ActiveScope::class)->with('clientDetails')->findOrFail($id);
         $this->emailCountInCompanies = User::withoutGlobalScopes([ActiveScope::class, CompanyScope::class])
-            ->where('email', $this->client->email)->count();
+            ->where('email', $this->client->email)
+            ->whereNotNull('email')
+            ->count();
+
         $this->editPermission = user()->permission('edit_clients');
 
         abort_403(!($this->editPermission == 'all' || ($this->editPermission == 'added' && $this->client->clientDetails->added_by == user()->id) || ($this->editPermission == 'both' && $this->client->clientDetails->added_by == user()->id)));
@@ -290,7 +297,7 @@ class ClientController extends AccountBaseController
         if (!is_null($this->client->clientDetails)) {
             $this->clientDetail = $this->client->clientDetails->withCustomFields();
 
-            if (!empty($this->clientDetail->getCustomFieldGroupsWithFields())) {
+            if ($this->clientDetail->getCustomFieldGroupsWithFields()) {
                 $this->fields = $this->clientDetail->getCustomFieldGroupsWithFields()->fields;
             }
         }
@@ -323,7 +330,7 @@ class ClientController extends AccountBaseController
         unset($data['country']);
 
         $emailCountInCompanies = User::withoutGlobalScopes([ActiveScope::class, CompanyScope::class])
-            ->where('email', $user->email)->count();
+            ->where('email', $user->email)->whereNotNull('email')->count();
 
         if ($emailCountInCompanies > 1 && $request->email != $user->email) {
             return Reply::error(__('messages.emailCannotChange'));
@@ -331,9 +338,15 @@ class ClientController extends AccountBaseController
 
         // Update email in userauth also
         if ($request->email != '') {
-            $user->userAuth()->update(['email' => $request->email]);
-        }
 
+            // Update email in userauth also
+            $userAuth = UserAuth::createUserAuthCredentials($request->email, null, $user->email);
+
+            if (!$userAuth) {
+                // Update email in userauth also
+                $user->userAuth->update(['email' => $request->email]);
+            }
+        }
         $data['country_id'] = $request->country;
 
         if ($request->has('sendMail')) {
@@ -353,32 +366,29 @@ class ClientController extends AccountBaseController
         if ($request->hasFile('image')) {
 
             Files::deleteFile($user->image, 'avatar');
-            $data['image'] = Files::upload($request->image, 'avatar', 300);
+            $data['image'] = Files::uploadLocalOrS3($request->image, 'avatar', 300);
         }
+
 
         $user->update($data);
 
         if ($user->clientDetails) {
-
             $data['category_id'] = $request->category_id;
             $data['sub_category_id'] = $request->sub_category_id;
             $data['note'] = trim_editor($request->note);
             $data['locale'] = $request->locale;
-
             $fields = $request->only($user->clientDetails->getFillable());
-            //add date_of_birth for update
-            $fields['date_of_birth']= date("Y-m-d", strtotime($data['date_of_birth']));
 
             if ($request->hasFile('company_logo')) {
                 Files::deleteFile($user->clientDetails->company_logo, 'client-logo');
-                $fields['company_logo'] = Files::upload($request->company_logo, 'client-logo', 300);
+                $fields['company_logo'] = Files::uploadLocalOrS3($request->company_logo, 'client-logo', 300);
             }
+
             $user->clientDetails->fill($fields);
             $user->clientDetails->save();
+
         }
         else {
-            //update date_of_birth
-            $data['date_of_birth']= date("Y-m-d", strtotime($request->date_of_birth));
             $user->clientDetails()->create($data);
         }
 
@@ -414,7 +424,14 @@ class ClientController extends AccountBaseController
             )
         );
 
-        $universalSearches = UniversalSearch::where('searchable_id', $id)->where('module_type', 'client')->get();
+        $this->deleteClient($this->client);
+
+        return Reply::success(__('messages.deleteSuccess'));
+    }
+
+    private function deleteClient(User $user)
+    {
+        $universalSearches = UniversalSearch::where('searchable_id', $user->id)->where('module_type', 'client')->get();
 
         if ($universalSearches) {
             foreach ($universalSearches as $universalSearch) {
@@ -422,7 +439,17 @@ class ClientController extends AccountBaseController
             }
         }
 
-        User::withoutGlobalScope(ActiveScope::class)->where('id', $id)->delete();
+
+        Notification::whereNull('read_at')
+            ->where(function ($q) use ($user) {
+                $q->where('data', 'like', '{"id":' . $user->id . ',%');
+                $q->orWhere('data', 'like', '%,"name":' . $user->name . ',%');
+                $q->orWhere('data', 'like', '%,"user_one":' . $user->id . ',%');
+                $q->orWhere('data', 'like', '%,"client_id":' . $user->id . '%');
+            })->delete();
+
+        $user->delete();
+        session()->forget('company');
 
         return Reply::success(__('messages.deleteSuccess'));
     }
@@ -451,8 +478,10 @@ class ClientController extends AccountBaseController
     protected function deleteRecords($request)
     {
         abort_403(user()->permission('delete_clients') !== 'all');
-        User::withoutGlobalScope(ActiveScope::class)->whereIn('id', explode(',', $request->row_ids))->delete();
-
+        $users = User::withoutGlobalScope(ActiveScope::class)->whereIn('id', explode(',', $request->row_ids))->get();
+        $users->each(function ($user) {
+            $this->deleteClient($user);
+        });
         return true;
     }
 
@@ -487,7 +516,7 @@ class ClientController extends AccountBaseController
             || ($this->viewPermission == 'added' && $this->client->clientDetails->added_by == user()->id)
             || ($this->viewPermission == 'both' && $this->client->clientDetails->added_by == user()->id)));
 
-        $this->pageTitle = ucfirst($this->client->name);
+        $this->pageTitle = $this->client->name;
 
         $this->clientStats = $this->clientStats($id);
         $this->projectChart = $this->projectChartData($id);
@@ -543,7 +572,7 @@ class ClientController extends AccountBaseController
             if (!is_null($this->clientDetail)) {
                 $this->clientDetail = $this->clientDetail->withCustomFields();
 
-                if (!empty($this->clientDetail->getCustomFieldGroupsWithFields())) {
+                if ($this->clientDetail->getCustomFieldGroupsWithFields()) {
                     $this->fields = $this->clientDetail->getCustomFieldGroupsWithFields()->fields;
                 }
             }
@@ -580,13 +609,13 @@ class ClientController extends AccountBaseController
     /**
      * XXXXXXXXXXX
      *
-     * @return \Illuminate\Http\Response
+     * @return array
      */
     public function projectChartData($id)
     {
-        $labels = ['in progress', 'on hold', 'not started', 'canceled', 'finished'];
-        $data['labels'] = [__('app.inProgress'), __('app.onHold'), __('app.notStarted'), __('app.canceled'), __('app.finished')];
-        $data['colors'] = ['#1d82f5', '#FCBD01', '#616e80', '#D30000', '#2CB100'];
+        $labels = ProjectStatusSetting::where('status', 'active')->pluck('status_name');
+        $data['labels'] = ProjectStatusSetting::where('status', 'active')->pluck('status_name');
+        $data['colors'] = ProjectStatusSetting::where('status', 'active')->pluck('color');
         $data['values'] = [];
 
         foreach ($labels as $label) {
@@ -868,7 +897,7 @@ class ClientController extends AccountBaseController
     {
         $id = $request->id;
 
-        $counts = User::withCount('projects', 'invoices', 'estimates')->find($id);
+        $counts = User::withCount('projects', 'invoices', 'estimates')->withoutGlobalScope(ActiveScope::class)->find($id);
 
         $payments = Payment::leftJoin('invoices', 'invoices.id', '=', 'payments.invoice_id')
             ->leftJoin('projects', 'projects.id', '=', 'payments.project_id')
@@ -887,6 +916,62 @@ class ClientController extends AccountBaseController
         $deleteClient = (__('messages.clientFinanceCount', ['projectCount' => $counts->projects_count, 'invoiceCount' => $counts->invoices_count, 'estimateCount' => $counts->estimates_count, 'paymentCount' => $payments, 'project' => $projectName , 'invoice' => $invoiceName , 'estimate' => $estimateName , 'payment' => $paymentName ]));
 
         return Reply::dataOnly(['status' => 'success', 'deleteClient' => $deleteClient ]);
+    }
+
+    public function clientDetails(Request $request)
+    {
+        $teamData = '';
+
+        if ($request->id == 0) {
+            $clients = User::allClients();
+
+            foreach ($clients as $client) {
+
+                $teamData .= '<option data-content="';
+
+                $teamData .= '<div class=\'media align-items-center mw-250\'>';
+
+                $teamData .= '<div class=\'position-relative\'><img src='.$client->image_url.' class=\'mr-2 taskEmployeeImg rounded-circle\'></div>';
+                $teamData .= '<div class=\'media-body\'>';
+                $teamData .= '<h5 class=\'mb-0 f-13\'>'.$client->name.'</h5>';
+                $teamData .= '<p class=\'my-0 f-11 text-dark-grey\'>'.$client->email.'</p>';
+
+                $teamData .= (!is_null($client->clientDetails->company_name)) ? '<p class=\'my-0 f-11 text-dark-grey\'>'. $client->clientDetails->company_name .'</p>' : '';
+                $teamData .= '</div>';
+                $teamData .= '</div>"';
+
+                $teamData .= 'value="' . $client->id . '"> ' . $client->name . '';
+
+                $teamData .= '</option>';
+
+            }
+        } else {
+
+            $project = Project::with('client')->findOrFail($request->id);
+
+            if($project->client != null) {
+
+                $teamData .= '<option data-content="';
+
+                $teamData .= '<div class=\'media align-items-center mw-250\'>';
+
+                $teamData .= '<div class=\'position-relative\'><img src='.$project->client->image_url.' class=\'mr-2 taskEmployeeImg rounded-circle\'></div>';
+                $teamData .= '<div class=\'media-body\'>';
+                $teamData .= '<h5 class=\'mb-0 f-13\'>'.$project->client->name.'</h5>';
+                $teamData .= '<p class=\'my-0 f-11 text-dark-grey\'>'.$project->client->email.'</p>';
+
+                $teamData .= (!is_null($project->client->company->company_name)) ? '<p class=\'my-0 f-11 text-dark-grey\'>'. $project->client->company->company_name .'</p>' : '';
+                $teamData .= '</div>';
+                $teamData .= '</div>"';
+
+                $teamData .= 'value="' . $project->client->id . '"> ' . $project->client->name . '';
+
+                $teamData .= '</option>';
+            }
+
+        }
+
+             return Reply::dataOnly(['teamData' => $teamData]);
     }
 
 }

@@ -29,10 +29,11 @@ class TestSlack extends BaseNotification
     // phpcs:ignore
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = getDomainSpecificUrl(route('login'));
         $content = __('email.notificationIntro');
 
-        return parent::build()
+        return $build
             ->markdown('mail.email', [
                 'url' => $url,
                 'content' => $content,
@@ -62,15 +63,15 @@ class TestSlack extends BaseNotification
         if (count($notifiable->employee) > 0 && !is_null($notifiable->employee[0]->slack_username)) {
             return (new SlackMessage())
                 ->from(config('app.name'))
-                ->image(asset_url('slack-logo/' . $slack->slack_logo))
+                ->image(asset_url_local_s3('slack-logo/' . $slack->slack_logo))
                 ->to('@' . $notifiable->employee[0]->slack_username)
                 ->content('This is a test notification.');
         }
 
         return (new SlackMessage())
             ->from(config('app.name'))
-            ->image(asset_url('slack-logo/' . $slack->slack_logo))
-            ->content('*' . __('Test slack') . '*' . "\n" .'This is a redirected notification. Add slack username for *' . $notifiable->name . '*');
+            ->image(asset_url_local_s3('slack-logo/' . $slack->slack_logo))
+            ->content('*' . 'Test slack' . '*' . "\n" .'This is a redirected notification. Add slack username for *' . $notifiable->name . '*');
     }
 
 }

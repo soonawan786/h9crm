@@ -15,10 +15,6 @@ class NewProject extends BaseNotification
      */
     private $project;
 
-    /**
-     * @var \Illuminate\Contracts\Foundation\Application|\Illuminate\Session\SessionManager|\Illuminate\Session\Store|mixed
-     */
-
     public function __construct(Project $project)
     {
         $this->project = $project;
@@ -50,18 +46,21 @@ class NewProject extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
+
         $url = route('projects.show', $this->project->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('email.newProject.text') . ' - ' . ucfirst($this->project->project_name) . '. ' . __('email.newProject.loginNow');
+        $content = __('email.newProject.text') . ' - ' . ($this->project->project_name) . '<br><br>' . __('email.newProject.loginNow');
 
-        return parent::build()
+        return $build
             ->subject(__('email.newProject.subject') . ' - ' . config('app.name') . '.')
             ->greeting(__('email.hello') . ' ' . $notifiable->name . ',')
             ->markdown('mail.project.created', [
                 'url' => $url,
                 'content' => $content,
-                'themeColor' => $this->company->header_color
+                'themeColor' => $this->company->header_color,
+                'notifiableName' => $notifiable->name
             ]);
     }
 

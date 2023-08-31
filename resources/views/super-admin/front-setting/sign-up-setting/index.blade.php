@@ -60,6 +60,30 @@
                             </div>
                         </div>
                     </div>
+                    <div class="col-lg-4 mb-3">
+                        <div class="form-group mb-4">
+                            <x-forms.label fieldId="sign_up_terms" :popover="__('superadmin.superadmin.signUpTermsNote')"
+                                        :fieldLabel="__('superadmin.superadmin.showSignUpTerms')"></x-forms.label>
+                            <div class="custom-control custom-switch">
+                                <input type="checkbox"
+                                    @if ($global->sign_up_terms == 'yes') checked @endif
+                                    class="custom-control-input change-module-setting"
+                                    id="sign_up_terms" name="sign_up_terms" value="yes">
+                                <label class="custom-control-label cursor-pointer" for="sign_up_terms"></label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3 @if ($global->sign_up_terms == 'no') d-none @endif" id="terms_link_div">
+                        <div class="form-group mb-lg-0 mb-md-0 mb-4">
+                            <x-forms.label fieldId="terms_link" :fieldLabel="__('superadmin.superadmin.showSignUpTerms')">
+                            </x-forms.label>
+                            <div class="input-group">
+                                <input type="text" name="terms_link"
+                                    class="px-6 position-relative text-dark font-weight-normal form-control height-35 rounded p-0 text-left f-15"
+                                    placeholder="@lang('placeholders.url')" value="{{ $global->terms_link }}">
+                            </div>
+                        </div>
+                    </div>
                     <div class="col-md-12 language-box @if ($registrationStatus->registration_open) d-none @endif">
                         <x-alert type="info" icon="info-circle">
                             @lang('superadmin.registerMessage')
@@ -166,6 +190,15 @@
 
             } else {
                 $('.language-box').removeClass('d-none');
+            }
+        });
+
+        $('#sign_up_terms').change(function () {
+
+            if ($(this).is(':checked')) {
+                $('#terms_link_div').removeClass('d-none');
+            } else {
+                $('#terms_link_div').addClass('d-none');
             }
         });
     </script>

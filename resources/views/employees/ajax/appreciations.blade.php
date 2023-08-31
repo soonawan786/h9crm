@@ -11,7 +11,7 @@ $showAppreciationPermission = user()->permission('view_appreciation');
     @if ($addAppreciationPermission == 'all')
         <div class="d-flex justify-content-between action-bar mb-3">
             <x-forms.link-primary :link="route('appreciations.create').'?empid='.$employee->id"  data-redirect-url="{{ url()->full() }}" class="mr-3 openRightModal float-left" icon="plus">
-                @lang('app.add') @lang('modules.appreciations.appreciation')
+                @lang('modules.appreciations.addAppreciation')
             </x-forms.link-primary>
         </div>
     @endif
@@ -29,14 +29,11 @@ $showAppreciationPermission = user()->permission('view_appreciation');
                @forelse ($appreciations as $count => $appreciation)
                     <tr class="tableRow{{$appreciation->id}}">
                         <td>
-                            <div class="position-relative d-flex">
-                                <i class="bi bi-{{ $appreciation->award->awardIcon->icon }} f-15 text-white position-absolute appreciation-icon"></i>
-                                <i class="bi bi-hexagon-fill fs-40" style="color: {{ $appreciation->award->color_code }}; font-size: 40px"></i>
-                                <a class="openRightModal pt-2" href="{{ route('appreciations.show', $appreciation->id) }}">
-                                    <span class="align-self-center ml-2">{{ mb_ucwords($appreciation->award->title) }}</span>
-                                </a>
-                            </div>
-
+                            <x-award-icon :award="$appreciation->award" />
+                            <a class="openRightModal text-dark-grey" href="{{ route('appreciations.show', $appreciation->id) }}">
+                                <span class="align-self-center ml-2">{{ $appreciation->award->title }}</span>
+                            </a>
+                        </td>
                         <td>{{ $appreciation->award_date->translatedFormat($company->date_format) }}</td>
                         <td class="text-right">
                             @if(($showAppreciationPermission == 'all' || ($showAppreciationPermission == 'added' && user()->id == $appreciation->added_by) || ($showAppreciationPermission == 'owned' && user()->id == $appreciation->award_to) || ($showAppreciationPermission == 'both' && ($appreciation->added_by == user()->id || user()->id == $appreciation->award_to)))

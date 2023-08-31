@@ -23,17 +23,17 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|DashboardWidget whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DashboardWidget whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DashboardWidget whereWidgetName($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|DashboardWidget whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class DashboardWidget extends BaseModel
 {
 
     use HasCompany;
 
-    protected $fillable = ['widget_name', 'status', 'dashboard_type', 'company_id'];
+    protected $fillable = ['widget_name', 'status', 'dashboard_type', 'company_id','active'];
 
     const WIDGETS = [
         ['dashboard_type' => 'admin-dashboard', 'widget_name' => 'total_clients',  'status' => 1],
@@ -124,5 +124,18 @@ class DashboardWidget extends BaseModel
         ['dashboard_type' => 'private-dashboard', 'widget_name' => 'contract_date',  'status' => 1],
         ['dashboard_type' => 'private-dashboard', 'widget_name' => 'internship_date',  'status' => 1],
     ];
+
+
+    const MODULE = [
+        ['tickets' => 'ticket'],
+        ['leads' => 'lead'],
+        ['notices' => 'notices'],
+        ['tasks' => ['tasks', 'my_task']],
+        ['projects' => 'projects'],
+        ['timelogs' => 'week_timelog'],
+        ['leaves' => 'leave'],
+        ['contracts' => 'contract_date'],
+    ];
+
 
 }

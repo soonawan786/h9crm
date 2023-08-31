@@ -100,15 +100,21 @@
             }
         });
 
-        quillImageLoad('#details');
+            const atValues = @json($userData);
 
+            quillMention(atValues, '#details');
 
         $('#save-project-note-form').click(function() {
             var comment = document.getElementById('details').children[0].innerHTML;
             document.getElementById('details-text').value = comment;
-
+            var mention_user_id = $('#details span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
 
             const url = "{{ route('project-notes.store') }}";
+
+            var projectData = $('#save-project-note-data-form').serialize();
+            var data = projectData+='&mention_user_id=' + mention_user_id;
 
             $.easyAjax({
                 url: url,
@@ -117,7 +123,7 @@
                 disableButton: true,
                 blockUI: true,
                 buttonSelector: "#save-project-note-form",
-                data: $('#save-project-note-data-form').serialize(),
+                data: data,
                 success: function(response) {
                     if (response.status == 'success') {
                         window.location.href = response.redirectUrl;

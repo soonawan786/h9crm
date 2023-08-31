@@ -19,8 +19,10 @@ use App\Notifications\NewUser;
 use App\Scopes\ActiveScope;
 use App\Scopes\CompanyScope;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
+use Symfony\Component\Mailer\Exception\TransportException;
 
 class CompanyRegisterController extends FrontBaseController
 {
@@ -63,16 +65,6 @@ class CompanyRegisterController extends FrontBaseController
             return Reply::error('Recaptcha not validated.');
         }
 
-        $superadmin = User::withoutGlobalScopes([CompanyScope::class])
-            ->whereNull('company_id')
-            ->where('is_superadmin', 1)
-            ->where('email', $request->email)
-            ->first();
-
-        if ($superadmin) {
-            return Reply::error(__('superadmin.cannotUseEmail'));
-        }
-
         DB::beginTransaction();
         try {
             $company->company_name = $request->company_name;
@@ -86,10 +78,21 @@ class CompanyRegisterController extends FrontBaseController
 
             $company->save();
 
-            $this->addUser($company, $request, $global);
+            $user = $this->addUser($company, $request, $global);
 
             DB::commit();
-        } catch (\Swift_TransportException $e) {
+
+            if (!$global->company_need_approval) {
+                if (!module_enabled('Subdomain')){
+                    Auth::loginUsingId($user->user_auth_id);
+                }
+
+            } else {
+                session()->flash('company_approval_pending', __('auth.failedCompanyUnapproved'));
+                return Reply::redirect(route('front.signup.index'));
+            }
+
+        } catch (TransportException $e) {
             DB::rollback();
 
             return Reply::error('Please contact administrator to set SMTP details to add company', 'smtp_error');
@@ -99,7 +102,7 @@ class CompanyRegisterController extends FrontBaseController
             return Reply::error('Some error occurred when inserting the data. Please try again or contact support: ' . $e->getMessage());
         }
 
-        return Reply::success(__('superadmin.signUpThankYou'));
+        return Reply::redirect(getDomainSpecificUrl(route('login'), $company), __('superadmin.signUpThankYou'));
     }
 
     public function getEmailVerification($code)
@@ -129,6 +132,7 @@ class CompanyRegisterController extends FrontBaseController
         $user->email = $request->email;
         $user->status = 'active';
         $user->user_auth_id = $userAuth->id;
+        $user->locale = $company->locale;
         $user->save();
 
         if ($global->email_verification) {
@@ -150,9 +154,11 @@ class CompanyRegisterController extends FrontBaseController
             $user->roles()->attach($adminRole->id);
             $this->addEmployeeDetails($user, $employeeRole, $company->id);
 
-            $user->insertUserRolePermission($adminRole->id);
+            $user->assignUserRolePermission($adminRole->id);
 
         }
+
+        return $user;
     }
 
     private function addEmployeeDetails($user, $employeeRole, $companyId)

@@ -1,5 +1,5 @@
 <div class="modal-header">
-    <h5 class="modal-title" id="modelHeading">@lang('app.add') @lang('modules.tickets.template')</h5>
+    <h5 class="modal-title" id="modelHeading">@lang('app.menu.addTemplate')</h5>
     <button type="button"  class="close" data-dismiss="modal" aria-label="Close"><span
             aria-hidden="true">×</span>
     </button>
@@ -20,8 +20,8 @@
                         <div class="form-group my-3">
                             <x-forms.label fieldId="description" fieldRequired="true" :fieldLabel="__('modules.tickets.templateText')">
                             </x-forms.label>
-                            <div id="reply_text"></div>
-                            <textarea name="reply_text" id="reply_text-text" class="d-none"></textarea>
+                            <div id="description"></div>
+                            <textarea name="description" id="description-text" class="d-none"></textarea>
                         </div>
                     </div>
 
@@ -38,13 +38,13 @@
 
 <script>
     $(document).ready(function() {
-        quillImageLoad('#reply_text');
+        quillImageLoad('#description');
     });
 
     // Save template
     $('#save-template').click(function() {
-        var note = document.getElementById('reply_text').children[0].innerHTML;
-        document.getElementById('reply_text-text').value = note;
+        var note = document.getElementById('description').children[0].innerHTML;
+        document.getElementById('description-text').value = note;
 
         $.easyAjax({
             url: "{{ route('replyTemplates.store') }}",

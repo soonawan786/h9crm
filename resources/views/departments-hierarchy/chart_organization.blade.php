@@ -5,7 +5,7 @@
         <i class="fa fa-expand" id="full_view"></i>
     </div>
 </div>
-<div id="chartDiv" class="bg-white pt-3 rounded-bottom" style="height:100%"></div>
+<div id="chartDiv" class="pt-3 rounded-bottom" style="height:100%"></div>
 
 <script>
 

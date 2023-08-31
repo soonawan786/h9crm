@@ -52,12 +52,13 @@ class FileUpload extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $url = route('projects.show', [$this->project->id, 'tab' => 'files']);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $content = __('email.fileUpload.subject') . $this->project->project_name . '<br>' . __('modules.projects.fileName') . ' - ' . $this->file->filename . '<br>' . __('app.date') . ' - ' . $this->file->created_at->format($this->company->date_format);
 
-        return parent::build()
+        return $build
             ->subject(__('email.fileUpload.subject') . ' ' . $this->project->project_name . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,

@@ -17,42 +17,52 @@
                 <x-employee :user="$shift->user" />
             </div>
             <div class="col-sm-12 mt-3">
-                <span class="badge badge-info f-14" style="background-color: {{ $shift->shift->color }}">{{ $shift->shift->shift_name }}</span>
+                @if ($shift->shift->shift_name == 'Day Off')
+                    <span class="badge badge-info f-14 text-body" style="background-color: {{ $shift->shift->color }}">{{ __('modules.attendance.' . str($shift->shift->shift_name)->camel()) }}</span>
+                @else
+                    <span class="badge badge-info f-14" style="background-color: {{ $shift->shift->color }}">{{ $shift->shift->shift_name }}</span>
+                @endif
             </div>
-
-            @if (!is_null($shift->requestChange) && $shift->requestChange->status == 'waiting')
+            @if($employeeShifts->isEmpty())
                 <div class="col-sm-12 mt-3">
-                    <p class="mb-1">@lang('modules.attendance.requestFor')</p>
-                    <span class="badge badge-info" style="background-color: {{ $shift->requestChange->shift->color }}">{{ $shift->requestChange->shift->shift_name }}</span>
-                </div>
-                <div class="col-sm-12 mt-3">
-                    <p class="mb-1">@lang('app.reason')</p>
-                    <p>{{ $shift->requestChange->reason ?? '--' }}</p>
+                    <x-alert type="danger">{{__('app.alternateShift')}}</x-alert>
                 </div>
             @else
-                <div class="col-sm-12">
-                    <x-forms.select fieldName="employee_shift_id" fieldId="employee_shift_id" :fieldLabel="__('modules.attendance.requestFor')">
-                        @foreach ($employeeShifts as $item)
-                            @if ($shift->employee_shift_id != $item->id)
-                                <option value="{{ $item->id }}">{{ $item->shift_name }}{{ ($item->shift_name != 'Day Off') ? ' ['.$item->office_start_time.' - '.$item->office_end_time.']' : ''}}</option>
-                            @endif
-                        @endforeach
-                    </x-forms.select>
-                </div>
-                <div class="col-sm-12">
-                    <x-forms.textarea fieldName="reason" fieldId="reason" :fieldLabel="__('app.reason')" fieldRequired="true" />
-                </div>
+                @if (!is_null($shift->requestChange) && $shift->requestChange->status == 'waiting')
+                    <div class="col-sm-12 mt-3">
+                        <p class="mb-1">@lang('modules.attendance.requestFor')</p>
+                        <span class="badge badge-info" style="background-color: {{ $shift->requestChange->shift->color }}">{{ ($shift->requestChange->shift->shift_name != 'Day Off') ? $shift->requestChange->shift->shift_name : __('modules.attendance.' . str($shift->requestChange->shift->shift_name)->camel()) }}</span>
+                    </div>
+                    <div class="col-sm-12 mt-3">
+                        <p class="mb-1">@lang('app.reason')</p>
+                        <p>{{ $shift->requestChange->reason ?? '--' }}</p>
+                    </div>
+                @else
+                    <div class="col-sm-12">
+                        <x-forms.select fieldName="employee_shift_id" fieldId="employee_shift_id" :fieldLabel="__('modules.attendance.requestFor')">
+                            @foreach ($employeeShifts as $item)
+                                    @if ($shift->employee_shift_id != $item->id)
+                                        <option value="{{ $item->id }}">{{ ($item->shift_name != 'Day Off') ? $item->shift_name : __('modules.attendance.' . str($item->shift_name)->camel()) }}{{ ($item->shift_name != 'Day Off') ? ' ['.$item->office_start_time.' - '.$item->office_end_time.']' : ''}}</option>
+                                    @endif
+                            @endforeach
+                        </x-forms.select>
+                    </div>
+                    <div class="col-sm-12">
+                        <x-forms.textarea fieldName="reason" fieldId="reason" :fieldLabel="__('app.reason')" fieldRequired="true" />
+                    </div>
+                @endif
             @endif
         </div>
     </x-form>
 </div>
 
+
 <div class="modal-footer">
     <x-forms.button-cancel data-dismiss="modal" class="border-0 mr-3">@lang('app.close')</x-forms.button-cancel>
     @if (!is_null($shift->requestChange) && $shift->requestChange->status == 'waiting')
-        <x-forms.button-primary id="delete-shift" data-change-id="{{ $shift->requestChange->id }}" icon="times">@lang('app.delete') @lang('modules.attendance.requestChange')</x-forms.button-primary>
-    @else
-        <x-forms.button-primary id="save-shift" icon="check">@lang('app.save')</x-forms.button-primary>
+        <x-forms.button-primary id="delete-shift" data-change-id="{{ $shift->requestChange->id }}" icon="times">@lang('modules.attendance.deleteRequestChange')</x-forms.button-primary>
+    @elseif($employeeShifts->isNotEmpty())
+            <x-forms.button-primary id="save-shift" icon="check">@lang('app.save')</x-forms.button-primary>
     @endif
 </div>
 

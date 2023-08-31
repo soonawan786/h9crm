@@ -23,11 +23,11 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|OfflinePaymentMethod whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|OfflinePaymentMethod whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|OfflinePaymentMethod whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|OfflinePaymentMethod whereCompanyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|OfflinePaymentMethod active()
+ * @mixin \Eloquent
  */
 class OfflinePaymentMethod extends BaseModel
 {
@@ -35,7 +35,9 @@ class OfflinePaymentMethod extends BaseModel
     use HasCompany;
 
     protected $table = 'offline_payment_methods';
-    protected $dates = ['created_at'];
+    protected $casts = [
+        'created_at' => 'datetime',
+    ];
 
     public static function activeMethod()
     {

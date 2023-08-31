@@ -1,4 +1,4 @@
-<x-cards.data>
+<x-cards.data class="w-100">
     <div class="row">
         @foreach ($modulesData as $setting)
             <div class="col-lg-3 col-md-4 col-6">

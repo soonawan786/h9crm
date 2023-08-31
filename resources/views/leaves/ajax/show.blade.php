@@ -39,7 +39,7 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
                                                     </a>
                                                 @elseif($reportingPermission == 'pre-approve' && !$leave->manager_status_permission)
                                                     <a data-leave-id="{{ $leave->id }}"
-                                                            data-leave-action="pre approved" data-user-id="{{ $leave->user_id }}" data-leave-type-id="{{ $leave->leave_type_id }}" class="dropdown-item leave-action-preapprove" href="javascript:;">
+                                                            data-leave-action="pre-approve" data-user-id="{{ $leave->user_id }}" data-leave-type-id="{{ $leave->leave_type_id }}" class="dropdown-item leave-action-preapprove" href="javascript:;">
                                                             <i class="fa fa-check mr-2"></i>
                                                             @lang('app.preApprove')
                                                     </a>
@@ -133,7 +133,7 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
                     <x-cards.data-row :label="__('modules.leaves.reason')" :value="$leave->reason" html="true" />
 
                     @if (!is_null($leave->manager_status_permission))
-                        <x-cards.data-row :label="__('modules.leaves.statusReport')" :value="ucfirst($leave->manager_status_permission)" html="true" />
+                        <x-cards.data-row :label="__('modules.leaves.statusReport')" :value="$leave->manager_status_permission==='pre-approve' ? __('modules.leaves.preApproved') : ''" html="true" />
                     @endif
 
                     <x-cards.data-row :label="__('app.status')" :value="$paidStatus" html="true" />
@@ -347,7 +347,11 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
     $('body').on('click', '.leave-action-approved', function() {
         let action = $(this).data('leave-action');
         let leaveId = $(this).data('leave-id');
-        let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId;
+        var type = $(this).data('type');
+            if(type == undefined){
+                var type = 'single';
+            }
+        let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId + "&type=" + type;
         let url = "{{ route('leaves.show_approved_modal') }}" + searchQuery;
 
         $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
@@ -357,7 +361,11 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
     $('body').on('click', '.leave-action-reject', function() {
         let action = $(this).data('leave-action');
         let leaveId = $(this).data('leave-id');
-        let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId;
+        var type = $(this).data('type');
+            if(type == undefined){
+                var type = 'single';
+            }
+        let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId + "&type=" + type;
         let url = "{{ route('leaves.show_reject_modal') }}" + searchQuery;
 
         $(MODAL_LG + ' ' + MODAL_HEADING).html('...');

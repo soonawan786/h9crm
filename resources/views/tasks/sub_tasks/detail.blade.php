@@ -11,7 +11,7 @@ $deleteSubTaskPermission = user()->permission('delete_sub_tasks');
     <div id="leave-detail-section">
         <div class="row">
             <div class="col-sm-12">
-                <x-cards.data-row :label="__('app.title')" :value="ucfirst($subTask->title)" />
+                <x-cards.data-row :label="__('app.title')" :value="$subTask->title" />
                 <x-cards.data-row :label="__('app.startDate')" :value="((!is_null($subTask->start_date)) ? $subTask->start_date->translatedFormat(company()->date_format) : '--')" html="true" />
                 <x-cards.data-row :label="__('app.dueDate')" :value="((!is_null($subTask->due_date)) ? $subTask->due_date->translatedFormat(company()->date_format) : '--')" html="true" />
 

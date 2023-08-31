@@ -3,7 +3,7 @@
 namespace App\Models\SuperAdmin;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\PackageSetting
@@ -30,7 +30,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|PackageSetting whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class PackageSetting extends Model
+class PackageSetting extends BaseModel
 {
     use HasFactory;
 

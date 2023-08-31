@@ -34,9 +34,9 @@
                                                         <input type="hidden" name="sort_order[]"
                                                             value="{{ $item->id }}">
                                                     </div>
-                                                    <div class="col-md-5">{{ mb_ucwords($item->field_display_name)}}</div>
+                                                    <div class="col-md-5">{{ $item->field_display_name}}</div>
                                                     <div class="col-md-4">
-                                                        @if (!in_array($item->field_name, ['name', 'email', 'ticket_subject', 'message']))
+                                                        @if (!in_array($item->field_name, ['name', 'email', 'ticket_subject', 'message', 'assign_group']))
                                                             <div class="custom-control custom-switch">
                                                                 <input type="checkbox"
                                                                     class="custom-control-input change-setting"
@@ -62,8 +62,7 @@
                         <x-cards.data>
                             <p class="f-w-500">@lang('modules.lead.iframeSnippet')</p>
                             <code>
-                                &lt;iframe src="{{ route('front.ticket_form',company()->hash) }}" width="100%"
-                                frameborder="0">&lt;/iframe&gt;
+                                &lt;iframe src="{{ route('front.ticket_form',company()->hash) }}"  frameborder="0" scrolling="yes"  style="display:block; width:100%; height:60vh;">&lt;/iframe&gt;
                             </code>
                         </x-cards.data>
 

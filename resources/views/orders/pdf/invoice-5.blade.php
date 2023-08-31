@@ -6,6 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>@lang('app.order') - {{ $order->order_number }}</title>
+    @includeIf('invoices.pdf.invoice_pdf_css')
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="{{ global_setting()->favicon_url }}">
     <meta name="theme-color" content="#ffffff">
@@ -14,7 +15,7 @@
         <style>
             body {
                 margin: 0;
-                font-family: dejavu sans;
+                /*font-family: dejavu sans;*/
                 font-size: 13px;
             }
         </style>
@@ -22,7 +23,7 @@
         <style>
             body {
                 margin: 0;
-                font-family: Verdana, Arial, Helvetica, sans-serif;
+                /*font-family: Verdana, Arial, Helvetica, sans-serif;*/
                 font-size: 13px;
             }
         </style>
@@ -264,7 +265,7 @@
         <tbody>
             <!-- Table Row Start -->
             <tr>
-                <td><img src="{{ invoice_setting()->logo_url }}" alt="{{ mb_ucwords(company()->company_name) }}"
+                <td><img src="{{ invoice_setting()->logo_url }}" alt="{{ company()->company_name }}"
                         id="logo" /></td>
                 <td align="right" class="f-21 text-black font-weight-700 text-uppercase">@lang('app.order')</td>
             </tr>
@@ -273,7 +274,7 @@
             <tr>
                 <td>
                     <p class="line-height mt-1 mb-0 f-14 text-black">
-                        {{ mb_ucwords(company()->company_name) }}<br>
+                        {{ company()->company_name }}<br>
                         @if (!is_null($settings) && $order->address)
                             {!! nl2br($order->address->address) !!}<br>
                         @endif
@@ -319,7 +320,7 @@
                                             @lang("modules.invoices.billedTo")</span><br>
 
                                             @if ($client->name && $invoiceSetting->show_client_name == 'yes')
-                                                {{ mb_ucwords($client->name) }}<br>
+                                                {{ $client->name }}<br>
                                             @endif
 
                                             @if ($client->email && $invoiceSetting->show_client_email == 'yes')
@@ -331,7 +332,7 @@
                                             @endif
 
                                             @if ($client->clientDetails->company_name && $invoiceSetting->show_client_company_name == 'yes')
-                                                {{ mb_ucwords($client->clientDetails->company_name) }}<br>
+                                                {{ $client->clientDetails->company_name }}<br>
                                             @endif
 
                                             @if ($client->clientDetails->address && $invoiceSetting->show_client_company_address == 'yes')
@@ -375,7 +376,7 @@
             @if($invoiceSetting->hsn_sac_code_show)
                 <td align="right">@lang("app.hsnSac")</td>
             @endif
-            <td align="right">{{ ucwords($order->unit->unit_type) }}</td>
+            <th class="qty">@lang('modules.invoices.qty')</th>
             <td align="right">@lang("modules.invoices.unitPrice")</td>
             <td align="right">@lang("modules.invoices.tax")</td>
             <td align="right" width="{{ $invoiceSetting->hsn_sac_code_show ? '17%' : '20%' }}">@lang("modules.invoices.amount")
@@ -387,14 +388,14 @@
                 <!-- Table Row Start -->
                 <tr class="main-table-items text-black">
                     <td width="40%" class="border-bottom-0">
-                        {{ ucfirst($item->item_name) }}
+                        {{ $item->item_name }}
                     </td>
                     @if($invoiceSetting->hsn_sac_code_show)
                         <td align="right" width="10%" class="border-bottom-0">{{ $item->hsn_sac_code ? $item->hsn_sac_code : '--' }}</td>
                     @endif
-                    <td align="right" width="10%" class="border-bottom-0">{{ $item->quantity }}</td>
+                    <td align="right" width="10%" class="border-bottom-0">{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                     <td align="right" class="border-bottom-0">{{ currency_format($item->unit_price, $order->currency_id, false) }}</td>
-                    <td align="right" class="border-bottom-0">{{ strtoupper($item->tax_list) }}</td>
+                    <td align="right" class="border-bottom-0">{{ $item->tax_list }}</td>
                     <td align="right" class="border-bottom-0" width="{{ $invoiceSetting->hsn_sac_code_show ? '17%' : '20%' }}">{{ currency_format($item->amount, $order->currency_id, false) }}</td>
                 </tr>
                 <!-- Table Row End -->
@@ -435,7 +436,7 @@
                     @foreach ($taxes as $key => $tax)
                         <!-- Table Row Start -->
                         <tr align="right" class="text-grey">
-                            <td width="50%" class="subtotal">{{ mb_strtoupper($key) }}</td>
+                            <td width="50%" class="subtotal">{{ $key }}</td>
                         </tr>
                         <!-- Table Row End -->
                     @endforeach

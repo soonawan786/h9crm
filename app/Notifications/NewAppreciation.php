@@ -67,9 +67,10 @@ class NewAppreciation extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $content = __('email.newAppreciation.text', ['award' => $this->userAppreciation->award->title, 'award_at' => $this->userAppreciation->award_date->format($this->company->date_format)]);
 
-        return parent::build()
+        return $build
             ->subject(__('email.newAppreciation.subject'))
             ->markdown('mail.email', [
                 'url' => route('appreciations.show', $this->userAppreciation->id), 'content' => $content,
@@ -112,7 +113,7 @@ class NewAppreciation extends BaseNotification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content('*' . __('email.newAppreciation.subject') . '*' . "\n" . '<' . route('appreciations.show', $this->userAppreciation->id) . '|' . ucfirst($this->userAppreciation->award->title) . '>');
+                ->content('*' . __('email.newAppreciation.subject') . '*' . "\n" . '<' . route('appreciations.show', $this->userAppreciation->id) . '|' . $this->userAppreciation->award->title . '>');
         }
 
         return (new SlackMessage())
@@ -125,8 +126,8 @@ class NewAppreciation extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.newAppreciation.subject'))
-            ->body($this->userAppreciation->award->title);
+            ->setSubject(__('email.newAppreciation.subject'))
+            ->setBody($this->userAppreciation->award->title);
     }
 
 }

@@ -18,7 +18,7 @@
         @forelse($categories as $key=>$category)
             <tr id="cat-{{ $category->id }}">
                 <td>{{ $key + 1 }}</td>
-                <td>{{ mb_ucwords($category->category_name) }}</td>
+                <td>{{ $category->category_name }}</td>
                 <td class="text-right">
                     @if ($deleteClientCategoryPermission == 'all' || $deleteClientCategoryPermission == 'added')
                         <x-forms.button-secondary data-cat-id="{{ $category->id }}" icon="trash" class="delete-category">

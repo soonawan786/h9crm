@@ -14,8 +14,10 @@ use App\Models\Holiday;
 use App\Models\EventAttendee;
 use App\Models\EmployeeDetails;
 use App\Events\EventInviteEvent;
+use App\Events\EventInviteMentionEvent;
 use App\Http\Requests\Events\StoreEvent;
 use App\Http\Requests\Events\UpdateEvent;
+use App\Models\MentionUser;
 use App\Models\TaskboardColumn;
 
 class EventCalendarController extends AccountBaseController
@@ -47,6 +49,7 @@ class EventCalendarController extends AccountBaseController
         if (request('start') && request('end')) {
             $model = Event::with('attendee', 'attendee.user');
 
+
             if (request()->clientId && request()->clientId != 'all') {
                 $clientId = request()->clientId;
                 $model->whereHas('attendee.user', function ($query) use ($clientId) {
@@ -66,7 +69,9 @@ class EventCalendarController extends AccountBaseController
             }
 
             if ($viewPermission == 'added') {
-                $model->where('added_by', user()->id);
+                   $model->leftJoin('mention_users', 'mention_users.event_id', 'events.id');
+                   $model->where('added_by', user()->id);
+                   $model->orWhere('mention_users.user_id', user()->id);
             }
 
             if ($viewPermission == 'owned') {
@@ -95,7 +100,7 @@ class EventCalendarController extends AccountBaseController
             foreach ($events as $key => $event) {
                 $eventData[] = [
                     'id' => $event->id,
-                    'title' => ucfirst($event->event_name),
+                    'title' => $event->event_name,
                     'start' => $event->start_date_time,
                     'end' => $event->end_date_time,
                     'color' => $event->label_color
@@ -117,11 +122,25 @@ class EventCalendarController extends AccountBaseController
         $this->employees = User::allEmployees(null, true);
         $this->clients = User::allClients();
         $this->pageTitle = __('modules.events.addEvent');
+        $userData = [];
+
+        $usersData = $this->employees;
+
+        foreach ($usersData as $user) {
+
+            $url = route('employees.show', [$user->id]);
+
+            $userData[] = ['id' => $user->id, 'value' => $user->name, 'image' => $user->image_url, 'link' => $url];
+
+        }
+
+        $this->userData = $userData;
 
         if (request()->ajax()) {
             $html = view('event-calendar.ajax.create', $this->data)->render();
             return Reply::dataOnly(['status' => 'success', 'html' => $html, 'title' => $this->pageTitle]);
         }
+
 
         $this->view = 'event-calendar.ajax.create';
         return view('event-calendar.create', $this->data);
@@ -170,6 +189,7 @@ class EventCalendarController extends AccountBaseController
             }
 
             $attendees = User::whereIn('id', $request->user_id)->get();
+
             event(new EventInviteEvent($event, $attendees));
         }
 
@@ -232,6 +252,14 @@ class EventCalendarController extends AccountBaseController
             }
         }
 
+        if ($request->mention_user_ids != '' || $request->mention_user_ids != null){
+            $event->mentionUser()->sync($request->mention_user_ids);
+            $mentionUserIds = explode(',', $request->mention_user_ids);
+            $mentionUser = User::whereIn('id', $mentionUserIds)->get();
+            event(new EventInviteMentionEvent($event, $mentionUser));
+
+        }
+
         return Reply::successWithData(__('messages.recordSaved'), ['redirectUrl' => route('events.index'), 'eventId' => $event->id]);
 
     }
@@ -249,11 +277,23 @@ class EventCalendarController extends AccountBaseController
             || ($this->editPermission == 'both' && (in_array(user()->id, $attendeesIds) || $this->event->added_by == user()->id))
         ));
 
-        $this->pageTitle = __('app.edit') . ' ' . __('app.menu.Events');
+        $this->pageTitle = __('app.menu.editEvents');
 
         $this->employees = User::allEmployees();
         $this->clients = User::allClients();
+        $userData = [];
 
+        $usersData = $this->employees;
+
+        foreach ($usersData as $user) {
+
+            $url = route('employees.show', [$user->id]);
+
+            $userData[] = ['id' => $user->id, 'value' => $user->name, 'image' => $user->image_url, 'link' => $url];
+
+        }
+
+        $this->userData = $userData;
 
         $attendeeArray = [];
 
@@ -335,16 +375,55 @@ class EventCalendarController extends AccountBaseController
         }
 
         if ($request->user_id) {
+
+            $existEventUser = EventAttendee::where('event_id', $event->id) ->pluck('user_id')
+            ->toArray();
+            $users = $request->user_id;
+            $value = array_diff($existEventUser, $users);
+            EventAttendee::whereIn('user_id', $value)->delete();
+
             foreach ($request->user_id as $userId) {
+
                 $checkExists = EventAttendee::where('user_id', $userId)->where('event_id', $event->id)->first();
 
                 if (!$checkExists) {
+
                     EventAttendee::create(['user_id' => $userId, 'event_id' => $event->id]);
 
                     // Send notification to user
                     $notifyUser = User::withoutGlobalScope(ActiveScope::class)->findOrFail($userId);
                     event(new EventInviteEvent($event, $notifyUser));
                 }
+
+            }
+        }
+
+        $mentionedUser = MentionUser::where('event_id', $event->id)->pluck('user_id');
+        $requestMentionIds = explode(',', request()->mention_user_ids);
+        $newMention = [];
+        $event->mentionUser()->sync(request()->mention_user_ids);
+
+        if ($requestMentionIds != null) {
+            foreach ($requestMentionIds as  $value) {
+
+                if (($mentionedUser) != null) {
+
+                    if (!in_array($value, json_decode($mentionedUser))) {
+
+                        $newMention[] = $value;
+                    }
+                } else {
+
+                    $newMention[] = $value;
+                }
+            }
+
+            $newMentionMembers = User::whereIn('id', $newMention)->get();
+
+            if (!empty($newMention)) {
+
+                event(new EventInviteMentionEvent($event, $newMentionMembers));
+
             }
         }
 
@@ -354,15 +433,17 @@ class EventCalendarController extends AccountBaseController
 
     public function show($id)
     {
+
         $this->viewPermission = user()->permission('view_events');
         $this->event = Event::with('attendee', 'attendee.user')->findOrFail($id);
         $attendeesIds = $this->event->attendee->pluck('user_id')->toArray();
+        $mentionUser = $this->event->mentionEvent->pluck('user_id')->toArray();
 
         abort_403(!(
             $this->viewPermission == 'all'
             || ($this->viewPermission == 'added' && $this->event->added_by == user()->id)
             || ($this->viewPermission == 'owned' && in_array(user()->id, $attendeesIds))
-            || ($this->viewPermission == 'both' && (in_array(user()->id, $attendeesIds) || $this->event->added_by == user()->id))
+            || ($this->viewPermission == 'both' && (in_array(user()->id, $attendeesIds) || $this->event->added_by == user()->id) || (!is_null(($this->event->mentionEvent))) && in_array(user()->id, $mentionUser))
         ));
 
 

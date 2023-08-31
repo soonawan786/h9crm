@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Helper\Files;
 use App\Helper\Reply;
 use App\Http\Requests\UpdateInvoiceSetting;
+use App\Http\Requests\UpdatePrefixSetting;
+use App\Http\Requests\UpdateTemplateSetting;
 use App\Models\InvoiceSetting;
 use App\Models\QuickBooksSetting;
 use App\Models\UnitType;
@@ -19,7 +21,9 @@ class InvoiceSettingController extends AccountBaseController
         $this->pageTitle = 'app.menu.financeSettings';
         $this->activeSettingMenu = 'invoice_settings';
         $this->middleware(function ($request, $next) {
-            abort_403(user()->permission('manage_finance_setting') !== 'all');
+            abort_403(!(user()->permission('manage_finance_setting') == 'all' && (in_array('invoices', user_modules()) ||
+            in_array('estimates', user_modules()) || in_array('orders', user_modules()) || in_array('leads', user_modules()) || in_array('payments', user_modules()))));
+
             return $next($request);
         });
     }
@@ -33,27 +37,44 @@ class InvoiceSettingController extends AccountBaseController
     {
         $tab = request('tab');
 
+        if(is_null($tab)){
+            if (in_array('invoices', user_modules())) {
+                $tab = 'general';
+            }
+            elseif (in_array('invoices', user_modules()) || in_array('estimates', user_modules()) || in_array('orders', user_modules()) || in_array('leads', user_modules())){
+                $tab = 'template';
+            }
+            elseif (in_array('invoices', user_modules()) || in_array('payments', user_modules())){
+                $tab = 'quickbooks';
+            }
+        }
+
+        $this->unitTypes = UnitType::all();
+
         switch ($tab) {
         case 'quickbooks':
             $this->quickbookSetting = QuickBooksSetting::first();
             $this->view = 'invoice-settings.ajax.quickbooks';
             break;
         case 'units':
-            $this->unitTypes = UnitType::all();
             $this->view = 'invoice-settings.ajax.units';
             break;
+        case 'prefix':
+            $this->view = 'invoice-settings.ajax.prefix';
+            break;
+        case 'template':
+            $this->view = 'invoice-settings.ajax.template';
+            break;
         default:
-            $this->invoiceSetting = InvoiceSetting::first();
-            $this->unit_types = UnitType::all();
             $this->view = 'invoice-settings.ajax.general';
             break;
         }
 
+        $this->invoiceSetting = InvoiceSetting::first();
         $this->activeTab = $tab ?: 'general';
 
         if (request()->ajax()) {
             $html = view($this->view, $this->data)->render();
-
             return Reply::dataOnly(['status' => 'success', 'html' => $html, 'title' => $this->pageTitle, 'activeTab' => $this->activeTab]);
         }
 
@@ -69,19 +90,6 @@ class InvoiceSettingController extends AccountBaseController
     public function update(UpdateInvoiceSetting $request)
     {
         $setting = InvoiceSetting::first();
-        $setting->invoice_prefix            = $request->invoice_prefix;
-        $setting->invoice_number_separator  = $request->invoice_number_separator;
-        $setting->invoice_digit             = $request->invoice_digit;
-        $setting->estimate_prefix           = $request->estimate_prefix;
-        $setting->estimate_number_separator = $request->estimate_number_separator;
-        $setting->estimate_digit            = $request->estimate_digit;
-        $setting->credit_note_prefix        = $request->credit_note_prefix;
-        $setting->credit_note_number_separator  = $request->credit_note_number_separator;
-        $setting->credit_note_digit     = $request->credit_note_digit;
-        $setting->contract_prefix           = $request->contract_prefix;
-        $setting->contract_number_separator = $request->contract_number_separator;
-        $setting->contract_digit            = $request->contract_digit;
-        $setting->template              = $request->template;
         $setting->due_after             = $request->due_after;
         $setting->invoice_terms         = $request->invoice_terms;
         $setting->show_gst              = $request->has('show_gst') ? 'yes' : 'no';
@@ -102,14 +110,59 @@ class InvoiceSettingController extends AccountBaseController
 
         if ($request->hasFile('logo')) {
             Files::deleteFile($setting->logo, 'app-logo');
-            $setting->logo = Files::upload($request->logo, 'app-logo');
+            $setting->logo = Files::uploadLocalOrS3($request->logo, 'app-logo');
         }
 
         if ($request->hasFile('authorised_signatory_signature')) {
             Files::deleteFile($setting->authorised_signatory_signature, 'app-logo');
-            $setting->authorised_signatory_signature = Files::upload($request->authorised_signatory_signature, 'app-logo');
+            $setting->authorised_signatory_signature = Files::uploadLocalOrS3($request->authorised_signatory_signature, 'app-logo');
         }
 
+        $setting->save();
+
+        session()->forget('invoice_setting');
+        session()->forget('company');
+
+        return Reply::success(__('messages.updateSuccess'));
+    }
+
+    public function updatePrefix(UpdatePrefixSetting $request, $id)
+    {
+        $setting = InvoiceSetting::findOrFail($id);
+
+        if(in_array('invoices', user_modules())){
+            $setting->invoice_prefix               = $request->invoice_prefix;
+            $setting->invoice_number_separator     = $request->invoice_number_separator;
+            $setting->invoice_digit                = $request->invoice_digit;
+            $setting->credit_note_prefix           = $request->credit_note_prefix;
+            $setting->credit_note_number_separator = $request->credit_note_number_separator;
+            $setting->credit_note_digit            = $request->credit_note_digit;
+        }
+
+        if(in_array('estimates', user_modules())){
+            $setting->estimate_prefix              = $request->estimate_prefix;
+            $setting->estimate_number_separator    = $request->estimate_number_separator;
+            $setting->estimate_digit               = $request->estimate_digit;
+        }
+
+        if(in_array('orders', user_modules())){
+            $setting->order_prefix                 = $request->order_prefix;
+            $setting->order_number_separator       = $request->order_number_separator;
+            $setting->order_digit                  = $request->order_digit;
+        }
+
+        $setting->save();
+
+        session()->forget('invoice_setting');
+        session()->forget('company');
+
+        return Reply::success(__('messages.updateSuccess'));
+    }
+
+    public function updateTemplate(UpdateTemplateSetting $request, $id)
+    {
+        $setting = InvoiceSetting::findOrFail($id);
+        $setting->template = $request->template;
         $setting->save();
 
         session()->forget('invoice_setting');

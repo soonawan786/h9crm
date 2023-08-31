@@ -19,10 +19,10 @@ $addLeadCustomFormPermission = user()->permission('manage_lead_custom_forms');
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
-        <div class="d-block d-lg-flex d-md-flex justify-content-between action-bar">
+        <div class="d-grid d-lg-flex d-md-flex action-bar">
             <div id="table-actions" class="flex-grow-1 align-items-center">
                 @if ($addLeadPermission == 'all' || $addLeadPermission == 'added')
-                    <x-forms.link-primary :link="route('leads.create')" class="mr-3 openRightModal float-left mb-2 mb-lg-0 mb-md-0" icon="plus">
+                    <x-forms.link-primary :link="route('leads.create')" class="mr-3 float-left mb-2 mb-lg-0 mb-md-0" icon="plus">
                         @lang('app.add')
                         @lang('app.lead')
                     </x-forms.link-primary>
@@ -35,7 +35,7 @@ $addLeadCustomFormPermission = user()->permission('manage_lead_custom_forms');
                 @endif
 
                 @if ($addLeadPermission == 'all' || $addLeadPermission == 'added')
-                    <x-forms.link-secondary :link="route('leads.import')" class="mr-3 openRightModal float-left mb-2 mb-lg-0 mb-md-0" icon="file-upload">
+                    <x-forms.link-secondary :link="route('leads.import')" class="mr-3 openRightModal float-left mb-2 mb-lg-0 mb-md-0 d-none d-lg-block" icon="file-upload">
                         @lang('app.importExcel')
                     </x-forms.link-secondary>
                 @endif
@@ -76,7 +76,7 @@ $addLeadCustomFormPermission = user()->permission('manage_lead_custom_forms');
 
         <!-- Add Task Export Buttons End -->
         <!-- Task Box Start -->
-        <div class="d-flex flex-column w-tables rounded mt-3 bg-white">
+        <div class="d-flex flex-column w-tables rounded mt-3 bg-white table-responsive">
 
             {!! $dataTable->table(['class' => 'table table-hover border-0 w-100']) !!}
 
@@ -105,6 +105,8 @@ $addLeadCustomFormPermission = user()->permission('manage_lead_custom_forms');
             }
 
             var searchText = $('#search-text-field').val();
+            var min = $('#min').val();
+            var max = $('#max').val();
             var type = $('#type').val();
             var followUp = $('#followUp').val();
             var agent = $('#filter_agent_id').val();
@@ -119,6 +121,8 @@ $addLeadCustomFormPermission = user()->permission('manage_lead_custom_forms');
             data['type'] = type;
             data['followUp'] = followUp;
             data['agent'] = agent;
+            data['min'] = min;
+            data['max'] = max;
             data['category_id'] = category_id;
             data['source_id'] = source_id;
             data['status_id'] = status_id;

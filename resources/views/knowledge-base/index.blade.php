@@ -36,11 +36,13 @@
                                      :text="__('app.all')"/>
 
                 @foreach ($categories as $item)
+
                     <x-setting-menu-item
                         :id="'category-'.$item->id"
-                        :active="$activeMenu" :menu="strtolower(str_replace(' ', '_', $item->name))"
+                        :active="$activeMenu" :menu="str_replace(' ', '_', $item->name)"
                         :href="route('knowledgebase.index') . '?id=' . $item->id" :text="$item->name">
                     </x-setting-menu-item>
+
                 @endforeach
 
             </ul>
@@ -59,11 +61,11 @@
                             <div class="form-group flex-grow-1">
                                 <x-forms.link-primary
                                     :link="route('knowledgebase.create') . '?category=' . request('id')"
-                                    class="mb-2 openRightModal" icon="plus">
+                                    class="openRightModal" icon="plus">
                                     @lang('modules.knowledgeBase.addknowledgebase')
                                 </x-forms.link-primary>
 
-                                <x-forms.button-secondary id="addCategory" class="mr-3 mb-2 mb-lg-0" icon="plus">
+                                <x-forms.button-secondary id="addCategory" class="mr-3 ml-2 mb-lg-0" icon="plus">
                                     @lang('modules.module.addknowledgebaseCategory')
                                 </x-forms.button-secondary>
 
@@ -111,33 +113,35 @@
                         </x-slot>
 
                         @forelse ($knowledgebases as $key => $item)
-                            <tr>
-                                <td>{{ $key + 1 }}</td>
-                                <td>
-                                    <a href="{{ route('knowledgebase.show', $item->id) }}"
-                                       class="openRightModal text-darkest-grey d-block">{{ $item->heading }}</a>
-                                </td>
-                                <td>{{ ucfirst($item->knowledgebasecategory->name) }}</td>
-                                <td>{{ ucfirst($item->to) }}</td>
-                                <td class="text-right">
-                                    @if ($editKnowledgebasePermission == 'all' || ($editKnowledgebasePermission == 'added' && $item->added_by == user()->id))
-                                        <div class="task_view">
-                                            <a href="{{ route('knowledgebase.edit', $item->id) }}"
-                                               class="task_view_more d-flex align-items-center justify-content-center openRightModal">
-                                                <i class="fa fa-edit icons mr-2"></i> @lang('app.edit')
-                                            </a>
-                                        </div>
-                                    @endif
-                                    @if ($deleteKnowledgebasePermission == 'all' || ($deleteKnowledgebasePermission == 'added' && $item->added_by == user()->id))
-                                        <div class="task_view ml-2">
-                                            <a href="javascript:;" data-article-id="{{ $item->id }}"
-                                               class="task_view_more d-flex align-items-center justify-content-center delete-article">
-                                                <i class="fa fa-trash icons mr-2"></i> @lang('app.delete')
-                                            </a>
-                                        </div>
-                                    @endif
-                                </td>
-                            </tr>
+                            @if (in_array('admin', user_roles()) || in_array($item->to, user_roles()))
+                                <tr>
+                                    <td>{{ $key + 1 }}</td>
+                                    <td>
+                                        <a href="{{ route('knowledgebase.show', $item->id) }}"
+                                           class="openRightModal text-darkest-grey d-block">{{ $item->heading }}</a>
+                                    </td>
+                                    <td>{{ $item->knowledgebasecategory->name }}</td>
+                                    <td>{{ $item->to }}</td>
+                                    <td class="text-right">
+                                        @if ($editKnowledgebasePermission == 'all' || ($editKnowledgebasePermission == 'added' && $item->added_by == user()->id))
+                                            <div class="task_view">
+                                                <a href="{{ route('knowledgebase.edit', $item->id) }}"
+                                                   class="task_view_more d-flex align-items-center justify-content-center openRightModal">
+                                                    <i class="fa fa-edit icons mr-2"></i> @lang('app.edit')
+                                                </a>
+                                            </div>
+                                        @endif
+                                        @if ($deleteKnowledgebasePermission == 'all' || ($deleteKnowledgebasePermission == 'added' && $item->added_by == user()->id))
+                                            <div class="task_view ml-2">
+                                                <a href="javascript:;" data-article-id="{{ $item->id }}"
+                                                   class="task_view_more d-flex align-items-center justify-content-center delete-article">
+                                                    <i class="fa fa-trash icons mr-2"></i> @lang('app.delete')
+                                                </a>
+                                            </div>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @endif
                         @empty
                             <x-cards.no-record-found-list colspan="5"></x-cards.no-record-found-list>
                         @endforelse

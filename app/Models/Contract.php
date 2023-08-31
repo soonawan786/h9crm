@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Traits\HasCompany;
 use App\Scopes\ActiveScope;
 use App\Traits\CustomFieldsTrait;
-use App\Models\Contract as ModelsContract;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -79,7 +78,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder|Contract whereState($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Contract whereSubject($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Contract whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property string|null $hash
  * @method static \Illuminate\Database\Eloquent\Builder|Contract whereHash($value)
  * @property int|null $currency_id
@@ -90,26 +88,41 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Contract whereCompanyId($value)
+ * @property int|null $contract_number
+ * @property int|null $project_id
+ * @property string|null $contract_note
+ * @property-read mixed $extras
+ * @property-read mixed $original_contract_number
+ * @property-read \App\Models\Project|null $project
+ * @method static \Illuminate\Database\Eloquent\Builder|Contract whereContractNote($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Contract whereContractNumber($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Contract whereProjectId($value)
+ * @property string|null $company_sign
+ * @property string|null $sign_date
+ * @property-read mixed $company_signature
+ * @method static \Illuminate\Database\Eloquent\Builder|Contract whereCompanySign($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Contract whereSignDate($value)
+ * @mixin \Eloquent
  */
 class Contract extends BaseModel
 {
 
     use CustomFieldsTrait, HasFactory, HasCompany;
 
-    protected $dates = [
-        'start_date',
-        'end_date'
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
     ];
 
     protected $with = ['currency'];
 
-    protected $appends = ['image_url', 'original_contract_number'];
+    protected $appends = ['image_url', 'company_signature', 'original_contract_number'];
 
     const CUSTOM_FIELD_MODEL = 'App\Models\Contract';
 
     public function getImageUrlAttribute()
     {
-        return ($this->company_logo) ? asset_url('contract-logo/' . $this->company_logo) : company()->logo_url;
+        return ($this->company_logo) ? asset_url_local_s3('contract-logo/' . $this->company_logo) : $this->company->logo_url;
     }
 
     public function project(): BelongsTo
@@ -192,6 +205,11 @@ class Contract extends BaseModel
 
         return $invoiceSettings->contract_prefix . $invoiceSettings->contract_number_separator . $zero . $value;
 
+    }
+
+    public function getCompanySignatureAttribute()
+    {
+        return asset_url_local_s3('contract/sign/' . $this->company_sign);
     }
 
 }

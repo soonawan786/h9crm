@@ -2,26 +2,26 @@
 
 namespace App\Http\Controllers;
 
-use App\Events\NewUserRegistrationViaInviteEvent;
+use App\Models\Role;
+use App\Models\User;
 use App\Helper\Reply;
 use App\Http\Requests\User\AcceptInviteRequest;
 use App\Http\Requests\User\AccountSetupRequest;
 use App\Models\EmployeeDetails;
 use App\Models\GlobalSetting;
-use App\Models\Permission;
-use App\Models\PermissionRole;
-use App\Models\PermissionType;
-use App\Models\Role;
 use App\Models\Company;
+use App\Models\Permission;
+use App\Models\PermissionType;
 use App\Models\SuperAdmin\GlobalCurrency;
 use App\Models\UniversalSearch;
-use App\Models\User;
 use App\Models\UserAuth;
 use App\Models\UserInvitation;
-use App\Models\UserPermission;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Auth;
+use Database\Seeders\SuperAdminUsersTableSeeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use App\Events\NewUserRegistrationViaInviteEvent;
+use Symfony\Component\Mailer\Exception\TransportException;
+use App\Models\SuperAdmin\FrontWidget;
 
 class RegisterController extends Controller
 {
@@ -36,6 +36,11 @@ class RegisterController extends Controller
             ->where('status', 'active')
             ->firstOrFail();
 
+        $this->isAllowedInCurrentPackage = checkCompanyCanAddMoreEmployees($this->invite->company_id);
+
+        $this->globalSetting = GlobalSetting::first();
+        $this->frontWidgets = FrontWidget::all();
+
         return view('auth.invitation', $this->data);
     }
 
@@ -47,7 +52,7 @@ class RegisterController extends Controller
 
         $this->company = $invite->company;
 
-        if (is_null($invite) || ($invite->invitation_type == 'email' && $request->email != $invite->email)) {
+        if (!checkCompanyCanAddMoreEmployees($invite->company_id) || (is_null($invite) || ($invite->invitation_type == 'email' && $request->email != $invite->email))) {
             return Reply::error('messages.acceptInviteError');
         }
 
@@ -63,11 +68,14 @@ class RegisterController extends Controller
             $user->save();
             $user = $user->setAppends([]);
 
+            $lastEmployeeID = EmployeeDetails::where('company_id', $invite->company_id)->count();
+            $checkifExistEmployeeId = EmployeeDetails::select('id')->where('employee_id', ($lastEmployeeID + 1))->where('company_id', $invite->company_id)->first();
+
             if ($user->id) {
                 $employee = new EmployeeDetails();
                 $employee->user_id = $user->id;
                 $employee->company_id = $invite->company_id;
-                $employee->employee_id = $user->id;
+                $employee->employee_id = ((!$checkifExistEmployeeId) ? ($lastEmployeeID + 1) : null);
                 $employee->joining_date = now($this->company->timezone)->format('Y-m-d');
                 $employee->added_by = $user->id;
                 $employee->last_updated_by = $user->id;
@@ -77,7 +85,7 @@ class RegisterController extends Controller
             $employeeRole = Role::where('name', 'employee')->where('company_id', $invite->company_id)->first();
             $user->attachRole($employeeRole);
 
-            $user->insertUserRolePermission($employeeRole->id);
+            $user->assignUserRolePermission($employeeRole->id);
 
             $logSearch = new AccountBaseController();
             $logSearch->logSearchEntry($user->id, $user->name, 'employees.show', 'employee');
@@ -97,11 +105,15 @@ class RegisterController extends Controller
                 event(new NewUserRegistrationViaInviteEvent($admin, $user));
             }
 
+            if (isWorksuiteSaas()) {
+                $userAuth->sendEmailVerificationNotification();
+            }
+
             session()->forget('user');
             Auth::login($userAuth);
 
             return Reply::success(__('messages.signupSuccess'));
-        } catch (\Swift_TransportException $e) {
+        } catch (TransportException $e) {
             // Rollback Transaction
             DB::rollback();
 
@@ -209,9 +221,11 @@ class RegisterController extends Controller
         $superadmin->email = $request->email;
         $superadmin->save();
 
-        $userAuth = UserAuth::create(['email' => $superadmin->email, 'password' => bcrypt('123456'), 'email_verified_at' => now()]);
+        $userAuth = UserAuth::create(['email' => $superadmin->email, 'password' => bcrypt($request->password), 'email_verified_at' => now()]);
         $superadmin->user_auth_id = $userAuth->id;
         $superadmin->saveQuietly();
+
+        SuperAdminUsersTableSeeder::superadminRolePermissionAttach($superadmin);
 
         // Update company name
         $setting = Company::firstOrCreate();

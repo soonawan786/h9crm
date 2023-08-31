@@ -30,6 +30,8 @@ class StoreEvent extends CoreRequest
             'event_name' => 'required',
             'start_date' => 'required',
             'end_date' => 'required|date_format:"' . $setting->date_format . '"|after_or_equal:start_date',
+            'start_time' => 'required',
+            'end_time' => 'required|after_or_equal:start_time',
             'all_employees' => 'sometimes',
             'user_id.0' => 'required_unless:all_employees,true',
             'where' => 'required',
@@ -41,7 +43,8 @@ class StoreEvent extends CoreRequest
     public function messages()
     {
         return [
-            'user_id.0.required_unless' => __('messages.atleastOneValidation')
+            'user_id.0.required_unless' => __('messages.atleastOneValidation'),
+            'end_time.after_or_equal' => __('messages.endTimeAfterOrEqual'),
         ];
     }
 

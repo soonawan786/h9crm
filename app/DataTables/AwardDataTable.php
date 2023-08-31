@@ -30,7 +30,11 @@ class AwardDataTable extends BaseDataTable
         return datatables()
             ->eloquent($query)
             ->addColumn('check', function ($row) {
-                return '<input type="checkbox" class="select-table-row" id="datatable-row-' . $row->id . '"  name="datatable_ids[]" value="' . $row->id . '" onclick="dataTableRowCheck(' . $row->id . ')">';
+                if ($this->manageAwardPermission == 'all') {
+                    return '<input type="checkbox" class="select-table-row" id="datatable-row-' . $row->id . '"  name="datatable_ids[]" value="' . $row->id . '" onclick="dataTableRowCheck(' . $row->id . ')">';
+                }
+
+                return '--';
             })
             ->addColumn('action', function ($row) {
 
@@ -107,21 +111,20 @@ class AwardDataTable extends BaseDataTable
 
             })
             ->addColumn('appreciation_status', function ($row) {
-                return ucfirst($row->status);
+                return $row->status;
             })
             ->editColumn(
                 'award_icon_id',
                 function ($row) {
-                    return '<div class="position-relative" data-toggle="tooltip" data-original-title="">
-                        <i class="bi bi-' . $row->awardIcon->icon . ' f-15 text-white position-absolute appreciation-icon"></i>
-                        <i class="bi bi-hexagon-fill fs-40" style="color: ' . $row->color_code . '"></i>
-                    </div>';
+                    return view('components.award-icon', [
+                        'award' => $row
+                    ]);
                 }
             )
             ->editColumn(
                 'title',
                 function ($row) {
-                    return ucwords($row->title);
+                    return $row->title;
                 }
             )
             ->addIndexColumn()
@@ -190,7 +193,7 @@ class AwardDataTable extends BaseDataTable
                 'orderable' => false,
                 'searchable' => false
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('modules.appreciations.icon') => ['data' => 'award_icon_id', 'exportable' => false, 'name' => 'award_icon_id', 'searchable' => false],
             __('app.title') => ['data' => 'title', 'name' => 'title', 'searchable' => true],
             Column::computed('status', __('app.status'))
@@ -205,16 +208,6 @@ class AwardDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'appreciations_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

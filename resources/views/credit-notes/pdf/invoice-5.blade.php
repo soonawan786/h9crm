@@ -6,6 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>@lang('app.invoice') - {{ $creditNote->cn_number }}</title>
+    @includeIf('invoices.pdf.invoice_pdf_css')
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="{{ company()->favicon_url }}">
     <meta name="theme-color" content="#ffffff">
@@ -14,7 +15,7 @@
         <style>
             body {
                 margin: 0;
-                font-family: dejavu sans;
+                /*font-family: dejavu sans;*/
                 font-size: 13px;
             }
         </style>
@@ -29,71 +30,6 @@
     @endif
 
     <style>
-
-        @font-face {
-            font-family: 'THSarabunNew';
-            font-style: normal;
-            font-weight: normal;
-            src: url("{{ storage_path('fonts/THSarabunNew.ttf') }}") format('truetype');
-        }
-
-        @font-face {
-            font-family: 'THSarabunNew';
-            font-style: normal;
-            font-weight: bold;
-            src: url("{{ storage_path('fonts/THSarabunNew_Bold.ttf') }}") format('truetype');
-        }
-
-        @font-face {
-            font-family: 'THSarabunNew';
-            font-style: italic;
-            font-weight: bold;
-            src: url("{{ storage_path('fonts/THSarabunNew_Bold_Italic.ttf') }}") format('truetype');
-        }
-
-        @font-face {
-            font-family: 'THSarabunNew';
-            font-style: italic;
-            font-weight: bold;
-            src: url("{{ storage_path('fonts/THSarabunNew_Italic.ttf') }}") format('truetype');
-        }
-
-        @if($invoiceSetting->is_chinese_lang)
-@font-face {
-            font-family: SimHei;
-            /*font-style: normal;*/
-            font-weight: bold;
-            src: url('{{ asset('fonts/simhei.ttf') }}') format('truetype');
-        }
-
-        @endif
-
-    @php
-        $font = '';
-        if($invoiceSetting->locale == 'ja') {
-            $font = 'ipag';
-        } else if($invoiceSetting->locale == 'hi') {
-            $font = 'hindi';
-        } else if($invoiceSetting->locale == 'th') {
-            $font = 'THSarabunNew';
-        } else if($invoiceSetting->is_chinese_lang) {
-            $font = 'SimHei';
-        }else {
-            $font = 'Verdana';
-        }
-    @endphp
-
-    @if($invoiceSetting->is_chinese_lang)
-        body {
-            font-weight: normal !important;
-        }
-
-        @endif
-    * {
-            font-family: {{$font}}, DejaVu Sans, sans-serif;
-        }
-
-
         .bg-grey {
             background-color: #F2F4F7;
         }
@@ -368,7 +304,7 @@
     <tbody>
     <!-- Table Row Start -->
     <tr>
-        <td><img src="{{ $invoiceSetting->logo_url }}" alt="{{ mb_ucwords(company()->company_name) }}"
+        <td><img src="{{ $invoiceSetting->logo_url }}" alt="{{ company()->company_name }}"
                  id="logo"/></td>
         <td align="right" class="f-21 text-black font-weight-700 text-uppercase">@lang('app.credit-note')</td>
     </tr>
@@ -377,7 +313,7 @@
     <tr>
         <td>
             <p class="line-height mt-1 mb-0 f-14 text-black description">
-                {{ mb_ucwords(company()->company_name) }}<br>
+                {{ company()->company_name }}<br>
                 @if (!is_null($settings))
                     {!! nl2br(default_address()->address) !!}<br>
                     {{ company()->company_phone }}
@@ -433,8 +369,8 @@
                         <p class="line-height mb-0">
                                     <span
                                         class="text-grey text-capitalize">@lang("modules.invoices.billedTo")</span><br>
-                            {{ mb_ucwords($client->name) }}<br>
-                            {{ mb_ucwords($client->clientDetails->company_name) }}<br>
+                            {{ $client->name }}<br>
+                            {{ $client->clientDetails->company_name }}<br>
                             {!! nl2br($client->clientDetails->address) !!}
 
                             @if (($invoiceSetting->show_project == 1) && (isset($creditNote->project)))
@@ -474,7 +410,7 @@
         @if($invoiceSetting->hsn_sac_code_show)
             <td align="right" width="10%">@lang("app.hsnSac")</td>
         @endif
-        <td align="right" width="10%">{{ isset($creditNote->unit) ? $creditNote->unit->unit_type : 'Qty\hrs' }}</td>
+        <td align="right" width="10%">@lang('modules.invoices.qty')</td>
         <td align="right">@lang("modules.invoices.unitPrice")</td>
         <td align="right">@lang("modules.invoices.tax")</td>
         <td align="right"
@@ -488,16 +424,16 @@
         <!-- Table Row Start -->
             <tr class="main-table-items text-black">
                 <td width="40%">
-                    {{ ucfirst($item->item_name) }}
+                    {{ $item->item_name }}
                 </td>
                 @if($invoiceSetting->hsn_sac_code_show)
                     <td align="right" class="border-bottom-0"
                         width="10%">{{ $item->hsn_sac_code ? $item->hsn_sac_code : '--' }}</td>
                 @endif
-                <td align="right" class="border-bottom-0" width="10%">{{ $item->quantity }}</td>
+                <td align="right" class="border-bottom-0" width="10%">{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                 <td align="right"
                     class="border-bottom-0">{{ currency_format($item->unit_price, $creditNote->currency_id, false) }}</td>
-                <td align="right" class="border-bottom-0">{{ strtoupper($item->tax_list) }}</td>
+                <td align="right" class="border-bottom-0">{{ $item->tax_list }}</td>
                 <td align="right" class="border-bottom-0"
                     width="{{ $invoiceSetting->hsn_sac_code_show ? '17%' : '20%' }}">{{ currency_format($item->amount, $creditNote->currency_id, false) }}</td>
             </tr>
@@ -538,7 +474,7 @@
             @foreach ($taxes as $key => $tax)
                 <!-- Table Row Start -->
                     <tr align="right" class="text-grey">
-                        <td width="50%" class="subtotal">{{ mb_strtoupper($key) }}</td>
+                        <td width="50%" class="subtotal">{{ $key }}</td>
                     </tr>
                     <!-- Table Row End -->
             @endforeach

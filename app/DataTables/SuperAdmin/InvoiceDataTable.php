@@ -6,7 +6,6 @@ use App\Models\SuperAdmin\GlobalInvoice;
 use App\DataTables\BaseDataTable;
 use Illuminate\Support\Carbon;
 use Yajra\DataTables\Html\Column;
-use App\Models\SuperAdmin\OfflineInvoice;
 
 class InvoiceDataTable extends BaseDataTable
 {
@@ -63,12 +62,14 @@ class InvoiceDataTable extends BaseDataTable
                 $gatewayName = $row->gateway_name;
 
                 if ($gatewayName == 'offline') {
+                    $gatewayName = __('app.offline');
+
                     if ($row->offlinePaymentMethod) {
                         $gatewayName = $gatewayName . ' (' . $row->offlinePaymentMethod->name . ')';
                     }
                 }
 
-                return '<img style="height: 15px;" src="' . $logo . '" title="' . ucwords($gatewayName) . '"> ' . ucwords($gatewayName);
+                return '<img style="height: 15px;" src="' . $logo . '" title="' . $gatewayName . '"> ' . $gatewayName;
             })
             ->addColumn('action', function ($row) {
                 return '<div class="task_view"><a href="' . route('superadmin.invoices.download', $row->id) . '" class="task_view_more" data-toggle="tooltip" data-original-title="' . __('app.download') . '"><span></span> <i class="fa fa-download"></i></a></div>';
@@ -79,14 +80,14 @@ class InvoiceDataTable extends BaseDataTable
     /**
      * Get query source of dataTable.
      *
-     * @param \App\Models\SuperAdmin\OfflineInvoice $model
+     * @param GlobalInvoice $model
      * @return \Illuminate\Database\Eloquent\Builder
      */
     //phpcs:ignore
     public function query(GlobalInvoice $model)
     {
         $companyId = request('company_id');
-        $globalInvoice = $model->with('package', 'company', 'currency', 'subscription', 'subscription', 'offlinePaymentMethod')
+        $globalInvoice = $model->with('package', 'company', 'currency', 'offlinePaymentMethod')
             ->whereNotNull('pay_date');
 
 
@@ -153,16 +154,6 @@ class InvoiceDataTable extends BaseDataTable
         ];
 
         return array_merge($data1, $company, $data2);
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'SuperAdmin_Invoice_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

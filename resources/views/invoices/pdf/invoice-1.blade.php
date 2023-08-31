@@ -3,67 +3,8 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>@lang('app.invoice')</title>
+    @includeIf('invoices.pdf.invoice_pdf_css')
     <style>
-
-        @font-face {
-            font-family: 'THSarabunNew';
-            font-style: normal;
-            font-weight: normal;
-            src: url("{{ storage_path('fonts/THSarabunNew.ttf') }}") format('truetype');
-        }
-        @font-face {
-            font-family: 'THSarabunNew';
-            font-style: normal;
-            font-weight: bold;
-            src: url("{{ storage_path('fonts/THSarabunNew_Bold.ttf') }}") format('truetype');
-        }
-        @font-face {
-            font-family: 'THSarabunNew';
-            font-style: italic;
-            font-weight: bold;
-            src: url("{{ storage_path('fonts/THSarabunNew_Bold_Italic.ttf') }}") format('truetype');
-        }
-        @font-face {
-            font-family: 'THSarabunNew';
-            font-style: italic;
-            font-weight: bold;
-            src: url("{{ storage_path('fonts/THSarabunNew_Italic.ttf') }}") format('truetype');
-        }
-
-        @if($invoiceSetting->is_chinese_lang)
-        @font-face {
-            font-family: SimHei;
-            /*font-style: normal;*/
-            font-weight: bold;
-            src: url('{{ asset('fonts/simhei.ttf') }}') format('truetype');
-        }
-        @endif
-
-        @php
-            $font = '';
-            if($invoiceSetting->locale == 'ja') {
-                $font = 'ipag';
-            } else if($invoiceSetting->locale == 'hi') {
-                $font = 'hindi';
-            } else if($invoiceSetting->locale == 'th') {
-                $font = 'THSarabunNew';
-            } else if($invoiceSetting->is_chinese_lang) {
-                $font = 'SimHei';
-            }else {
-                $font = 'Verdana';
-            }
-        @endphp
-
-        @if($invoiceSetting->is_chinese_lang)
-            body
-        {
-            font-weight: normal !important;
-        }
-        @endif
-        * {
-            font-family: {{$font}}, DejaVu Sans , sans-serif;
-        }
-
         .clearfix:after {
             content: "";
             display: table;
@@ -315,7 +256,7 @@
         }
 
         #invoice-table td {
-            border: 1px solid #e7e9eb;
+            border-bottom: 1px solid #FFFFFF;
         }
 
         .border-left-0 {
@@ -336,6 +277,27 @@
 
         .h3-border {
             border-bottom: 1px solid #AAAAAA;
+        }
+
+        .background-green{
+            background-color: #57B223;
+            color: #FFFFFF;
+        }
+
+        .text-green{
+            background-color: #e7e9eb;
+            color: #57B223;
+        }
+
+        .text-dark-grey{
+            background-color: #ced0d2;
+        }
+
+        #signatory img {
+            height:95px;
+            margin-bottom: -50px;
+            margin-top: 5px;
+            margin-right: 20;
         }
 
         @if($invoiceSetting->locale == 'th')
@@ -376,14 +338,14 @@
                             @if($invoice->clientDetails->company_logo)
                                 <div class="client-logo-div">
                                     <img src="{{ $invoice->clientDetails->image_url }}"
-                                        alt="{{ mb_ucwords($invoice->clientDetails->company_name) }}" class="client-logo"/>
+                                        alt="{{ $invoice->clientDetails->company_name }}" class="client-logo"/>
                                 </div>
                             @endif
 
                             <small>@lang('modules.invoices.billedTo'):</small><br>
 
                             @if ($invoice->project->client->name && $invoiceSetting->show_client_name == 'yes')
-                                {{ mb_ucwords($invoice->project->client->name) }}<br>
+                                {{ $invoice->project->client->name }}<br>
                             @endif
 
                             @if ($invoice->project->client->email && $invoiceSetting->show_client_email == 'yes')
@@ -395,7 +357,7 @@
                             @endif
 
                             @if ($invoice->project->client->clientDetails->company_name && $invoiceSetting->show_client_company_name == 'yes')
-                                {{ mb_ucwords($invoice->project->client->clientDetails->company_name) }}<br>
+                                {{ $invoice->project->client->clientDetails->company_name }}<br>
                             @endif
 
                             @if ($invoice->project->client->clientDetails->address && $invoiceSetting->show_client_company_address == 'yes')
@@ -417,7 +379,7 @@
                             <small>@lang('modules.invoices.billedTo'):</small><br>
 
                             @if ($invoice->client->name && $invoiceSetting->show_client_name == 'yes')
-                                {{ mb_ucwords($invoice->client->name) }}<br>
+                                {{ $invoice->client->name }}<br>
                             @endif
 
                             @if ($invoice->client->email && $invoiceSetting->show_client_email == 'yes')
@@ -429,7 +391,7 @@
                             @endif
 
                             @if ($invoice->clientDetails->company_name && $invoiceSetting->show_client_company_name == 'yes')
-                                {{ mb_ucwords($invoice->clientDetails->company_name) }}<br>
+                                {{ $invoice->clientDetails->company_name }}<br>
                             @endif
 
                             @if ($invoice->clientDetails->address && $invoiceSetting->show_client_company_address == 'yes')
@@ -450,7 +412,7 @@
                             <small>@lang('modules.invoices.billedTo'):</small><br>
 
                             @if ($invoice->estimate->client->name && $invoiceSetting->show_client_name == 'yes')
-                                {{ mb_ucwords($invoice->estimate->client->name) }}<br>
+                                {{ $invoice->estimate->client->name }}<br>
                             @endif
 
                             @if ($invoice->estimate->client->email && $invoiceSetting->show_client_email == 'yes')
@@ -462,7 +424,7 @@
                             @endif
 
                             @if ($invoice->estimate->client->clientDetails->company_name && $invoiceSetting->show_client_company_name == 'yes')
-                                {{ mb_ucwords($invoice->estimate->client->clientDetails->company_name) }}<br>
+                                {{ $invoice->estimate->client->clientDetails->company_name }}<br>
                             @endif
 
                             @if ($invoice->estimate->client->clientDetails->address && $invoiceSetting->show_client_company_address == 'yes')
@@ -488,7 +450,7 @@
                             <img src="{{ $invoiceSetting->logo_url }}" alt="home" class="dark-logo" />
                         </div>
                         <small>@lang('modules.invoices.billedFrom'):</small>
-                        <div>{{ mb_ucwords($company->company_name) }}</div>
+                        <div>{{ $company->company_name }}</div>
                         @if (!is_null($company) && $invoice->address)
                         @if ($company->company_email)
                         <div>{{ $company->company_email }}</div>
@@ -520,7 +482,7 @@
                         {{ $invoice->due_date->translatedFormat($company->date_format) }}</div>
                 @endif
                 @if ($invoiceSetting->show_status)
-                <div class="">@lang('app.status'): {{ mb_ucwords($invoice->status) }}</div>
+                <div class="">@lang('app.status'): {{ $invoice->status }}</div>
                 @endif
             </div>
 
@@ -534,16 +496,16 @@
         </div>
         <table cellspacing="0" cellpadding="0" id="invoice-table">
             <thead>
-                <tr>
-                    <th class="no description">#</th>
+                <tr style="border-bottom: 1px solid #FFFFFF;">
+                    <th class="no description background-green">#</th>
                     <th class="desc description">@lang('modules.invoices.item')</th>
                     @if ($invoiceSetting->hsn_sac_code_show)
-                        <td class="qty description">@lang('app.hsnSac')</td>
+                        <th class="qty description">@lang('app.hsnSac')</th>
                     @endif
-                    <th class="qty description">{{ isset($invoice->unit) ? $invoice->unit->unit_type : 'Qty\hrs' }}</th>
+                    <th class="qty description">@lang('modules.invoices.qty')</th>
                     <th class="qty description">@lang('modules.invoices.unitPrice')</th>
                     <th class="qty description">@lang('modules.invoices.tax')</th>
-                    <th class="unit description">@lang('modules.invoices.price') ({!! htmlentities($invoice->currency->currency_code) !!})</th>
+                    <th class="unit description text-dark-grey">@lang('modules.invoices.price') ({!! htmlentities($invoice->currency->currency_code) !!})</th>
                 </tr>
             </thead>
             <tbody>
@@ -551,14 +513,14 @@
                 @foreach ($invoice->items as $item)
                     @if ($item->type == 'item')
                         <tr style="page-break-inside: avoid;">
-                            <td class="no">{{ ++$count }}</td>
-                            <td class="desc">
-                                <h3  class="description">{{ ucfirst($item->item_name) }}</h3>
+                            <td class="no background-green">{{ ++$count }}</td>
+                            <td class="desc text-green">
+                                <h3  class="description">{{ $item->item_name }}</h3>
                                 @if (!is_null($item->item_summary))
                                     <table>
                                         <tr>
                                             <td
-                                                class="item-summary  description word-break border-top-0 border-right-0 border-left-0 border-bottom-0">
+                                                class="item-summary  description word-break border-top-0 border-right-0 border-left-0 border-bottom-0" style="color:#555555;">
                                                 {!! nl2br(strip_tags($item->item_summary, ['p', 'b', 'strong', 'a'])) !!}</td>
                                         </tr>
                                     </table>
@@ -571,31 +533,31 @@
                                 @endif
                             </td>
                             @if ($invoiceSetting->hsn_sac_code_show)
-                                <td class="qty">
+                                <td class="qty text-green">
                                     <h3>{{ $item->hsn_sac_code ? $item->hsn_sac_code : '--' }}</h3>
                                 </td>
                             @endif
-                            <td class="qty">
-                                <h3>{{ $item->quantity }}</h3>
+                            <td class="qty text-green">
+                                <h3>{{ $item->quantity }}@if(($item->unit))<br><span class="item-summary" style="color:#555555;">{{ $item->unit->unit_type }}</span>@endif</h3>
                             </td>
-                            <td class="qty">
+                            <td class="qty text-green">
                                 <h3>{{ currency_format($item->unit_price, $invoice->currency_id, false) }}</h3>
                             </td>
-                            <td>{{ strtoupper($item->tax_list) }}</td>
-                            <td class="unit">{{ currency_format($item->amount, $invoice->currency_id, false) }}</td>
+                            <td class="text-green">{{ $item->tax_list }}</td>
+                            <td class="unit text-dark-grey">{{ currency_format($item->amount, $invoice->currency_id, false) }}</td>
                         </tr>
                     @endif
                 @endforeach
                 <tr style="page-break-inside: avoid;" class="subtotal">
-                    <td class="no">&nbsp;</td>
-                    <td class="qty">&nbsp;</td>
-                    <td class="qty">&nbsp;</td>
-                    <td class="qty">&nbsp;</td>
+                    <td class="no background-green">&nbsp;</td>
+                    <td class="qty text-green">&nbsp;</td>
+                    <td class="qty text-green">&nbsp;</td>
+                    <td class="qty text-green">&nbsp;</td>
                     @if ($invoiceSetting->hsn_sac_code_show)
-                        <td class="qty">&nbsp;</td>
+                        <td class="qty text-green">&nbsp;</td>
                     @endif
-                    <td class="desc">@lang('modules.invoices.subTotal')</td>
-                    <td class="unit">{{ currency_format($invoice->sub_total, $invoice->currency_id, false) }}</td>
+                    <td class="desc" style="background-color:#e7e9eb;">@lang('modules.invoices.subTotal')</td>
+                    <td class="unit text-dark-grey">{{ currency_format($invoice->sub_total, $invoice->currency_id, false) }}</td>
                 </tr>
                 @if ($discount != 0 && $discount != '')
                     <tr style="page-break-inside: avoid;" class="discount">
@@ -607,7 +569,7 @@
                         @endif
                         <td class="qty">&nbsp;</td>
                         <td class="desc">@lang('modules.invoices.discount')</td>
-                        <td class="unit">{{ currency_format($discount, $invoice->currency_id, false) }}</td>
+                        <td class="unit border-left-0 border-right-0" style="border-bottom: 1px solid #e7e9eb;">{{ currency_format($discount, $invoice->currency_id, false) }}</td>
                     </tr>
                 @endif
                 @foreach ($taxes as $key => $tax)
@@ -619,8 +581,8 @@
                             <td class="qty">&nbsp;</td>
                         @endif
                         <td class="qty">&nbsp;</td>
-                        <td class="desc">{{ mb_strtoupper($key) }}</td>
-                        <td class="unit">{{ currency_format($tax, $invoice->currency_id, false) }}</td>
+                        <td class="desc">{{ $key }}</td>
+                        <td class="unit border-left-0 border-right-0" style="border-bottom: 1px solid #e7e9eb;">{{ currency_format($tax, $invoice->currency_id, false) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -628,35 +590,36 @@
                 <tr dontbreak="true">
                     <td colspan="{{ $invoiceSetting->hsn_sac_code_show ? '6' : '5' }}">
                         @lang('modules.invoices.total')</td>
-                    <td style="text-align: center">{{ currency_format($invoice->total, $invoice->currency_id, false) }}</td>
+                    <td style="text-align: center; border-bottom: 1px solid #e7e9eb;">{{ currency_format($invoice->total, $invoice->currency_id, false) }}</td>
                 </tr>
                 @if ($invoice->appliedCredits() > 0)
                     <tr dontbreak="true">
                         <td colspan="{{ $invoiceSetting->hsn_sac_code_show ? '6' : '5' }}">
                             @lang('modules.invoices.appliedCredits')</td>
-                        <td style="text-align: center">
+                        <td style="text-align: center; border-bottom: 1px solid #e7e9eb;">
                             {{ currency_format($invoice->appliedCredits(), $invoice->currency_id, false) }}</td>
                     </tr>
                 @endif
                 <tr dontbreak="true">
                     <td colspan="{{ $invoiceSetting->hsn_sac_code_show ? '6' : '5' }}">
                         @lang('modules.invoices.total') @lang('modules.invoices.paid')</td>
-                    <td style="text-align: center">{{ currency_format($invoice->getPaidAmount(), $invoice->currency_id, false) }}
+                    <td style="text-align: center; border-bottom: 1px solid #e7e9eb;">{{ currency_format($invoice->getPaidAmount(), $invoice->currency_id, false) }}
                     </td>
                 </tr>
                 @if ($invoice->amountDue())
                 <tr dontbreak="true">
                     <td colspan="{{ $invoiceSetting->hsn_sac_code_show ? '6' : '5' }}">
                         @lang('modules.invoices.total') @lang('modules.invoices.due')</td>
-                    <td style="text-align: center">{{ currency_format($invoice->amountDue(), $invoice->currency_id, false) }}
+                    <td style="text-align: center; border-bottom: 1px solid #e7e9eb;">{{ currency_format($invoice->amountDue(), $invoice->currency_id, false) }}
                         {{ $invoice->currency->currency_code }}</td>
                 </tr>
                 @endif
+
+
                 @if ($invoiceSetting->authorised_signatory && $invoiceSetting->authorised_signatory_signature && $invoice->status == 'paid')
                     <tr>
-                        <td colspan="{{ $invoiceSetting->hsn_sac_code_show ? '7' : '6' }}" style="font-size:15px; border: 0" align="right">
-                            <img style="height:95px; margin-bottom: -50px; margin-top: 5px;"
-                            src="{{ $invoiceSetting->authorised_signatory_signature_url }}" alt="{{ mb_ucwords($company->company_name) }}"/><br>
+                        <td id="signatory" colspan="{{ $invoiceSetting->hsn_sac_code_show ? '7' : '6' }}" style="font-size:15px; border: 0" align="right">
+                            <img src="{{ $invoiceSetting->authorised_signatory_signature_url }}" alt="{{ $company->company_name }}"/><br>
                             @lang('modules.invoiceSettings.authorisedSignatory')
                         </td>
                     </tr>
@@ -665,15 +628,18 @@
         </table>
 
         <p id="notes" class="word-break description">
-            @if (!is_null($invoice->note))
-                @lang('app.note') <br>{!! nl2br($invoice->note) !!}<br>
-            @endif
-            @lang('modules.invoiceSettings.invoiceTerms') <br>{!! nl2br($invoiceSetting->invoice_terms) !!}
+            <div>
+                @if (!is_null($invoice->note))
+                    <b>@lang('app.note')</b><br>{!! nl2br($invoice->note) !!}<br>
+                @endif
+            </div>
+            <div style="margin-top: 10px;">
+                <b>@lang('modules.invoiceSettings.invoiceTerms')</b><br>{!! nl2br($invoiceSetting->invoice_terms) !!}
+            </div>
         </p>
 
-
         @if (isset($taxes) && $invoiceSetting->tax_calculation_msg == 1)
-            <p class="text-dark-grey description">
+            <p class="description">
                 @if ($invoice->calculate_tax == 'after_discount')
                     @lang('messages.calculateTaxAfterDiscount')
                 @else
@@ -690,7 +656,7 @@
                 @foreach($fields as $field)
                     <tr>
                         <td style="text-align: left;background: none;" >
-                            <div class="desc">{{ ucfirst($field->label) }} </div>
+                            <div class="desc">{{ $field->label }} </div>
                             <p id="notes">
                                 @if( $field->type == 'text' || $field->type == 'password' || $field->type == 'number' || $field->type == 'textarea')
                                     {{$invoice->custom_fields_data['field_'.$field->id] ?? '-'}}

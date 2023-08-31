@@ -12,23 +12,33 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
+/**
+ * App\Exports\EmployeeTimelogs
+ *
+ * @property-read \App\Exports\EmployeeTimelogs $user
+ * @property-read \App\Exports\EmployeeTimelogs $modules
+ * @property-read \App\Exports\EmployeeTimelogs $viewTimeLogPermission
+ * @mixin \Eloquent
+*/
+
 class EmployeeTimelogs extends AccountBaseController implements FromView, ShouldAutoSize, WithStyles
 {
+    private $viewTimelogPermission;
+    private $employees;
 
     public function __construct()
     {
         parent::__construct();
         $this->middleware(function ($request, $next) {
             abort_403(!in_array('timelogs', $this->user->modules));
-
             return $next($request);
         });
     }
 
     public function view(): View
     {
-        $this->startDate = $startDate = Carbon::createFromFormat(company()->date_format, urldecode(request()->startDate))->toDateString();
-        $this->endDate = $endDate = Carbon::createFromFormat(company()->date_format, urldecode(request()->endDate))->toDateString();
+        $this->startDate = $startDate = Carbon::createFromFormat(company()->date_format, urldecode(request()->startDate))->toDateString(); /** @phpstan-ignore-line */
+        $this->endDate = $endDate = Carbon::createFromFormat(company()->date_format, urldecode(request()->endDate))->toDateString(); /** @phpstan-ignore-line */
         $employee = request()->employee;
         $projectId = request()->projectID;
         $this->viewTimelogPermission = user()->permission('view_timelogs');

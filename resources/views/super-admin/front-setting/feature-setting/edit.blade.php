@@ -21,7 +21,7 @@
                             @foreach ($languageSettings as $language)
                                 <option
                                     @if($language->id === $feature->language_setting_id) selected @endif
-                                    data-content="<span class='flag-icon flag-icon-{{ $language->language_code == 'en' ? 'gb' : strtolower($language->language_code) }} flag-icon-squared'></span> {{ $language->language_name }}"
+                                    data-content="<span class='flag-icon flag-icon-{{ $language->flag_code == 'en' ? 'gb' : strtolower($language->flag_code) }} flag-icon-squared'></span> {{ $language->language_name }}"
                                     value="{{ $language->id }}">{{ $language->language_name }}</option>
                             @endforeach
                         </x-forms.select>

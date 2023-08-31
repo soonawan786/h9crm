@@ -275,7 +275,7 @@
 
     $.easyBlockUI = function (container, message) {
         if (message == undefined) {
-            message = "Loading...";
+            message = (document.loading ? document.loading : 'Loading...');
         }
 
         var html = '<div class="loading-message"><div class="block-spinner-bar"><div class="bounce1"></div><div class="bounce2"></div><div class="bounce3"></div></div></div>';
@@ -381,7 +381,7 @@
 
         // Reset modal when it hides
         $(selector).on('hidden.bs.modal', function () {
-            $(this).find('.modal-body').html('Loading...');
+            $(this).find('.modal-body').html((document.loading ? document.loading : 'Loading...'));
             $(this).find('.modal-footer').html('<button type="button" data-dismiss="modal" class="btn dark btn-outline">Cancel</button>');
             $(this).data('bs.modal', null);
         });

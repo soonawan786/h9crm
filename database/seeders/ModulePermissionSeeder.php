@@ -25,17 +25,17 @@ class ModulePermissionSeeder extends Seeder
         DB::statement("DELETE FROM modules WHERE module_name='ticket support';");
         DB::statement("UPDATE modules SET module_name=REPLACE( module_name, 'Zoom', 'zoom' );");
 
-
         foreach ($modules as $module) {
-            $insert = Module::updateOrCreate(
-                ['module_name' => $module['module_name']],
-                ['description' => $module['description'] ?? null]
-            );
+            $moduleData = Module::withoutGlobalScopes()->where('module_name', $module['module_name'])->first() ?: new Module();
 
+            $moduleData->module_name = $module['module_name'];
+            $moduleData->description = ($module['description'] ?? null);
+            $moduleData->is_superadmin = (isset($module['is_superadmin']) ? 1 : 0); // Check superadmin permissions
+            $moduleData->save();
 
             // Run for every permissions
             foreach ($module['permissions'] as $permission) {
-                $permission['module_id'] = $insert->id;
+                $permission['module_id'] = $moduleData->id;
                 $permission['display_name'] = $permission['display_name'] ?? ucwords(str_replace('_', ' ', $permission['name']));
 
                 Permission::updateOrCreate(

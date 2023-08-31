@@ -62,12 +62,13 @@ class NewLeaveRequest extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $url = route('leaves.show', $this->leave->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('email.leaves.subject') . ' by: ' . mb_ucwords($this->leave->user->name) . '.' . '<br>' . __('app.date') . ': ' . $this->leave->leave_date->format($this->company->date_format) . '<br>' . __('modules.leaves.leaveType') . ': ' . $this->leave->type->type_name . '<br>' . __('modules.leaves.reason') . ':- ' . $this->leave->reason;
+        $content = __('email.leaves.subject') . ' by: ' . $this->leave->user->name . '.' . '<br>' . __('app.date') . ': ' . $this->leave->leave_date->format($this->company->date_format) . '<br>' . __('modules.leaves.leaveType') . ': ' . $this->leave->type->type_name . '<br>' . __('modules.leaves.reason') . ':- ' . $this->leave->reason;
 
-        return parent::build()
+        return $build
             ->subject(__('email.leaves.subject') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,
@@ -103,7 +104,7 @@ class NewLeaveRequest extends BaseNotification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content(__('email.leaves.subject') . "\n" . mb_ucwords($this->leave->user->name) . "\n" . '*' . __('app.date') . '*: ' . $this->leave->leave_date->format($this->company->date_format) . "\n" . '*' . __('modules.leaves.leaveType') . '*: ' . $this->leave->type->type_name . "\n" . '*' . __('modules.leaves.reason') . '*' . "\n" . $this->leave->reason);
+                ->content(__('email.leaves.subject') . "\n" . $this->leave->user->name . "\n" . '*' . __('app.date') . '*: ' . $this->leave->leave_date->format($this->company->date_format) . "\n" . '*' . __('modules.leaves.leaveType') . '*: ' . $this->leave->type->type_name . "\n" . '*' . __('modules.leaves.reason') . '*' . "\n" . $this->leave->reason);
         }
 
         return (new SlackMessage())
@@ -116,8 +117,8 @@ class NewLeaveRequest extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.leaves.subject'))
-            ->body('by ' . mb_ucwords($this->leave->user->name));
+            ->setSubject(__('email.leaves.subject'))
+            ->setBody('by ' . $this->leave->user->name);
     }
 
 }

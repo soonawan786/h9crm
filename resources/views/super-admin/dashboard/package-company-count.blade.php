@@ -11,7 +11,7 @@
 
             @forelse($packageCompanyCount as $key=>$item)
                 <tr id="row-{{ $item->id }}" class="f-10">
-                    <td class="pl-20">{{ $key + 1 }}</td>
+                    <td class="pl-20">{{ $loop->iteration }}</td>
                     <td>
                         {{ $item->name }}
                     </td>

@@ -6,6 +6,10 @@
   position: relative;
   padding: 0rem 1rem;
 
+  @include media-breakpoint-up(lg){
+    width: 50% !important;
+  }
+
   ul {
     padding-left: 0;
     list-style: none;
@@ -41,6 +45,10 @@
 
   .navbar-left{
     height: 63px;
+
+    @include media-breakpoint-up(lg){
+      width: 50% !important;
+    }
   }
 }
 .menu-collapse {

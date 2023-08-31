@@ -3,7 +3,7 @@
 namespace App\Models\SuperAdmin;
 
 use App\Traits\IconTrait;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\SuperAdmin\SupportTicketFile
@@ -41,7 +41,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|SupportTicketFile whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SupportTicketFile whereUserId($value)
  */
-class SupportTicketFile extends Model
+class SupportTicketFile extends BaseModel
 {
     use IconTrait;
 

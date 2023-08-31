@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @method static \Illuminate\Database\Eloquent\Builder|AwardIcon newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|AwardIcon newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|AwardIcon query()
- * @mixin \Eloquent
  * @property int $id
  * @property string $title
  * @property string $icon
@@ -22,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @method static \Illuminate\Database\Eloquent\Builder|AwardIcon whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|AwardIcon whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder|AwardIcon whereUpdatedAt($value)
+ * @mixin \Eloquent
  */
 class AwardIcon extends BaseModel
 {

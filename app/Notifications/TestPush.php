@@ -4,7 +4,6 @@ namespace App\Notifications;
 
 use NotificationChannels\OneSignal\OneSignalChannel;
 use NotificationChannels\OneSignal\OneSignalMessage;
-use NotificationChannels\OneSignal\OneSignalWebButton;
 
 class TestPush extends BaseNotification
 {
@@ -31,10 +30,11 @@ class TestPush extends BaseNotification
     // phpcs:ignore
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = getDomainSpecificUrl(route('login'));
         $content = __('email.notificationIntro');
 
-        return parent::build()
+        return $build
             ->markdown('mail.email', [
                 'url' => $url,
                 'content' => $content,

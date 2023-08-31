@@ -136,7 +136,7 @@
                     </x-forms.label>
 
                     <input type="hidden" name="client_id" id="client_id" value="{{ $client->id }}">
-                    <input type="text" value="{{ ucfirst($client->name) }}"
+                    <input type="text" value="{{ $client->name }}"
                            class="form-control height-35 f-15 readonly-background" readonly>
                 @else
                     <x-forms.select fieldName="client_id" fieldId="client_id"
@@ -144,7 +144,7 @@
                         <option value="">--</option>
                         @foreach ($clients as $clientOpt)
                             <option data-content="<x-client-search-option :user='$clientOpt' />"
-                            value="{{ $clientOpt->id }}">{{ mb_ucwords($clientOpt->name) }} </option>
+                            value="{{ $clientOpt->id }}">{{ $clientOpt->name }} </option>
                         @endforeach
                     </x-forms.select>
                 @endif

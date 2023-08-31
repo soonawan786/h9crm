@@ -73,15 +73,16 @@ class LeadNotesDataTable extends BaseDataTable
 
                 return $action;
             })
+            ->editColumn('created_at', function ($row) {
+                return $row->created_at->timezone(company()->timezone)->translatedFormat($this->company->date_format . ' ' . $this->company->time_format);
+            })
             ->editColumn('title', function ($row) {
                 if (!in_array('admin', user_roles()) && $row->ask_password == 1) {
-                    return '<a href="javascript:;" class="ask-for-password" style="color:black;" data-lead-note-id="' . $row->id . '">' . mb_ucwords($row->title) . '</a>';
+                    return '<a href="javascript:;" class="ask-for-password" style="color:black;" data-lead-note-id="' . $row->id . '">' . $row->title . '</a>';
                 }
                 else {
-                    return '<a href="' . route('lead-notes.show', $row->id) . '" class="openRightModal" style="color:black;">' . mb_ucwords($row->title) . '</a>';
+                    return '<a href="' . route('lead-notes.show', $row->id) . '" class="openRightModal" style="color:black;">' . $row->title . '</a>';
                 }
-
-                // return mb_ucwords($row->title);
             })
             ->editColumn('type', function ($row) {
                 if ($row->type == '0') {
@@ -165,10 +166,11 @@ class LeadNotesDataTable extends BaseDataTable
                 'orderable' => false,
                 'searchable' => false
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'visible' => false, 'title' => __('app.id')],
             __('modules.client.noteTitle') => ['data' => 'title', 'name' => 'title', 'title' => __('modules.client.noteTitle')],
             __('modules.client.noteType') => ['data' => 'type', 'name' => 'type', 'title' => __('modules.client.noteType')],
+            __('app.createdOn') => ['data' => 'created_at', 'name' => 'created_at', 'title' => __('app.createdOn')],
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -176,16 +178,6 @@ class LeadNotesDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'lead_note_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

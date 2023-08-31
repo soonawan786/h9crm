@@ -37,8 +37,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder|EmployeeShift whereShiftName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|EmployeeShift whereShiftShortCode($value)
  * @method static \Illuminate\Database\Eloquent\Builder|EmployeeShift whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read \App\Models\Company|null $company
+ * @property string|null $early_clock_in
+ * @method static \Illuminate\Database\Eloquent\Builder|EmployeeShift whereEarlyClockIn($value)
+ * @mixin \Eloquent
  */
 class EmployeeShift extends BaseModel
 {

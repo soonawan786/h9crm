@@ -38,7 +38,7 @@
                         </div>
                     </div>
                     <div class="col-lg-12 content_desc">
-                        <x-forms.file fieldLabel="Og image" fieldName="og_image"
+                        <x-forms.file :fieldLabel="__('superadmin.frontCms.ogImage')" fieldName="og_image"
                                       fieldRequired="true" fieldId="og_image"
                                       allowedFileExtensions="png jpg jpeg svg" :fieldValue="$seoDetail->og_image_url"/>
                     </div>

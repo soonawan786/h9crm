@@ -62,7 +62,7 @@ $createPublicProjectPermission = user()->permission('create_public_project');
                                 <option value="">--</option>
                                 @foreach ($categories as $category)
                                     <option @if ($project->category_id == $category->id) selected @endif value="{{ $category->id }}">
-                                        {{ mb_ucwords($category->category_name) }}</option>
+                                        {{ $category->category_name }}</option>
                                 @endforeach
                             </select>
 
@@ -86,7 +86,7 @@ $createPublicProjectPermission = user()->permission('create_public_project');
                                     <option value="">--</option>
                                     @foreach ($teams as $team)
                                         <option @if ($project->team_id === $team->id) selected @endif value="{{ $team->id }}">
-                                            {{ mb_ucfirst($team->team_name) }}
+                                            {{ $team->team_name }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -224,10 +224,10 @@ $createPublicProjectPermission = user()->permission('create_public_project');
                             :fieldLabel="__('app.project') . ' ' . __('app.status')" fieldName="status" search="true">
                             @foreach ($projectStatus as $status)
                                 <option
-                                data-content="<i class='fa fa-circle mr-1 f-15' style='color:{{$status->color}}'></i>{{ ucfirst($status->status_name) }}"
+                                data-content="<i class='fa fa-circle mr-1 f-15' style='color:{{$status->color}}'></i>{{ $status->status_name }}"
                                 @if ($project->status == $status->status_name)
                                 selected @endif
-                                value="{{$status->status_name}}">$status->status_name
+                                value="{{$status->status_name}}">
                                 </option>
 
                             @endforeach
@@ -250,6 +250,7 @@ $createPublicProjectPermission = user()->permission('create_public_project');
                                     :checked="($project->calculate_task_progress == 'true') ? true : false"
                                     :fieldLabel="__('modules.projects.calculateTasksProgress')"
                                     fieldName="calculate_task_progress" />
+                                    <i class="fa fa-question-circle mt-2" title="{{__('messages.calculateTaskProgress')}}" data-toggle="tooltip"></i>
                             </div>
                         </div>
                     </div>
@@ -331,6 +332,7 @@ $createPublicProjectPermission = user()->permission('create_public_project');
                             </div>
                         </div>
                     </div>
+                    <input type = "hidden" name = "mention_user_ids" id = "mentionUserId" class ="mention_user_ids">
 
                     <div class="col-md-6 col-lg-6 {{!is_null($project) && $project->enable_miroboard ? '' : 'd-none'}}" id="miroboard_detail">
                         <div class="form-group my-3">
@@ -374,12 +376,12 @@ $createPublicProjectPermission = user()->permission('create_public_project');
 <script>
     $(document).ready(function() {
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         $(".multiple-users").selectpicker({
             actionsBox: true,
@@ -391,8 +393,6 @@ $createPublicProjectPermission = user()->permission('create_public_project');
                 return selected + " {{ __('app.membersSelected') }} ";
             }
         });
-
-        quillImageLoad('#project_summary');
 
         const dp1 = datepicker('#start_date', {
             position: 'bl',
@@ -424,11 +424,20 @@ $createPublicProjectPermission = user()->permission('create_public_project');
                 $('#deadlineBox').show();
             }
         });
+        const atValues = @json($userData);
+
+        quillMention(atValues, '#project_summary');
 
         $('#save-project-form').click(function() {
             var note = document.getElementById('project_summary').children[0].innerHTML;
             document.getElementById('project_summary-text').value = note;
 
+            var user = $('#project_summary span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
+
+            var mention_user_id  =  $.makeArray(user);
+            $('#mentionUserId').val(mention_user_id.join(','));
             const url = "{{ route('projects.update', $project->id) }}";
 
             $.easyAjax({
@@ -437,6 +446,7 @@ $createPublicProjectPermission = user()->permission('create_public_project');
                 type: "POST",
                 disableButton: true,
                 blockUI: true,
+                file:true,
                 buttonSelector: "#save-project-form",
                 data: $('#save-project-data-form').serialize(),
                 success: function(response) {
@@ -522,6 +532,8 @@ $createPublicProjectPermission = user()->permission('create_public_project');
                 $('#completion_percent').removeAttr('disabled');
             }
         });
+
+        <x-forms.custom-field-filejs/>
 
         init(RIGHT_MODAL);
     });

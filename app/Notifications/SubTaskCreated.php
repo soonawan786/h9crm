@@ -35,19 +35,6 @@ class SubTaskCreated extends BaseNotification
         return $via;
     }
 
-    /*
-    public function toMail($notifiable)
-    {
-        return parent::build()
-            ->subject(__('email.subTaskComplete.subject') . ' - ' . config('app.name') . '.')
-            ->greeting(__('email.hello') . ' ' . $notifiable->name . ',')
-            ->line(ucfirst($this->subTask->title) . ' ' . __('email.subTaskComplete.subject') . '.')
-            ->line((!is_null($this->subTask->task->project)) ? __('app.project') . ' - ' . ucfirst($this->subTask->task->project->project_name) : '')
-            ->action(__('email.subTaskComplete.action'), route('tasks.show', [$this->subTask->task->id, 'view' => 'sub_task']))
-            ->line(__('email.thankyouNote'));
-    }
-    */
-
     /**
      * Get the array representation of the notification.
      *

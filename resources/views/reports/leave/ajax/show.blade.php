@@ -1,6 +1,6 @@
 <div class="row mx-0 py-4 bg-additional-grey">
     @foreach ($leave_types as $leave_type)
-        <div class="col-md-6 col-lg-4 mb-3 mb-lg-0">
+        <div class="col-md-6 col-lg-3 mb-3 mb-lg-0">
             <x-cards.widget :title="$leave_type->type_name" :value="$leave_type->leaves->count()" icon="calendar" />
         </div>
     @endforeach

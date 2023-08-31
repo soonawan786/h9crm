@@ -18,13 +18,14 @@
     }
 </style>
 <div class="modal-header">
-    <h5 class="modal-title" id="modelHeading">Move files from local to aws</h5>
+    <h5 class="modal-title" id="modelHeading">@lang('app.moveFilesToCloud')</h5>
     <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
             aria-hidden="true">×</span></button>
 </div>
 
 <div class="modal-body">
     <div class="portlet-body">
+        @if($localFilesCount>0)
         <x-form id="AWSForm" method="POST" class="ajax-form">
 
             <input type="hidden" name="file_url" id="file_url">
@@ -81,14 +82,15 @@
 
         </x-form>
 
+        @else
+            <div class="mt-3">
+                <x-alert type="info" icon="info-circle">
+                    @lang('messages.allFilesMovedToCloud')
+                </x-alert>
+            </div>
+        @endif
     </div>
-    @if($localFilesCount==0)
-        <div class="mt-3">
-            <x-alert type="info" icon="info-circle">
-                @lang('messages.allFilesMovedtoAws')
-            </x-alert>
-        </div>
-    @endif
+
 </div>
 
 <div class="modal-footer">

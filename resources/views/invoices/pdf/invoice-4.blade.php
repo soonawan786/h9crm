@@ -10,68 +10,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <meta name="description" content="Invoice">
+    @includeIf('invoices.pdf.invoice_pdf_css')
 
     <style>
-
-    @font-face {
-        font-family: 'THSarabunNew';
-        font-style: normal;
-        font-weight: normal;
-        src: url("{{ storage_path('fonts/THSarabunNew.ttf') }}") format('truetype');
-    }
-    @font-face {
-        font-family: 'THSarabunNew';
-        font-style: normal;
-        font-weight: bold;
-        src: url("{{ storage_path('fonts/THSarabunNew_Bold.ttf') }}") format('truetype');
-    }
-    @font-face {
-        font-family: 'THSarabunNew';
-        font-style: italic;
-        font-weight: bold;
-        src: url("{{ storage_path('fonts/THSarabunNew_Bold_Italic.ttf') }}") format('truetype');
-    }
-    @font-face {
-        font-family: 'THSarabunNew';
-        font-style: italic;
-        font-weight: bold;
-        src: url("{{ storage_path('fonts/THSarabunNew_Italic.ttf') }}") format('truetype');
-    }
-
-    @if($invoiceSetting->is_chinese_lang)
-    @font-face {
-        font-family: SimHei;
-        /*font-style: normal;*/
-        font-weight: bold;
-        src: url('{{ asset('fonts/simhei.ttf') }}') format('truetype');
-    }
-    @endif
-
-    @php
-        $font = '';
-        if($invoiceSetting->locale == 'ja') {
-            $font = 'ipag';
-        } else if($invoiceSetting->locale == 'hi') {
-            $font = 'hindi';
-        } else if($invoiceSetting->locale == 'th') {
-            $font = 'THSarabunNew';
-        } else if($invoiceSetting->is_chinese_lang) {
-            $font = 'SimHei';
-        }else {
-            $font = 'Verdana';
-        }
-    @endphp
-
-    @if($invoiceSetting->is_chinese_lang)
-        body
-    {
-        font-weight: normal !important;
-    }
-    @endif
-    * {
-        font-family: {{$font}}, Arial, Helvetica, sans-serif;
-    }
-
+    @if($invoiceSetting->locale !== 'th')
         html,
         body,
         div,
@@ -165,6 +107,8 @@
         html {
             line-height: 1;
         }
+
+        @endif
 
         ol,
         ul {
@@ -626,6 +570,13 @@
             margin-left: 40px;
         }
 
+        #signatory img {
+            height:95px;
+            margin-bottom: -50px;
+            margin-top: 5px;
+            margin-right: 10;
+        }
+
         #field-title {
             color: #504f4f;
             font-size: 13px;
@@ -645,20 +596,25 @@
                 font-size: 16px !important;
             }
 
-            #memo .client-logo {
-            float:left;
-            display: flex !important;
-            flex-direction: column !important;
-            position: absolute;
-            /* margin-bottom: 15px; */
-            }
-
-            #memo .client-logo img {
-                height: 50px;
-                margin-bottom: 10px;
-            }
-
         @endif
+
+        #memo .client-logo {
+        float:left;
+        display: flex !important;
+        flex-direction: column !important;
+        position: absolute;
+        /* margin-bottom: 15px; */
+        }
+
+        #memo .client-logo img {
+            height: 50px;
+            margin-bottom: 10px;
+        }
+
+        .f-11 {
+            font-size: 11px;
+        }
+
 
     </style>
 
@@ -666,9 +622,8 @@
 
 <body>
     <div id="container">
-
         <div class="right-invoice">
-            <section id="memo">
+            <section id="memo" class="description">
                 <div class="client-logo">
                     <div>
                         <img style="height:50px;" src="{{ $invoiceSetting->logo_url }}" />
@@ -676,14 +631,14 @@
                     <div class="company-info description">
                             <br>
                         <div class="description">
-                            {{ mb_ucwords($company->company_name) }}
+                            {{ $company->company_name }}
                         </div>
                         @if ($company->company_email)
                         <span class="description">{{ $company->company_email }}</span>
                             <br>
                         @endif
                         @if ($company->company_phone)
-                        <span class="description">{{ $company->company_phone }}</span>
+                        <span>{{ $company->company_phone }}</span>
                             <br>
                         @endif
                         @if ($invoice->address)
@@ -696,7 +651,7 @@
                     @if($invoice->clientDetails->company_logo)
                         <div>
                             <img src="{{ $invoice->clientDetails->image_url }}"
-                                alt="{{ mb_ucwords($invoice->clientDetails->company_name) }}" />
+                                alt="{{ $invoice->clientDetails->company_name }}" />
                         </div>
                     @endif
 
@@ -705,7 +660,7 @@
                             <div class="description">@lang('modules.invoices.billedTo'):</div>
                             @if ($invoice->project->client->name && $invoiceSetting->show_client_name == 'yes')
                                 <div class="client-name">
-                                    <strong>{{ mb_ucwords($invoice->project->client->name) }}</strong>
+                                    <strong>{{ $invoice->project->client->name }}</strong>
                                 </div>
                             @endif
 
@@ -722,7 +677,7 @@
                             @endif
                             @if ($invoice->project->client->clientDetails->company_name && $invoiceSetting->show_client_company_name == 'yes')
                                 <div>
-                                    <span>{{ mb_ucwords($invoice->project->client->clientDetails->company_name) }}</span>
+                                    <span>{{ $invoice->project->client->clientDetails->company_name }}</span>
                                 </div>
                             @endif
 
@@ -755,12 +710,12 @@
                         <section id="client-info" class="description">
                             <span class="description">@lang('modules.invoices.billedTo'): </span>
                             <div class="client-name">
-                                {{ mb_ucwords($invoice->client->name) }}
+                                {{ $invoice->client->name }}
                             </div>
 
                             @if ($invoice->clientDetails)
                                 <div>
-                                    <span>{{ mb_ucwords($invoice->clientDetails->company_name) }}</span>
+                                    <span>{{ $invoice->clientDetails->company_name }}</span>
                                 </div>
                                 <div class="mb-3">
                                     <span>
@@ -795,11 +750,11 @@
                         <section id="client-info">
                             <span>@lang('modules.invoices.billedTo'):</span>
                             <div class="client-name">
-                                <strong>{{ mb_ucwords($invoice->estimate->client->name) }}</strong>
+                                <strong>{{ $invoice->estimate->client->name }}</strong>
                             </div>
 
                             <div>
-                                <span>{{ mb_ucwords($invoice->estimate->client->clientDetails->company_name) }}</span>
+                                <span>{{ $invoice->estimate->client->clientDetails->company_name }}</span>
                             </div>
                             <div class="mb-3">
                                 <span>
@@ -840,7 +795,7 @@
                 <div id="title">{{ $invoice->invoice_number }}</div>
 
             </section>
-      
+
 
 
             <div class="clearfix"></div>
@@ -854,7 +809,7 @@
                 @endif
                 @if ($invoiceSetting->show_status)
                 <div>
-                    <span>@lang('app.status'):</span> <span>{{ mb_ucwords($invoice->status) }}</span>
+                    <span>@lang('app.status'):</span> <span>{{ $invoice->status }}</span>
                 </div>
                 @endif
 
@@ -887,7 +842,7 @@
                         @if ($invoiceSetting->hsn_sac_code_show)
                             <th>@lang('app.hsnSac')</th>
                         @endif
-                        <th class="description">{{ $invoice->unit->unit_type }}</th>
+                        <th class="description" style="text-align: right;">@lang('modules.invoices.qty')</th>
                         <th class="description">@lang('modules.invoices.unitPrice')</th>
                         <th class="description">@lang('modules.invoices.tax')</th>
                         <th class="description">@lang('modules.invoices.price') ({!! htmlentities($invoice->currency->currency_code) !!})</th>
@@ -900,7 +855,7 @@
                                 <td>{{ ++$count }}</td>
                                 <!-- Don't remove this column as it's needed for the row commands -->
                                 <td>
-                                    {{ ucfirst($item->item_name) }}
+                                    {{ $item->item_name }}
                                     @if (!is_null($item->item_summary))
                                         <p class="item-summary mb-3">{!! nl2br(strip_tags($item->item_summary, ['p', 'b', 'strong', 'a'])) !!}</p>
                                     @endif
@@ -914,9 +869,9 @@
                                 @if ($invoiceSetting->hsn_sac_code_show)
                                     <td>{{ $item->hsn_sac_code ? $item->hsn_sac_code : '--' }}</td>
                                 @endif
-                                <td>{{ $item->quantity }}</td>
+                                <td align="right" width="10%" class="border-bottom-0">{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                                 <td>{{ currency_format($item->unit_price, $invoice->currency_id, false) }}</td>
-                                <td>{{ strtoupper($item->tax_list) }}</td>
+                                <td>{{ $item->tax_list }}</td>
                                 <td>{{ currency_format($item->amount, $invoice->currency_id, false) }}</td>
                             </tr>
                         @endif
@@ -941,7 +896,7 @@
                     @endif
                     @foreach ($taxes as $key => $tax)
                         <tr data-iterate="tax">
-                            <th>{{ mb_strtoupper($key) }}:</th>
+                            <th>{{ $key }}:</th>
                             <td>{{ currency_format($tax, $invoice->currency_id, false) }}</td>
                         </tr>
                     @endforeach
@@ -970,9 +925,8 @@
                     @endif
                     @if ($invoiceSetting->authorised_signatory && $invoiceSetting->authorised_signatory_signature && $invoice->status == 'paid')
                     <tr>
-                        <td colspan="2" style="font-size:15px" align="right">
-                            <img style="height:95px; margin-bottom: -50px; margin-top: 5px;"
-                            src="{{ $invoiceSetting->authorised_signatory_signature_url }}" alt="{{ mb_ucwords($company->company_name) }}"/><br>
+                        <td id="signatory" colspan="2" style="font-size:15px" align="right">
+                            <img src="{{ $invoiceSetting->authorised_signatory_signature_url }}" alt="{{ $company->company_name }}"/><br>
                             @lang('modules.invoiceSettings.authorisedSignatory')
                         </td>
                     </tr>
@@ -988,10 +942,10 @@
 
                 <div class="notes word-break description">
                     @if (!is_null($invoice->note))
-                        <br>@lang('app.note') <br> {!! '--' !!}
+                        <b>@lang('app.note')</b> <br>{!! nl2br($invoice->note) !!}<br>
                     @endif
                     @if ($invoice->status == 'unpaid')
-                        <br><br>@lang('modules.invoiceSettings.invoiceTerms') <br>{!! nl2br($invoiceSetting->invoice_terms) !!}
+                        <br><br><b>@lang('modules.invoiceSettings.invoiceTerms')</b><br>{!! nl2br($invoiceSetting->invoice_terms) !!}
                     @endif
                 </div>
 
@@ -1021,7 +975,7 @@
                     @foreach($fields as $field)
                         <tr>
                             <td style="text-align: left;background: none;" >
-                                <div id="field-title">{{ ucfirst($field->label) }}</div>
+                                <div id="field-title">{{ $field->label }}</div>
                                 <p id="notes">
                                     @if( $field->type == 'text' || $field->type == 'password' || $field->type == 'number' || $field->type == 'textarea')
                                         {{$invoice->custom_fields_data['field_'.$field->id] ?? '-'}}

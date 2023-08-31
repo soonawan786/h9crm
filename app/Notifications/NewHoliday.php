@@ -5,12 +5,9 @@ namespace App\Notifications;
 use App\Models\Holiday;
 use Illuminate\Bus\Queueable;
 use App\Models\EmailNotificationSetting;
-use Illuminate\Notifications\Notification;
-use Illuminate\Contracts\Queue\ShouldQueue;
-use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Messages\SlackMessage;
 
-class NewHoliday extends Notification
+class NewHoliday extends BaseNotification
 {
     use Queueable;
 
@@ -21,7 +18,6 @@ class NewHoliday extends Notification
      */
     private $holiday;
     private $emailSetting;
-    private $company;
 
     public function __construct(Holiday $holiday)
     {
@@ -33,7 +29,6 @@ class NewHoliday extends Notification
     /**
      * Get the notification's delivery channels.
      *
-     * @param  mixed  $notifiable
      * @return array
      */
     public function via()
@@ -56,7 +51,7 @@ class NewHoliday extends Notification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content(__('email.holidays.subject') . "\n" . mb_ucwords($notifiable->name) . "\n" . '*' . __('app.date') . '*: ' . $this->holiday->date->format($this->company->date_format) . "\n" . __('modules.holiday.occasion') . ': ' .  $this->holiday->occassion);
+                ->content(__('email.holidays.subject') . "\n" . $notifiable->name . "\n" . '*' . __('app.date') . '*: ' . $this->holiday->date->format($this->company->date_format) . "\n" . __('modules.holiday.occasion') . ': ' .  $this->holiday->occassion);
         }
 
         return (new SlackMessage())

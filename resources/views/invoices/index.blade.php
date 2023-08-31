@@ -27,7 +27,7 @@
                             <option value="all">@lang('app.all')</option>
                         @endif
                         @foreach ($clients as $client)
-                                <x-user-option :user="$client" :clientHistoryId="$id" />
+                                <x-user-option :user="$client" />
                             </option>
                         @endforeach
                     </select>
@@ -70,7 +70,7 @@
                             data-container="body" data-live-search="true" data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($projects as $project)
-                                <option value="{{ $project->id }}">{{ mb_ucwords($project->project_name) }}</option>
+                                <option value="{{ $project->id }}">{{ $project->project_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -116,7 +116,7 @@ $manageRecurringInvoicesPermission = user()->permission('manage_recurring_invoic
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
-        <div class="d-block d-lg-flex d-md-flex">
+        <div class="d-block d-lg-flex d-md-flex justify-content-between">
             <div id="table-actions" class="flex-grow-1 align-items-center mb-2 mb-lg-0 mb-md-0">
                 @if ($addInvoicesPermission == 'all')
                     <x-forms.link-primary :link="route('invoices.create')" class="mr-3 float-left mb-2 mb-lg-0 mb-md-0"
@@ -139,11 +139,17 @@ $manageRecurringInvoicesPermission = user()->permission('manage_recurring_invoic
 
             </div>
 
+            <div class="btn-group mt-3 mt-lg-0 mt-md-0 ml-lg-3 d-none d-lg-block" role="group">
+                <a href="javascript:;" class="img-lightbox btn btn-secondary f-14"
+                data-image-url="{{ asset('img/invoice-lc.png') }}" data-toggle="tooltip"
+                data-original-title="@lang('app.howItWorks')"><i class="side-icon bi bi-question-circle"></i></a>
+            </div>
+
         </div>
 
         <!-- Add Task Export Buttons End -->
         <!-- Task Box Start -->
-        <div class="d-flex flex-column w-tables rounded mt-3 bg-white w-100">
+        <div class="d-flex flex-column w-tables rounded mt-3 bg-white w-100 table-responsive">
 
             {!! $dataTable->table(['class' => 'table table-hover border-0 w-100']) !!}
 
@@ -396,6 +402,7 @@ $manageRecurringInvoicesPermission = user()->permission('manage_recurring_invoic
 
         $('body').on('click', '.sendButton', function() {
             var id = $(this).data('invoice-id');
+            var dataType = $(this).data('type');
             var url = "{{ route('invoices.send_invoice', ':id') }}";
             url = url.replace(':id', id);
 
@@ -407,7 +414,8 @@ $manageRecurringInvoicesPermission = user()->permission('manage_recurring_invoic
                 container: '#invoices-table',
                 blockUI: true,
                 data: {
-                    '_token': token
+                    '_token': token,
+                    'data_type' : dataType
                 },
                 success: function(response) {
                     if (response.status == "success") {

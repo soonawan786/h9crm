@@ -8,72 +8,13 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>@lang('app.proposal')</title>
-
+    @includeIf('invoices.pdf.invoice_pdf_css')
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <meta name="description" content="Invoice">
 
     <style>
-        @font-face {
-        font-family: 'THSarabunNew';
-        font-style: normal;
-        font-weight: normal;
-        src: url("{{ storage_path('fonts/THSarabunNew.ttf') }}") format('truetype');
-    }
-    @font-face {
-        font-family: 'THSarabunNew';
-        font-style: normal;
-        font-weight: bold;
-        src: url("{{ storage_path('fonts/THSarabunNew_Bold.ttf') }}") format('truetype');
-    }
-    @font-face {
-        font-family: 'THSarabunNew';
-        font-style: italic;
-        font-weight: bold;
-        src: url("{{ storage_path('fonts/THSarabunNew_Bold_Italic.ttf') }}") format('truetype');
-    }
-    @font-face {
-        font-family: 'THSarabunNew';
-        font-style: italic;
-        font-weight: bold;
-        src: url("{{ storage_path('fonts/THSarabunNew_Italic.ttf') }}") format('truetype');
-    }
-
-    @if($invoiceSetting->is_chinese_lang)
-    @font-face {
-        font-family: SimHei;
-        /*font-style: normal;*/
-        font-weight: bold;
-        src: url('{{ asset('fonts/simhei.ttf') }}') format('truetype');
-    }
-    @endif
-
-    @php
-        $font = '';
-        if($invoiceSetting->locale == 'ja') {
-            $font = 'ipag';
-        } else if($invoiceSetting->locale == 'hi') {
-            $font = 'hindi';
-        } else if($invoiceSetting->locale == 'th') {
-            $font = 'THSarabunNew';
-        } else if($invoiceSetting->is_chinese_lang) {
-            $font = 'SimHei';
-        }else {
-            $font = 'Verdana';
-        }
-    @endphp
-
-    @if($invoiceSetting->is_chinese_lang)
-        body
-    {
-        font-weight: normal !important;
-    }
-    @endif
-    * {
-        font-family: {{$font}}, Arial, Helvetica, sans-serif;
-    }
-
     /*! Invoice Templates @author: Invoicebus @email: info@invoicebus.com @web: https://invoicebus.com @version: 1.0.0 @updated: 2015-03-27 14:03:24 @license: Invoicebus */
         /* Reset styles */
         /*@import url("https://fonts.googleapis.com/css?family=Open+Sans:400,400italic,700&subset=cyrillic,cyrillic-ext,latin,greek-ext,greek,latin-ext,vietnamese");*/
@@ -488,7 +429,7 @@
         <section id="memo">
             <div class="company-info description">
                 <div  class="description">
-                    {{ mb_ucwords($company->company_name) }}
+                    {{ $company->company_name }}
                 </div>
                 <br>
                 <span>{!! nl2br($company->defaultAddress->address) !!}</span>
@@ -507,16 +448,16 @@
             <span  class="description">@lang('modules.invoices.billedTo'):</span>
             <div class="client-name"  class="description">
                 @if ($proposal->lead && $proposal->lead->client_name && $invoiceSetting->show_client_name == 'yes')
-                    <strong>{{ mb_ucwords($proposal->lead->client_name) }}</strong>
+                    <strong>{{ $proposal->lead->client_name }}</strong>
                 @endif
                 @if ($proposal->lead && $proposal->lead->client_email && $invoiceSetting->show_client_email == 'yes')
-                    <div>{{ mb_ucwords($proposal->lead->client_email) }}</div>
+                    <div>{{ $proposal->lead->client_email }}</div>
                 @endif
                 @if ($proposal->lead && $proposal->lead->mobile && $invoiceSetting->show_client_phone == 'yes')
                     <div>{{ $proposal->lead->mobile }}</div>
                 @endif
                 @if ($proposal->lead && $proposal->lead->company_name && $invoiceSetting->show_client_company_name == 'yes')
-                    <div>{{ mb_ucwords($proposal->lead->company_name) }}</div>
+                    <div>{{ $proposal->lead->company_name }}</div>
                 @endif
                 @if ($proposal->lead && $proposal->lead->address && $invoiceSetting->show_client_company_address == 'yes')
                     <div>{!! nl2br($proposal->lead->address) !!}</div>
@@ -534,7 +475,7 @@
             </div>
             <div>
                 <span>@lang('app.status'):</span>
-                <span>{{ mb_ucwords($proposal->status) }}</span>
+                <span>{{ $proposal->status }}</span>
             </div>
             <div>
                 <span>@lang('modules.estimates.validTill'):</span>
@@ -561,7 +502,7 @@
                         @if ($invoiceSetting->hsn_sac_code_show)
                             <th  class="description">@lang("app.hsnSac")</th>
                         @endif
-                        <th  class="description">{{ isset($proposal->unit) ? $proposal->unit->unit_type : 'Qty\hrs') }}</th>
+                        <th  class="description">@lang('modules.invoices.qty')</th>
                         <th  class="description">@lang("modules.invoices.unitPrice")</th>
                         <th  class="description">@lang("modules.invoices.tax")</th>
                         <th  class="description">@lang("modules.invoices.price") ({!! htmlentities($proposal->currency->currency_code)  !!})</th>
@@ -573,7 +514,7 @@
                             <tr data-iterate="item">
                                 <td>{{ ++$count }}</td> <!-- Don't remove this column as it's needed for the row commands -->
                                 <td>
-                                    {{ ucfirst($item->item_name) }}
+                                    {{ $item->item_name }}
                                     @if(!is_null($item->item_summary))
                                         <p class="item-summary  mb-3 description">{!! nl2br(strip_tags($item->item_summary, ['p', 'b', 'strong', 'a'])) !!}</p>
                                     @endif
@@ -586,7 +527,7 @@
                                 @if ($invoiceSetting->hsn_sac_code_show)
                                     <td>{{ $item->hsn_sac_code ? $item->hsn_sac_code : '--' }}</td>
                                 @endif
-                                <td>{{ $item->quantity }}</td>
+                                <td>{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                                 <td>{{ currency_format($item->unit_price, $proposal->currency_id, false) }}</td>
                                 <td>{{ $item->tax_list }}</td>
                                 <td>{{ currency_format($item->amount, $proposal->currency_id, false) }}</td>
@@ -613,7 +554,7 @@
                     @endif
                     @foreach($taxes as $key=>$tax)
                         <tr data-iterate="tax">
-                            <th>{{ mb_strtoupper($key) }}:</th>
+                            <th>{{ $key }}:</th>
                             <td>{{ currency_format($tax, $proposal->currency_id, false) }}</td>
                         </tr>
                     @endforeach
@@ -635,7 +576,7 @@
                         <br>@lang('app.note')
                         <br> {!! nl2br($proposal->note) !!}
                     @endif
-                    <br>@lang('modules.invoiceSettings.invoiceTerms')
+                    <br><br>@lang('modules.invoiceSettings.invoiceTerms')
                     <br>{!! nl2br($invoiceSetting->invoice_terms) !!}
                 </div>
                 <br>

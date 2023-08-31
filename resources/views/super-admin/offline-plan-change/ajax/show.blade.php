@@ -1,3 +1,6 @@
+@php
+    $manageOfflineAcceptPermission = user()->permission('accept_reject_request');
+@endphp
 <div class="row" id="offlineRequestShow">
     <div class="col-sm-12">
         <div class="card bg-white border-0 b-shadow-4">
@@ -22,12 +25,12 @@
                                     </a>
 
 
-                                    @if ($offlinePlanChange->status == 'pending')
-                                    <a href="javascript:;" data-id="{{$offlinePlanChange->id}}" data-status="verified" class="dropdown-item statusChange">
-                                        <i class="fa fa-check mr-2"></i>@lang('superadmin.offlineRequestStatusButton.verified')</a>
+                                    @if ($offlinePlanChange->status == 'pending' && $manageOfflineAcceptPermission == 'all')
+                                        <a href="javascript:;" data-id="{{$offlinePlanChange->id}}" data-status="verified" class="dropdown-item statusChange">
+                                            <i class="fa fa-check mr-2"></i>@lang('superadmin.offlineRequestStatusButton.verified')</a>
 
-                                    <a href="javascript:;" data-id="{{$offlinePlanChange->id}}" data-status="rejected" class="dropdown-item statusChange">
-                                        <i class="fa fa-times mr-2"></i>@lang('superadmin.offlineRequestStatusButton.rejected')</a>
+                                        <a href="javascript:;" data-id="{{$offlinePlanChange->id}}" data-status="rejected" class="dropdown-item statusChange">
+                                            <i class="fa fa-times mr-2"></i>@lang('superadmin.offlineRequestStatusButton.rejected')</a>
                                     @endif
                                 </div>
                             </div>
@@ -59,9 +62,9 @@
                         <x-company :company="$offlinePlanChange->company" />
                     </div>
                 </div>
-                <x-cards.data-row :label="__('superadmin.package')" :value="$offlinePlanChange->package->name . ' (' . $offlinePlanChange->package_type . ')'" />
+                <x-cards.data-row :label="__('superadmin.package')" :value="__('app.' . $offlinePlanChange->package->name ) . ' (' . __('app.' . $offlinePlanChange->package_type) . ')'" />
                 <x-cards.data-row :label="__('app.amount')" :value="global_currency_format($offlinePlanChange->amount)" />
-                <x-cards.data-row :label="__('superadmin.paymentBy')" :value="ucwords($offlinePlanChange->offlineMethod->name)" />
+                <x-cards.data-row :label="__('superadmin.paymentBy')" :value="$offlinePlanChange->offlineMethod->name" />
                 <x-cards.data-row :label="__('app.status')" :value="$status" />
                 <x-cards.data-row :label="__('app.description')" :value="$offlinePlanChange->description" />
                 <x-cards.data-row :label="__('app.createdOn')" :value="$offlinePlanChange->created_at->translatedFormat(global_setting()->date_format)" />

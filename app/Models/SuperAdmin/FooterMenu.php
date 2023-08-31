@@ -4,7 +4,6 @@ namespace App\Models\SuperAdmin;
 
 use App\Models\BaseModel;
 use App\Models\LanguageSetting;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**

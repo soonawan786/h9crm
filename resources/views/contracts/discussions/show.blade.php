@@ -9,15 +9,15 @@ $deleteContractDiscussionPermission = user()->permission('delete_contract_discus
         <div class="card-horizontal">
             <div class="card-img my-1 ml-0">
                 <a href="{{ route('employees.show', $discussion->user->id) }}">
-                    <img src="{{ $discussion->user->image_url }}" alt="{{ mb_ucwords($discussion->user->name) }}"></a>
+                    <img src="{{ $discussion->user->image_url }}" alt="{{ $discussion->user->name }}"></a>
             </div>
             <div class="card-body border-0 pl-0 py-1">
                 <div class="d-flex flex-grow-1">
                     <h4 class="card-title f-15 f-w-500 mr-3"><a class="text-dark"
-                            href="{{ route('employees.show', $discussion->user->id) }}">{{ mb_ucwords($discussion->user->name) }}</a>
+                            href="{{ route('employees.show', $discussion->user->id) }}">{{ $discussion->user->name }}</a>
                     </h4>
                     <p class="card-date f-11 text-lightest mb-0">
-                        {{ ucfirst($discussion->created_at->diffForHumans()) }}
+                        {{ $discussion->created_at->diffForHumans() }}
                     </p>
                     <div class="dropdown ml-auto comment-action">
                         <button class="btn btn-lg f-14 p-0 text-lightest text-capitalize rounded  dropdown-toggle"
@@ -39,7 +39,7 @@ $deleteContractDiscussionPermission = user()->permission('delete_contract_discus
                         </div>
                     </div>
                 </div>
-                <div class="card-text f-14 text-dark-grey text-justify ql-editor">{!! ucfirst($discussion->message) !!}
+                <div class="card-text f-14 text-dark-grey text-justify ql-editor">{!! $discussion->message !!}
                 </div>
             </div>
         </div>

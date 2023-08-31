@@ -3,7 +3,7 @@
 namespace App\Models\SuperAdmin;
 
 use App\Models\Company;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\SuperAdmin\AuthorizeInvoice
@@ -33,11 +33,16 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|AuthorizeInvoice whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class AuthorizeInvoice extends Model
+class AuthorizeInvoice extends BaseModel
 {
     protected $dates = [
         'pay_date',
         'next_pay_date',
+    ];
+
+    protected $casts = [
+        'pay_date' => 'datetime',
+        'next_pay_date' => 'datetime',
     ];
 
     public function company()

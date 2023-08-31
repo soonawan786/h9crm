@@ -12,6 +12,7 @@
             linkedCalendars: false,
             startDate: start,
             endDate: end,
+            showDropdowns: true,
             ranges: daterangeConfig
         }, cb);
 

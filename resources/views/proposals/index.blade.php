@@ -27,7 +27,7 @@
                             <option value="all">@lang('app.all')</option>
                         @endif
                         @foreach ($leads as $client)
-                            <option value="{{ $client->id }}">{{ mb_ucwords($client->client_name) }}</option>
+                            <option value="{{ $client->id }}">{{ $client->client_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -268,6 +268,7 @@ $addProposalTemplatePermission = user()->permission('manage_proposal_template');
 
         $('body').on('click', '.sendButton', function() {
             var id = $(this).data('proposal-id');
+            var dataType = $(this).data('type');
             var url = "{{ route('proposals.send_proposal', ':id') }}";
             url = url.replace(':id', id);
 
@@ -279,7 +280,8 @@ $addProposalTemplatePermission = user()->permission('manage_proposal_template');
                 container: '#invoices-table',
                 blockUI: true,
                 data: {
-                    '_token': token
+                    '_token': token,
+                    'data_type' : dataType
                 },
                 success: function(response) {
                     if (response.status == "success") {

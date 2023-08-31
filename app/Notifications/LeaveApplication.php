@@ -49,12 +49,13 @@ class LeaveApplication extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $url = route('leaves.show', $this->leave->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('email.leave.applied') . ':- ' . '<br>' . __('app.date') . ': ' . $this->leave->leave_date->toDayDateTimeString() . '<br>' . __('app.status') . ': ' . mb_ucwords($this->leave->status);
+        $content = __('email.leave.applied') . ':- ' . '<br>' . __('app.date') . ': ' . $this->leave->leave_date->toDayDateTimeString() . '<br>' . __('app.status') . ': ' . $this->leave->status;
 
-        return parent::build()
+        return $build
             ->subject(__('email.leave.applied') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,
@@ -71,7 +72,7 @@ class LeaveApplication extends BaseNotification
      * @param mixed $notifiable
      * @return array
      */
-//phpcs:ignore
+    //phpcs:ignore
     public function toArray($notifiable)
     {
         return $this->leave->toArray();

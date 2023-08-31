@@ -71,10 +71,10 @@ $addPermission = user()->permission('add_holiday');
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
-        <div class="d-block d-lg-flex d-md-flex action-bar justify-content-between ">
+        <div class="d-grid d-lg-flex d-md-flex action-bar">
             <div id="table-actions" class="flex-grow-1 align-items-center">
                 @if ($addPermission == 'all' || $addPermission == 'added')
-                    <x-forms.link-primary :link="route('holidays.create')" class="mr-3 openRightModal float-left mb-2 mb-lg-0 mb-md-0"
+                    <x-forms.link-primary :link="route('holidays.create')" class="mr-3 openRightModal float-left mb-1 mb-lg-0 mb-md-0"
                         icon="plus">
                         @lang('modules.holiday.addNewHoliday')
                     </x-forms.link-primary>
@@ -94,12 +94,12 @@ $addPermission = user()->permission('add_holiday');
                 </div>
             </x-datatable.actions>
 
-            <div class="btn-group ml-3" role="group" aria-label="Basic example">
-                <a href="{{ route('holidays.index') }}" class="btn btn-secondary f-14 btn-active" data-toggle="tooltip"
-                    data-original-title="@lang('modules.leaves.tableView')"><i class="side-icon bi bi-list-ul"></i></a>
-
-                <a href="{{ route('holidays.calendar') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group" aria-label="Basic example">
+                <a href="{{ route('holidays.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
                     data-original-title="@lang('app.menu.calendar')"><i class="side-icon bi bi-calendar"></i></a>
+
+                <a href="{{ route('holidays.table_view') }}" class="btn btn-secondary f-14 btn-active" data-toggle="tooltip"
+                    data-original-title="@lang('modules.leaves.tableView')"><i class="side-icon bi bi-list-ul"></i></a>
             </div>
         </div>
 

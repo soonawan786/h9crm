@@ -39,7 +39,7 @@ $viewLeadPermission = user()->permission('view_lead');
     <!-- CONTENT WRAPPER START -->
     <div class="w-task-board-box px-4 py-2 bg-white">
         <!-- Add Task Export Buttons Start -->
-        <div class="d-block d-lg-flex d-md-flex my-3">
+        <div class="d-grid d-lg-flex d-md-flex action-bar my-3">
 
             <x-alert type="warning" icon="info" class="d-lg-none">@lang('messages.dragDropScreenInfo')</x-alert>
 
@@ -57,7 +57,7 @@ $viewLeadPermission = user()->permission('view_lead');
                 @endif
             </div>
 
-            <div class="btn-group mt-2 mt-lg-0 mt-md-0" role="group">
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group">
                 <a href="{{ route('leads.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
                     data-original-title="@lang('modules.leaves.tableView')"><i class="side-icon bi bi-list-ul"></i></a>
 
@@ -93,16 +93,19 @@ $viewLeadPermission = user()->permission('view_lead');
             }
 
             var searchText = $('#search-text-field').val();
+            var min = $('#min').val();
+            var max = $('#max').val();
             var type = $('#type').val();
             var followUp = $('#followUp').val();
             var agent = $('#filter_agent_id').val();
             var category_id = $('#filter_category_id').val();
             var source_id = $('#filter_source_id').val();
+            var date_filter_on = $('#date_filter_on').val();
 
             var url = "{{ route('leadboards.index') }}?startDate=" + encodeURIComponent(startDate) + '&endDate=' +
                 encodeURIComponent(endDate) + '&type=' + type + '&followUp=' + followUp + '&agent=' +
                 agent + '&category_id=' + category_id + '&source_id=' + source_id +
-                '&searchText=' + searchText;
+                '&searchText=' + searchText  + '&min=' + min + '&max=' + max + '&date_filter_on=' + date_filter_on;
 
             $.easyAjax({
                 url: url,
@@ -133,19 +136,22 @@ $viewLeadPermission = user()->permission('view_lead');
                 endDate = dateRangePicker.endDate.format('{{ company()->moment_date_format }}');
             }
 
+            var min = $('#min').val();
+            var max = $('#max').val();
             var type = $('#type').val();
             var followUp = $('#followUp').val();
             var agent = $('#filter_agent_id').val();
             var category_id = $('#filter_category_id').val();
             var source_id = $('#filter_source_id').val();
             var searchText = $('#search-text-field').val();
+            var date_filter_on = $('#date_filter_on').val();
 
             var url = "{{ route('leadboards.load_more') }}?startDate=" + encodeURIComponent(startDate) +
                 '&endDate=' +
                 encodeURIComponent(endDate) + '&type=' + type + '&followUp=' + followUp + '&agent=' +
                 agent + '&category_id=' + category_id + '&source_id=' + source_id +
                 '&searchText=' + searchText + '&columnId=' + columnId + '&currentTotalTasks=' + currentTotalTasks +
-                '&totalTasks=' + totalTasks;
+                '&totalTasks=' + totalTasks + '&min=' + min + '&max=' + max + '&date_filter_on=' + date_filter_on;
 
             $.easyAjax({
                 url: url,

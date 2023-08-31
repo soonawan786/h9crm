@@ -51,19 +51,20 @@ class NewEstimate extends BaseNotification
     // phpcs:ignore
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $url = route('front.estimate.show', $this->estimate->hash);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $content = __('email.estimate.text');
 
-        return parent::build()
+        return $build
             ->subject(__('email.estimate.subject') . ' - ' . config('app.name') . '.')
             ->markdown('mail.email', [
                 'url' => $url,
                 'content' => $content,
                 'themeColor' => $this->company->header_color,
                 'actionText' => __('email.estimateDeclined.action'),
-                'notifiableName' => mb_ucwords($this->user->name)
+                'notifiableName' => $this->user->name
             ]);
     }
 

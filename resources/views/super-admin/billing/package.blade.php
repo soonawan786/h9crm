@@ -225,7 +225,7 @@
                                             <button type="button" data-package-id="{{ $package->id }}"
                                                     data-package-type="monthly" data-is-free="{{ $package->is_free }}"
                                                     class="btn btn-success waves-effect waves-light selectPackage"
-                                                    title="Choose Plan"><i class="icon-anchor display-small"></i><span
+                                                    title="@lang('superadmin.packages.choosePlan')"><i class="icon-anchor display-small"></i><span
                                                         class="display-big">@lang('modules.billing.choosePlan')</span>
                                             </button>
                                         {{-- @endif --}}
@@ -328,7 +328,7 @@
                                             <button type="button" data-package-id="{{ $package->id }}"
                                                     data-package-type="annual" data-is-free="{{ $package->is_free }}"
                                                     class="btn btn-success waves-effect waves-light selectPackage"
-                                                    title="Choose Plan"><i class="icon-anchor display-small"></i><span
+                                                    title="@lang('superadmin.packages.choosePlan')"><i class="icon-anchor display-small"></i><span
                                                         class="display-big">@lang('modules.billing.choosePlan')</span>
                                             </button>
                                         @endif

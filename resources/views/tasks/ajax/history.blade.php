@@ -6,14 +6,14 @@
             <div class="card file-card w-100 rounded-0 border-0 comment">
                 <div class="card-horizontal">
                     <div class="card-img my-1 ml-0">
-                        <img src="{{ $activ->user->image_url }}" alt="{{ mb_ucwords($activ->user->name) }}">
+                        <img src="{{ $activ->user->image_url }}" alt="{{ $activ->user->name }}">
                     </div>
                     <div class="card-body border-0 pl-0 py-1 mb-2">
                         <div class="d-flex flex-grow-1">
                             <h4 class="card-title f-12 font-weight-normal text-dark mr-3 mb-1">
                                 {{ __('modules.tasks.' . $activ->details) }} <a
                                     href="{{ route('employees.show', $activ->user_id) }}"
-                                    class="text-darkest-grey">{{ mb_ucwords($activ->user->name) }}</a>
+                                    class="text-darkest-grey">{{ $activ->user->name }}</a>
                             </h4>
                         </div>
                         <div class="card-text f-11 text-lightest text-justify">

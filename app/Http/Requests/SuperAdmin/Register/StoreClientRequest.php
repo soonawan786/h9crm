@@ -27,13 +27,19 @@ class StoreClientRequest extends FormRequest
     public function rules()
     {
         $company = Company::where('hash', request()->company_hash)->firstOrFail();
+        $global = global_setting();
 
-        return [
+        $rules = [
             'name' => 'required|string|max:255',
-            // 'email' => 'required|string|email|max:255|unique:users',
             'email' => 'required|email:rfc|unique:users,email,null,id,company_id,' . $company->id,
             'password' => 'required|min:8',
         ];
+
+        if ($global && $global->sign_up_terms == 'yes') {
+            $rules['terms_and_conditions'] = 'required';
+        }
+
+        return $rules;
     }
 
 }

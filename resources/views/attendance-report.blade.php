@@ -52,7 +52,7 @@
 <body>
     <table class="header">
         <tr>
-            <td><img src="{{ $company->logo_url }}" alt="{{ mb_ucwords($company->company_name) }}"
+            <td><img src="{{ $company->logo_url }}" alt="{{ $company->company_name }}"
                     id="logo" /></td>
             <td align="right">{{ \Carbon\Carbon::parse('01-' . $month . '-' . $year)->translatedFormat('F-Y') }} @lang('app.menu.attendanceReport')</td>
         </tr>

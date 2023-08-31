@@ -10,7 +10,7 @@
             <div class="col-md-12 p-20 ">
                 <div class="media">
                     <img src="{{ $note->user->image_url }}" class="align-self-start mr-3 taskEmployeeImg rounded"
-                        alt="{{ mb_ucwords($note->user->name) }}">
+                        alt="{{ $note->user->name }}">
                     <div class="media-body bg-white">
                         <div class="form-group">
                             <div id="task-edit-note">{!! $note->note !!}</div>
@@ -32,13 +32,18 @@
     var edit_task_notes = "{{ user()->permission('edit_task_notes') }}";
 
     $(document).ready(function() {
+        const atValues = @json($taskuserData);
+
         if (edit_task_notes == "all" || edit_task_notes == "added") {
-            quillImageLoad('#task-edit-note');
+            quillMention(atValues, '#task-edit-note');
         }
 
         $('#save-edit-note').click(function() {
             var note = document.getElementById('task-edit-note').children[0].innerHTML;
             document.getElementById('task-edit-note-text').value = note;
+            var mention_user_id = $('#task-edit-note span[data-id]').map(function(){
+                return $(this).attr('data-id')
+            }).get();
 
             var token = '{{ csrf_token() }}';
 
@@ -54,6 +59,7 @@
                 data: {
                     '_token': token,
                     note: note,
+                    mention_user_id : mention_user_id,
                     '_method': 'PUT',
                     taskId: '{{ $note->task->id }}'
                 },

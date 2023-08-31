@@ -29,10 +29,10 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @method static \Illuminate\Database\Eloquent\Builder|LeadStatus wherePriority($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadStatus whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadStatus whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|LeadStatus whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class LeadStatus extends BaseModel
 {

@@ -85,5 +85,6 @@ class StorageSetting extends BaseModel
         'us-east-1' => 'US East 1 (N. Virginia)',
     ];
 
-    const S3_COMPATIBLE_STORAGE = ['s3', 'digitalocean','wasabi'];
+    const S3_COMPATIBLE_STORAGE = ['s3', 'digitalocean', 'wasabi', 'minio'];
+
 }

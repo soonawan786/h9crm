@@ -181,4 +181,8 @@ $deletePermission = user()->permission('delete_knowledgebase');
                 }
             });
         });
+
+        $('#close-settings').click(function() {
+        closeTaskDetail()
+    });
 </script>

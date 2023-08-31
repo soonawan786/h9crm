@@ -26,8 +26,15 @@ class UpdateClientRequest extends CoreRequest
      */
     public function rules()
     {
+        \Illuminate\Support\Facades\Validator::extend('check_superadmin', function ($attribute, $value, $parameters, $validator) {
+            return !\App\Models\User::withoutGlobalScopes([\App\Scopes\ActiveScope::class, \App\Scopes\CompanyScope::class])
+                ->where('email', $value)
+                ->where('is_superadmin', 1)
+                ->exists();
+        });
+
         $rules = [
-            'email' => 'nullable|email|required_if:login,enable|unique:users,email,'.$this->route('client').',id,company_id,' . company()->id,
+            'email' => 'nullable|email|required_if:login,enable|unique:users,email,'.$this->route('client').',id,company_id,' . company()->id.'|check_superadmin',
             'slack_username' => 'nullable|unique',
             'name'  => 'required',
             'website' => 'nullable|url',
@@ -48,6 +55,13 @@ class UpdateClientRequest extends CoreRequest
         $attributes = $this->customFieldsAttributes($attributes);
 
         return $attributes;
+    }
+
+    public function messages()
+    {
+        return [
+            'email.check_superadmin' => __('superadmin.emailAlreadyExist'),
+        ];
     }
 
 }

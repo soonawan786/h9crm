@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\SuperAdmin\FooterSetting;
 
-use App\Models\SuperAdmin\FooterMenu;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreRequest extends FormRequest
@@ -25,7 +24,8 @@ class StoreRequest extends FormRequest
      */
     public function rules()
     {
-        $rules['title'] = 'required|unique:footer_menu,name';
+        $rules['title'] = 'required';
+        $rules['slug'] = 'required|alpha_dash|unique:footer_menu,slug';
 
         if($this->get('content') == 'desc'){
             $rules['description'] = 'required';

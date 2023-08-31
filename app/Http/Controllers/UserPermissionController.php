@@ -53,17 +53,21 @@ class UserPermissionController extends AccountBaseController
         $user = User::with('roles')->findOrFail($userId);
         $userRoles = $user->roles;
 
-        foreach ($userRoles as $key => $role) {
+        $role = null;
 
-            if (count($userRoles) == 1) {
-                $user->assignUserRolePermission($role->id);
-
-            } else {
-                if ($role->name != 'employee') {
-                    $user->assignUserRolePermission($role->id);
-                }
-            }
+        if (count($userRoles) > 1) {
+            $role = $userRoles->where('name', '!=', 'employee')->first();
         }
+        else
+        {
+            $role = $userRoles->first();
+        }
+
+        if (!$role) {
+            return Reply::error(__('messages.roleNotFound', ['user' => $user->name]));
+        }
+
+        $user->assignUserRolePermission($role->id);
 
         User::where('id', $userId)->update(['customised_permissions' => 0]);
 

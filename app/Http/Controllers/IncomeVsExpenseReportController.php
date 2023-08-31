@@ -65,7 +65,7 @@ class IncomeVsExpenseReportController extends AccountBaseController
             ]);
 
         foreach ($invoices as $invoice) {
-            
+
             if((is_null($invoice->default_currency_id) && is_null($invoice->exchange_rate)) ||
             (!is_null($invoice->default_currency_id) && Company()->currency_id != $invoice->default_currency_id))
             {
@@ -75,11 +75,11 @@ class IncomeVsExpenseReportController extends AccountBaseController
             else {
                 $exchangeRate = $invoice->exchange_rate;
             }
-          
+
             if (!isset($incomes[$invoice->date])) {
                 $incomes[$invoice->date] = 0;
             }
-           
+
             if ($invoice->currency_id != $this->company->currency_id && $invoice->total > 0 && $exchangeRate > 0) {
                 /** @phpstan-ignore-next-line */
                 $incomes[$invoice->date] += floor($invoice->total / $exchangeRate);
@@ -104,7 +104,7 @@ class IncomeVsExpenseReportController extends AccountBaseController
             ]);
 
         foreach ($expenseResults as $expenseResult) {
-          
+
             if((is_null($expenseResult->default_currency_id) && is_null($expenseResult->exchange_rate)) ||
             (!is_null($expenseResult->default_currency_id) && Company()->currency_id != $expenseResult->default_currency_id))
             {
@@ -121,10 +121,10 @@ class IncomeVsExpenseReportController extends AccountBaseController
 
             if ($expenseResult->currency_id != $this->company->currency_id && $expenseResult->price > 0 && $exchangeRate > 0) {
                 /** @phpstan-ignore-next-line */
-                $expenses[$expenseResult->date] += floor($expenseResult->price / $exchangeRate);
+                $expenses[$expenseResult->date] += round(floatval($expenseResult->price) / floatval($exchangeRate), 2);
             }
             else {
-                $expenses[$expenseResult->date] += round($expenseResult->price, 2);
+                $expenses[$expenseResult->date] += round(floatval($expenseResult->price), 2);
             }
         }
 

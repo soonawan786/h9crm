@@ -1,9 +1,6 @@
 @component('mail::message')
+# @lang('email.hello') @if (! empty($notifiableName)) {{ $notifiableName }} @endif @lang('!') <br>
 # @lang('modules.tasks.newTask')
-
-@lang('email.newTask.subject')
-
-<h5>@lang('app.task') @lang('app.details')</h5>
 
 @component('mail::text', ['text' => $content])
 

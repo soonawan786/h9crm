@@ -3,7 +3,7 @@
 namespace App\Models\SuperAdmin;
 
 use App\Models\LanguageSetting;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
@@ -28,7 +28,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder|FrontClients whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class FrontClients extends Model
+class FrontClients extends BaseModel
 {
     protected $guarded = ['id'];
     protected $appends = ['image_url'];

@@ -34,17 +34,6 @@
             </div>
             <!-- CURRENCY END -->
 
-            <div class="col-md-6 col-lg-4">
-                <x-forms.select :fieldLabel="__('modules.unitType.unitType')" fieldName="unit_type_id"
-                    field_id="unit_type_id">
-                    @foreach ($unit_types as $unit_type)
-                        <option @if ($unit_type->default == 1) selected @endif value="{{ $unit_type->id }}">
-                            {{ ucwords($unit_type->unit_type) }}
-                        </option>
-                    @endforeach
-                </x-forms.select>
-            </div>
-
             <div class="col-md-12 my-3">
                 <div class="form-group">
                     <x-forms.label fieldId="description" :fieldLabel="__('app.description')">
@@ -58,26 +47,45 @@
 
         <hr class="m-0 border-top-grey">
 
-        <div class="d-flex px-4 pt-3">
-            <div class="form-group">
+        <div class="row px-lg-4 px-md-4 px-3 py-3">
+            <div class="col-md-3 d-none product-category-filter">
+                <div class="form-group c-inv-select mb-4">
+                    <x-forms.input-group>
+                        <select class="form-control select-picker" name="category_id"
+                                id="product_category_id" data-live-search="true">
+                            <option value="">{{ __('app.menu.selectProductCategory')  }}</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}">
+                                    {{ $category->category_name }}</option>
+                            @endforeach
+                        </select>
+                    </x-forms.input-group>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="form-group c-inv-select mb-4">
                 <x-forms.input-group>
-                    <select class="form-control select-picker" data-live-search="true" data-size="8" id="add-products">
-                        <option value="">{{ __('app.select') . ' ' . __('app.product') }}</option>
+                    <select class="form-control select-picker" data-live-search="true" data-size="8" id="add-products" title="{{ __('app.menu.selectProduct') }}">
                         @foreach ($products as $item)
                             <option data-content="{{ $item->name }}" value="{{ $item->id }}">
                                 {{ $item->name }}</option>
                         @endforeach
                     </select>
+                    <x-slot name="preappend">
+                        <a href="javascript:;"
+                            class="btn btn-outline-secondary border-grey toggle-product-category"
+                            data-toggle="tooltip" data-original-title="{{ __('modules.productCategory.filterByCategory') }}"><i class="fa fa-filter"></i></a>
+                    </x-slot>
                     @if ($addProductPermission == 'all' || $addProductPermission == 'added')
                         <x-slot name="append">
-                            <a href="{{ route('products.create') }}" data-redirect-url="{{ url()->full() }}"
-                                class="btn btn-outline-secondary border-grey openRightModal" data-toggle="tooltip"
-                                data-original-title="{{ __('app.add') . ' ' . __('modules.dashboard.newproduct') }}">@lang('app.add')</a>
+                            <a href="{{ route('products.create') }}" data-redirect-url="no"
+                                class="btn btn-outline-secondary border-grey openRightModal"
+                                data-toggle="tooltip" data-original-title="{{ __('modules.dashboard.addNewproduct') }}">@lang('app.add')</a>
                         </x-slot>
                     @endif
                 </x-forms.input-group>
+                </div>
             </div>
-
         </div>
 
         <div id="sortable">
@@ -95,7 +103,8 @@
                                             <td width="10%" class="border-0" align="right">@lang('app.hsnSac')
                                             </td>
                                         @endif
-                                        <td width="10%" class="border-0" align="right" id="type">
+                                        <td width="10%" class="border-0" align="right">
+                                            @lang('modules.invoices.qty')
                                         </td>
                                         <td width="10%" class="border-0" align="right">
                                             @lang('modules.invoices.unitPrice')</td>
@@ -139,7 +148,7 @@
                                                     multiple="multiple"
                                                     class="select-picker type customSequence border-0" data-size="3">
                                                     @foreach ($taxes as $tax)
-                                                        <option data-rate="{{ $tax->rate_percent }}"
+                                                        <option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%"
                                                             @if (isset($item->taxes) && array_search($tax->id, json_decode($item->taxes)) !== false) selected @endif
                                                             value="{{ $tax->id }}">
                                                             {{ $tax->tax_name }}:
@@ -164,7 +173,7 @@
                                         </td>
                                         <td class="border-left-0">
                                             <input type="file" class="dropify" name="invoice_item_image[]"
-                                                data-allowed-file-extensions="png jpg jpeg"
+                                                data-allowed-file-extensions="png jpg jpeg bmp"
                                                 data-messages-default="test" data-height="70" />
                                             <input type="hidden" name="invoice_item_image_url[]">
                                         </td>
@@ -220,8 +229,15 @@
                                     @endif
                                     <td class="border-bottom-0">
                                         <input type="number" min="1"
-                                            class="f-14 border-0 w-100 text-right quantity form-control"
+                                            class="f-14 border-0 w-100 text-right quantity form-control mt-3"
                                             value="1" name="quantity[]">
+                                        <select class="text-dark-grey float-right border-0 f-12" name="unit_id[]">
+                                            @foreach ($units as $unit)
+                                                <option
+                                                value="{{ $unit->id }}">{{ $unit->unit_type }}</option>
+                                            @endforeach
+                                        </select>
+                                        <input type="hidden" name="product_id[]" value="">
                                     </td>
                                     <td class="border-bottom-0">
                                         <input type="number" min="1"
@@ -233,8 +249,8 @@
                                             <select id="multiselect" name="taxes[0][]" multiple="multiple"
                                                 class="select-picker type customSequence border-0" data-size="3">
                                                 @foreach ($taxes as $tax)
-                                                    <option data-rate="{{ $tax->rate_percent }}"
-                                                        value="{{ $tax->id }}">{{ strtoupper($tax->tax_name) }}:
+                                                    <option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%"
+                                                        value="{{ $tax->id }}">{{ $tax->tax_name }}:
                                                         {{ $tax->rate_percent }}%</option>
                                                 @endforeach
                                             </select>
@@ -253,7 +269,7 @@
                                     </td>
                                     <td class="border-left-0">
                                         <input type="file" class="dropify" name="invoice_item_image[]"
-                                            data-allowed-file-extensions="png jpg jpeg" data-messages-default="test"
+                                            data-allowed-file-extensions="png jpg jpeg bmp" data-messages-default="test"
                                             data-height="70" />
                                         <input type="hidden" name="invoice_item_image_url[]">
                                     </td>
@@ -380,20 +396,20 @@
 <script>
     $(document).ready(function() {
 
-        changesProduct($('#unit_type_id').val());
-        var term = '{!! $unit_types[0]->unit_type !!}';
-        $('#unit_type_id').change(function(e) {
-            let unitTypeId = $(this).val();
-            changesProduct(unitTypeId);
+        $('.toggle-product-category').click(function() {
+            $('.product-category-filter').toggleClass('d-none');
         });
 
-        function changesProduct(id) {
-            var url = "{{ route('get_clients_data', ':id') }}",
-                url = url.replace(':id', id);
+        $('#product_category_id').on('change', function(){
+            var categoryId = $(this).val();
+            var url = "{{route('invoices.product_category', ':id')}}",
+            url = (categoryId) ? url.replace(':id', categoryId) : url.replace(':id', null);;
             $.easyAjax({
-                url: url,
-                type: "GET",
-                success: function(response) {
+                url : url,
+                type : "GET",
+                container: '#saveInvoiceForm',
+                blockUI: true,
+                success: function (response) {
                     if (response.status == 'success') {
                         var options = [];
                         var rData = [];
@@ -405,18 +421,17 @@
                             options.push(selectData);
                         });
                         $('#add-products').html(
-                            '<option value="" class="form-control" >{{ __('app.select') . ' ' . __('app.product') }}</option>' +
+                            '<option value="" class="form-control" >{{ __('app.menu.selectProduct') }}</option>' +
                             options);
                         $('#add-products').selectpicker('refresh');
-                        term = ucWord(response.type.unit_type);
-                        $('#type').html(term);
                     }
                 }
             });
-        }
+        });
 
         const hsn_status = {{ $invoiceSetting->hsn_sac_code_show }};
-        quillImageLoad('#description');
+        quillMention(null, '#description');
+
 
         const resetAddProductButton = () => {
             $("#add-products").val('').selectpicker("refresh");
@@ -450,7 +465,7 @@
             var currencyId = $('#currency_id').val();
 
             $.easyAjax({
-                url: "{{ route('invoices.add_item') }}",
+                url: "{{ route('estimate-template.add_item') }}",
                 type: "GET",
                 data: {
                     id: id,
@@ -494,7 +509,7 @@
             }
 
             item +=
-                `<td width="10%" class="border-0" align="right">${ucWord(term)}</td>
+                `<td width="10%" class="border-0" align="right">@lang("modules.invoices.qty")</td>
                 <td width="10%" class="border-0" align="right">@lang('modules.invoices.unitPrice')</td>
                 <td width="13%" class="border-0" align="right">@lang('modules.invoices.tax')</td>
                 <td width="17%" class="border-0 bblr-mbl" align="right">@lang('modules.invoices.amount')</td>
@@ -513,7 +528,15 @@
                     '</td>';
             }
             item += '<td class="border-bottom-0">' +
-                '<input type="number" min="1" class="form-control f-14 border-0 w-100 text-right quantity" value="1" name="quantity[]">' +
+                '<input type="number" min="1" class="form-control f-14 border-0 w-100 text-right quantity mt-3" value="1" name="quantity[]">' +
+                `<select class="text-dark-grey float-right border-0 f-12" name="unit_id[]">
+                    @foreach ($units as $unit)
+                        <option
+                        @if ($unit->default == 1) selected @endif
+                        value="{{ $unit->id }}">{{ $unit->unit_type }}</option>
+                    @endforeach
+                </select>
+                <input type="hidden" name="product_id[]" value="">`+
                 '</td>' +
                 '<td class="border-bottom-0">' +
                 '<input type="number" min="1" class="f-14 border-0 w-100 text-right cost_per_item" placeholder="0.00" value="0" name="cost_per_item[]">' +
@@ -523,8 +546,8 @@
                 '<select id="multiselect' + i + '" name="taxes[' + i +
                 '][]" multiple="multiple" class="select-picker type customSequence" data-size="3">'
             @foreach ($taxes as $tax)
-                +'<option data-rate="{{ $tax->rate_percent }}" value="{{ $tax->id }}">' +
-                '{{ strtoupper($tax->tax_name) }}:{{ $tax->rate_percent }}%</option>'
+                +'<option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%" value="{{ $tax->id }}">' +
+                '{{ $tax->tax_name }}:{{ $tax->rate_percent }}%</option>'
             @endforeach +
             '</select>' +
             '</div>' +
@@ -540,7 +563,7 @@
             '</td>' +
             '<td class="border-left-0">' +
             '<input type="file" class="dropify" id="dropify' + i +
-                '" name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg" data-messages-default="test" data-height="70" /><input type="hidden" name="invoice_item_image_url[]">' +
+                '" name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg bmp" data-messages-default="test" data-height="70" /><input type="hidden" name="invoice_item_image_url[]">' +
                 '</td>' +
                 '</tr>' +
                 '</tbody>' +

@@ -2,65 +2,60 @@
 
 namespace App\Http\Controllers\SuperAdmin;
 
-use Carbon\Carbon;
-use App\Models\User;
+use App\DataTables\SuperAdmin\InvoiceDataTable;
+use App\DataTables\SuperAdmin\OfflinePlanChangeDataTable;
 use App\Helper\Files;
 use App\Helper\Reply;
-use Razorpay\Api\Api;
-use App\Models\Module;
-use GuzzleHttp\Client;
+use App\Http\Controllers\AccountBaseController;
+use App\Http\Requests\SuperAdmin\Billing\OfflinePaymentRequest;
+use App\Http\Requests\SuperAdmin\StripePayment\PaymentRequest;
+use App\Http\Requests\SuperAdmin\StripePayment\StripeValidateRequest;
 use App\Models\Company;
 use App\Models\Country;
-use PayPal\Api\Agreement;
-use Illuminate\Support\Str;
-use PayPal\Rest\ApiContext;
-use App\Scopes\CompanyScope;
-use Illuminate\Http\Request;
-use Laravel\Cashier\Cashier;
-use Laravel\Cashier\Payment;
 use App\Models\GlobalSetting;
-use App\Models\SuperAdmin\Package;
-use Illuminate\Support\Facades\DB;
-use Mollie\Laravel\Facades\Mollie;
+use App\Models\Module;
 use App\Models\OfflinePaymentMethod;
-use Illuminate\Support\Facades\View;
-use PayPal\Auth\OAuthTokenCredential;
-use Unicodeveloper\Paystack\Paystack;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Support\Facades\Config;
-use App\Models\SuperAdmin\Subscription;
-use Illuminate\Support\Facades\Session;
-use App\Models\SuperAdmin\MollieInvoice;
-use App\Models\SuperAdmin\PaypalInvoice;
-use Illuminate\Support\Facades\Redirect;
-use PayPal\Api\AgreementStateDescriptor;
-use App\Models\SuperAdmin\OfflineInvoice;
-use App\Models\SuperAdmin\PayfastInvoice;
-use App\Traits\SuperAdmin\MollieSettings;
-use App\Traits\SuperAdmin\StripeSettings;
-use App\Models\SuperAdmin\PaystackInvoice;
-use App\Models\SuperAdmin\RazorpayInvoice;
-use App\Traits\SuperAdmin\PaystackSettings;
-use App\Models\SuperAdmin\OfflinePlanChange;
-use Illuminate\Support\Facades\Notification;
+use App\Models\SuperAdmin\AuthorizeSubscription;
+use App\Models\SuperAdmin\GlobalInvoice;
+use App\Models\SuperAdmin\GlobalPaymentGatewayCredentials;
 use App\Models\SuperAdmin\GlobalSubscription;
 use App\Models\SuperAdmin\MollieSubscription;
+use App\Models\SuperAdmin\OfflinePlanChange;
+use App\Models\SuperAdmin\Package;
+use App\Models\SuperAdmin\PayfastInvoice;
 use App\Models\SuperAdmin\PayfastSubscription;
-use App\DataTables\SuperAdmin\InvoiceDataTable;
-use App\Http\Controllers\AccountBaseController;
-use App\Models\SuperAdmin\AuthorizationInvoice;
+use App\Models\SuperAdmin\PaypalInvoice;
 use App\Models\SuperAdmin\PaystackSubscription;
 use App\Models\SuperAdmin\RazorpaySubscription;
-use App\Models\SuperAdmin\AuthorizeSubscription;
-use Illuminate\Contracts\Foundation\Application;
-use Stripe\PaymentIntent as StripePaymentIntent;
-use Laravel\Cashier\Exceptions\IncompletePayment;
+use App\Models\SuperAdmin\Subscription;
+use App\Models\User;
 use App\Notifications\SuperAdmin\CompanyUpdatedPlan;
-use App\DataTables\SuperAdmin\OfflinePlanChangeDataTable;
-use App\Models\SuperAdmin\GlobalPaymentGatewayCredentials;
-use App\Http\Requests\SuperAdmin\StripePayment\PaymentRequest;
-use App\Http\Requests\SuperAdmin\Billing\OfflinePaymentRequest;
-use App\Http\Requests\SuperAdmin\StripePayment\StripeValidateRequest;
+use App\Scopes\CompanyScope;
+use App\Traits\SuperAdmin\MollieSettings;
+use App\Traits\SuperAdmin\PaystackSettings;
+use App\Traits\SuperAdmin\StripeSettings;
+use Carbon\Carbon;
+use GuzzleHttp\Client;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\View;
+use Laravel\Cashier\Cashier;
+use Laravel\Cashier\Exceptions\IncompletePayment;
+use Laravel\Cashier\Payment;
+use Mollie\Laravel\Facades\Mollie;
+use PayPal\Api\Agreement;
+use PayPal\Api\AgreementStateDescriptor;
+use PayPal\Auth\OAuthTokenCredential;
+use PayPal\Rest\ApiContext;
+use Razorpay\Api\Api;
+use Stripe\PaymentIntent as StripePaymentIntent;
+use Unicodeveloper\Paystack\Paystack;
 
 class BillingController extends AccountBaseController
 {
@@ -68,6 +63,7 @@ class BillingController extends AccountBaseController
 
     public function __construct()
     {
+
         parent::__construct();
 
         $this->paymentGatewatActive = false;
@@ -97,13 +93,22 @@ class BillingController extends AccountBaseController
         $this->pageTitle = 'superadmin.menu.billing';
 
         $this->middleware(function ($request, $next) {
-            abort_403(!in_array('admin', user_roles()));
+            if(user()->is_superadmin){
+                abort_403(GlobalSetting::validateSuperAdmin('manage_billing'));
+            }
+
             return $next($request);
         });
     }
 
     public function index()
     {
+        $this->managePermission = user()->permission('manage_billing');
+
+        if(user()->is_superadmin){
+            abort_403(!($this->managePermission == 'all'));
+        }
+
         $this->activeSettingMenu = 'billing';
         $this->company = Company::with('currency', 'package')
             ->withCount(['employees', 'fileStorage'])
@@ -165,14 +170,26 @@ class BillingController extends AccountBaseController
     public function upgradePlan(Request $request)
     {
         $this->pageTitle = 'superadmin.menu.packages';
-        $this->packages = Package::with('currency')->whereNot('default', 'trial')->where('is_private', 0)->get();
+        $this->packages = Package::with('currency')->whereNot('default', 'trial')->where('is_private', 0)->orderBy('sort', 'asc')->get();
 
         $this->modulesData = Module::where('module_name', '<>', 'settings')
             ->where('module_name', '<>', 'dashboards')
+            ->where('module_name', '<>', 'restApi')
             ->whereNotIn('module_name', Module::disabledModuleArray())
             ->get();
 
+        $this->packageFeaturesModuleData = Module::where('module_name', '<>', 'settings')
+            ->where('module_name', '<>', 'dashboards')
+            ->where('module_name', '<>', 'restApi')
+            ->whereNotIn('module_name', Module::disabledModuleArray())
+            ->get();
+
+        $this->packageFeatures = $this->packageFeaturesModuleData->pluck('module_name')->toArray();
+        $this->packageModuleData = $this->packageFeaturesModuleData->pluck('module_name', 'id')->all();
+        $this->activeModule = $this->packageFeatures;
+
         $this->offlineMethods = OfflinePaymentMethod::withoutGlobalScope(CompanyScope::class)->whereNull('company_id')->where('status', 'yes')->count();
+
         $this->annualPlan = $this->packages->filter(function ($value, $key) {
             return $value->annual_status == 1;
         })->count();
@@ -189,14 +206,19 @@ class BillingController extends AccountBaseController
      */
     public function packages()
     {
-        $this->packages = Package::where('default', 'no')->where('is_private', 0)->get();
+        $this->packages = Package::where('default', 'no')->where('is_private', 0)->orderBy('sort', 'asc')->get();
         $this->modulesData = Module::where('module_name', '<>', 'settings')
             ->where('module_name', '<>', 'dashboards')
+            ->where('module_name', '<>', 'restApi')
             ->whereNotIn('module_name', Module::disabledModuleArray())
             ->get();
+
         $this->stripeSettings = GlobalPaymentGatewayCredentials::first();
+
         $this->offlineMethods = OfflinePaymentMethod::withoutGlobalScope(CompanyScope::class)->whereNull('company_id')->where('status', 'yes')->count();
+
         $this->pageTitle = 'app.menu.packages';
+
         $this->company = company();
 
         $this->annualPlan = $this->packages->filter(function ($value, $key) {
@@ -213,11 +235,7 @@ class BillingController extends AccountBaseController
     public function selectPackage(Request $request, $packageID)
     {
         $this->package = Package::findOrFail($packageID);
-        $this->free = false;
-
-        if((!round($this->package->monthly_price) > 0 && $this->package->default == 'no' ) || $this->package->is_free == 1  ){
-            $this->free = true;
-        }
+        $this->free = ($this->package->default == 'yes' || $this->package->is_free == 1);
 
         $this->company = company();
         $this->type    = $request->type;
@@ -811,7 +829,7 @@ class BillingController extends AccountBaseController
         $offlinePlanChange->next_pay_date = $request->type == 'monthly' ? Carbon::now()->addMonth()->format('Y-m-d') : Carbon::now()->addYear()->format('Y-m-d');
 
         if ($request->hasFile('slip')) {
-            $offlinePlanChange->file_name = Files::upload($request->slip, OfflinePlanChange::FILE_PATH, false, false, false);
+            $offlinePlanChange->file_name = Files::uploadLocalOrS3($request->slip, OfflinePlanChange::FILE_PATH);
         }
 
         $offlinePlanChange->save();
@@ -823,25 +841,68 @@ class BillingController extends AccountBaseController
 
     public function freePlan(Request $request)
     {
+            $package = Package::findOrFail($request->package_id);
+            $currencyId = $package->currency_id ?: global_setting()->currency_id;
+            $company = company();
+
+            GlobalSubscription::where('company_id', $company->id)
+                ->where('subscription_status', 'active')
+                ->update(['subscription_status' => 'inactive']);
+
+            $subscription = new GlobalSubscription();
+            $subscription->company_id = $company->id;
+            $subscription->package_id = $package->id;
+            $subscription->currency_id = $currencyId;
+            $subscription->package_type = $request->type;
+            $subscription->quantity = 1;
+            $subscription->gateway_name = 'offline';
+            $subscription->subscription_status = 'active';
+            $subscription->subscribed_on_date = Carbon::now();
+            $subscription->transaction_id = str(str()->random(15))->upper();
+            $subscription->save();
+
             // create offline invoice
-            $offlineInvoice = new OfflineInvoice();
+            $offlineInvoice = new GlobalInvoice();
+            $offlineInvoice->global_subscription_id = $subscription->id;
+            $offlineInvoice->company_id = $company->id;
+            $offlineInvoice->currency_id = $currencyId;
             $offlineInvoice->package_id = $request->package_id;
             $offlineInvoice->package_type = $request->type;
-            $offlineInvoice->amount = 0;
+            $offlineInvoice->total = 0;
             $offlineInvoice->pay_date = Carbon::now()->format('Y-m-d');
-            $offlineInvoice->status = 'paid';
             $offlineInvoice->next_pay_date = $request->type == 'monthly' ? Carbon::now()->addMonth()->format('Y-m-d') : Carbon::now()->addYear()->format('Y-m-d');
+            $offlineInvoice->gateway_name = 'offline';
+            $offlineInvoice->transaction_id = $subscription->transaction_id;
             $offlineInvoice->save();
 
-            $company = company();
             // Change company package
             $company->package_id = $request->package_id;
             $company->package_type = $request->type;
+            $company->licence_expire_on = $request->type == 'monthly' ? Carbon::now()->addMonth()->format('Y-m-d') : Carbon::now()->addYear()->format('Y-m-d');
+            $company->license_updated_at = $request->type == 'monthly' ? Carbon::now()->addMonth()->format('Y-m-d') : Carbon::now()->addYear()->format('Y-m-d');
             $company->save();
 
+            // Send superadmin notification
+            $generatedBy = User::allSuperAdmin();
+            $allAdmins = User::allAdmins($company->id);
+            Notification::send($generatedBy, new CompanyUpdatedPlan($company, $subscription->package_id));
+            Notification::send($allAdmins, new CompanyUpdatedPlan($company, $subscription->package_id));
             Session::put('success', __('superadmin.paymentSuccessfullyDone', ['package' => company()->package->name, 'planType' => company()->package_type]));
 
         return Reply::redirect(route('billing.index'));
+    }
+
+    /**
+     * @param int $id
+     * @return \Symfony\Component\HttpFoundation\BinaryFileResponse|\Symfony\Component\HttpFoundation\StreamedResponse
+     */
+    public function offlineFileDownload($id)
+    {
+        $file = OfflinePlanChange::whereRaw('md5(id) = ?', $id)->firstOrFail();
+
+        $ext = pathinfo($file->filename, PATHINFO_EXTENSION);
+        $filename = $file->name ? $file->name . '.' . $ext : $file->filename;
+        return response()->download(public_path(Files::UPLOAD_FOLDER  . '/' .OfflinePlanChange::FILE_PATH . '/' . $file->file_name), $filename);
     }
 
 }

@@ -4,13 +4,17 @@ namespace App\Models\SuperAdmin;
 
 use App\Models\Invoice;
 use App\Observers\SuperAdmin\InvoicePaymentReceivedObserver;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class ClientPayment extends Model
+class ClientPayment extends BaseModel
 {
     protected $table = 'payments';
 
     protected $dates = ['paid_on'];
+
+    protected $casts = [
+        'paid_on' => 'datetime',
+    ];
 
     protected static function boot()
     {

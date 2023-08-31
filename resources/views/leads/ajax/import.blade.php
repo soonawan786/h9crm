@@ -4,6 +4,11 @@
             <div class="add-lead bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
                     @lang('app.importExcel') @lang('app.menu.lead')</h4>
+                <div class="col-sm-12 pt-2">
+                    <div class="alert alert-warning" role="alert">
+                        @lang('app.importLeadExcelInfo')
+                    </div>
+                </div>
                 <div class="row py-20">
                     <div class="col-md-12">
                         <x-forms.file :fieldLabel="__('modules.import.file')" fieldName="import_file" fieldId="lead_import" />

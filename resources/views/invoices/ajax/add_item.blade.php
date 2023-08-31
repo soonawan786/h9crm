@@ -10,10 +10,9 @@
                     @if ($invoiceSetting->hsn_sac_code_show)
                         <td width="10%" class="border-0" align="right">@lang('app.hsnSac')</td>
                     @endif
-                    <td width="10%" class="border-0" align="right">
-                        {{ isset($items->unit) ? $items->unit->unit_type : 'Qty\hrs' }}</td>
+                    <td width="10%" class="border-0" align="right">@lang('modules.invoices.qty')</td>
                     <td width="10%" class="border-0" align="right">@lang('modules.invoices.unitPrice')</td>
-                    <td width="10%" class="border-0" align="right">@lang('modules.invoices.remainingQuantity')</td>
+<td width="10%" class="border-0" align="right">@lang('modules.invoices.remainingQuantity')</td>
                     <td width="10%" class="border-0" align="right">@lang('modules.invoices.totalQuantity')</td>
                     <td width="13%" class="border-0" align="right">@lang('modules.invoices.tax')</td>
                     <td width="17%" class="border-0 bblr-mbl" align="right">@lang('modules.invoices.amount')</td>
@@ -36,13 +35,15 @@
                         </td>
                     @endif
                     <td class="border-bottom-0">
-                        {{-- <input type="hidden" name="product_id[]" value="{{ $items->id }}-{{ $items->quantity }}"> --}}
+{{-- <input type="hidden" name="product_id[]" value="{{ $items->id }}-{{ $items->quantity }}"> --}}
                         <input type="hidden" class="product_quantity" name="product_quantities[{{ $items->id }}]" value="{{ $items->quantity - 1 }}">
                         <input type="number" min="1"
                             class="form-control f-14 border-0 w-100 text-right quantity"
                             data-item-id="{{ $items->id }}" value="1" name="quantity[]">
+                        <span class="text-dark-grey float-right border-0 f-12">{{ $items->unit->unit_type }}</span>
+                        <input type="hidden" name="product_id[]" value="{{ $items->id }}">
+                        <input type="hidden" name="unit_id[]" value="{{ $items->unit_id }}">
                     </td>
-
                     <td class="border-bottom-0">
                         <input type="number" min="1"
                             class="f-14 border-0 w-100 text-right cost_per_item form-control"
@@ -61,9 +62,9 @@
                             <select id="multiselect" name="taxes[0][]" multiple="multiple"
                                 class="select-picker type customSequence border-0" data-size="3">
                                 @foreach ($taxes as $tax)
-                                    <option data-rate="{{ $tax->rate_percent }}"
+                                    <option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%"
                                         @if (isset($items->taxes) && array_search($tax->id, json_decode($items->taxes)) !== false) selected @endif value="{{ $tax->id }}">
-                                        {{ strtoupper($tax->tax_name) }}:
+                                        {{ $tax->tax_name }}:
                                         {{ $tax->rate_percent }}%</option>
                                 @endforeach
                             </select>

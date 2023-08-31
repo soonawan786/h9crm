@@ -21,7 +21,7 @@
         @endif
         <x-cards.data-row :label="__('app.status')" :value="$status" html="true" />
 
-        <x-cards.data-row :label="__('modules.projects.milestoneSummary')" :value="$milestone->summary" />
+        <x-cards.data-row :label="__('modules.projects.milestoneSummary')" :value="$milestone->summary" html="true" />
 
         <x-cards.data-row :label="__('modules.timeLogs.totalHours')" :value="$timeLog" />
 
@@ -54,17 +54,17 @@
             @endphp
                 <tr>
                     <td>{{ $key + 1 }}</td>
-                    <td>{{ ucfirst($item->heading) }}</td>
+                    <td>{{ $item->heading }}</td>
                     <td>
                         @foreach ($item->users as $member)
                             <div class="taskEmployeeImg rounded-circle"><a
                                     href="{{ route('employees.show', $member->id) }}">
-                                    <img data-toggle="tooltip" data-original-title="{{ mb_ucwords($member->name) }}"
+                                    <img data-toggle="tooltip" data-original-title="{{ $member->name }}"
                                         src="{{ $member->image_url }}">
                                 </a></div>
                         @endforeach
                     </td>
-                    <td>{{ $item->created_by ? mb_ucwords($item->createBy->name) : '--' }}</td>
+                    <td>{{ $item->created_by ? $item->createBy->name : '--' }}</td>
                     <td>{{ $item->due_date ? $item->due_date->translatedFormat(company()->date_format) : '--' }}</td>
                     <td>{{$totalTimeLog}}</td>
                     <td>

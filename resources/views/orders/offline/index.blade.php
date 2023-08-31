@@ -15,7 +15,7 @@
                             <x-forms.select class="select-picker" fieldId="offlineMethod" :fieldLabel="__('modules.invoices.paymentMethod')"
                                 fieldName="offlineMethod" search="true">
                                 @foreach($methods as $method)
-                                    <option value="{{ $method->id }}">{{ mb_ucwords($method->name) }}</option>
+                                    <option value="{{ $method->id }}">{{ $method->name }}</option>
                                 @endforeach
                             </x-forms.select>
                         </div>

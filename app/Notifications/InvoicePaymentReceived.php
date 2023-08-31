@@ -59,7 +59,7 @@ class InvoicePaymentReceived extends BaseNotification
      */
     public function toMail($notifiable)
     {
-
+        $build = parent::build();
         $invoice = Invoice::findOrFail($this->payment->invoice_id);
 
         if (!is_null($invoice->project) && !is_null($invoice->project->client) && !is_null($invoice->project->client->clientDetails)) {
@@ -85,13 +85,13 @@ class InvoicePaymentReceived extends BaseNotification
             $actionBtn = __('email.invoices.action');
         }
 
-        $message .= (isset($client->name)) ? __('by').' '.mb_ucwords($client->name).'.' : '.';
+        $message .= (isset($client->name)) ? __('app.by').' '.$client->name.'.' : '.';
 
         $url = getDomainSpecificUrl($url, $this->company);
 
         $content = $message . ':- ' . '<br>' . $number;
 
-        return parent::build()
+        return $build
             ->subject(__('email.invoices.paymentReceived') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,
@@ -134,13 +134,13 @@ class InvoicePaymentReceived extends BaseNotification
                 ->from(config('app.name'))
                 ->to('@' . $notifiable->employee[0]->slack_username)
                 ->image($slack->slack_logo_url)
-                ->content(__('email.hello')  . ' ' .  mb_ucwords($notifiable->name) ."\n". __('email.invoices.paymentReceivedForInvoice') . ':' . $invoice->invoice_number );
+                ->content(__('email.hello')  . ' ' .  $notifiable->name ."\n". __('email.invoices.paymentReceivedForInvoice') . ':' . $invoice->invoice_number );
         }
 
         return (new SlackMessage())
             ->from(config('app.name'))
             ->image($slack->slack_logo_url)
-            ->content(__('email.hello')  . ' ' .  mb_ucwords($notifiable->name) ."\n". __('email.invoices.paymentReceivedForInvoice') . ':' . $invoice->invoice_number );
+            ->content(__('email.hello')  . ' ' .  $notifiable->name ."\n". __('email.invoices.paymentReceivedForInvoice') . ':' . $invoice->invoice_number );
 
 
     }

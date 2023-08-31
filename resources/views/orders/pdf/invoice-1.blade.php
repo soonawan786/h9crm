@@ -3,6 +3,7 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>@lang('app.order')</title>
+    @includeIf('invoices.pdf.invoice_pdf_css')
     <style>
         .clearfix:after {
             content: "";
@@ -22,7 +23,7 @@
             color: #555555;
             background: #FFFFFF;
             font-size: 13px;
-            font-family: Verdana, Arial, Helvetica, sans-serif;
+            /*font-family: Verdana, Arial, Helvetica, sans-serif;*/
         }
 
         h2 {
@@ -292,7 +293,7 @@
                             && ($invoiceSetting->show_client_name == 'yes' || $invoiceSetting->show_client_email == 'yes' || $invoiceSetting->show_client_phone == 'yes' || $invoiceSetting->show_client_company_name == 'yes' || $invoiceSetting->show_client_company_address == 'yes'))
                                 <small>@lang("modules.invoices.billedTo"):</small>
                                 @if ($order->client->name && $invoiceSetting->show_client_name == 'yes')
-                                    <div>{{ mb_ucwords($order->client->name) }}</div>
+                                    <div>{{ $order->client->name }}</div>
                                 @endif
 
                                 @if ($order->client->email && $invoiceSetting->show_client_email == 'yes')
@@ -304,7 +305,7 @@
                                 @endif
 
                                 @if ($order->clientDetails->company_name && $invoiceSetting->show_client_company_name == 'yes')
-                                    <div>{{ mb_ucwords($order->clientDetails->company_name) }}</div>
+                                    <div>{{ $order->clientDetails->company_name }}</div>
                                 @endif
 
                                 @if ($order->client->clientDetails->address && $invoiceSetting->show_client_company_address == 'yes')
@@ -335,7 +336,7 @@
                             <img src="{{ invoice_setting()->logo_url }}" alt="home" class="dark-logo" />
                         </div>
                             <small>@lang("modules.invoices.generatedBy"):</small>
-                        <div>{{ mb_ucwords(company()->company_name) }}</div>
+                        <div>{{ company()->company_name }}</div>
                         @if (!is_null($settings) && $order->address)
                             <div>{!! nl2br($order->address->address) !!}</div>
                         @endif
@@ -370,7 +371,12 @@
                     @if ($invoiceSetting->hsn_sac_code_show)
                         <td class="qty">@lang("app.hsnSac")</td>
                     @endif
-                    <th class="qty">{{ ucwords($order->unit->unit_type) }}</th>
+                    @if ($order->unit != null)
+                    <th class="qty">@lang('modules.invoices.qty')</th>
+                    @else
+                    <th class="qty"> </th>
+                    @endif
+                    {{-- <th class="qty">{{ $order->unit->unit_type ?? $product->unit->unit_type }}</th> --}}
                     <th class="qty">@lang("modules.invoices.unitPrice")</th>
                     <th class="qty">@lang("modules.invoices.tax")</th>
                     <th class="unit">@lang("modules.invoices.price") ({!! htmlentities($order->currency->currency_code) !!})</th>
@@ -383,7 +389,7 @@
                         <tr style="page-break-inside: avoid;">
                             <td class="no">{{ ++$count }}</td>
                             <td class="desc">
-                                <h3>{{ ucfirst($item->item_name) }}</h3>
+                                <h3>{{ $item->item_name }}</h3>
                                 @if (!is_null($item->item_summary))
                                 <table>
                                     <tr>
@@ -403,12 +409,12 @@
                                 </td>
                             @endif
                             <td class="qty">
-                                <h3>{{ $item->quantity }}</h3>
+                                <h3>{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</span></h3>
                             </td>
                             <td class="qty">
                                 <h3>{{ currency_format($item->unit_price, $order->currency_id, false) }}</h3>
                             </td>
-                            <td>{{ strtoupper($item->tax_list) }}</td>
+                            <td>{{ $item->tax_list }}</td>
                             <td class="unit">{{ currency_format($item->amount, $order->currency_id, false) }}</td>
                         </tr>
                     @endif
@@ -446,7 +452,7 @@
                             <td class="qty">&nbsp;</td>
                         @endif
                         <td class="qty">&nbsp;</td>
-                        <td class="desc">{{ mb_strtoupper($key) }}</td>
+                        <td class="desc">{{ $key }}</td>
                         <td class="unit">{{ currency_format($tax, $order->currency_id, false) }}</td>
                     </tr>
                 @endforeach

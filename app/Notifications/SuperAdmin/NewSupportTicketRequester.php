@@ -18,6 +18,7 @@ class NewSupportTicketRequester extends BaseNotification
 
     private $ticket;
     private $emailSetting;
+    private $pushNotification;
 
     public function __construct(SupportTicket $ticket)
     {

@@ -1,5 +1,8 @@
 @extends('layouts.app')
 
+@php
+    $manageGroupPermission = user()->permission('manage_ticket_groups');
+@endphp
 @section('content')
 
     <!-- SETTINGS START -->
@@ -10,13 +13,20 @@
         <x-setting-card>
             <x-slot name="header">
                 <div class="s-b-n-header" id="tabs">
-                    <nav class="tabs px-4 border-bottom-grey">
+                    <nav class="tabs px-6 border-bottom-grey">
                         <div class="nav" id="nav-tab" role="tablist">
 
                             <a class="nav-item nav-link f-15 active agent" href="{{ route('ticket-settings.index') }}"
                                 role="tab" aria-controls="nav-ticketAgents"
                                 aria-selected="true">@lang('app.menu.ticketAgents')
                             </a>
+
+                            @if($manageGroupPermission == 'all')
+                                <a class="nav-item nav-link f-15 group-manage"
+                                    href="{{ route('ticket-settings.index') }}?tab=group-manage" role="tab"
+                                    aria-controls="nav-groupManage" aria-selected="true">@lang('app.menu.groupManage')
+                                </a>
+                            @endif
 
                             <a class="nav-item nav-link f-15 type" href="{{ route('ticket-settings.index') }}?tab=type"
                                 role="tab" aria-controls="nav-ticketTypes"
@@ -32,11 +42,11 @@
                                 href="{{ route('ticket-settings.index') }}?tab=reply-template" role="tab"
                                 aria-controls="nav-replyTemplates" aria-selected="true">@lang('app.menu.replyTemplates')
                             </a>
-
+{{-- 
                             <a class="nav-item nav-link f-15 email-sync"
                                 href="{{ route('ticket-settings.index') }}?tab=email-sync" role="tab"
                                 aria-controls="nav-emailSync" aria-selected="true">@lang('app.menu.emailSync')
-                            </a>
+                            </a> --}}
 
                         </div>
                     </nav>
@@ -64,6 +74,11 @@
                         <x-forms.button-primary icon="plus" id="addReplyTemplate"
                             class="reply-template-btn mb-2 d-none actionBtn">
                             @lang('app.addNew') @lang('app.menu.template')
+                        </x-forms.button-primary>
+
+                        <x-forms.button-primary icon="plus" id="addGroup"
+                            class="group-manage-btn mb-2 d-none actionBtn">
+                            @lang('app.addNew') @lang('app.menu.group')
                         </x-forms.button-primary>
                     </div>
 
@@ -376,6 +391,13 @@
             $.ajaxModal(MODAL_LG, url);
         });
 
+        /* open add group modal */
+        $('body').on('click', '#addGroup', function() {
+            var url = "{{ route('ticket-groups.create') }}";
+            $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
+            $.ajaxModal(MODAL_LG, url);
+        });
+
         /* change agent group */
         $('.change-agent-group').change(function() {
 
@@ -394,6 +416,59 @@
                     'groupId': groupId
                 }
             });
+        });
+
+        $('body').on('click', '.delete-group', function() {
+            var id = $(this).data('group-id');
+            Swal.fire({
+                title: "@lang('messages.sweetAlertTitle')",
+                text: "@lang('messages.removeGroupText')",
+                icon: 'warning',
+                showCancelButton: true,
+                focusConfirm: false,
+                confirmButtonText: "@lang('messages.confirmDelete')",
+                cancelButtonText: "@lang('app.cancel')",
+                customClass: {
+                    confirmButton: 'btn btn-primary mr-3',
+                    cancelButton: 'btn btn-secondary'
+                },
+                showClass: {
+                    popup: 'swal2-noanimation',
+                    backdrop: 'swal2-noanimation'
+                },
+                buttonsStyling: false
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    var url = "{{ route('ticket-groups.destroy', ':id') }}";
+                    url = url.replace(':id', id);
+
+                    var token = "{{ csrf_token() }}";
+
+                    $.easyAjax({
+                        type: 'POST',
+                        url: url,
+                        blockUI: true,
+                        data: {
+                            '_token': token,
+                            '_method': 'DELETE'
+                        },
+                        success: function(response) {
+                            if (response.status == "success") {
+                                $('.row' + id).fadeOut(100);
+                            }
+                        }
+                    });
+                }
+            });
+        });
+
+        $('body').on('click', '.edit-group', function() {
+            var groupId = $(this).data('group-id');
+            var url = "{{ route('ticket-groups.edit', ':id') }}";
+            url = url.replace(':id', groupId);
+
+            $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
+            $.ajaxModal(MODAL_LG, url);
         });
 
     </script>

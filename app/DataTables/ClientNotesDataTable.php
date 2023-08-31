@@ -10,6 +10,7 @@ use Yajra\DataTables\Html\Column;
 class ClientNotesDataTable extends BaseDataTable
 {
 
+    private $viewClientNotePermission;
     private $editClientNotePermission;
     private $deleteClientNotePermission;
 
@@ -190,7 +191,7 @@ class ClientNotesDataTable extends BaseDataTable
                 'orderable' => false,
                 'searchable' => false
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'visible' => false, 'title' => __('app.id')],
             __('modules.client.noteTitle') => ['data' => 'title', 'name' => 'title', 'title' => __('modules.client.noteTitle')],
             __('modules.client.noteType') => ['data' => 'type', 'name' => 'type', 'title' => __('modules.client.noteType')],
@@ -201,16 +202,6 @@ class ClientNotesDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'client_note_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

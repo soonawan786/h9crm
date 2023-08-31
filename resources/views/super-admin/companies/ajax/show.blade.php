@@ -1,13 +1,16 @@
 <!-- ROW START -->
 <div class="row">
-
+    @php
+        $updateCompanyPackagePermission = user()->permission('update_company_package');
+        $manageCompanyImpersonatePermission = user()->permission('manage_company_impersonate');
+    @endphp
     @if (!$company->approved && global_setting()->company_need_approval)
         <div class="col-md-12">
             <x-alert type="danger">
                 <div class="d-flex justify-content-between align-items-center f-15">
                     @lang('superadmin.companies.companyNeedApproval')
 
-                    <x-forms.button-primary class="approve-company" data-company-id="{{ $company->id }}">
+                    <x-forms.button-primary class="approve-company" data-company-id="{{ $company->id }}" icon="check-circle">
                         @lang('app.approve')
                     </x-forms.button-primary>
 
@@ -77,25 +80,28 @@
     <div class="col-md-6 col-xl-4 mb-4 mb-xl-0 mb-lg-4 mb-md-0">
         @if($company->user)
             <x-cards.user :image="$company->user->image_url">
-                <div class="row">
+                <div class="row mb-1">
                     <div class="col-12">
                         <h4 class="card-title f-15 f-w-500 text-darkest-grey mb-0">
                             {{ ucfirst($company->user->salutation) . ' ' . mb_ucfirst($company->user->name) }}
                             @if(global_setting()->email_verification)
-                                @if(is_null($company->user->email_verified_at))
+                                @if(is_null($company->user->userAuth->email_verified_at))
                                     <i class="fa fa-times-circle text-red" data-toggle="tooltip"
                                        data-original-title="@lang('superadmin.notVerifiedEmail')"></i>
                                 @else
-                                    <i class="fa fa-check-circle text-blue" data-toggle="tooltip"
+                                    <i class="fa fa-check-circle text-success" data-toggle="tooltip"
                                        data-original-title="@lang('superadmin.verifiedEmail')"></i>
                                 @endif
                             @endif
                         </h4>
                     </div>
                 </div>
-                <p class="f-13 font-weight-normal text-dark-grey mb-1">
-                    {{ $company->user->employeeDetail->company_name }}
-                </p>
+                @if ($company->user->country)
+                    <p class="f-12 font-weight-normal text-dark-grey mb-1">
+                        <span class='flag-icon flag-icon-{{ strtolower($company->user->country->iso) }} flag-icon-squared'></span> {{ $company->user->country->nicename }}
+                    </p>
+                @endif
+
                 <p class="card-text f-12 text-lightest">@lang('app.lastLogin')
 
                     @if (!is_null($company->user->last_login))
@@ -135,14 +141,18 @@
                 @endif
             </p>
             <p class="card-text d-flex justify-content-between f-12 text-lightest">
-                <a href="{{ route('superadmin.companies.edit_package', [$company->id]) }}"
-                   class="btn btn-primary rounded f-12 px-2 py-1 openRightModal">
-                    <i class="fa fa-edit mr-1"></i> @lang('app.update') @lang('superadmin.package')
-                </a>
+                @if($updateCompanyPackagePermission == 'all')
+                    <a href="{{ route('superadmin.companies.edit_package', [$company->id]) }}?requestFrom=show"
+                    class="btn btn-primary rounded f-12 px-2 py-1 openRightModal">
+                        <i class="fa fa-edit mr-1"></i> @lang('app.update') @lang('superadmin.package')
+                    </a>
+                @endif
+                @if($manageCompanyImpersonatePermission == 'all')
                 <button type="button" id="login-as-company"
                         class="btn btn-outline-secondary rounded f-12 ml-2 py-1">
                     <i class="fa fa-sign-in-alt mr-1"></i> @lang('superadmin.superadmin.loginAsCompany')
                 </button>
+                @endif
             </p>
         </x-cards.data>
     </div>
@@ -155,12 +165,13 @@
     <div class="col-xl-8 col-lg-7 col-md-6 mb-4 mb-xl-0 mb-lg-4">
         <x-cards.data :title="__('modules.client.companyDetails')">
             <x-cards.data-row :label="__('modules.accountSettings.companyEmail')" :value="$company->company_email"/>
-            <x-cards.data-row :label="__('modules.accountSettings.companyPhone')" :value="$company->company_phone"/>
+            <x-cards.data-row :label="__('modules.accountSettings.companyPhone')" :value="$company->company_phone ?? '--'"/>
 
             <div class="col-12 px-0 pb-3 d-lg-flex d-md-flex d-block">
                 <p class="mb-0 text-lightest f-14 w-30 text-capitalize">{{ __('modules.accountSettings.companyWebsite') }}</p>
-                <p class="mb-0 text-dark-grey f-14 w-70 text-wrap"><a href="{{$company->website}}"
-                                                                      target="_blank"> {{ $company->website }}</a></p>
+                <p class="mb-0 text-dark-grey f-14 w-70 text-wrap">
+                    <a href="{{ $company->website }}" target="_blank">{{ $company->website }}</a>
+                </p>
             </div>
 
             <x-cards.data-row :label="__('modules.accountSettings.companyAddress')"
@@ -170,7 +181,20 @@
                               :value="$company->currency->currency_code . ' (' . $company->currency->currency_symbol . ')'"/>
             <x-cards.data-row :label="__('modules.accountSettings.defaultTimezone')" :value="$company->timezone"/>
             @if (module_enabled('Subdomain'))
-                <x-cards.data-row label="Subdomain" :value="$company->sub_domain"/>
+
+
+                <div class="col-12 px-0 pb-3 d-lg-flex d-md-flex d-block">
+                    <p class="mb-0 text-lightest f-14 w-30 text-capitalize">Subdomain</p>
+                    @if($company->sub_domain)
+                    <div class="mb-0 text-dark-grey f-14 w-70 text-wrap  p-0"> <a href="http://{{ $company->sub_domain }}"  class="text-dark-grey" target="_blank">{{ $company->sub_domain }}</a></div>
+                    @else
+                        <p class="mb-0 f-14 text-red">
+                            {{__('superadmin.subdomainNotAdded')}}
+                        </p>
+                    @endif
+
+                </div>
+
             @endif
 
             <div class="col-12 px-0 pb-3 d-block d-lg-flex d-md-flex">
@@ -182,7 +206,7 @@
                     @else
                         <i class="fa fa-circle mr-1 text-red f-10"></i>
                     @endif
-                    {{ ucwords(str_replace('_', ' ', $company->status)) }}
+                    {{ str_replace('_', ' ', $company->status) }}
                 </p>
             </div>
 

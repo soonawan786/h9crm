@@ -2,10 +2,7 @@
 
 namespace App\Http\Requests\SuperAdmin\Company;
 
-use App\Models\User;
 use App\Models\CustomField;
-use App\Scopes\ActiveScope;
-use App\Scopes\CompanyScope;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreRequest extends FormRequest
@@ -28,34 +25,43 @@ class StoreRequest extends FormRequest
      */
     public function rules()
     {
-        \Illuminate\Support\Facades\Validator::extend('check_client', function ($attribute, $value, $parameters, $validator) {
-            $user = User::withoutGlobalScopes([ActiveScope::class, CompanyScope::class])
+        \Illuminate\Support\Facades\Validator::extend('check_superadmin', function ($attribute, $value, $parameters, $validator) {
+            return !\App\Models\User::withoutGlobalScopes([\App\Scopes\ActiveScope::class, \App\Scopes\CompanyScope::class])
                 ->where('email', $value)
-                ->first();
-
-            if (is_null($user)) {
-                return true;
-            }
-
-            if (!$user->hasRole('admin')) {
-                return true;
-            }
-
-            return false;
-
+                ->where('is_superadmin', 1)
+                ->exists();
         });
 
         $len = strlen(getDomain()) + 4;
+
+        // This is done to remove request()->merge(['sub_domain' => $subdomain]); and
+        // validate on sub_domain part
+        if (module_enabled('Subdomain')) {
+            if (request()->sub_domain) {
+                $subdomain = str_replace('.' . getDomain(), '', request()->sub_domain);
+
+                if (!preg_match('/^[-a-zA-Z0-9_]+$/i', $subdomain)) {
+                    return [
+                        'sub_domain' => 'alpha_dash',
+                    ];
+                }
+            }
+        }
+
         $rules = [
             'company_name' => 'required',
             'company_email' => 'required|email|unique:companies',
             'address' => 'required',
             'sub_domain' => module_enabled('Subdomain') ? 'required|banned_sub_domain|min:' . $len . '|unique:companies,sub_domain|max:50' : '',
             'status' => 'required',
-            'email' => 'required|email',
+            'email' => 'required|email:rfc|regex:/(.+)@(.+)\.(.+)/i|check_superadmin',
             'name' => 'required|min:2',
 
         ];
+
+        if (request()->get('website')) {
+            $rules['website'] = 'required|url';
+        }
 
         if (request()->get('custom_fields_data')) {
             $fields = request()->get('custom_fields_data');
@@ -90,7 +96,7 @@ class StoreRequest extends FormRequest
     public function messages()
     {
         return [
-            'email.check_client' => 'The email has already been taken.'
+            'email.check_superadmin' => __('superadmin.emailAlreadyExist'),
         ];
     }
 

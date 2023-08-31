@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Helper\Files;
+use App\Models\Flag;
 use App\Helper\Reply;
 use App\Models\GlobalSetting;
 use Illuminate\Http\Request;
 use App\Models\LanguageSetting;
 use App\Models\TranslateSetting;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Artisan;
 use App\Http\Requests\Admin\Language\StoreRequest;
 use App\Http\Requests\Admin\Language\UpdateRequest;
 use Barryvdh\TranslationManager\Models\Translation;
 use App\Http\Requests\Admin\Language\AutoTranslateRequest;
-use App\Models\Flag;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 class LanguageSettingController extends AccountBaseController
 {
@@ -27,8 +27,7 @@ class LanguageSettingController extends AccountBaseController
         $this->activeSettingMenu = 'language_settings';
         $this->langPath = base_path() . '/resources/lang';
         $this->middleware(function ($request, $next) {
-            GlobalSetting::validateAdmin();
-            abort_403(!(user()->permission('manage_language_setting') == 'all') && !user()->is_superadmin);
+            abort_403(((user()->permission('manage_language_setting') !== 'all') && GlobalSetting::validateSuperAdmin('manage_superadmin_language_settings')));
             return $next($request);
         });
     }
@@ -193,6 +192,13 @@ class LanguageSettingController extends AccountBaseController
         }
 
         return Reply::success(__('messages.deleteSuccess'));
+    }
+
+    public function fixTranslation()
+    {
+        Artisan::call('translations:reset');
+        Artisan::call('translations:import');
+        return Reply::success(__('modules.languageSettings.fixTranslationSuccess'));
     }
 
 }

@@ -47,7 +47,11 @@
                                {{ \Carbon\Carbon::parse($payment->paid_on)->translatedFormat(company()->date_format) }}
                            </td>
                            <td>
+                            @if ($payment->gateway == 'Offline' && $payment->offlineMethods && $payment->offlineMethods->name)
+                                {{ $payment->gateway ? $payment->gateway.  ' ('. $payment->offlineMethods->name.')' : '--' }}
+                            @else
                                {{ $payment->gateway ? $payment->gateway : '--' }}
+                            @endif
                            </td>
                            <td class="text-right">
                                {{-- If payment done from payment gateway, then payment cannot be removed.  --}}

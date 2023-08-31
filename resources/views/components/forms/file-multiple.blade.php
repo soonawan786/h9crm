@@ -1,5 +1,5 @@
 <div {{ $attributes->merge(['class' => 'form-group my-3']) }}>
-    <x-forms.label :fieldId="$fieldId" :fieldLabel="$fieldLabel" :fieldRequired="$fieldRequired"></x-forms.label>
+    <x-forms.label :fieldId="$fieldId" :fieldLabel="$fieldLabel" :fieldRequired="$fieldRequired" :popover="$popover"></x-forms.label>
 
     <div id="file-upload-box">
         <div class="row" id="file-dropzone">

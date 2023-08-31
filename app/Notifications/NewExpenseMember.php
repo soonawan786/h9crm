@@ -60,13 +60,21 @@ class NewExpenseMember extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $url = route('expenses.show', $this->expense->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('email.newExpense.subject') . '.' . '<br>' . __('app.employee') . ': ' . mb_ucwords($this->expense->user->name) . '<br>' . __('modules.expenses.itemName') . ': ' . $this->expense->item_name . '<br>' . __('app.price') . ': ' . currency_format($this->expense->price, $this->expense->currency->id);
+        if ($this->expense->status == 'approved') {
+            $subject = __('email.newExpense.newSubject');
+        }
+        else {
+            $subject = __('email.newExpense.subject');
+        }
 
-        return parent::build()
-            ->subject(__('email.newExpense.subject') . ' - ' . config('app.name'))
+        $content = $subject . '<br>' . __('app.status') . ': ' . $this->expense->status . '<br>' . __('app.employee') . ': ' . $this->expense->user->name . '<br>' . __('modules.expenses.itemName') . ': ' . $this->expense->item_name . '<br>' . __('app.price') . ': ' . currency_format($this->expense->price, $this->expense->currency->id);
+
+        return $build
+            ->subject($subject . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,
                 'content' => $content,
@@ -121,8 +129,8 @@ class NewExpenseMember extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.newExpense.subject'))
-            ->body($this->expense->item_name . ' by ' . mb_ucwords($this->expense->user->name));
+            ->setSubject(__('email.newExpense.subject'))
+            ->setBody($this->expense->item_name . ' by ' . $this->expense->user->name);
     }
 
 }

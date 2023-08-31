@@ -67,4 +67,8 @@ return [
         'include_granted_scopes' => true,
     ],
 
+    'sentry' => [
+        'enabled' => env('SENTRY_ENABLED', false)
+    ]
+
 ];

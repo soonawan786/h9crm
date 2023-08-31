@@ -43,7 +43,6 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|PaymentGatewayCredentials whereStripeStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PaymentGatewayCredentials whereStripeWebhookSecret($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PaymentGatewayCredentials whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property string|null $live_stripe_client_id
  * @property string|null $live_stripe_secret
  * @property string|null $live_stripe_webhook_secret
@@ -139,6 +138,15 @@ use App\Traits\HasCompany;
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|PaymentGatewayCredentials whereCompanyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PaymentGatewayCredentials whereFlutterwaveWebhookSecretHash($value)
+ * @property string|null $test_payfast_merchant_id
+ * @property string|null $test_payfast_merchant_key
+ * @property string|null $test_payfast_passphrase
+ * @property-read mixed $show_pay
+ * @property-read bool $show_pay_webhook
+ * @method static \Illuminate\Database\Eloquent\Builder|PaymentGatewayCredentials whereTestPayfastMerchantId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|PaymentGatewayCredentials whereTestPayfastMerchantKey($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|PaymentGatewayCredentials whereTestPayfastPassphrase($value)
+ * @mixin \Eloquent
  */
 class PaymentGatewayCredentials extends BaseModel
 {

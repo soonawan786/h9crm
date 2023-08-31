@@ -40,11 +40,6 @@ class ExpensesDataTable extends BaseDataTable
 
         $datatables = datatables()->eloquent($query);
         $datatables->addIndexColumn();
-        $datatables->addColumn('bank_name', function (Expense $expense) {
-            return $expense->bankAccount ? $expense->bankAccount->bank_name : 'Cash';
-        });
-
-
         $datatables->addColumn('check', function ($row) {
             return '<input type="checkbox" class="select-table-row" id="datatable-row-' . $row->id . '"  name="datatable_ids[]" value="' . $row->id . '" onclick="dataTableRowCheck(' . $row->id . ')">';
         });
@@ -95,10 +90,10 @@ class ExpensesDataTable extends BaseDataTable
                 <p class="mb-0"><span class="badge badge-primary"> ' . __('app.recurring') . ' </span></p>';
         });
         $datatables->addColumn('export_item_name', function ($row) {
-            return ucfirst($row->item_name);
+            return $row->item_name;
         });
         $datatables->addColumn('employee_name', function ($row) {
-            return ucfirst($row->user->name);
+            return $row->user->name;
         });
         $datatables->editColumn('user_id', function ($row) {
             return view('components.employee', [
@@ -165,7 +160,7 @@ class ExpensesDataTable extends BaseDataTable
             return $status;
         });
         $datatables->addColumn('status_export', function ($row) {
-            return ucfirst($row->status);
+            return $row->status;
         });
 
         $datatables->editColumn(
@@ -187,7 +182,6 @@ class ExpensesDataTable extends BaseDataTable
             return 'row-' . $row->id;
         });
         $datatables->addIndexColumn();
-        $datatables->rawColumns(['action', 'status', 'user_id', 'item_name', 'check','bank_name']);
         $datatables->removeColumn('currency_id');
         $datatables->removeColumn('name');
         $datatables->removeColumn('currency_symbol');
@@ -195,15 +189,11 @@ class ExpensesDataTable extends BaseDataTable
         $datatables->removeColumn('created_at');
 
         // Custom Fields For export
-        CustomField::customFieldData($datatables, Expense::CUSTOM_FIELD_MODEL);
+        $customFieldColumns = CustomField::customFieldData($datatables, Expense::CUSTOM_FIELD_MODEL);
+
+        $datatables->rawColumns(array_merge(['action', 'status', 'user_id', 'item_name', 'check'], $customFieldColumns));
 
         return $datatables;
-    }
-
-    public function ajax()
-    {
-        return $this->dataTable($this->query())
-            ->make(true);
     }
 
     /**
@@ -213,8 +203,8 @@ class ExpensesDataTable extends BaseDataTable
     {
         $request = $this->request();
 
-        $model = Expense::with('currency','user', 'user.employeeDetail', 'user.employeeDetail.designation', 'user.session','bankAccount')
-            ->select('expenses.id', 'expenses.item_name', 'expenses.user_id', 'expenses.price', 'users.name', 'expenses.purchase_date', 'expenses.currency_id', 'currencies.currency_symbol', 'expenses.status', 'expenses.purchase_from', 'expenses.expenses_recurring_id', 'designations.name as designation_name', 'expenses.added_by','expenses.bank_account_id')
+        $model = Expense::with('currency', 'user', 'user.employeeDetail', 'user.employeeDetail.designation', 'user.session')
+            ->select('expenses.id', 'expenses.item_name', 'expenses.user_id', 'expenses.price', 'users.name', 'expenses.purchase_date', 'expenses.currency_id', 'currencies.currency_symbol', 'expenses.status', 'expenses.purchase_from', 'expenses.expenses_recurring_id', 'designations.name as designation_name', 'expenses.added_by')
             ->join('users', 'users.id', 'expenses.user_id')
             ->leftJoin('employee_details', 'employee_details.user_id', '=', 'users.id')
             ->leftJoin('designations', 'employee_details.designation_id', '=', 'designations.id')
@@ -319,11 +309,11 @@ class ExpensesDataTable extends BaseDataTable
             __('app.employee') => ['data' => 'employee_name', 'name' => 'user_id', 'visible' => false, 'title' => __('app.employee')],
             __('modules.expenses.purchaseFrom') => ['data' => 'purchase_from', 'name' => 'purchase_from', 'title' => __('modules.expenses.purchaseFrom')],
             __('modules.expenses.purchaseDate') => ['data' => 'purchase_date', 'name' => 'purchase_date', 'title' => __('modules.expenses.purchaseDate')],
-
-            __('modules.expenses.bankName') => ['data' => 'bank_name', 'name' => 'bank_name', 'title' => __('modules.expenses.bankName')],
-
             __('app.status') => ['data' => 'status', 'name' => 'status', 'exportable' => false, 'title' => __('app.status')],
-            __('app.expense') . ' ' . __('app.status') => ['data' => 'status_export', 'name' => 'status', 'visible' => false, 'title' => __('app.expense')],
+            __('app.expense') . ' ' . __('app.status') => ['data' => 'status_export', 'name' => 'status', 'visible' => false, 'title' => __('app.expense')]
+        ];
+
+        $action = [
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -332,18 +322,8 @@ class ExpensesDataTable extends BaseDataTable
                 ->addClass('text-right pr-20')
         ];
 
-        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Expense()));
+        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Expense()), $action);
 
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Expenses_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

@@ -22,10 +22,10 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|LeadCategory whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadCategory whereLastUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadCategory whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|LeadCategory whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class LeadCategory extends BaseModel
 {

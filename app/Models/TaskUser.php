@@ -25,9 +25,9 @@ use Illuminate\Notifications\Notifiable;
  * @method static \Illuminate\Database\Eloquent\Builder|TaskUser whereTaskId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskUser whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskUser whereUserId($value)
- * @mixin \Eloquent
  * @property-read \Illuminate\Notifications\DatabaseNotificationCollection|\Illuminate\Notifications\DatabaseNotification[] $notifications
  * @property-read int|null $notifications_count
+ * @mixin \Eloquent
  */
 class TaskUser extends Pivot
 {

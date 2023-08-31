@@ -47,12 +47,13 @@ class NewContract extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $url = route('front.contract.show', $this->contract->hash);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $content = __('email.newContract.text') . '<br>';
 
-        return parent::build()
+        return $build
             ->subject(__('email.newContract.subject'))
             ->markdown('mail.email', [
                 'url' => $url,

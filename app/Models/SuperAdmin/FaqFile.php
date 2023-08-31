@@ -3,7 +3,7 @@
 namespace App\Models\SuperAdmin;
 
 use App\Traits\IconTrait;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\SuperAdmin\FaqFile
@@ -41,7 +41,7 @@ use Illuminate\Database\Eloquent\Model;
  * @mixin \Eloquent
  * @property-read mixed $icon
  */
-class FaqFile extends Model
+class FaqFile extends BaseModel
 {
     use IconTrait;
 

@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use App\Scopes\ActiveScope;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * App\Models\ProjectNote
@@ -40,8 +41,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectNote whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectNote whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectNote whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read int|null $note_users_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionNote
+ * @property-read int|null $mention_note_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @property-read int|null $mention_user_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionNote
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @mixin \Eloquent
  */
 class ProjectNote extends BaseModel
 {
@@ -59,6 +66,16 @@ class ProjectNote extends BaseModel
     public function noteUsers(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'project_user_notes');
+    }
+
+    public function mentionUser(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'mention_users')->withoutGlobalScope(ActiveScope::class)->using(MentionUser::class);
+    }
+
+    public function mentionNote(): HasMany
+    {
+        return $this->hasMany(MentionUser::class, 'project_note_id');
     }
 
 }

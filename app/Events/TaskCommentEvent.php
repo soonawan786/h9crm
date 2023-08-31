@@ -20,10 +20,12 @@ class TaskCommentEvent
 
     public function __construct(Task $task, TaskComment $comment, $notifyUser, $client = null)
     {
+
         $this->task = $task;
         $this->comment = $comment;
         $this->notifyUser = $notifyUser;
         $this->client = $client;
+
     }
 
 }

@@ -33,6 +33,8 @@
         "pusher-js": "^7.0.3",
         "quill": "^1.3.7",
         "quill-emoji": "^0.1.8",
+        "quill-magic-url": "^4.2.0",
+        "quill-mention": "^3.1.0",
         "signature_pad": "^3.0.0-beta.4",
         "sweetalert2": "^10.12.0"
     }

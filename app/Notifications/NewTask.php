@@ -61,23 +61,24 @@ class NewTask extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $url = route('tasks.show', $this->task->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $dueDate = (!is_null($this->task->due_date)) ? $this->task->due_date->format($this->company->date_format) : null;
 
-        $content = ucfirst($this->task->heading) . ' #' . $this->task->task_short_code . '<p>
+        $content = $this->task->heading . ' #' . $this->task->task_short_code . '<p>
             <b style="color: green">' . __('app.dueDate') . ': ' . $dueDate . '</b>
         </p>';
 
-        return parent::build()
+        return $build
             ->subject(__('email.newTask.subject') . ' #' . $this->task->task_short_code . ' - ' . config('app.name') . '.')
             ->greeting(__('email.hello') . ' ' . $notifiable->name . ',')
             ->markdown('mail.task.created', [
                 'url' => $url,
                 'content' => $content,
-                'name' => $notifiable->name,
-                'themeColor' => $this->company->header_color
+                'themeColor' => $this->company->header_color,
+                'notifiableName' => $notifiable->name
             ]);
     }
 
@@ -111,7 +112,7 @@ class NewTask extends BaseNotification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content('*' . __('email.newTask.subject') . '*' . "\n" . '<' . route('tasks.show', $this->task->id) . '|' . ucfirst($this->task->heading) . '>' . "\n" . ' #' . $this->task->task_short_code . "\n" . __('app.dueDate') . ': ' . $dueDate . (!is_null($this->task->project) ? "\n" . __('app.project') . ' - ' . ucfirst($this->task->project->project_name) : ''));
+                ->content('*' . __('email.newTask.subject') . '*' . "\n" . '<' . route('tasks.show', $this->task->id) . '|' . $this->task->heading . '>' . "\n" . ' #' . $this->task->task_short_code . "\n" . __('app.dueDate') . ': ' . $dueDate . (!is_null($this->task->project) ? "\n" . __('app.project') . ' - ' . $this->task->project->project_name : ''));
         }
 
         return (new SlackMessage())
@@ -124,8 +125,8 @@ class NewTask extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.newTask.subject'))
-            ->body($this->task->heading);
+            ->setSubject(__('email.newTask.subject'))
+            ->setBody($this->task->heading);
     }
 
 }

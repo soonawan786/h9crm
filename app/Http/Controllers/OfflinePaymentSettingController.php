@@ -46,7 +46,7 @@ class OfflinePaymentSettingController extends AccountBaseController
     public function store(StoreRequest $request)
     {
         $method = new OfflinePaymentMethod();
-        $method->name = ucwords($request->name);
+        $method->name = $request->name;
         $method->description = trim_editor($request->description);
         $method->save();
 

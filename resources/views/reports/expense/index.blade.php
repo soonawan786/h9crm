@@ -5,14 +5,22 @@
     @include('sections.datatable_css')
 @endpush
 
+@push('styles')
+    <style>
+        .action-bar{
+            float: right;
+        }
+    </style>
+@endpush
+
 @section('filter-section')
+
     <x-filters.filter-box>
         <!-- DATE START -->
         <div class="select-box d-flex pr-2 border-right-grey border-right-grey-sm-0">
             <p class="mb-0 pr-2 f-14 text-dark-grey d-flex align-items-center">@lang('app.duration')</p>
             <div class="select-status d-flex">
-                <input type="text"
-                    class="position-relative text-dark form-control border-0 p-2 text-left f-14 f-w-500 border-additional-grey"
+                <input type="text" class="position-relative text-dark form-control border-0 p-2 text-left f-14 f-w-500 border-additional-grey"
                     id="datatableRange2" placeholder="@lang('placeholders.dateRange')">
             </div>
         </div>
@@ -75,11 +83,25 @@
 @endsection
 
 @section('content')
+
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <div class="row mb-4">
             <div class="col-lg-4">
-                <x-cards.widget :title="__('modules.dashboard.totalExpenses')" value="0" icon="coins" widgetId="totalExpense" />
+                <x-cards.widget :title="__('modules.dashboard.totalExpenses')" value="0" icon="coins"
+                    widgetId="totalExpense" />
+            </div>
+            <div class="col-md-8">
+                <div class="d-block d-lg-flex d-md-flex justify-content-between action-bar" id="reports">
+                    <div class="btn-group mt-3 mt-lg-0 mt-md-0 ml-lg-3" role="group">
+                        <a href="{{ route('expense-report.index') }}" class="btn btn-secondary f-14 btn-active" data-toggle="tooltip"
+                            data-original-title="@lang('app.menu.expenseReport')"><i class="side-icon bi bi-list-ul"></i></a>
+
+                        <a href="{{ route('expense-report.expense_category_report') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
+                            data-original-title="@lang('modules.expenseCategory.expenseCategoryReport')"><i class="side-icon bi bi-receipt"></i></a>
+
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -91,12 +113,13 @@
                     <x-cards.data id="e" :title="__($pageTitle)">
                     </x-cards.data>
                     <!-- EXPENSE STATUS END -->
+                </div>
 
-                    <div id="table-actions" class="flex-grow-1 align-items-center mt-4">
-                        <button id="custom-print-btn" style="padding: 8px 17px;font-size: 14px;margin-left: 2rem;"
+                <div id="table-actions" class="flex-grow-1 align-items-center mt-4">
+                <button id="custom-print-btn" style="padding: 8px 17px;font-size: 14px;margin-left: 2rem;"
                             class="btn btn-secondary"><i class="fa fa-print"></i> Print</button>
                     </div>
-                </div>
+            </div>
             </div>
             <div class="col-lg-6">
                 <x-cards.data :title="__($categoryTitle)">
@@ -106,161 +129,162 @@
         </div>
 
         <!-- Task Box Start -->
-        <div class="d-flex flex-column w-tables rounded mt-4 bg-white">
+        <div class="d-flex flex-column w-tables rounded mt-4 bg-white table-responsive">
             {!! $dataTable->table(['class' => 'table table-hover border-0 w-100']) !!}
         </div>
         <!-- Task Box End -->
     </div>
     <!-- CONTENT WRAPPER END -->
+
 @endsection
 
 @push('scripts')
-    @include('sections.datatable_js')
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+@include('sections.datatable_js')
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    function setDate() {
+        var start = moment().clone().startOf('month');
+        var end = moment();
 
-    <script type="text/javascript">
-        function setDate() {
-            var start = moment().clone().startOf('month');
-            var end = moment();
+        $('#datatableRange2').daterangepicker({
+            locale: daterangeLocale,
+            linkedCalendars: false,
+            startDate: start,
+            endDate: end,
+            ranges: daterangeConfig
+        }, cb);
+    }
+</script>
+<script>
+    $(function() {
+        setDate()
+        $('#datatableRange2').on('apply.daterangepicker', function(ev, picker) {
+            showTable();
+        });
 
-            $('#datatableRange2').daterangepicker({
-                locale: daterangeLocale,
-                linkedCalendars: false,
-                startDate: start,
-                endDate: end,
-                ranges: daterangeConfig
-            }, cb);
+        function barChart() {
+            var startDate = $('#datatableRange2').val();
+
+            if (startDate == '') {
+                startDate = null;
+                endDate = null;
+            } else {
+                var dateRangePicker = $('#datatableRange2').data('daterangepicker');
+                startDate = dateRangePicker.startDate.format('{{ company()->moment_date_format }}');
+                endDate = dateRangePicker.endDate.format('{{ company()->moment_date_format }}');
+            }
+
+            var data = new Array();
+            var projectID = $('#project_id').val();
+            var employeeID = $('#employee_id').val();
+            var categoryID = $('#category_id').val();
+            var searchText = $('#search-text-field').val();
+
+            var url = "{{ route('expense-report.chart') }}";
+
+            $.easyAjax({
+                url: url,
+                container: '#e',
+                blockUI: true,
+                type: "POST",
+                data: {
+                    startDate: startDate,
+                    endDate: endDate,
+                    categoryID: categoryID,
+                    projectID: projectID,
+                    employeeID: employeeID,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    $('#e .card-body').html(response.html);
+                    $('#expense-chart-card').html(response.html2);
+                    $('#totalExpense').html(response.totalExpenses);
+                }
+            });
         }
 
-        $(function() {
-            setDate()
-            $('#datatableRange2').on('apply.daterangepicker', function(ev, picker) {
-                showTable();
-            });
+        barChart();
 
-            function barChart() {
-                var startDate = $('#datatableRange2').val();
+        $('#expense-report-table').on('preXhr.dt', function(e, settings, data) {
 
-                if (startDate == '') {
-                    startDate = null;
-                    endDate = null;
-                } else {
-                    var dateRangePicker = $('#datatableRange2').data('daterangepicker');
-                    startDate = dateRangePicker.startDate.format('{{ company()->moment_date_format }}');
-                    endDate = dateRangePicker.endDate.format('{{ company()->moment_date_format }}');
-                }
+            var dateRangePicker = $('#datatableRange2').data('daterangepicker');
+            var startDate = $('#datatableRange2').val();
 
-                var data = new Array();
-                var projectID = $('#project_id').val();
-                var employeeID = $('#employee_id').val();
-                var categoryID = $('#category_id').val();
-                var searchText = $('#search-text-field').val();
+            if (startDate == '') {
+                startDate = null;
+                endDate = null;
+            } else {
+                startDate = dateRangePicker.startDate.format('{{ company()->moment_date_format }}');
+                endDate = dateRangePicker.endDate.format('{{ company()->moment_date_format }}');
+            }
 
-                var url = "{{ route('expense-report.chart') }}";
+            var projectID = $('#project_id').val();
+            if (!projectID) {
+                projectID = 0;
+            }
+            var employeeID = $('#employee_id').val();
+            var categoryID = $('#category_id').val();
+            var searchText = $('#search-text-field').val();
 
-                $.easyAjax({
-                    url: url,
-                    container: '#e',
-                    blockUI: true,
-                    type: "POST",
-                    data: {
-                        startDate: startDate,
-                        endDate: endDate,
-                        categoryID: categoryID,
-                        projectID: projectID,
-                        employeeID: employeeID,
-                        _token: '{{ csrf_token() }}'
-                    },
-                    success: function(response) {
-                        $('#e .card-body').html(response.html);
-                        $('#expense-chart-card').html(response.html2);
-                        $('#totalExpense').html(response.totalExpenses);
+            data['categoryID'] = categoryID;
+            data['employeeID'] = employeeID;
+            data['projectID'] = projectID;
+            data['startDate'] = startDate;
+            data['endDate'] = endDate;
+            data['searchText'] = searchText;
+        });
+
+        const showTable = () => {
+            window.LaravelDataTables["expense-report-table"].draw(false);
+            barChart();
+        }
+
+        $('#category_id, #employee_id, #project_id')
+            .on('change keyup',
+                function() {
+                    if ($('#project_id').val() != "all") {
+                        $('#reset-filters').removeClass('d-none');
+                        showTable();
+                    } else if ($('#category_id').val() != "all") {
+                        $('#reset-filters').removeClass('d-none');
+                        showTable();
+                    } else if ($('#project_id').val() != "all") {
+                        $('#reset-filters').removeClass('d-none');
+                        showTable();
+                    } else if ($('#employee_id').val() != "all") {
+                        $('#reset-filters').removeClass('d-none');
+                        showTable();
+                    } else {
+                        $('#reset-filters').addClass('d-none');
+                        showTable();
                     }
                 });
-            }
 
-            barChart();
-
-            $('#expense-report-table').on('preXhr.dt', function(e, settings, data) {
-
-                var dateRangePicker = $('#datatableRange2').data('daterangepicker');
-                var startDate = $('#datatableRange2').val();
-
-                if (startDate == '') {
-                    startDate = null;
-                    endDate = null;
-                } else {
-                    startDate = dateRangePicker.startDate.format('{{ company()->moment_date_format }}');
-                    endDate = dateRangePicker.endDate.format('{{ company()->moment_date_format }}');
-                }
-
-                var projectID = $('#project_id').val();
-                if (!projectID) {
-                    projectID = 0;
-                }
-                var employeeID = $('#employee_id').val();
-                var categoryID = $('#category_id').val();
-                var searchText = $('#search-text-field').val();
-
-                data['categoryID'] = categoryID;
-                data['employeeID'] = employeeID;
-                data['projectID'] = projectID;
-                data['startDate'] = startDate;
-                data['endDate'] = endDate;
-                data['searchText'] = searchText;
-            });
-
-            const showTable = () => {
-                window.LaravelDataTables["expense-report-table"].draw(false);
-                barChart();
-            }
-
-            $('#category_id, #employee_id, #project_id')
-                .on('change keyup',
-                    function() {
-                        if ($('#project_id').val() != "all") {
-                            $('#reset-filters').removeClass('d-none');
-                            showTable();
-                        } else if ($('#category_id').val() != "all") {
-                            $('#reset-filters').removeClass('d-none');
-                            showTable();
-                        } else if ($('#project_id').val() != "all") {
-                            $('#reset-filters').removeClass('d-none');
-                            showTable();
-                        } else if ($('#employee_id').val() != "all") {
-                            $('#reset-filters').removeClass('d-none');
-                            showTable();
-                        } else {
-                            $('#reset-filters').addClass('d-none');
-                            showTable();
-                        }
-                    });
-
-            $('#search-text-field').on('keyup', function() {
-                if ($('#search-text-field').val() != "") {
-                    $('#reset-filters').removeClass('d-none');
-                    showTable();
-                }
-            });
-
-            $('#reset-filters').click(function() {
-                $('#filter-form')[0].reset();
-                setDate()
-
-                $('.filter-box .select-picker').selectpicker("refresh");
-                $('#reset-filters').addClass('d-none');
+        $('#search-text-field').on('keyup', function() {
+            if ($('#search-text-field').val() != "") {
+                $('#reset-filters').removeClass('d-none');
                 showTable();
-            });
-
-            $('#reset-filters-2').click(function() {
-                $('#filter-form')[0].reset();
-
-                $('.filter-box .select-picker').selectpicker("refresh");
-                $('#reset-filters').addClass('d-none');
-                showTable();
-            });
-
+            }
         });
+
+        $('#reset-filters').click(function() {
+            $('#filter-form')[0].reset();
+            setDate()
+
+            $('.filter-box .select-picker').selectpicker("refresh");
+            $('#reset-filters').addClass('d-none');
+            showTable();
+        });
+
+        $('#reset-filters-2').click(function() {
+            $('#filter-form')[0].reset();
+
+            $('.filter-box .select-picker').selectpicker("refresh");
+            $('#reset-filters').addClass('d-none');
+            showTable();
+        });
+
+    });
 
         // Custom print button click event handler
         $('#custom-print-btn').on('click', function() {
@@ -347,5 +371,5 @@
             // Trigger the print functionality for the new window
             printWindow.print();
         });
-    </script>
+</script>
 @endpush

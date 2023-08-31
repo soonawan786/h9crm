@@ -1,3 +1,8 @@
+<style>
+    .dropdown-item span {
+        padding-right: 0;
+    }
+</style>
 @php
     $manageAppreciationTypePermission = user()->permission('manage_award');
 @endphp
@@ -6,7 +11,7 @@
         <x-form id="save-notice-data-form">
             <div class="add-client bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
-                    @lang('app.add') @lang('modules.appreciations.appreciation')</h4>
+                    @lang('modules.appreciations.addAppreciation')</h4>
                 <div class="row p-20">
                     <div class="col-lg-12">
                         <div class="row">
@@ -19,8 +24,9 @@
                                             data-live-search="true">
                                         <option value="">--</option>
                                         @foreach ($appreciationTypes as $appreciationType)
-                                            <option data-content="<i class='bi bi-{{ $appreciationType->awardIcon->icon }}' style='color: {{ $appreciationType->color_code }}'></i> {{ $appreciationType->title }}" value="{{ $appreciationType->id }}">
-                                                {{ mb_ucwords($appreciationType->title) }}
+                                            <option
+                                            data-content='<x-award-icon :award="$appreciationType" /> {{ $appreciationType->title }}' value="{{ $appreciationType->id }}">
+                                                {{ $appreciationType->title }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -63,7 +69,7 @@
                             </div>
 
                             <div class="col-lg-12">
-                                <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2 cropper"
+                                <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2 cropper"
                                               :fieldLabel="__('modules.appreciations.photo')" fieldName="photo" fieldId="photo"
                                               fieldHeight="119" :popover="__('messages.appreciationPhoto')" />
                             </div>

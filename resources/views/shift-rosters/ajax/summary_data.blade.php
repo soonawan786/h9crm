@@ -71,7 +71,13 @@
                             @endif
                             @elseif ($day == 'EMPTY')
                                 <button type="button" class="change-shift badge badge-light f-10 p-1 border"  data-user-id="{{ $userId }}"
-                                    data-attendance-date="{{ $key2 }}"><i class="fa fa-plus"></i></button>
+                                    data-attendance-date="{{ $key2 }}">
+                                    @if (in_array($manageEmployeeShifts, ['all']))
+                                    <i class="fa fa-plus"></i>
+                                    @else
+                                    <i class="fa fa-ban"></i>
+                                    @endif
+                                </button>
                             @elseif ($day == 'Holiday')
                                 <a href="javascript:;" data-toggle="tooltip" class="change-shift"
                                     data-original-title="{{ $holidayOccasions[$key2] }}"

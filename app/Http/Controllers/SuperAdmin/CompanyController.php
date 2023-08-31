@@ -2,37 +2,37 @@
 
 namespace App\Http\Controllers\SuperAdmin;
 
-use App\Models\EmployeeDetails;
-use App\Models\Role;
-use App\Models\UniversalSearch;
-use App\Models\User;
-use App\Helper\Files;
-use App\Helper\Reply;
-use App\Models\Company;
-use App\Models\Currency;
-use App\Models\Permission;
-use App\Scopes\ActiveScope;
-use App\Scopes\CompanyScope;
-use App\Models\SuperAdmin\GlobalCurrency;
-use App\Models\PermissionType;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use App\Traits\CurrencyExchange;
-use App\Models\SuperAdmin\Package;
-use Illuminate\Support\Facades\DB;
-use App\Models\SuperAdmin\OfflineInvoice;
 use App\DataTables\SuperAdmin\CompanyDataTable;
 use App\DataTables\SuperAdmin\InvoiceDataTable;
+use App\Helper\Files;
+use App\Helper\Reply;
 use App\Http\Controllers\AccountBaseController;
+use App\Http\Requests\SuperAdmin\Company\PackageUpdateRequest;
 use App\Http\Requests\SuperAdmin\Company\StoreRequest;
 use App\Http\Requests\SuperAdmin\Company\UpdateRequest;
-use App\Http\Requests\SuperAdmin\Company\PackageUpdateRequest;
-use App\Models\CompanyAddress;
+use App\Models\Company;
+use App\Models\Currency;
+use App\Models\EmployeeDetails;
+use App\Models\GlobalSetting;
+use App\Models\Permission;
+use App\Models\PermissionType;
+use App\Models\Role;
+use App\Models\SuperAdmin\GlobalCurrency;
+use App\Models\SuperAdmin\GlobalInvoice;
+use App\Models\SuperAdmin\GlobalSubscription;
+use App\Models\SuperAdmin\Package;
+use App\Models\SuperAdmin\PackageSetting;
+use App\Models\UniversalSearch;
+use App\Models\User;
 use App\Models\UserAuth;
 use App\Notifications\SuperAdmin\CompanyApproved;
+use App\Scopes\ActiveScope;
+use App\Scopes\CompanyScope;
+use App\Traits\CurrencyExchange;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\DB;
 
 class CompanyController extends AccountBaseController
 {
@@ -43,6 +43,11 @@ class CompanyController extends AccountBaseController
     {
         parent::__construct();
         $this->pageTitle = __('superadmin.menu.companies');
+
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin());
+            return $next($request);
+        });
     }
 
     /**
@@ -52,6 +57,8 @@ class CompanyController extends AccountBaseController
      */
     public function index(CompanyDataTable $dataTable)
     {
+        $this->viewPermission = user()->permission('view_companies');
+        abort_403(!($this->viewPermission == 'all'));
 
         if (!request()->ajax()) {
             $this->packages = Package::all();
@@ -69,6 +76,9 @@ class CompanyController extends AccountBaseController
      */
     public function create()
     {
+        $this->addPermission = user()->permission('add_companies');
+        abort_403(!($this->addPermission == 'all'));
+
         $this->pageTitle = __('app.add') . ' ' . __('superadmin.company');
 
         $this->timezones = \DateTimeZone::listIdentifiers();
@@ -99,6 +109,9 @@ class CompanyController extends AccountBaseController
      */
     public function store(StoreRequest $request)
     {
+        $this->addPermission = user()->permission('add_companies');
+        abort_403(!($this->addPermission == 'all'));
+
         DB::beginTransaction();
 
         $company = $this->storeAndUpdate(new Company(), $request);
@@ -154,12 +167,12 @@ class CompanyController extends AccountBaseController
         $company->locale = $request->locale;
         $company->status = $request->status;
 
-        if($request->has('approved')){
+        if ($request->has('approved')) {
             $company->approved = $request->approved;
         }
 
         if ($request->hasFile('logo')) {
-            $company->logo = Files::upload($request->logo, 'app-logo');
+            $company->logo = Files::uploadLocalOrS3($request->logo, 'app-logo');
             $company->light_logo = $company->logo;
         }
 
@@ -178,6 +191,9 @@ class CompanyController extends AccountBaseController
 
     public function edit($id)
     {
+        $this->editPermission = user()->permission('edit_companies');
+        abort_403(!($this->editPermission == 'all'));
+
         $this->pageTitle = __('app.update') . ' ' . __('superadmin.company');
         $this->company = Company::with('defaultAddress')->findOrFail($id)->withCustomFields();
         $this->company->user = Company::firstActiveAdmin($this->company);
@@ -204,6 +220,9 @@ class CompanyController extends AccountBaseController
 
     public function update(UpdateRequest $request, $id)
     {
+        $this->editPermission = user()->permission('edit_companies');
+        abort_403(!($this->editPermission == 'all'));
+
         $company = Company::findOrFail($id);
 
         DB::beginTransaction();
@@ -234,8 +253,12 @@ class CompanyController extends AccountBaseController
      */
     public function destroy($id)
     {
+        $this->deletePermission = user()->permission('delete_companies');
+        abort_403(!($this->deletePermission == 'all'));
+
         Company::where('id', $id)->update(['default_task_status' => null]);
         Company::destroy($id);
+
         return Reply::successWithData(__('messages.deleteSuccess'), ['redirectUrl' => route('superadmin.companies.index')]);
     }
 
@@ -291,6 +314,7 @@ class CompanyController extends AccountBaseController
         $this->packages = Package::all();
         $this->currentPackage = $this->company->package;
 
+        $this->allPackages = collect();
 
         $packageInfo = [];
 
@@ -299,9 +323,26 @@ class CompanyController extends AccountBaseController
                 'monthly' => $package->monthly_price,
                 'annual' => $package->annual_price
             ];
+
+            if ($package->default !== 'no') {
+                $this->allPackages->push($this->getSeparatePackage($package));
+            }
+            else {
+                if ($package->monthly_status) {
+                    $this->allPackages->push($this->getSeparatePackage($package, 'monthly'));
+                }
+
+                if ($package->annual_status) {
+                    $this->allPackages->push($this->getSeparatePackage($package));
+                }
+            }
         }
 
         $this->packageInfo = $packageInfo;
+        $this->pageInfo = request()->requestFrom ? request()->requestFrom : 'index';
+        $this->latestInvoice = GlobalInvoice::where('company_id', $this->company->id)
+            ->whereNotNull('pay_date')
+            ->latest()->first();
 
         $this->view = 'super-admin.companies.ajax.edit-package';
 
@@ -314,45 +355,80 @@ class CompanyController extends AccountBaseController
         return view('super-admin.companies.create', $this->data);
     }
 
+    private function getSeparatePackage(Package $package, $type = 'annual')
+    {
+        $newPackage = new Package();
+        $newPackage = $package->replicate();
+        $newPackage->id = $package->id;
+        $newPackage->type = $type;
+        $days = ($type == 'monthly') ? Carbon::now()->addMonth()->diffInDays(Carbon::now()) : Carbon::now()->addYear()->diffInDays(Carbon::now());
+
+        if ($package->default == 'trial') {
+            $days = PackageSetting::first()->no_of_days;
+        }
+
+        $newPackage->days = $days;
+
+        return $newPackage;
+    }
+
     public function updatePackage(PackageUpdateRequest $request, $id)
     {
-
         $company = Company::findOrFail($id);
         $package = Package::findOrFail($request->package);
 
         try {
+
             $company->package_id = $package->id;
             $company->package_type = $request->package_type;
             $company->status = 'active';
 
-            $payDate = $request->pay_date ? Carbon::parse($request->pay_date) : Carbon::now();
+            $payDate = $request->pay_date ? Carbon::createFromFormat($this->global->date_format, $request->pay_date) : Carbon::now();
 
-            $company->licence_expire_on = ($company->package_type == 'monthly') ? $payDate->copy()->addMonth()->format('Y-m-d') : $payDate->copy()->addYear()->format('Y-m-d');
+            $company->licence_expire_on = $request->licence_expire_on ? Carbon::createFromFormat($this->global->date_format, $request->licence_expire_on)->format('Y-m-d') : $payDate->copy()->addDays('7')->format('Y-m-d');
 
-            $nextPayDate = $request->next_pay_date ? Carbon::parse($request->next_pay_date) : $company->licence_expire_on;
+            $nextPayDate = $request->next_pay_date ? Carbon::createFromFormat($this->global->date_format, $request->next_pay_date) : $company->licence_expire_on;
+            $currencyId = $package->currency_id ?: global_setting()->currency_id;
 
-            if ($company->isDirty('package_id') || $company->isDirty('package_type')) {
-                $offlineInvoice = new OfflineInvoice();
-            }
-            else {
-                $offlineInvoice = OfflineInvoice::where('company_id', $id)->orderBy('created_at', 'desc')->first();
+            GlobalSubscription::where('company_id', $company->id)
+                ->where('subscription_status', 'active')
+                ->update(['subscription_status' => 'inactive']);
 
-                if (!$offlineInvoice) {
-                    $offlineInvoice = new OfflineInvoice();
-                }
-            }
+            $subscription = new GlobalSubscription();
+            $subscription->company_id = $company->id;
+            $subscription->package_id = $package->id;
+            $subscription->currency_id = $currencyId;
+            $subscription->package_type = $request->package_type;
+            $subscription->quantity = 1;
+            $subscription->gateway_name = 'offline';
+            $subscription->subscription_status = 'active';
+            $subscription->subscribed_on_date = Carbon::now();
+            $subscription->ends_at = $company->licence_expire_on;
+            $subscription->transaction_id = str(str()->random(15))->upper();
+            $subscription->save();
 
+            $offlineInvoice = new GlobalInvoice();
+            $offlineInvoice->global_subscription_id = $subscription->id;
             $offlineInvoice->company_id = $company->id;
+            $offlineInvoice->currency_id = $currencyId;
             $offlineInvoice->package_id = $company->package_id;
-            $offlineInvoice->package_type = $request->packageType;
-            $offlineInvoice->amount = ($request->amount ?: $package->{$request->packageType . '_price'}) ?: 0.00;
+            $offlineInvoice->package_type = $request->package_type;
+            $offlineInvoice->total = ($request->amount ?: $package->{$request->package_type . '_price'}) ?: 0.00;
             $offlineInvoice->pay_date = $payDate;
             $offlineInvoice->next_pay_date = $nextPayDate;
-            $offlineInvoice->status = 'paid';
+            $offlineInvoice->gateway_name = 'offline';
+            $offlineInvoice->transaction_id = $subscription->transaction_id;
             $offlineInvoice->save();
             $company->save();
 
-            return Reply::redirect(route('superadmin.companies.index'), __('messages.packageChanged'));
+            if ($request->request_from == 'index') {
+                return Reply::redirect(route('superadmin.companies.index'), __('messages.packageChanged'));
+
+            } else {
+
+                return Reply::redirect(route('superadmin.companies.show', [$company->id]), __('messages.packageChanged'));
+            }
+
         } catch (\Throwable $th) {
             return Reply::error($th->getMessage());
         }
@@ -397,6 +473,7 @@ class CompanyController extends AccountBaseController
         $user->email = $request->email;
         $user->status = 'active';
         $user->user_auth_id = $userAuth->id;
+        $user->locale = $company->locale;
         $user->save();
 
         if ($request->password != '') {
@@ -451,6 +528,9 @@ class CompanyController extends AccountBaseController
 
     public function billing()
     {
+        $this->managePermission = user()->permission('manage_billing');
+        abort_403(!($this->managePermission == 'all'));
+
         $dataTable = new InvoiceDataTable();
         $tab = request('tab');
         $this->activeTab = $tab ?: 'company';

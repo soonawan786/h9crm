@@ -40,7 +40,9 @@ class EmployeePermissionSeeder extends Seeder
             ->where('company_id', $companyId)
             ->first();
 
-        $allPermissions = Permission::all();
+        $allPermissions = Permission::whereHas('module', function ($query) {
+            $query->withoutGlobalScopes()->where('is_superadmin', '0');
+        })->get();
 
         $this->permissionRole($allPermissions, 'employee', $companyId);
 
@@ -64,7 +66,7 @@ class EmployeePermissionSeeder extends Seeder
 
         foreach ($adminRole->roleuser as $roleuser) {
             try {
-                $roleuser->user->insertUserRolePermission($adminRole->id);
+                $roleuser->user->assignUserRolePermission($adminRole->id);
             } catch (\Exception $e) {
                 echo($e->getMessage());
             }
@@ -131,7 +133,7 @@ class EmployeePermissionSeeder extends Seeder
 
         if ($type === 'client') {
             foreach ($role->roleuser as $roleuser) {
-                $roleuser->user->insertUserRolePermission($role->id);
+                $roleuser->user->assignUserRolePermission($role->id);
             }
         }
     }

@@ -7,12 +7,12 @@ $deleteContractPermission = user()->permission('delete_contract');
         <div class="card-horizontal">
             <div class="card-img my-1 ml-0">
                 <a href="{{ route('employees.show', $history->renewedBy->id) }}">
-                    <img src="{{ $history->renewedBy->image_url }}" alt="{{ mb_ucwords($history->renewedBy->name) }}"></a>
+                    <img src="{{ $history->renewedBy->image_url }}" alt="{{ $history->renewedBy->name }}"></a>
             </div>
             <div class="card-body border-0 pl-0 py-1">
                 <div class="d-flex flex-grow-1">
                     <h4 class="card-title f-15 f-w-500"><a class="text-dark"
-                        href="{{ route('employees.show', $history->renewedBy->id) }}">{{ mb_ucwords($history->renewedBy->name) }}</a>
+                        href="{{ route('employees.show', $history->renewedBy->id) }}">{{ $history->renewedBy->name }}</a>
                         <br>
                         <span class="card-date f-11 text-lightest mb-0">
                             <i class="fa fa-calendar-alt"></i> @lang('app.renew') @lang('app.date') - {{ $history->created_at->timezone(company()->timezone)->translatedFormat(company()->date_format) }}

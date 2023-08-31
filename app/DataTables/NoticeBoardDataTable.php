@@ -2,7 +2,6 @@
 
 namespace App\DataTables;
 
-use App\DataTables\BaseDataTable;
 use App\Models\Notice;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -12,6 +11,7 @@ use Yajra\DataTables\Html\Column;
 class NoticeBoardDataTable extends BaseDataTable
 {
 
+    private $viewNoticePermission;
     private $editNoticePermission;
     private $deleteNoticePermission;
 
@@ -87,7 +87,7 @@ class NoticeBoardDataTable extends BaseDataTable
             ->editColumn(
                 'to',
                 function ($row) {
-                    return ucfirst($row->to);
+                    return __('app.'. $row->to);
                 }
             )
             ->addIndexColumn()
@@ -105,7 +105,7 @@ class NoticeBoardDataTable extends BaseDataTable
     public function query(Notice $model)
     {
         $request = $this->request();
-        $model = $model->select('id', 'heading', 'to', 'created_at', 'added_by');
+        $model = $model->select('id', 'heading', 'to', 'created_at', 'added_by', 'department_id');
 
         if ($request->startDate !== null && $request->startDate != 'null' && $request->startDate != '') {
             $startDate = Carbon::createFromFormat($this->company->date_format, $request->startDate)->toDateString();
@@ -120,6 +120,18 @@ class NoticeBoardDataTable extends BaseDataTable
         if ($request->searchText != '') {
             $model->where(function ($query) {
                 $query->where('notices.heading', 'like', '%' . request('searchText') . '%');
+            });
+        }
+
+        if (in_array('employee', user_roles()) && !in_array('admin', user_roles())) {
+            $model->where(function ($query) {
+                $query->where('to', 'employee');
+
+                if ($this->user && $this->user->employeeDetail && $this->user->employeeDetail->department) {
+                    $departmentId = $this->user->employeeDetail->department->id;
+                    $query->whereNull('department_id');
+                    $query->orWhere('department_id', $departmentId);
+                }
             });
         }
 
@@ -175,7 +187,7 @@ class NoticeBoardDataTable extends BaseDataTable
                 'searchable' => false,
                 'visible' => !in_array('client', user_roles())
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('modules.notices.notice') => ['data' => 'heading', 'name' => 'heading', 'title' => __('modules.notices.notice')],
             __('app.date') => ['data' => 'created_at', 'name' => 'created_at', 'title' => __('app.date')],
             __('app.to') => ['data' => 'to', 'name' => 'to', 'title' => __('app.to'), 'visible' => !in_array('client', user_roles())],
@@ -186,16 +198,6 @@ class NoticeBoardDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Notice_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

@@ -24,8 +24,9 @@ class AwardController extends AccountBaseController
 
     public function index(AwardDataTable $dataTable)
     {
-        $this->manageAppreciationPermission = user()->permission('manage_award');
-        abort_403(!($this->manageAppreciationPermission == 'all'));
+        $viewPermission = user()->permission('view_appreciation');
+
+        abort_403(!in_array($viewPermission, ['all', 'added', 'owned', 'both']));
         return $dataTable->render('awards.index', $this->data);
 
     }
@@ -91,7 +92,7 @@ class AwardController extends AccountBaseController
             $icon = "<i class='bi bi-". $item->awardIcon->icon."' style='color:".$item->color_code ."'></i>     ";
 
             $options .= '<option ' . $selected . '  data-content="'.$icon .' '. $name .'" value="'.$item->id.'">
-                                                '.mb_ucwords($name).'
+                                                '.$name.'
                                             </option>';
         }
 
@@ -118,8 +119,8 @@ class AwardController extends AccountBaseController
     {
         $this->appreciationType = Award::findOrFail($id);
 
-        $this->manageAppreciationPermission = user()->permission('manage_award');
-        abort_403(!($this->manageAppreciationPermission == 'all'));
+        $this->manageAppreciationPermission = user()->permission('view_appreciation');
+        abort_403(!($this->manageAppreciationPermission != 'none'));
 
         $this->pageTitle = $this->appreciationType->title;
 

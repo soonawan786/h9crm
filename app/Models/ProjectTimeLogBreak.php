@@ -36,10 +36,10 @@ use Illuminate\Support\Facades\DB;
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectTimeLogBreak whereTotalHours($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectTimeLogBreak whereTotalMinutes($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectTimeLogBreak whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectTimeLogBreak whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ProjectTimeLogBreak extends BaseModel
 {
@@ -47,7 +47,10 @@ class ProjectTimeLogBreak extends BaseModel
     use HasFactory;
     use HasCompany;
 
-    protected $dates = ['start_time', 'end_time'];
+    protected $casts = [
+        'start_time' => 'datetime',
+        'end_time' => 'datetime',
+    ];
 
     public function timelog(): BelongsTo
     {

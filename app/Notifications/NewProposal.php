@@ -42,6 +42,7 @@ class NewProposal extends BaseNotification
     // phpcs:ignore
     public function toMail($notifiable)
     {
+        $newProposal = parent::build();
         $proposalController = new ProposalController();
 
         if ($pdfOption = $proposalController->domPdfObjectForDownload($this->proposal->id)) {
@@ -53,7 +54,6 @@ class NewProposal extends BaseNotification
 
             $content = __('email.proposal.text') . '<br>';
 
-            $newProposal = parent::build();
             $newProposal->subject(__('email.proposal.subject'))
                 ->markdown('mail.email', [
                     'url' => $url,

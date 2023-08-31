@@ -60,18 +60,19 @@ class TaskReminder extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('front.task_detail', [$this->task->hash]);
 
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = ucfirst($this->task->heading) . ' #' . $this->task->task_short_code . '<p>';
+        $content = $this->task->heading . ' #' . $this->task->task_short_code . '<p>';
 
         if ($this->task->due_date) {
             $content .= '<b style="color: green">' . __('app.dueDate') . ' : ' . $this->task->due_date->format($this->company->date_format) . '</b>
             </p>';
         }
 
-        return parent::build()
+        return $build
             ->subject(__('email.reminder.subject') . ' #' . $this->task->task_short_code . ' - ' . config('app.name') . '.')
             ->greeting(__('email.hello') . ' ' . $notifiable->name . ',')
             ->markdown('mail.task.reminder', [
@@ -113,7 +114,7 @@ class TaskReminder extends BaseNotification
 
         if (count($notifiable->employee) > 0 && (!is_null($notifiable->employee[0]->slack_username) && ($notifiable->employee[0]->slack_username != ''))) {
             return $message->to('@' . $notifiable->employee[0]->slack_username)
-                ->content('*' . __('email.reminder.subject') . '*' . "\n" . ucfirst($this->task->heading) . "\n" . ' #' . $this->task->task_short_code . "\n" . __('app.dueDate') . ': ' . $dueDate);
+                ->content('*' . __('email.reminder.subject') . '*' . "\n" . $this->task->heading . "\n" . ' #' . $this->task->task_short_code . "\n" . __('app.dueDate') . ': ' . $dueDate);
         }
 
         return $message->content('*' . __('email.reminder.subject') . '*' . "\n" .'This is a redirected notification. Add slack username for *' . $notifiable->name . '*');
@@ -123,8 +124,8 @@ class TaskReminder extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.reminder.subject'))
-            ->body($this->task->heading . ' #' . $this->task->task_short_code);
+            ->setSubject(__('email.reminder.subject'))
+            ->setBody($this->task->heading . ' #' . $this->task->task_short_code);
     }
 
 }

@@ -23,7 +23,7 @@
                                 aria-selected="true">@lang('app.menu.twoFactorAuthentication') <i
                                     class="fa fa-circle ml-1 {{ ($user->userAuth->two_fa_verify_via != '' && ($user->userAuth->two_factor_confirmed || $user->userAuth->two_factor_email_confirmed)) ? 'text-light-green' : 'text-red' }}"></i></a>
 
-                            @if(user()->is_superadmin)
+                            @if(user()->permission('manage_superadmin_security_settings') == 'all' && user()->is_superadmin)
                                 <a class="nav-item nav-link f-15 recaptcha" data-toggle="tab"
                                     href="{{ route('security-settings.index') }}?tab=recaptcha" role="tab"
                                     aria-controls="nav-recaptcha"

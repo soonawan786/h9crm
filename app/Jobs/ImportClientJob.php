@@ -24,16 +24,18 @@ class ImportClientJob implements ShouldQueue
 
     private $row;
     private $columns;
+    private $company;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($row, $columns)
+    public function __construct($row, $columns, $company = null)
     {
         $this->row = $row;
         $this->columns = $columns;
+        $this->company = $company;
     }
 
     /**
@@ -60,6 +62,7 @@ class ImportClientJob implements ShouldQueue
 
 
                     $user = new User();
+                    $user->company_id = $this->company?->id;
                     $user->name = $this->row[array_keys($this->columns, 'name')[0]];
                     $user->email = !empty(array_keys($this->columns, 'email')) && filter_var($this->row[array_keys($this->columns, 'email')[0]], FILTER_VALIDATE_EMAIL) ? $this->row[array_keys($this->columns, 'email')[0]] : null;
                     $user->mobile = !empty(array_keys($this->columns, 'mobile')) ? $this->row[array_keys($this->columns, 'mobile')[0]] : null;
@@ -74,6 +77,7 @@ class ImportClientJob implements ShouldQueue
 
                     if ($user->id) {
                         $clientDetails = new ClientDetails();
+                        $clientDetails->company_id = $this->company?->id;
                         $clientDetails->user_id = $user->id;
                         $clientDetails->company_name = !empty(array_keys($this->columns, 'company_name')) ? $this->row[array_keys($this->columns, 'company_name')[0]] : null;
                         $clientDetails->address = !empty(array_keys($this->columns, 'address')) ? $this->row[array_keys($this->columns, 'address')[0]] : null;
@@ -86,17 +90,17 @@ class ImportClientJob implements ShouldQueue
                         $clientDetails->save();
                     }
 
-                    $role = Role::where('name', 'client')->select('id')->first();
+                    $role = Role::where('name', 'client')->where('company_id', $this->company?->id)->select('id')->first();
                     $user->attachRole($role->id);
 
-                    $user->insertUserRolePermission($role->id);
+                    $user->assignUserRolePermission($role->id);
 
                     if (!is_null($user->email)) {
-                        $this->logSearchEntry($user->id, $user->email, 'clients.show', 'client');
+                        $this->logSearchEntry($user->id, $user->email, 'clients.show', 'client', $user->company_id);
                     }
 
                     if (!is_null($user->clientDetails->company_name)) {
-                        $this->logSearchEntry($user->id, $user->clientDetails->company_name, 'clients.show', 'client');
+                        $this->logSearchEntry($user->id, $user->clientDetails->company_name, 'clients.show', 'client', $user->company_id);
                     }
 
                     DB::commit();

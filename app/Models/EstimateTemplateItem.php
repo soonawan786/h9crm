@@ -8,6 +8,47 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
+/**
+ * App\Models\EstimateTemplateItem
+ *
+ * @property int $id
+ * @property int|null $company_id
+ * @property int $estimate_template_id
+ * @property string|null $hsn_sac_code
+ * @property string $item_name
+ * @property string $type
+ * @property int $quantity
+ * @property float $unit_price
+ * @property float $amount
+ * @property string|null $item_summary
+ * @property string|null $taxes
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\EstimateTemplateItemImage|null $estimateTemplateItemImage
+ * @property-read mixed $tax_list
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem query()
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereAmount($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereCompanyId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereEstimateTemplateId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereHsnSacCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereItemName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereItemSummary($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereQuantity($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereTaxes($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereUnitPrice($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereUpdatedAt($value)
+ * @property int|null $product_id
+ * @property int|null $unit_id
+ * @property-read \App\Models\UnitType|null $unit
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereProductId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|EstimateTemplateItem whereUnitId($value)
+ * @mixin \Eloquent
+ */
 class EstimateTemplateItem extends BaseModel
 {
 
@@ -46,6 +87,11 @@ class EstimateTemplateItem extends BaseModel
         }
 
         return $taxes;
+    }
+
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(UnitType::class, 'unit_id');
     }
 
 }

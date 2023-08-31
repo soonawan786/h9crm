@@ -14,6 +14,19 @@ use Yajra\DataTables\Html\Column;
 class CompanyDataTable extends BaseDataTable
 {
 
+    private $editCompaniesPermission;
+    private $updatePackagesPermission;
+    private $deleteCompaniesPermission;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->editCompaniesPermission = user()->permission('edit_companies');
+        $this->updatePackagesPermission = user()->permission('update_company_package');
+        $this->deleteCompaniesPermission = user()->permission('delete_companies');
+    }
+
     /**
      * Build DataTable class.
      *
@@ -22,6 +35,7 @@ class CompanyDataTable extends BaseDataTable
      */
     public function dataTable($query)
     {
+
 
         $datatables = datatables()->eloquent($query);
 
@@ -44,15 +58,20 @@ class CompanyDataTable extends BaseDataTable
                     data-company-id="' . $row->id . '" data-company-url="' . request()->getScheme() . '://' . $row->sub_domain . '" ><i class="fa fa-bell mr-2" aria-hidden="true"></i> ' . __('subdomain::app.core.sendDomainNotification') . '</a>';
             }
 
-            $action .= '<a class="dropdown-item openRightModal" href="' . route('superadmin.companies.edit', [$row->id]) . '">
+            if ($this->editCompaniesPermission == 'all') {
+                $action .= '<a class="dropdown-item openRightModal" href="' . route('superadmin.companies.edit', [$row->id]) . '">
                                 <i class="fa fa-edit mr-2"></i>
                                 ' . trans('app.edit') . '
                             </a>';
+            }
 
-            $action .= '<a class="dropdown-item delete-table-row" href="javascript:;" data-company-id="' . $row->id . '">
-                            <i class="fa fa-trash mr-2"></i>
-                            ' . trans('app.delete') . '
-                        </a>';
+            if ($this->deleteCompaniesPermission == 'all') {
+
+                $action .= '<a class="dropdown-item delete-table-row" href="javascript:;" data-company-id="' . $row->id . '">
+                                <i class="fa fa-trash mr-2"></i>
+                                ' . trans('app.delete') . '
+                            </a>';
+            }
 
             $action .= '</div>
                     </div>
@@ -97,22 +116,27 @@ class CompanyDataTable extends BaseDataTable
         $datatables->editColumn('package', function ($row) {
             $packageName = $row->package ? ucwords($row->package->name) : '--';
             $packageType = $row->package_type;
+            $change = '';
 
-            return "
-                    <div class='w-100'>
-                        <div class='mb-2'>{$packageName} ({$packageType})</div>
-                        <a class='btn-secondary rounded f-11 py-1 px-2 reset-permission openRightModal' href='" . route('superadmin.companies.edit_package', [$row->id]) . "'>
-                            <i class='fa fa-edit'></i> " . trans('app.change') . "
-                        </a>
-                    </div>
-                ";
+            if ($this->updatePackagesPermission == 'all') {
+                $change = "<a class='btn-secondary rounded f-11 py-1 px-2 reset-permission openRightModal' href='" . route('superadmin.companies.edit_package', [$row->id]) . "'>
+                                <i class='fa fa-edit'></i> " . trans('app.change') . '
+                            </a>';
+
+            }
+
+            return "<div class='w-100'>
+                        <div class='mb-2'>
+                        " . $packageName . ' (' . $packageType . ')</div>
+                    '.$change.'
+                    </div> ';
         });
 
         $datatables->addColumn('package_export', function ($row) {
             $packageName = $row->package ? $row->package->name : '--';
             $packageType = $row->package_type;
 
-            return "$packageName ($packageType)";
+            return $packageName . '(' . $packageType . ')';
         });
 
         $datatables->addColumn('details_export', function ($row) {
@@ -155,8 +179,9 @@ class CompanyDataTable extends BaseDataTable
         $datatables->setRowId(function ($row) {
             return 'row-' . $row->id;
         });
-        $datatables->rawColumns(['company_name', 'action', 'status', 'package', 'details']);
-        CustomField::customFieldData($datatables, Company::CUSTOM_FIELD_MODEL);
+
+        $customFieldColumns = CustomField::customFieldData($datatables, Company::CUSTOM_FIELD_MODEL);
+        $datatables->rawColumns(array_merge(['company_name', 'action', 'status', 'package', 'details'], $customFieldColumns));
 
         return $datatables;
     }
@@ -191,7 +216,7 @@ class CompanyDataTable extends BaseDataTable
             ->when($request->companyStatus && $request->companyStatus !== 'all', function ($query) use ($request) {
                 return $query->where('status', $request->companyStatus);
             })
-            ->when($request->approveStatus && $request->approveStatus !== 'all', function ($query) use ($request) {
+            ->when(!is_null($request->approveStatus) && $request->approveStatus !== 'all', function ($query) use ($request) {
                 return $query->where('approved', $request->approveStatus);
             })
             ->when($startDate && $endDate, function ($query) use ($startDate, $endDate) {
@@ -217,7 +242,6 @@ class CompanyDataTable extends BaseDataTable
 
         return Carbon::createFromFormat(global_setting()->date_format, $date)->toDateString();
     }
-
 
     /**
      * Optional method if you want to use html builder.
@@ -251,13 +275,16 @@ class CompanyDataTable extends BaseDataTable
         $data = [
             '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id')],
-            __('app.company') => ['data' => 'company_name', 'name' => 'company_name', 'exportable' => false, 'title' => __('modules.accountSettings.companyName')],
+            __('app.company') => ['data' => 'company_name', 'name' => 'company_name', 'title' => __('modules.accountSettings.companyName')],
             __('superadmin.package') => ['data' => 'package', 'name' => 'package_id', 'title' => __('superadmin.package'), 'exportable' => false],
             __('superadmin.package_export') => ['data' => 'package_export', 'name' => 'package_id', 'title' => __('superadmin.package'), 'visible' => false],
             __('app.details') => ['data' => 'details', 'name' => 'details', 'title' => __('app.details'), 'orderable' => false, 'exportable' => false],
             __('app.details_export') => ['data' => 'details_export', 'name' => 'details_export', 'title' => __('app.details'), 'orderable' => false, 'visible' => false],
             __('superadmin.lastActivity') => ['data' => 'last_login', 'name' => 'last_login', 'title' => __('superadmin.lastActivity')],
-            __('app.status') => ['data' => 'status', 'name' => 'status', 'title' => __('app.status')],
+            __('app.status') => ['data' => 'status', 'name' => 'status', 'title' => __('app.status')]
+        ];
+
+        $action = [
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -266,17 +293,7 @@ class CompanyDataTable extends BaseDataTable
                 ->addClass('text-right pr-20')
         ];
 
-        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Company()));
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'companies_' . now()->format('Y-m-d-H-i-s');
+        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Company()), $action);
     }
 
 }

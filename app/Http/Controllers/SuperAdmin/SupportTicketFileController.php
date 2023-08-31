@@ -51,10 +51,12 @@ class SupportTicketFileController extends AccountBaseController
     {
         $file = SupportTicketFile::findOrFail($id);
 
+        abort_if($file->user_id != $this->user->id && !user()->is_superadmin, 403);
+
         Files::deleteFile($file->hashname, SupportTicketFile::FILE_PATH . '/' . $file->support_ticket_reply_id);
         SupportTicketFile::destroy($id);
 
-        return Reply::success(__('messages.fileDeleted'));
+        return Reply::success(__('messages.deleteSuccess'));
     }
 
     public function show($id)

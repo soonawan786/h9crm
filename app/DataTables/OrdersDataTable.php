@@ -60,7 +60,7 @@ class OrdersDataTable extends BaseDataTable
                 }
 
                 if (!in_array('client', user_roles()) && !in_array($row->status, ['completed', 'canceled', 'refunded']) && ($this->editOrderPermission == 'all' || ($this->editOrderPermission == 'both' && ($row->added_by == user()->id || $row->client_id == user()->id)) || ($this->editOrderPermission == 'added' && $row->added_by == user()->id) || ($this->editOrderPermission == 'owned' && $row->client_id == user()->id))) {
-                    $action .= '<a class="dropdown-item openRightModal" href="' . route('orders.edit', $row->id) . '" >
+                    $action .= '<a class="dropdown-item" href="' . route('orders.edit', $row->id) . '" >
                         <i class="fa fa-edit mr-2"></i>
                         ' . trans('app.edit') . '
                     </a>';
@@ -89,6 +89,9 @@ class OrdersDataTable extends BaseDataTable
                     </div>
                   </div>';
 
+            })
+            ->addColumn('order', function ($row) {
+                return $row->order_number;
             })
             ->addColumn('order_number_export', function ($row) {
                 return $row->order_number;
@@ -166,19 +169,13 @@ class OrdersDataTable extends BaseDataTable
                 }
             )
             ->addColumn('order_status', function ($row) {
-                return ucfirst($row->status);
+                return $row->status;
             })
             ->orderColumn('order_number', 'created_at $1')
             ->orderColumn('name', 'client_id $1')
             ->rawColumns(['action', 'status', 'total', 'name', 'order_number'])
             ->removeColumn('currency_symbol')
             ->removeColumn('currency_code');
-    }
-
-    public function ajax()
-    {
-        return $this->dataTable($this->query())
-            ->make(true);
     }
 
     /**
@@ -192,7 +189,7 @@ class OrdersDataTable extends BaseDataTable
             'currency:id,currency_symbol,currency_code', 'client', 'payment'
         ])
             ->with('client', 'client.session', 'client.clientDetails', 'payment')
-            ->select('orders.id', 'orders.client_id', 'orders.currency_id', 'orders.total', 'orders.status', 'orders.order_date', 'orders.show_shipping_address', 'orders.added_by', 'order_number');
+            ->select('orders.id', 'orders.client_id', 'orders.currency_id', 'orders.total', 'orders.status', 'orders.order_date', 'orders.show_shipping_address', 'orders.added_by', 'orders.order_number', 'orders.custom_order_number');
 
         if ($request->startDate !== null && $request->startDate != 'null' && $request->startDate != '') {
             $startDate = Carbon::createFromFormat($this->company->date_format, $request->startDate)->toDateString();
@@ -215,6 +212,7 @@ class OrdersDataTable extends BaseDataTable
         if ($request->searchText != '') {
             $model->where(function ($query) {
                 $query->where('orders.order_number', 'like', '%' . request('searchText') . '%')
+                    ->orWhere('orders.custom_order_number', 'like', '%' . request('searchText') . '%')
                     ->orWhere('orders.total', 'like', '%' . request('searchText') . '%');
             });
         }
@@ -255,6 +253,8 @@ class OrdersDataTable extends BaseDataTable
                     .appendTo( "#table-actions")
                 }',
                 'fnDrawCallback' => 'function( oSettings ) {
+                    $("#orders-table .select-picker").selectpicker();
+
                     $("body").tooltip({
                         selector: \'[data-toggle="tooltip"]\'
                     });
@@ -274,13 +274,12 @@ class OrdersDataTable extends BaseDataTable
         return [
             __('app.id') => ['data' => 'id', 'name' => 'id', 'visible' => false, 'title' => __('app.id')],
             __('app.order') . __('app.no') => ['data' => 'order_number_export', 'name' => 'order_number_export', 'visible' => false, 'title' => __('app.order') . ' ' . __('app.no')],
-            __('app.order') . '#' => ['data' => 'order_number', 'name' => 'order_number', 'exportable' => false, 'title' => __('app.order') . '#'],
             __('app.client_name') => ['data' => 'client_name', 'name' => 'project.client.name', 'visible' => false, 'title' => __('app.client_name')],
             __('app.client') => ['data' => 'name', 'name' => 'name', 'visible' => !in_array('client', user_roles()), 'exportable' => false, 'title' => __('app.client')],
-            __('modules.invoices.total') => ['data' => 'total', 'name' => 'total', 'class' => 'text-right', 'title' => __('modules.invoices.total')],
+            __('modules.invoices.total') => ['data' => 'total', 'name' => 'total', 'title' => __('modules.invoices.total')],
             __('modules.orders.orderDate') => ['data' => 'order_date', 'name' => 'order_date', 'title' => __('modules.orders.orderDate')],
             __('app.status') => ['data' => 'status', 'name' => 'status', 'width' => '10%', 'exportable' => false, 'title' => __('app.status')],
-            __('order_status') => ['data' => 'order_status', 'name' => 'order_status', 'width' => '10%', 'visible' => false, 'title' => __('app.status')],
+            __('app.order_status') => ['data' => 'order_status', 'name' => 'order_status', 'width' => '10%', 'visible' => false, 'title' => __('app.status')],
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -290,16 +289,6 @@ class OrdersDataTable extends BaseDataTable
                 ->addClass('text-right pr-20')
         ];
 
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Orders_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

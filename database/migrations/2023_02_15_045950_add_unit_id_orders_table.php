@@ -30,7 +30,7 @@ return new class extends Migration {
             });
         }
 
-        $companies = Company::all();
+        $companies = Company::select('id')->get();
 
         foreach ($companies as $company) {
 

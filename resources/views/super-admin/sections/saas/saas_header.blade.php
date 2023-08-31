@@ -38,9 +38,6 @@
                         @endforeach
 
                     </ul>
-                    <div class="my-3 my-lg-0" style="margin-right:1rem;">
-                        <a href="{{ route('front.download.profile') }}" class="btn btn-menu-signup shadow-none ml-2">{{ __('superadmin.download') }}</a>
-                    </div>
                     <div class="my-3 my-lg-0">
                         @guest
                             <a href="{{ module_enabled('Subdomain') ? route('front.workspace') : route('login') }}" class="btn btn-border shadow-none">{{ $frontMenu->login }}</a>
@@ -49,7 +46,7 @@
                             @endif
                         @else
                             <a href="{{ module_enabled('Subdomain') ? (user()->is_superadmin ? \App\Providers\RouteServiceProvider::SUPER_ADMIN_HOME : \App\Providers\RouteServiceProvider::HOME) : route('login') }}" class="btn btn-border shadow-none px-3 py-1">
-                                <img src="{{ user()->image_url }}" class="rounded" width="25" alt="@lang('superadmin.myAccount')"> @lang('superadmin.myAccount')
+                               @if(isset(user()->image_url))  <img src="{{ user()->image_url }}" class="rounded" width="25" alt="@lang('superadmin.myAccount')"> @endif @lang('superadmin.myAccount')
                             </a>
                         @endguest
                     </div>

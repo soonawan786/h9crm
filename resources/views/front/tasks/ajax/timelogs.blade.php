@@ -18,11 +18,11 @@
                         <x-employee :user="$item->user" disabledLink="true" />
                     </td>
                     <td>
-                        {{ ucfirst($item->created_at->diffForHumans()) }}
+                        {{ $item->created_at->diffForHumans() }}
                     </td>
                     <td>
                         @if (!is_null($item->end_time))
-                            {{ ucfirst($item->end_time->diffForHumans()) }}
+                            {{ $item->end_time->diffForHumans() }}
                         @elseif(!is_null($item->activeBreak))
                             <span class='badge badge-secondary'>{{ __('modules.timeLogs.paused') }}</span>
                         @else

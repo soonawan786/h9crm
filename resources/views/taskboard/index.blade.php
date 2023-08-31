@@ -76,7 +76,7 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
                             data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($projects as $project)
-                                <option value="{{ $project->id }}">{{ mb_ucwords($project->project_name) }}</option>
+                                <option value="{{ $project->id }}">{{ $project->project_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -150,7 +150,7 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
                         <select class="form-control select-picker" id="category_id" data-live-search="true" data-container="body" data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($taskCategories as $categ)
-                                <option value="{{ $categ->id }}">{{ mb_ucwords($categ->category_name) }}</option>
+                                <option value="{{ $categ->id }}">{{ $categ->category_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -185,7 +185,7 @@ $addTaskPermission = user()->permission('add_tasks');
     <!-- CONTENT WRAPPER START -->
     <div class="w-task-board-box px-4 py-2 bg-white">
         <!-- Add Task Export Buttons Start -->
-        <div class="d-lg-flex d-md-flex d-block my-3">
+        <div class="d-grid d-lg-flex d-md-flex action-bar my-3">
 
             <x-alert type="warning" icon="info" class="d-lg-none">@lang('messages.dragDropScreenInfo')</x-alert>
 
@@ -204,13 +204,15 @@ $addTaskPermission = user()->permission('add_tasks');
                 @endif
 
 
-                <x-forms.button-secondary id="filter-my-task" icon="user">
-                    @lang('modules.tasks.myTask')
-                </x-forms.button-primary>
+                @if (!in_array('client', user_roles()))
+                    <x-forms.button-secondary id="filter-my-task" icon="user">
+                        @lang('modules.tasks.myTask')
+                    </x-forms.button-primary>
+                @endif
 
             </div>
 
-            <div class="btn-group" role="group">
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group">
                 <a href="{{ route('tasks.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
                     data-original-title="@lang('app.menu.tasks')"><i class="side-icon bi bi-list-ul"></i></a>
 
@@ -233,15 +235,6 @@ $addTaskPermission = user()->permission('add_tasks');
 @push('scripts')
     <script src="{{ asset('vendor/jquery/dragula.js') }}"></script>
 
-    <script>
-        // Enable pusher logging - don't include this in production
-        // Pusher.logToConsole = true;
-
-        const pusher = new Pusher('{{ $pusherSettings->pusher_app_key }}', {
-            cluster: '{{ $pusherSettings->pusher_cluster }}',
-            forceTLS: '{{ $pusherSettings->force_tls }}'
-        });
-    </script>
 
     <script>
         const dp1 = datepicker('.date-range-field', {

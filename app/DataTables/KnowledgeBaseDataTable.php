@@ -88,7 +88,7 @@ class KnowledgeBaseDataTable extends BaseDataTable
             ->editColumn(
                 'to',
                 function ($row) {
-                    return ucfirst($row->to);
+                    return $row->to;
                 }
             )
             ->addIndexColumn()
@@ -178,7 +178,7 @@ class KnowledgeBaseDataTable extends BaseDataTable
                 'searchable' => false,
                 'visible' => true,
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('modules.knowledgeBase.knowledge') => ['data' => 'heading', 'name' => 'heading', 'title' => __('modules.knowledgeBase.knowledge')],
             __('app.date') => ['data' => 'created_at', 'name' => 'created_at', 'title' => __('app.date')],
             __('app.to') => ['data' => 'to', 'name' => 'to', 'title' => __('app.to')],
@@ -190,16 +190,6 @@ class KnowledgeBaseDataTable extends BaseDataTable
                 ->width(150)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'KnowledgeBase_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

@@ -18,8 +18,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder|PermissionType whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PermissionType whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PermissionType whereUpdatedAt($value)
- * @mixin \Eloquent
  * @method static \Illuminate\Database\Eloquent\Builder|PermissionType ofType($type)
+ * @mixin \Eloquent
  */
 class PermissionType extends BaseModel
 {

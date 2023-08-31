@@ -29,19 +29,10 @@
         <!-- INVOICE NUMBER, DATE, DUE DATE, FREQUENCY START -->
         <div class="row px-lg-4 px-md-4 px-3 pt-3">
             <!-- CLIENT START -->
-            <div class="col-md-3">
-                <x-forms.label fieldId="client_id" :fieldLabel="__('app.client')" fieldRequired="true">
-                </x-forms.label>
-                <div class="form-group c-inv-select mb-4">
-                    <select class="form-control select-picker" data-live-search="true" data-size="8" name="client_id"
-                            id="client_id">
-                        <option value="">--</option>
-                        @foreach ($clients as $client)
-                            <x-user-option :user="$client"
-                                           :selected="isset($estimate) && $client->id == $estimate->client_id"/>
-                        @endforeach
-                    </select>
-                </div>
+            <div class="col-md-3 mb-4">
+
+                <x-client-selection-dropdown :clients="$clients" />
+
             </div>
             <!-- CLIENT END -->
             <!-- PROJECT START -->
@@ -100,21 +91,30 @@
                 </div>
             </div>
 
-            <div class="col-lg-3">
-                <div class="form-group mb-lg-0 mb-4">
-                    <x-forms.label fieldId="unit_type_id" :fieldLabel="__('modules.unitType.unitType')">
-                    </x-forms.label>
-                    <div class="select-others height-35 rounded">
-                        <select class="form-control select-picker" data-live-search="true" data-size="8"
-                                name="unit_type_id" id="unit_type_id">
-                            @foreach ($unit_types as $unit_type)
-                            <option @if($unit_type->default == 1) selected @endif value="{{ $unit_type->id }}">{{ ucwords($unit_type->unit_type) }}
-                            </option>
-                            @endforeach
-                        </select>
+
+            @if($linkInvoicePermission == 'all')
+                <div class="col-md-3">
+                    <div class="form-group c-inv-select">
+                        <x-forms.label fieldId="bank_account_id" :fieldLabel="__('app.bankaccount')">
+                        </x-forms.label>
+                        <div class="select-others height-35 rounded">
+                            <select class="form-control select-picker" data-live-search="true" data-size="8"
+                                    name="bank_account_id" id="bank_account_id">
+                                <option value="">--</option>
+                                @if($viewBankAccountPermission != 'none')
+                                    @foreach ($bankDetails as $bankDetail)
+                                        <option value="{{ $bankDetail->id }}">@if($bankDetail->type == 'bank')
+                                            {{ $bankDetail->bank_name }} | @endif
+                                            {{ $bankDetail->account_name }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
+                        </div>
                     </div>
                 </div>
-            </div>
+                <div class="col-md-4 mt-3"></div>
+            @endif
         </div>
         <!-- INVOICE NUMBER, DATE, DUE DATE, FREQUENCY END -->
 
@@ -201,8 +201,8 @@
 
             <div class="col-md-4 mt-4 information-box">
                 <p id="plan">@lang('modules.invoices.customerCharged') @lang('app.daily')</p>
-                <p id="current_date">@lang('modules.recurringInvoice.currentInvoiceDate') {{Carbon\Carbon::now()->translatedFormat(company()->date_format)}}</p>
-                <p id="next_date">@lang('modules.recurringInvoice.nextInvoiceDate') {{Carbon\Carbon::now()->addDay()->translatedFormat(company()->date_format)}}</p>
+                <p id="current_date">@lang('modules.recurringInvoice.currentInvoiceDate') <span class="font-weight-bold">{{Carbon\Carbon::now()->translatedFormat(company()->date_format)}}</span></p>
+                <p id="next_date">@lang('modules.recurringInvoice.nextInvoiceDate') <span class="font-weight-bold">{{Carbon\Carbon::now()->addDay()->translatedFormat(company()->date_format)}}</span></p>
                 <p>@lang('modules.recurringInvoice.soOn')</p>
                 <span id="billing"></span>
             </div>
@@ -214,9 +214,7 @@
         <div class="d-flex px-4 py-3">
             <div class="form-group">
                 <x-forms.input-group>
-                    <select class="form-control select-picker" data-live-search="true" data-size="8"
-                            id="add-products">
-                        <option value="">{{ __('app.select') . ' ' . __('app.product') }}</option>
+                    <select class="form-control select-picker" data-live-search="true" data-size="8" id="add-products" title="{{ __('app.menu.selectProduct') }}">
                         @foreach ($products as $item)
                             <option data-content="{{ $item->title }}" value="{{ $item->id }}">
                                 {{ $item->title }}</option>
@@ -224,7 +222,7 @@
                     </select>
                     @if ($addProductPermission == 'all' || $addProductPermission == 'added')
                         <x-slot name="append">
-                            <a href="{{ route('products.create') }}" data-redirect-url="{{ url()->full() }}"
+                            <a href="{{ route('products.create') }}" data-redirect-url="no"
                                class="btn btn-outline-secondary border-grey openRightModal"
                                data-toggle="tooltip"
                                data-original-title="{{ __('app.add').' '.__('modules.dashboard.newproduct') }}">@lang('app.add')</a>
@@ -250,7 +248,8 @@
                                     @if ($invoiceSetting->hsn_sac_code_show)
                                         <td width="10%" class="border-0" align="right">@lang("app.hsnSac")</td>
                                     @endif
-                                    <td width="10%" class="border-0" align="right" id="type">
+                                    <td width="10%" class="border-0" align="right">
+                                        @lang('modules.invoices.qty')
                                     </td>
                                     <td width="10%" class="border-0" align="right">
                                         @lang("modules.invoices.unitPrice")</td>
@@ -279,8 +278,23 @@
                                     @endif
                                     <td class="border-bottom-0">
                                         <input type="number" min="1"
-                                               class="form-control f-14 border-0 w-100 text-right quantity"
+                                               class="form-control f-14 border-0 w-100 text-right quantity mt-3"
                                                value="{{ $item->quantity }}" name="quantity[]">
+
+                                            @if (!is_null($item->product_id) && $item->product_id != 0)
+                                               <span class="text-dark-grey float-right border-0 f-12">{{ $item->unit->unit_type }}</span>
+                                               <input type="hidden" name="product_id[]" value="{{ $item->product_id }}">
+                                               <input type="hidden" name="unit_id[]" value="{{ $item->unit_id }}">
+                                           @else
+                                               <select class="text-dark-grey float-right border-0 f-12" name="unit_id[]">
+                                                   @foreach ($units as $unit)
+                                                       <option
+                                                       @if ($item->unit_id == $unit->id) selected @endif
+                                                       value="{{ $unit->id }}">{{ $unit->unit_type }}</option>
+                                                   @endforeach
+                                               </select>
+                                               <input type="hidden" name="product_id[]" value="">
+                                           @endif
                                     </td>
                                     <td class="border-bottom-0">
                                         <input type="number" min="1"
@@ -293,10 +307,10 @@
                                                     multiple="multiple"
                                                     class="select-picker type customSequence border-0" data-size="3">
                                                 @foreach ($taxes as $tax)
-                                                    <option data-rate="{{ $tax->rate_percent }}"
+                                                    <option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%"
                                                             @if (isset($item->taxes) && array_search($tax->id, json_decode($item->taxes)) !== false) selected
                                                             @endif
-                                                            value="{{ $tax->id }}">{{ strtoupper($tax->tax_name) }}:
+                                                            value="{{ $tax->id }}">{{ $tax->tax_name }}:
                                                         {{ $tax->rate_percent }}%
                                                     </option>
                                                 @endforeach
@@ -319,7 +333,7 @@
                                     </td>
                                     <td class="border-left-0">
                                         <input type="file" class="dropify" name="invoice_item_image[]"
-                                               data-allowed-file-extensions="png jpg jpeg" data-messages-default="test"
+                                               data-allowed-file-extensions="png jpg jpeg bmp" data-messages-default="test"
                                                data-height="70"/>
                                         <input type="hidden" name="invoice_item_image_url[]">
                                     </td>
@@ -347,7 +361,7 @@
                                 @if ($invoiceSetting->hsn_sac_code_show)
                                     <td width="10%" class="border-0" align="right">@lang("app.hsnSac")</td>
                                 @endif
-                                <td width="10%" class="border-0" align="right" id="type"></td>
+                                <td width="10%" class="border-0" align="right">@lang('modules.invoices.qty')</td>
                                 <td width="10%" class="border-0" align="right">@lang("modules.invoices.unitPrice")
                                 </td>
                                 <td width="13%" class="border-0" align="right">@lang('modules.invoices.tax')</td>
@@ -373,8 +387,16 @@
                                 @endif
                                 <td class="border-bottom-0">
                                     <input type="number" min="1"
-                                           class="form-control f-14 border-0 w-100 text-right quantity" value="1"
+                                           class="form-control f-14 border-0 w-100 text-right quantity mt-3" value="1"
                                            name="quantity[]">
+
+                                    <select class="text-dark-grey float-right border-0 f-12" name="unit_id[]">
+                                        @foreach ($units as $unit)
+                                            <option
+                                            value="{{ $unit->id }}">{{ $unit->unit_type }}</option>
+                                        @endforeach
+                                    </select>
+                                    <input type="hidden" name="product_id[]" value="">
                                 </td>
                                 <td class="border-bottom-0">
                                     <input type="number" min="1"
@@ -386,8 +408,8 @@
                                         <select id="multiselect" name="taxes[0][]" multiple="multiple"
                                                 class="select-picker type customSequence border-0" data-size="3">
                                             @foreach ($taxes as $tax)
-                                                <option data-rate="{{ $tax->rate_percent }}"
-                                                        value="{{ $tax->id }}">{{ strtoupper($tax->tax_name) }}:
+                                                <option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%"
+                                                        value="{{ $tax->id }}">{{ $tax->tax_name }}:
                                                     {{ $tax->rate_percent }}%
                                                 </option>
                                             @endforeach
@@ -408,7 +430,7 @@
                                 </td>
                                 <td class="border-left-0">
                                     <input type="file" class="dropify" name="invoice_item_image[]"
-                                           data-allowed-file-extensions="png jpg jpeg" data-messages-default="test"
+                                           data-allowed-file-extensions="png jpg jpeg bmp" data-messages-default="test"
                                            data-height="70"/>
                                     <input type="hidden" name="invoice_item_image_url[]">
                                 </td>
@@ -533,16 +555,14 @@
         </div>
         <!-- NOTE AND TERMS AND CONDITIONS END -->
 
-        <!-- CANCEL SAVE SEND START -->
-        <div class="px-lg-4 px-md-4 px-3 py-3 c-inv-btns">
+
+        <x-form-actions>
+            <x-forms.button-primary id="save-form" icon="check">@lang('app.save')</x-forms.button-primary>
 
             <x-forms.button-cancel :link="route('recurring-invoices.index')" class="border-0 mr-3">@lang('app.cancel')
             </x-forms.button-cancel>
 
-            <x-forms.button-primary id="save-form" icon="check">@lang('app.save')</x-forms.button-primary>
-
-        </div>
-        <!-- CANCEL SAVE SEND END -->
+        </x-form-actions>
 
     </x-form>
     <!-- FORM END -->
@@ -552,48 +572,16 @@
 <script>
     $(document).ready(function () {
 
-        changesProduct($('#unit_type_id').val());
-        var term = '{!! $unit_types[0]->unit_type !!}';
-        $('#unit_type_id').change(function(e){
-            let unitTypeId = $(this).val();
-            changesProduct(unitTypeId);
-        });
-        function changesProduct(id){
-            var url = "{{ route('get_clients_data', ':id') }}",
-            url = url.replace(':id', id);
-            $.easyAjax({
-                url : url,
-                type : "GET",
-                success: function (response) {
-                    if (response.status == 'success') {
-                        var options = [];
-                        var rData = [];
-                        rData = response.data;
-                        $.each(rData, function (index, value) {
-                            var selectData = '';
-                            selectData = '<option value="' + value.id + '">' + value.name + '</option>';
-                            options.push(selectData);
-                        });
-                        $('#add-products').html('<option value="" class="form-control" >{{ __('app.select') . ' ' . __('app.product') }}</option>' +
-                            options);
-                        $('#add-products').selectpicker('refresh');
-                        term = ucWord(response.type.unit_type);
-                        $('#type').html(term);
-                    }
-                }
-            });
-        }
-
 
         const hsn_status = {{ $invoiceSetting->hsn_sac_code_show }};
         const defaultClient = "{{ request('default_client') }}";
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         const dp1 = datepicker('#start_date', {
             position: 'bl',
@@ -604,7 +592,7 @@
             ...datepickerConfig
         });
 
-        $('#client_id').change(function () {
+        $('#client_list_id').change(function () {
             var id = $(this).val();
             var url = "{{ route('clients.project_list', ':id') }}";
             url = url.replace(':id', id);
@@ -704,7 +692,7 @@
             });
         }
 
-        $(document).on('click', '#add-item', function () {
+        $(document).on('click', '#add-item', function() {
 
             var i = $(document).find('.item_name').length;
             var item = ' <div class="d-flex px-4 py-3 c-inv-desc item-row">' +
@@ -719,7 +707,8 @@
             }
 
             item +=
-                `<td width="10%" class="border-0" align="right" id="type">${ucWord(term)}</td>
+                `
+                <td width="10%" class="border-0" align="right">@lang("modules.invoices.qty")</td>
                 <td width="10%" class="border-0" align="right">@lang("modules.invoices.unitPrice")</td>
                 <td width="13%" class="border-0" align="right">@lang("modules.invoices.tax")</td>
                 <td width="17%" class="border-0 bblr-mbl" align="right">@lang("modules.invoices.amount")</td>
@@ -729,7 +718,7 @@
                 '<input type="text" class="form-control f-14 border-0 w-100 item_name" name="item_name[]" placeholder="@lang("modules.expenses.itemName")">' +
                 '</td>' +
                 '<td class="border-bottom-0 d-block d-lg-none d-md-none">' +
-                '<textarea class="f-14 border-0 w-100 mobile-description" name="item_summary[]" placeholder="@lang("placeholders.invoices.description")"></textarea>' +
+                '<textarea class="f-14 border-0 w-100 mobile-description form-control" name="item_summary[]" placeholder="@lang("placeholders.invoices.description")"></textarea>' +
                 '</td>';
 
             if (hsn_status == 1) {
@@ -738,7 +727,15 @@
                     '</td>';
             }
             item += '<td class="border-bottom-0">' +
-                '<input type="number" min="1" class="form-control f-14 border-0 w-100 text-right quantity" value="1" name="quantity[]">' +
+                '<input type="number" min="1" class="form-control f-14 border-0 w-100 text-right quantity mt-3" value="1" name="quantity[]">' +
+                `<select class="text-dark-grey float-right border-0 f-12" name="unit_id[]">
+                    @foreach ($units as $unit)
+                        <option
+                        @if ($unit->default == 1) selected @endif
+                        value="{{ $unit->id }}">{{ $unit->unit_type }}</option>
+                    @endforeach
+                </select>
+                <input type="hidden" name="product_id[]" value="">`+
                 '</td>' +
                 '<td class="border-bottom-0">' +
                 '<input type="number" min="1" class="f-14 border-0 w-100 text-right cost_per_item" placeholder="0.00" value="0" name="cost_per_item[]">' +
@@ -747,10 +744,10 @@
                 '<div class="select-others height-35 rounded border-0">' +
                 '<select id="multiselect' + i + '" name="taxes[' + i +
                 '][]" multiple="multiple" class="select-picker type customSequence" data-size="3">'
-                @foreach ($taxes as $tax)
-                + '<option data-rate="{{ $tax->rate_percent }}" value="{{ $tax->id }}">'
-                + '{{ strtoupper($tax->tax_name) }}:{{ $tax->rate_percent }}%</option>'
-                @endforeach
+            @foreach ($taxes as $tax)
+                +'<option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%" value="{{ $tax->id }}">'
+                    +'{{ $tax->tax_name }}:{{ $tax->rate_percent }}%</option>'
+            @endforeach
                 +
                 '</select>' +
                 '</div>' +
@@ -762,10 +759,10 @@
                 '</tr>' +
                 '<tr class="d-none d-md-table-row d-lg-table-row">' +
                 '<td colspan="{{ $invoiceSetting->hsn_sac_code_show ? 4 : 3 }}" class="dash-border-top bblr">' +
-                '<textarea class="f-14 border-0 w-100 desktop-description" name="item_summary[]" placeholder="@lang("placeholders.invoices.description")"></textarea>' +
+                '<textarea class="f-14 border-0 w-100 desktop-description form-control" name="item_summary[]" placeholder="@lang("placeholders.invoices.description")"></textarea>' +
                 '</td>' +
                 '<td class="border-left-0">' +
-                '<input type="file" class="dropify" id="dropify' + i + '" name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg" data-messages-default="test" data-height="70" /><input type="hidden" name="invoice_item_image_url[]">' +
+                '<input type="file" class="dropify" id="dropify'+i+'" name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg bmp" data-messages-default="test" data-height="70" /><input type="hidden" name="invoice_item_image_url[]">' +
                 '</td>' +
                 '</tr>' +
                 '</tbody>' +
@@ -857,7 +854,7 @@
             calculateTotal();
         });
 
-        $('#saveInvoiceForm').on('change', '.type, #discount_type', function () {
+        $('#saveInvoiceForm').on('change', '.type, #discount_type, #calculate_tax', function () {
             var quantity = $(this).closest('.item-row').find('.quantity').val();
             var perItemCost = $(this).closest('.item-row').find('.cost_per_item').val();
             var amount = (quantity * perItemCost);
@@ -920,13 +917,13 @@
             //
         }
 
-        $('#plan').html("{{__('modules.invoices.customerCharged')}}" + ' ' + rotationType);
+        $('#plan').html("{{__('modules.invoices.customerCharged')}}" + ' <span class="font-weight-bold">' + rotationType + '</span>');
 
         if ($('#immediate_invoice').is(':checked')) {
             var date = moment().toDate();
         } else {
             var startDate = $('#start_date').val();
-            var date = moment(startDate, 'DD-MM-YYYY').toDate();
+            var date = moment(startDate, company.moment_date_format).toDate();
         }
 
         nextDate(rotation, date);
@@ -942,7 +939,7 @@
         } else {
             $('#start_date').prop('disabled', false)
             var startDate = $('#start_date').val();
-            var date = moment(startDate, 'DD-MM-YYYY').toDate();
+            var date = moment(startDate, company.moment_date_format).toDate();
         }
 
         nextDate(rotation, date);
@@ -981,8 +978,29 @@
 
         var value = rotationDate.format('{{ company()->moment_date_format }}');
 
-        $('#current_date').html("{{__('modules.recurringInvoice.currentInvoiceDate')}}" + ' ' + currentValue);
+        $('#current_date').html("{{__('modules.recurringInvoice.currentInvoiceDate')}}" + ' <span class="font-weight-bold">' + currentValue + '</span>');
 
-        $('#next_date').html("{{__('modules.recurringInvoice.nextInvoiceDate')}}" + ' ' + value);
+        $('#next_date').html("{{__('modules.recurringInvoice.nextInvoiceDate')}}" + ' <span class="font-weight-bold">' + value + '</span>');
     }
+
+    $('#currency_id').change(function() {
+        var curId = $(this).val();
+
+        var token = "{{ csrf_token() }}";
+
+        $.easyAjax({
+            url: "{{ route('payments.account_list') }}",
+            container: '#saveInvoiceForm',
+            type: "GET",
+            blockUI: true,
+            data: { 'curId' : curId , _token: token},
+            success: function(response) {
+                if (response.status == 'success') {
+                    $('#bank_account_id').html(response.data);
+                    $('#bank_account_id').selectpicker('refresh');
+                }
+            }
+        });
+    });
+
 </script>

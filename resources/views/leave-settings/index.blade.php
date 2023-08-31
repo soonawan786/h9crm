@@ -1,5 +1,22 @@
 @extends('layouts.app')
 
+@push('styles')
+    <style>
+        ol>li {
+            list-style: unset;
+        }
+
+        .nav-tabs .nav-link.active {
+            border-bottom: 2px solid var(--header_color) !important;
+        }
+        
+        .nav-tabs .nav-link {
+            border: unset;
+        }
+    </style>
+@endpush
+
+
 @section('content')
 
     <!-- SETTINGS START -->
@@ -83,18 +100,7 @@
             });
         });
 
-        $('.editNewLeaveType').click(function() {
-
-            var id = $(this).data('leave-id');
-
-            var url = "{{ route('leaveType.edit', ':id ') }}";
-            url = url.replace(':id', id);
-
-            $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
-            $.ajaxModal(MODAL_LG, url);
-        });
-
-        $(MODAL_LG).on('shown.bs.modal', function () {
+        $(MODAL_XL).on('shown.bs.modal', function () {
         $('#page_reload').val('true')
         })
 

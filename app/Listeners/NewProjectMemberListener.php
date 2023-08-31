@@ -19,6 +19,7 @@ class NewProjectMemberListener
     public function handle(NewProjectMemberEvent $event)
     {
         Notification::send($event->projectMember->user, new NewProjectMember($event->projectMember->project));
+
     }
 
 }

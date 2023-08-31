@@ -24,7 +24,7 @@ class GdprSettingsController extends AccountBaseController
         $this->activeSettingMenu = 'gdpr_settings';
         $this->gdprSetting = GdprSetting::first();
         $this->middleware(function ($request, $next) {
-            abort_403(!(user()->permission('manage_gdpr_setting') == 'all' || in_array('client', user_roles())));
+            abort_403(!(user()->permission('manage_gdpr_setting') == 'all' && in_array('client', user_roles())));
             return $next($request);
         });
     }

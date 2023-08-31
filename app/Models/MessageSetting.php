@@ -21,12 +21,14 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|MessageSetting whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MessageSetting whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MessageSetting whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property string $restrict_client
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|MessageSetting whereCompanyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|MessageSetting whereRestrictClient($value)
+ * @property int $send_sound_notification
+ * @method static \Illuminate\Database\Eloquent\Builder|MessageSetting whereSendSoundNotification($value)
+ * @mixin \Eloquent
  */
 class MessageSetting extends BaseModel
 {

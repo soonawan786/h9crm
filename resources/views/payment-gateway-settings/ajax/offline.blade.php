@@ -14,7 +14,7 @@
                 @forelse($offlineMethods as $key => $method)
                     <tr class="row{{ $method->id }}">
                         <td>{{ $key + 1 }}</td>
-                        <td>{{ mb_ucwords($method->name) }}</td>
+                        <td>{{ $method->name }}</td>
                         <td class="text-break">{!! nl2br($method->description) !!} </td>
                         <td>
                             <i @class([

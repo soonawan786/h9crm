@@ -31,6 +31,7 @@ class UserFactory extends Factory
 
         return [
             'name' => fake()->name,
+            'gender' => 'male',
             'email' => $new_email, /* @phpstan-ignore-line */
         ];
     }

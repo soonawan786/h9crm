@@ -40,9 +40,8 @@ class PaymentsDataTable extends BaseDataTable
                 if ($row->gateway == null || $row->gateway == 'Offline' || $row->status == 'failed') {
                     return '<input type="checkbox"  class="select-table-row disabled"  id="datatable-row-' . $row->id . '"  name="datatable_ids[]" value="' . $row->id . '" onclick="dataTableRowCheck(' . $row->id . ')">';
                 }
-                else {
-                    return '<input type="checkbox"  class="select-table-row"  id="datatable-row-' . $row->id . '"  name="datatable_ids[]" value="' . $row->id . '" onclick="dataTableRowCheck(' . $row->id . ')">';
-                }
+
+                return '<input type="checkbox"  class="select-table-row"  id="datatable-row-' . $row->id . '"  name="datatable_ids[]" value="' . $row->id . '" onclick="dataTableRowCheck(' . $row->id . ')">';
             })
             ->addColumn('action', function ($row) {
                 $action = '<div class="task_view">
@@ -63,7 +62,7 @@ class PaymentsDataTable extends BaseDataTable
                         || ($this->editPaymentPermission == 'added' && isset($row->added_by) && user()->id == $row->added_by)
                         || ($this->editPaymentPermission == 'owned' && isset($row->invoice) && user()->id == $row->invoice->client_id)
                         || ($this->editPaymentPermission == 'both' && ((isset($row->invoice) && user()->id == $row->invoice->client_id) || (isset($row->added_by) && user()->id == $row->added_by))))
-                    && $row->status != 'failed' && ($row->gateway == null || $row->gateway == 'Offline')
+                    && $row->status != 'failed' && ($row->gateway == null || $row->gateway == 'Offline' || is_null($row->transaction_id))
                 ) {
                     $action .= '<a class="dropdown-item openRightModal" href="' . route('payments.edit', [$row->id]) . '">
                             <i class="fa fa-edit mr-2"></i>
@@ -77,7 +76,7 @@ class PaymentsDataTable extends BaseDataTable
                         || ($this->deletePaymentPermission == 'owned' && isset($row->invoice) && user()->id == $row->invoice->client_id)
                         || ($this->deletePaymentPermission == 'both' && isset($row->invoice) && (user()->id == $row->invoice->client_id && isset($row->added_by) && user()->id == $row->added_by))
                     )
-                    && ($row->gateway == 'Offline' || $row->gateway == null || $row->status == 'failed')
+                    && ($row->gateway == 'Offline' || $row->gateway == null || $row->status == 'failed' || is_null($row->transaction_id) )
                 ) {
                     $action .= '<a class="dropdown-item delete-table-row" href="javascript:;" data-payment-id="' . $row->id . '">
                             <i class="fa fa-trash mr-2"></i>
@@ -92,48 +91,89 @@ class PaymentsDataTable extends BaseDataTable
                 return $action;
             })
             ->addColumn('short_code', function ($row) {
-                if (!is_null($row->project)) {
-                    return $row->project->project_short_code;
-                }
-                else {
+                if (is_null($row->project)) {
                     return '--';
                 }
+
+                return $row->project->project_short_code;
+
             })
             ->editColumn('project_id', function ($row) {
-                if (!is_null($row->project)) {
-                    return '<a class="text-darkest-grey" href="' . route('projects.show', $row->project_id) . '">' . ucfirst($row->project->project_name) . '</a>';
-                }
-                else {
+                if (is_null($row->project)) {
                     return '--';
                 }
+
+                return '<a class="text-darkest-grey" href="' . route('projects.show', $row->project_id) . '">' . $row->project->project_name . '</a>';
             })
             ->editColumn('invoice_number', function ($row) {
                 if (!is_null($row->invoice_id) && !is_null($row->invoice)) {
-                    return '<a class="text-darkest-grey" href="' . route('invoices.show', $row->invoice_id) . '">' . ucfirst($row->invoice->invoice_number) . '</a>';
+                    return '<a class="text-darkest-grey" href="' . route('invoices.show', $row->invoice_id) . '">' . $row->invoice->invoice_number . '</a>';
                 }
-                else {
-                    return '--';
+
+                return '--';
+            })
+            ->editColumn('client_id', function ($row) {
+                $user = null;
+
+                if (!is_null($row->invoice_id) && isset($row->invoice->client)) {
+                    $user = $row->invoice->client;
                 }
+                elseif (!is_null($row->project_id) && isset($row->project->client)) {
+                    $user = $row->project->client;
+                }
+                elseif (!is_null($row->order_id) && isset($row->order->client)) {
+                    $user = $row->order->client;
+                }
+
+                return $user ? view('components.client', ['user' => $user]) : '--';
+            })
+            ->addColumn('client_name', function ($row) {
+                if (!is_null($row->invoice_id) && isset($row->invoice->client)) {
+                    return $row->invoice->client->name;
+                }
+
+                if (!is_null($row->project_id) && isset($row->project->client)) {
+                    return $row->project->client->name;
+                }
+
+                if (!is_null($row->order_id) && isset($row->order->client)) {
+                    return $row->order->client->name;
+                }
+
+                return '--';
+            })
+            ->editColumn('client_email', function ($row) {
+                if (!is_null($row->invoice_id) && isset($row->invoice->client->email)) {
+                    return '<a class="text-darkest-grey" href="' . route('clients.show', $row->invoice->client->id) . '">' . ucfirst($row->invoice->client->email) . '</a>'; /** @phpstan-ignore-line */
+                }
+
+                if (!is_null($row->project_id) && isset($row->project->client->email)) {
+                    return '<a class="text-darkest-grey" href="' . route('clients.show', $row->project->client->id) . '">' . ucfirst($row->project->client->email) . '</a>'; /** @phpstan-ignore-line */
+                }
+
+                if (!is_null($row->order_id) && isset($row->order->client->email)) {
+                    return '<a class="text-darkest-grey" href="' . route('clients.show', $row->order->client->id) . '">' . ucfirst($row->order->client->email) . '</a>'; /** @phpstan-ignore-line */
+                }
+
+                return '--';
             })
             ->editColumn('order_number', function ($row) {
                 if (!is_null($row->order_id) && !is_null($row->order)) {
-                    return '<a class="text-darkest-grey" href="' . route('orders.show', $row->order_id) . '">' . ucfirst($row->order->order_number) . '</a>';
+                    return '<a class="text-darkest-grey" href="' . route('orders.show', $row->order_id) . '">' . $row->order->order_number . '</a>';
                 }
-                else {
-                    return '--';
-                }
+
+                return '--';
             })
             ->editColumn('status', function ($row) {
-                if ($row->status == 'pending') {
-                    return '<i class="fa fa-circle mr-1 text-yellow f-10"></i>' . __('app.' . $row->status);
-                }
-                elseif ($row->status == 'failed') {
-                    return '<i class="fa fa-circle mr-1 text-red f-10"></i>' . __('app.' . $row->status);
-                }
-                else {
-                    return '<i class="fa fa-circle mr-1 text-dark-green f-10"></i>' . __('app.' . $row->status);
-                }
+                $statusClass = match ($row->status) {
+                    'pending' => 'text-yellow',
+                    'failed' => 'text-red',
+                    default => 'text-dark-green',
+                };
+
+                return '<i class="fa fa-circle mr-1 ' . $statusClass . ' f-10"></i>' . __('app.' . $row->status);
             })
+
             ->editColumn('amount', function ($row) {
                 $currencyId = (isset($row->currency)) ? $row->currency->id : '';
 
@@ -152,17 +192,11 @@ class PaymentsDataTable extends BaseDataTable
             ->setRowId(function ($row) {
                 return 'row-' . $row->id;
             })
-            ->rawColumns(['invoice', 'action', 'status', 'project_id', 'invoice_number', 'order_number', 'check'])
+            ->rawColumns(['invoice', 'action', 'status', 'client_id', 'client_email', 'project_id', 'invoice_number', 'order_number', 'check'])
             ->removeColumn('invoice_id')
             ->removeColumn('currency_symbol')
             ->removeColumn('currency_code')
             ->removeColumn('project_name');
-    }
-
-    public function ajax()
-    {
-        return $this->dataTable($this->query())
-            ->make();
     }
 
     /**
@@ -172,11 +206,11 @@ class PaymentsDataTable extends BaseDataTable
     {
         $request = $this->request();
 
-        $model = Payment::with(['project:id,project_short_code,project_name', 'currency:id,currency_symbol,currency_code', 'invoice'])
+        $model = Payment::with(['invoice.client', 'order.client', 'currency:id,currency_symbol,currency_code'])
             ->leftJoin('invoices', 'invoices.id', '=', 'payments.invoice_id')
             ->leftJoin('projects', 'projects.id', '=', 'payments.project_id')
             ->leftJoin('orders', 'orders.id', '=', 'payments.order_id')
-            ->select('payments.id', 'payments.company_id', 'payments.project_id', 'payments.currency_id', 'payments.invoice_id', 'payments.amount', 'payments.status', 'payments.paid_on', 'payments.remarks', 'payments.bill', 'payments.added_by', 'payments.order_id', 'payments.gateway');
+            ->select('payments.id', 'payments.company_id', 'payments.project_id', 'payments.currency_id', 'payments.invoice_id', 'payments.amount', 'payments.status', 'payments.paid_on', 'payments.remarks', 'payments.bill', 'payments.added_by', 'payments.order_id', 'payments.gateway', 'payments.transaction_id');
 
         if ($request->startDate !== null && $request->startDate != 'null' && $request->startDate != '') {
             $startDate = Carbon::createFromFormat($this->company->date_format, $request->startDate)->toDateString();
@@ -265,13 +299,17 @@ class PaymentsDataTable extends BaseDataTable
                 'visible' => !in_array('client', user_roles())
             ],
             '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => !showId()],
-            __('app.id') => ['data' => 'id', 'name' => 'payments.id', 'title' => __('app.id'),'visible' => showId()],
+            __('app.id') => ['data' => 'id', 'name' => 'payments.id', 'title' => __('app.id'), 'visible' => showId()],
             __('modules.taskCode') => ['data' => 'short_code', 'name' => 'project_short_code', 'title' => __('modules.taskCode')],
-            __('app.project') => ['data' => 'project_id', 'name' => 'project_id', 'title' => __('app.project')],
+            __('app.project') => ['data' => 'project_id', 'name' => 'project_id', 'title' => __('app.project'), 'width' => '10%'],
             __('app.invoice') . '#' => ['data' => 'invoice_number', 'name' => 'invoices.invoice_number', 'title' => __('app.invoice') . '#'],
+            __('app.client') => ['data' => 'client_id', 'name' => 'client_id.name', 'orderable' => false, 'title' => __('app.client'), 'exportable' => false, 'visible' => !in_array('client', user_roles())],
+            __('app.customers') => ['data' => 'client_name', 'name' => 'client_name', 'visible' => false, 'title' => __('app.client')],
+            __('app.client_email') => ['data' => 'client_email', 'name' => 'client_email', 'visible' => false, 'title' => __('app.client_email')],
             __('app.order') . '#' => ['data' => 'order_number', 'name' => 'payments.order_id', 'title' => __('app.order') . '#'],
             __('modules.invoices.amount') => ['data' => 'amount', 'name' => 'amount', 'title' => __('modules.invoices.amount')],
             __('modules.payments.paidOn') => ['data' => 'paid_on', 'name' => 'paid_on', 'title' => __('modules.payments.paidOn')],
+            __('modules.payments.paymentGateway') => ['data' => 'gateway', 'name' => 'gateway', 'title' => __('modules.payments.paymentGateway')],
             __('app.status') => ['data' => 'status', 'name' => 'status', 'title' => __('app.status')],
             Column::computed('action', __('app.action'))
                 ->exportable(false)
@@ -280,16 +318,6 @@ class PaymentsDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Payments_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

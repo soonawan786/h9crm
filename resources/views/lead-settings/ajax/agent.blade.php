@@ -9,7 +9,7 @@
        @forelse($leadAgents as $key => $agent)
             <tr class="row{{ $agent->id }}">
                 <td width="10%">{{ ($key+1) }}</td>
-                <td width="60%"> @if(!is_null($agent->user)) {{ mb_ucwords($agent->user->name) }} @endif</td>
+                <td width="60%"> @if(!is_null($agent->user)) {{ $agent->user->name }} @endif</td>
                 <td class="text-right">
                     <div class="task_view">
                         <a class="task_view_more d-flex align-items-center justify-content-center delete-agent" href="javascript:;" data-agent-id="{{ $agent->id }}">

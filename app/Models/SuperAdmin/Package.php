@@ -4,7 +4,7 @@ namespace App\Models\SuperAdmin;
 
 use App\Models\Company;
 use App\Models\SuperAdmin\GlobalCurrency;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
@@ -33,9 +33,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property string $storage_unit
  * @property int $is_recommended
  * @property int $is_free
+ * @property int $contact_to_buy
  * @property int $is_auto_renew
  * @property string|null $monthly_status
  * @property string|null $annual_status
+ * @property string|null $contact_button_text
+ * @property string|null $contact_url
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @method static \Illuminate\Database\Eloquent\Builder|Package newModelQuery()
@@ -76,7 +79,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property-read mixed $formatted_annual_price
  * @property-read mixed $formatted_monthly_price
  */
-class Package extends Model
+class Package extends BaseModel
 {
 
     use HasFactory;

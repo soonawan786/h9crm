@@ -43,7 +43,7 @@ class SmtpConfigProvider extends ServiceProvider
                     Config::set('app.logo', asset('img/worksuite-logo.png'));
                 }
                 else {
-                    Config::set('app.logo', asset_url('app-logo/' . $settings->light_logo));
+                    Config::set('app.logo', asset_url_local_s3('app-logo/' . $settings->light_logo));
                 }
 
                 $pushSetting = DB::table('push_notification_settings')->first();

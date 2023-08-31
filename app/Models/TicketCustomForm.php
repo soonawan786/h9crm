@@ -28,7 +28,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|TicketCustomForm whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketCustomForm whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketCustomForm whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int $required
  * @method static \Illuminate\Database\Eloquent\Builder|TicketCustomForm whereRequired($value)
  * @property int|null $company_id
@@ -38,6 +37,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read mixed $extras
  * @method static \Illuminate\Database\Eloquent\Builder|TicketCustomForm whereCompanyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketCustomForm whereCustomFieldsId($value)
+ * @mixin \Eloquent
  */
 class TicketCustomForm extends BaseModel
 {

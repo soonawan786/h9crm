@@ -38,14 +38,11 @@
                     <x-cards.data-row :label="__('app.title')" :value="$appreciationType->title" />
                     <div class="col-12 px-0 pb-3 d-lg-flex d-md-flex d-block">
                         <p class="mb-0 text-lightest f-14 w-30 text-capitalize">@lang('modules.appreciations.icon')</p>
-                        <div class="mb-0 text-dark-grey f-14 w-70 text-wrap ql-editor p-0">
-                            <div class="position-relative d-flex">
-                                <i class="bi bi-{{ $appreciationType->awardIcon->icon }} f-15 text-white position-absolute appreciation-icon"></i>
-                                <i class="bi bi-hexagon-fill fs-40" style="color: {{ $appreciationType->color_code }};"></i>
-                            </div>
+                        <div class="mb-0 text-dark-grey f-14 w-70 text-wrap p-0">
+                            <x-award-icon :award="$appreciationType" />
                         </div>
                     </div>
-                    <x-cards.data-row :label="__('app.color')" value="<i class='fa fa-circle mr-2' style='color: {{ $appreciationType->color_code }}'></i> {{ $appreciationType->color_code }}" html="true" />
+
                     <x-cards.data-row :label="__('app.summary')" :value="!empty($appreciationType->summary) ? $appreciationType->summary : '--'" html="true" />
                 </div>
             </div>

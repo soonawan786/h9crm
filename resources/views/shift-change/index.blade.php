@@ -23,7 +23,7 @@
             <div class="select-status">
                 <select class="form-control select-picker" name="employee" id="employee" data-live-search="true"
                     data-size="8">
-                    @if ($employees->count() > 1)
+                    @if ($employees->count() > 1 || in_array('admin', user_roles()))
                         <option value="all">@lang('app.all')</option>
                     @endif
                     @foreach ($employees as $employee)
@@ -43,7 +43,7 @@
                     <option value="all">@lang('app.all')</option>
                     @foreach ($employeeShifts as $item)
                         <option
-                            value="{{ $item->id }}">{{ ucfirst($item->shift_name) }}</option>
+                            value="{{ $item->id }}">{{ $item->shift_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -72,7 +72,7 @@ $addTimelogPermission = user()->permission('add_timelogs');
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
-        <div class="d-lg-flex d-md-flex d-block my-3 justify-content-between action-bar">
+        <div class="d-grid d-lg-flex d-md-flex action-bar">
             <div id="table-actions" class="flex-grow-1 align-items-center mb-2 mb-lg-0 mb-md-0">
             </div>
 
@@ -92,7 +92,7 @@ $addTimelogPermission = user()->permission('add_timelogs');
             </x-datatable.actions>
 
 
-            <div class="btn-group ml-3" role="group">
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group">
                 <a href="{{ route('shifts.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
                 data-original-title="@lang('app.summary')"><i class="side-icon bi bi-list-ul"></i></a>
 

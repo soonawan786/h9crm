@@ -60,13 +60,13 @@ return new class extends Migration {
             $tables = DB::connection()->getDoctrineSchemaManager()->listTableNames();
 
             $totalTables = count($tables);
-            $charset = "utf8mb4";
-            $collate = $charset . "_unicode_ci";
+            $charset = 'utf8mb4';
+            $collate = $charset . '_unicode_ci';
 
             foreach ($tables as $key => $table) {
-                $console =  "Collation Change Remaining: " . ($totalTables - $key) . " " . $table;
+                $console = 'Collation Change Remaining: ' . ($totalTables - $key) . ' ' . $table;
                 $output = new ConsoleOutput();
-                $output->writeln('<info>'.$console.'</info>') ;
+                $output->writeln('<info>'.$console.'</info>');
                 $query = "ALTER TABLE `$table` CONVERT TO CHARACTER SET $charset COLLATE $collate";
                 DB::statement($query);
             }

@@ -29,7 +29,7 @@
         <div class="invoice-table-wrapper">
             <table width="100%" class="">
                 <tr class="inv-logo-heading">
-                    <td><img src="{{ invoice_setting()->logo_url }}" alt="{{ mb_ucwords(company()->company_name) }}"
+                    <td><img src="{{ invoice_setting()->logo_url }}" alt="{{ company()->company_name }}"
                             class="logo" /></td>
                     <td align="right" class="font-weight-bold f-21 text-dark text-uppercase mt-4 mt-lg-0 mt-md-0">
                         @lang('app.menu.contract')</td>
@@ -37,7 +37,7 @@
                 <tr class="inv-num">
                     <td class="f-14 text-dark">
                         <p class="mt-3 mb-0">
-                            {{ mb_ucwords(company()->company_name) }}<br>
+                            {{ company()->company_name }}<br>
                             {!! nl2br(default_address()->address) !!}<br>
                             {{ company()->company_phone }}
                         </p><br>
@@ -81,14 +81,14 @@
                     <td class="f-14 text-dark">
                         <p class="mb-0 text-left"><span
                                 class="text-dark-grey text-capitalize">@lang("app.client")</span><br>
-                            {{ mb_ucwords($contract->client->name) }}<br>
-                            {{ mb_ucwords($contract->client->clientDetails->company_name) }}<br>
+                            {{ $contract->client->name }}<br>
+                            {{ $contract->client->clientDetails->company_name }}<br>
                             {!! nl2br($contract->client->clientDetails->address) !!}</p>
                     </td>
                     @if ($contract->client->clientDetails->company_logo)
                         <td align="right">
                                 <img src="{{ $contract->client->clientDetails->image_url }}"
-                                alt="{{ mb_ucwords($contract->client->clientDetails->company_name) }}" class="logo" />
+                                alt="{{ $contract->client->clientDetails->company_name }}" class="logo" />
                         </td>
                     @endif
                 </tr>
@@ -115,19 +115,39 @@
                 </div>
             @endif
         </div>
-
-        @if ($contract->signature)
-            <div class="d-flex flex-column">
-                <h6>@lang('modules.estimates.signature')</h6>
-                <img src="{{ $contract->signature->signature }}" style="width: 200px;">
-                <p>({{ $contract->signature->full_name }})</p>
+        <hr class="mt-1 mb-1">
+        <div class = "mt-3">
+            @if ($contract->signature)
+            <div class="d-flex flex-column float-right">
+                <h6>@lang('modules.estimates.clientsignature')</h6>
+                <img src="{{$contract->signature->signature}}" style="width: 200px;">
+                <p>{{ $contract->signature->full_name }}<br>
+                    @lang('app.place'): {{ $contract->signature->place }}<br>
+                    @lang('app.date'): {{ $contract->signature->date }}</p>
             </div>
-        @endif
+            @endif
 
-        <div id="signature-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+            @if ($contract->company_sign)
+            <div class="d-flex flex-column">
+                <h6>@lang('modules.estimates.companysignature')</h6>
+                <img src="{{$contract->company_signature}}" style="width: 200px;">
+                <p>@lang('app.date'): {{ $contract->sign_date }}</p>
+            </div>
+            @endif
+        </div>
+
+        <div id="signature-mod" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
             <div class="modal-dialog d-flex justify-content-center align-items-center modal-xl">
                 <div class="modal-content">
                     @include('estimates.ajax.accept-estimate')
+                </div>
+            </div>
+        </div>
+
+        <div id="sign-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+            <div class="modal-dialog d-flex justify-content-center align-items-center modal-xl">
+                <div class="modal-content">
+                    @include('contracts.companysign.sign')
                 </div>
             </div>
         </div>
@@ -158,6 +178,15 @@
                             </a>
                         </li>
                     @endif
+                    @if (!$contract->company_sign && user()->company_id == $contract->company_id)
+                    <li>
+                        <a class="dropdown-item f-14 text-dark" href="javascript:;" data-toggle="modal"
+                            data-target="#sign-modal">
+                            <i class="fa fa-check f-w-500  mr-2 f-12"></i>
+                            @lang('modules.estimates.companysignature')
+                        </a>
+                    </li>
+                    @endif
                     @if (
                     $editContractPermission == 'all'
                     || ($editContractPermission == 'added' && user()->id == $contract->added_by)
@@ -173,7 +202,7 @@
                     @if (!$contract->signature && user()->id == $contract->client->id)
                         <li>
                             <a class="dropdown-item f-14 text-dark" href="javascript:;" data-toggle="modal"
-                                data-target="#signature-modal">
+                                data-target="#signature-mod">
                                 <i class="fa fa-check f-w-500  mr-2 f-12"></i>
                                 @lang('app.sign')
                             </a>
@@ -200,10 +229,11 @@
                 </ul>
             </div>
 
+                    <x-forms.button-cancel :link="route('contracts.index')" class="border-0">@lang('app.cancel')
+        </x-forms.button-cancel>
+
         </div>
 
-        <x-forms.button-cancel :link="route('contracts.index')" class="border-0">@lang('app.cancel')
-        </x-forms.button-cancel>
 
     </div>
     <!-- CARD FOOTER END -->
@@ -216,6 +246,7 @@
         <!-- TASK STATUS START -->
         <div class="col-md-12">
             <x-cards.data>
+                <h5 class="mb-3"> @lang('modules.projects.otherInfo')</h5>
                 <x-forms.custom-field-show :fields="$fields" :model="$contract"></x-forms.custom-field-show>
             </x-cards.data>
         </div>
@@ -342,5 +373,79 @@
             }
         });
     });
+    var canvas = document.getElementById('sign-pad');
+
+        var signPad = new SignaturePad(canvas, {
+            backgroundColor: 'rgb(255, 255, 255)' // necessary for saving image as JPEG; can be removed is only saving as PNG or SVG
+        });
+
+        document.getElementById('clear-sign').addEventListener('click', function(e) {
+            e.preventDefault();
+            signPad.clear();
+        });
+
+        document.getElementById('undo-sign').addEventListener('click', function(e) {
+            e.preventDefault();
+            var data = signPad.toData();
+            if (data) {
+                data.pop(); // remove the last dot or line
+                signPad.fromData(data);
+            }
+        });
+
+        $('#toggle-pad-upload').click(function() {
+            var text = $('.signature').hasClass('d-none') ? '{{ __("modules.estimates.uploadSignature") }}' : '{{ __("app.sign") }}';
+
+            $(this).html(text);
+
+            $('.signature').toggleClass('d-none');
+            $('.upload-img').toggleClass('d-none');
+        });
+
+        $('#save-sign').click(function() {
+            var signature = signPad.toDataURL('image/png');
+            var image = $('#sign_image').val();
+
+            // this parameter is used for type of signature used and will be used on validation and upload signature image
+            var signature_type = !$('.signature').hasClass('d-none') ? 'signature' : 'upload';
+
+            if (signPad.isEmpty() && !$('.signature').hasClass('d-none')) {
+                Swal.fire({
+                    icon: 'error',
+                    text: '{{ __('messages.signatureRequired') }}',
+
+                    customClass: {
+                        confirmButton: 'btn btn-primary',
+                    },
+                    showClass: {
+                        popup: 'swal2-noanimation',
+                        backdrop: 'swal2-noanimation'
+                    },
+                    buttonsStyling: false
+                });
+                return false;
+            }
+
+            $.easyAjax({
+                url: "{{ route('companySign.sign', $contract->id) }}",
+                container: '#acceptEstimate',
+                type: "POST",
+                blockUI: true,
+                file: true,
+                disableButton: true,
+                buttonSelector : '#save-sign',
+                data: {
+                    signature: signature,
+                    image: image,
+                    signature_type: signature_type,
+                    _token: '{{ csrf_token() }}'
+                },
+                success: function(response) {
+                    if (response.status == 'success') {
+                        window.location.reload();
+                    }
+                }
+            })
+        });
 
 </script>

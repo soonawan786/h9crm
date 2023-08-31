@@ -94,7 +94,7 @@ class TimeLogsDataTable extends BaseDataTable
                     || ($this->editTimelogPermission == 'added' && user()->id == $row->added_by)
                     || ($row->project_admin == user()->id)
                 ) {
-                    $action .= '<a class="dropdown-item stop-active-timer" href="javascript:;" data-time-id="' . $row->id . '">
+                    $action .= '<a class="dropdown-item stop-active-timer" href="javascript:;" data-time-id="' . $row->id . '" data-url="">
                                 <i class="fa fa-stop-circle mr-2"></i>
                                 ' . trans('app.stop') . '
                             </a>';
@@ -135,15 +135,15 @@ class TimeLogsDataTable extends BaseDataTable
         $datatables->editColumn('total_hours', function ($row) {
             if (is_null($row->end_time)) {
 
-                $totalMinutes = now()->diffInMinutes($row->start_time) - $row->breaks->sum('total_minutes');
+                $totalMinutes = (($row->activeBreak) ? $row->activeBreak->start_time->diffInMinutes($row->start_time) : now()->diffInMinutes($row->start_time)) - $row->breaks->sum('total_minutes');
 
-                $timeLog = '<span data-trigger="hover"  data-toggle="popover" data-content="' . $row->memo . '">' . CarbonInterval::formatHuman($totalMinutes) . '</span>';
+                $timeLog = '<span data-trigger="hover"  data-toggle="popover" data-content="' . $row->memo . '">' . CarbonInterval::formatHuman($totalMinutes) . '</span>'; /** @phpstan-ignore-line */
 
                 $timeLog .= ' <i data-toggle="tooltip" data-original-title="' . __('app.active') . '" class="fa fa-hourglass-start" ></i>';
             }
             else {
                 $totalMinutes = $row->total_minutes - $row->breaks->sum('total_minutes');
-                $timeLog = '<span data-trigger="hover"  data-toggle="popover" data-content="' . $row->memo . '">' . CarbonInterval::formatHuman($totalMinutes) . ' ' . '</span>';
+                $timeLog = '<span data-trigger="hover"  data-toggle="popover" data-content="' . $row->memo . '">' . CarbonInterval::formatHuman($totalMinutes) . ' ' . '</span>'; /** @phpstan-ignore-line */
 
                 if ($row->approved) {
                     $timeLog .= ' <i data-toggle="tooltip" data-original-title="' . __('app.approved') . '" class="fa fa-check-circle text-primary"></i>';
@@ -163,7 +163,7 @@ class TimeLogsDataTable extends BaseDataTable
             $name = '';
 
             if (!is_null($row->project_id) && !is_null($row->task_id)) {
-                $name .= '<h5 class="f-13 text-darkest-grey"><a href="' . route('tasks.show', [$row->task_id]) . '" class="openRightModal">' . $row->task->heading . '</a></h5><div class="text-muted">' . $row->project->project_name . '</div>';
+                $name .= '<h5 class="f-13 text-darkest-grey"><a href="' . route('tasks.show', [$row->task_id]) . '" class="openRightModal">' . $row->task->heading . '</a></h5><div class="text-muted">' . $row->task->project->project_name . '</div>';
             }
             else if (!is_null($row->project_id)) {
                 $name .= '<a href="' . route('projects.show', [$row->project_id]) . '" class="text-darkest-grey ">' . $row->project->project_name . '</a>';
@@ -173,6 +173,12 @@ class TimeLogsDataTable extends BaseDataTable
             }
 
             return $name;
+        });
+        $datatables->addColumn('task_name', function ($row) {
+            return !is_null($row->task_id) ? $row->task->heading : '--';
+        });
+        $datatables->addColumn('task_project_name', function ($row) {
+            return !is_null($row->project_id) ? $row->project->project_name : '--';
         });
         $datatables->addColumn('short_code', function ($row) {
             if (!is_null($row->project)) {
@@ -187,13 +193,14 @@ class TimeLogsDataTable extends BaseDataTable
             return 'row-' . $row->id;
         });
         $datatables->orderColumn('project_name', 'tasks.heading $1');
-        $datatables->rawColumns(['end_time', 'action', 'project_name', 'name', 'total_hours', 'check']);
         $datatables->removeColumn('project_id');
         $datatables->removeColumn('total_minutes');
         $datatables->removeColumn('task_id');
 
         // Custom Fields For export
-        CustomField::customFieldData($datatables, ProjectTimeLog::CUSTOM_FIELD_MODEL);
+        $customFieldColumns = CustomField::customFieldData($datatables, ProjectTimeLog::CUSTOM_FIELD_MODEL);
+
+        $datatables->rawColumns(array_merge(['end_time', 'action', 'project_name', 'name', 'total_hours', 'check'], $customFieldColumns));
 
         return $datatables;
     }
@@ -212,7 +219,7 @@ class TimeLogsDataTable extends BaseDataTable
         $approved = $request->approved;
         $invoice = $request->invoice;
 
-        $model = $model->with('user', 'user.employeeDetail', 'user.employeeDetail.designation', 'user.session', 'project', 'task', 'breaks', 'activeBreak');
+        $model = $model->with('user', 'user.employeeDetail', 'user.employeeDetail.designation', 'user.session', 'task', 'task.project', 'breaks', 'activeBreak', 'project');
 
         if (!in_array('client', user_roles()) && $request->has('project_admin') && $request->project_admin == 1) {
             $model->leftJoin('users', 'users.id', '=', 'project_time_logs.user_id')
@@ -225,9 +232,9 @@ class TimeLogsDataTable extends BaseDataTable
 
         $model = $model->leftJoin('designations', 'employee_details.designation_id', '=', 'designations.id')
             ->leftJoin('tasks', 'tasks.id', '=', 'project_time_logs.task_id')
-            ->leftJoin('projects', 'projects.id', '=', 'project_time_logs.project_id');
+            ->leftJoin('projects', 'projects.id', '=', 'tasks.project_id');
 
-        $model = $model->select('project_time_logs.id', 'project_time_logs.start_time', 'project_time_logs.end_time', 'project_time_logs.total_hours', 'project_time_logs.total_minutes', 'project_time_logs.memo', 'project_time_logs.user_id', 'project_time_logs.project_id', 'project_time_logs.task_id', 'users.name', 'users.image', 'project_time_logs.hourly_rate', 'project_time_logs.earnings', 'project_time_logs.approved', 'tasks.heading', 'projects.project_name', 'designations.name as designation_name', 'project_time_logs.added_by', 'projects.project_admin');
+        $model = $model->select('project_time_logs.id', 'project_time_logs.start_time', 'project_time_logs.end_time', 'project_time_logs.total_hours', 'project_time_logs.total_minutes', 'project_time_logs.memo', 'project_time_logs.user_id', 'tasks.project_id', 'project_time_logs.task_id', 'users.name', 'users.image', 'project_time_logs.hourly_rate', 'project_time_logs.earnings', 'project_time_logs.approved', 'tasks.heading', 'projects.project_name', 'designations.name as designation_name', 'project_time_logs.added_by', 'projects.project_admin');
 
 
         if ($request->startDate !== null && $request->startDate != 'null' && $request->startDate != '') {
@@ -253,7 +260,7 @@ class TimeLogsDataTable extends BaseDataTable
         }
 
         if (!is_null($projectId) && $projectId !== 'all') {
-            $model->where('project_time_logs.project_id', '=', $projectId);
+            $model->where('tasks.project_id', '=', $projectId);
         }
 
         if (!is_null($taskId) && $taskId !== 'all') {
@@ -371,13 +378,18 @@ class TimeLogsDataTable extends BaseDataTable
             '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => !showId()],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id'), 'visible' => showId()],
             __('modules.taskCode') => ['data' => 'short_code', 'name' => 'project_short_code', 'title' => __('modules.taskCode')],
-            __('app.task') => ['data' => 'project_name', 'name' => 'tasks.heading', 'width' => '200', 'title' => __('app.task')],
+            __('app.task') => ['data' => 'project_name', 'name' => 'tasks.heading','exportable' => false, 'width' => '200', 'title' => __('app.task')],
+            __('app.tasks') => ['data' => 'task_name', 'visible' => false, 'name' => 'task_name', 'title' => __('app.tasks')],
+            __('app.project') => ['data' => 'task_project_name', 'visible' => false, 'name' => 'task_project_name', 'title' => __('app.project')],
             __('app.employee') => ['data' => 'name', 'name' => 'users.name', 'exportable' => false, 'title' => __('app.employee')],
             __('app.name') => ['data' => 'employee_name', 'name' => 'name', 'visible' => false, 'title' => __('app.name')],
             __('modules.timeLogs.startTime') => ['data' => 'start_time', 'name' => 'start_time', 'title' => __('modules.timeLogs.startTime')],
             __('modules.timeLogs.endTime') => ['data' => 'end_time', 'name' => 'end_time', 'title' => __('modules.timeLogs.endTime')],
             __('modules.timeLogs.totalHours') => ['data' => 'total_hours', 'name' => 'total_hours', 'title' => __('modules.timeLogs.totalHours')],
-            __('app.earnings') => ['data' => 'earnings', 'name' => 'earnings', 'title' => __('app.earnings'), 'visible' => ($this->viewTimelogEarningsPermission == 'all'), 'exportable' => ($this->viewTimelogEarningsPermission == 'all')],
+            __('app.earnings') => ['data' => 'earnings', 'name' => 'earnings', 'title' => __('app.earnings'), 'visible' => ($this->viewTimelogEarningsPermission == 'all'), 'exportable' => ($this->viewTimelogEarningsPermission == 'all')]
+        ];
+
+        $action = [
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -386,18 +398,7 @@ class TimeLogsDataTable extends BaseDataTable
                 ->addClass('text-right pr-20')
         ];
 
-
-        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new ProjectTimeLog()));
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'time_log_' .now()->format('Y-m-d-H-i-s');
+        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new ProjectTimeLog()), $action);
     }
 
 }

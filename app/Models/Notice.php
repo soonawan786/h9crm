@@ -41,10 +41,10 @@ use Illuminate\Notifications\Notifiable;
  * @method static \Illuminate\Database\Eloquent\Builder|Notice whereLastUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Notice whereTo($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Notice whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Notice whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class Notice extends BaseModel
 {

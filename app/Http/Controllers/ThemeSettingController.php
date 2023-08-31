@@ -7,6 +7,7 @@ use App\Helper\Reply;
 use App\Http\Requests\UpdateThemeSetting;
 use App\Models\GlobalSetting;
 use App\Models\ThemeSetting;
+use App\Scopes\CompanyScope;
 use Storage;
 
 class ThemeSettingController extends AccountBaseController
@@ -36,6 +37,10 @@ class ThemeSettingController extends AccountBaseController
         $this->employeeTheme = $themes['employee'][0];
         $this->clientTheme = $themes['client'][0];
 
+
+        // WORKSUITESAAS
+        $this->superAdminThemeSetting = ThemeSetting::withoutGlobalScope(CompanyScope::class)->where('panel', 'superadmin')->first();
+
         return view('theme-settings.index', $this->data);
     }
 
@@ -47,17 +52,23 @@ class ThemeSettingController extends AccountBaseController
     {
         $setting = $this->company;
 
-        $adminTheme = ThemeSetting::where('panel', 'admin')->first();
-        $this->themeUpdate($adminTheme, $request->theme_settings[1], $request->primary_color[0]);
+        // WORKSUITESAAS
+        $superAdminThemeSetting = ThemeSetting::withoutGlobalScope(CompanyScope::class)->where('panel', 'superadmin')->first();
 
-        $employeeTheme = ThemeSetting::where('panel', 'employee')->first();
-        $this->themeUpdate($employeeTheme, $request->theme_settings[3], $request->primary_color[1]);
+        if (!$superAdminThemeSetting->restrict_admin_theme_change){
+            $adminTheme = ThemeSetting::where('panel', 'admin')->first();
+            $this->themeUpdate($adminTheme, $request->theme_settings[1], $request->primary_color[0]);
 
-        $clientTheme = ThemeSetting::where('panel', 'client')->first();
-        $this->themeUpdate($clientTheme, $request->theme_settings[4], $request->primary_color[2]);
+            $employeeTheme = ThemeSetting::where('panel', 'employee')->first();
+            $this->themeUpdate($employeeTheme, $request->theme_settings[3], $request->primary_color[1]);
+
+            $clientTheme = ThemeSetting::where('panel', 'client')->first();
+            $this->themeUpdate($clientTheme, $request->theme_settings[4], $request->primary_color[2]);
+        }
 
         $setting->logo_background_color = $request->logo_background_color;
         $setting->auth_theme = $request->auth_theme;
+        $setting->auth_theme_text = $request->auth_theme_text;
         $setting->app_name = $request->app_name;
         $setting->header_color = $request->global_header_color;
 
@@ -68,7 +79,7 @@ class ThemeSettingController extends AccountBaseController
 
         if ($request->hasFile('logo')) {
             Files::deleteFile($setting->logo, 'app-logo');
-            $setting->logo = Files::upload($request->logo, 'app-logo');
+            $setting->logo = Files::uploadLocalOrS3($request->logo, 'app-logo');
         }
 
 
@@ -79,7 +90,7 @@ class ThemeSettingController extends AccountBaseController
 
         if ($request->hasFile('light_logo')) {
             Files::deleteFile($setting->light_logo, 'app-logo');
-            $setting->light_logo = Files::upload($request->light_logo, 'app-logo');
+            $setting->light_logo = Files::uploadLocalOrS3($request->light_logo, 'app-logo');
         }
 
         if ($request->login_background_delete == 'yes') {
@@ -89,7 +100,7 @@ class ThemeSettingController extends AccountBaseController
 
         if ($request->hasFile('login_background')) {
             Files::deleteFile($setting->login_background, 'login-background');
-            $setting->login_background = Files::upload($request->login_background, 'login-background');
+            $setting->login_background = Files::uploadLocalOrS3($request->login_background, 'login-background');
         }
 
 
@@ -99,7 +110,7 @@ class ThemeSettingController extends AccountBaseController
         }
 
         if ($request->hasFile('favicon')) {
-            $setting->favicon = Files::upload($request->favicon, 'favicon');
+            $setting->favicon = Files::uploadLocalOrS3($request->favicon, 'favicon');
         }
 
         $setting->sidebar_logo_style = $request->sidebar_logo_style;

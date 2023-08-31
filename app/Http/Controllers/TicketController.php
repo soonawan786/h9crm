@@ -2,24 +2,25 @@
 
 namespace App\Http\Controllers;
 
-use App\DataTables\TicketDataTable;
+use Client;
+use Carbon\Carbon;
+use App\Models\User;
 use App\Helper\Reply;
-use App\Http\Requests\Tickets\StoreTicket;
-use App\Http\Requests\Tickets\UpdateTicket;
-use App\Models\Country;
 use App\Models\Ticket;
-use App\Models\TicketChannel;
+use App\Models\Country;
+use App\Models\TicketTag;
+use App\Models\TicketType;
 use App\Models\TicketGroup;
 use App\Models\TicketReply;
-use App\Models\TicketReplyTemplate;
-use App\Models\TicketTag;
-use App\Models\TicketTagList;
-use App\Models\TicketType;
-use App\Models\User;
-use Carbon\Carbon;
-use Client;
 use Illuminate\Http\Request;
+use App\Models\TicketChannel;
+use App\Models\TicketTagList;
+use App\Models\TicketAgentGroups;
 use Illuminate\Support\Facades\DB;
+use App\DataTables\TicketDataTable;
+use App\Models\TicketReplyTemplate;
+use App\Http\Requests\Tickets\StoreTicket;
+use App\Http\Requests\Tickets\UpdateTicket;
 
 class TicketController extends AccountBaseController
 {
@@ -115,7 +116,7 @@ class TicketController extends AccountBaseController
         $this->pageTitle = __('modules.tickets.addTicket');
         $ticket = new Ticket();
 
-        if (!empty($ticket->getCustomFieldGroupsWithFields())) {
+        if ($ticket->getCustomFieldGroupsWithFields()) {
             $this->fields = $ticket->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -137,16 +138,17 @@ class TicketController extends AccountBaseController
 
     public function store(StoreTicket $request)
     {
+
         $ticket = new Ticket();
         $ticket->subject = $request->subject;
         $ticket->status = 'open';
-
         $ticket->user_id = ($request->requester_type == 'employee') ? $request->user_id : $request->client_id;
 
-        $ticket->agent_id = $request->agent_id;
+
         $ticket->type_id = $request->type_id;
         $ticket->priority = $request->priority;
         $ticket->channel_id = $request->channel_id;
+        $ticket->group_id = $request->group_id;
         $ticket->save();
 
         // Save first message
@@ -172,7 +174,7 @@ class TicketController extends AccountBaseController
         }
 
         // Log search
-        $this->logSearchEntry($ticket->id, $ticket->subject, 'tickets.show', 'ticket');
+        $this->logSearchEntry($ticket->ticket_number, $ticket->subject, 'tickets.show', 'ticket');
 
         $redirectUrl = urldecode($request->redirect_url);
 
@@ -186,9 +188,11 @@ class TicketController extends AccountBaseController
     public function show($ticketNumber)
     {
         $this->viewTicketPermission = user()->permission('view_tickets');
-        $this->ticket = Ticket::with('requester', 'requester.tickets', 'reply', 'reply.files', 'reply.user')
-            ->where('ticket_number', $ticketNumber)->first();
+        $this->ticket = Ticket::where('ticket_number', $ticketNumber)
+            ->first();
+
         abort_if(!$this->ticket, 404);
+
         $this->ticket = $this->ticket->withCustomFields();
         $this->pageTitle = __('app.menu.ticket') . '#' . $this->ticket->ticket_number;
 
@@ -205,7 +209,7 @@ class TicketController extends AccountBaseController
         $this->templates = TicketReplyTemplate::all();
         $this->ticketChart = $this->ticketChartData($this->ticket->user_id);
 
-        if (!empty($this->ticket->getCustomFieldGroupsWithFields())) {
+        if ($this->ticket->getCustomFieldGroupsWithFields()) {
             $this->fields = $this->ticket->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -248,7 +252,7 @@ class TicketController extends AccountBaseController
         return Reply::dataOnly(['status' => 'success']);
     }
 
-    public function destroy($id)
+    public function   destroy($id)
     {
         $ticket = Ticket::findOrFail($id);
 
@@ -269,11 +273,46 @@ class TicketController extends AccountBaseController
     public function updateOtherData(Request $request, $id)
     {
         $ticket = Ticket::findOrFail($id);
-        $ticket->agent_id = $request->agent_id;
+        $ticket->group_id = $request->group_id;
         $ticket->type_id = $request->type_id;
         $ticket->priority = $request->priority;
         $ticket->channel_id = $request->channel_id;
         $ticket->status = $request->status;
+
+        $agentGroupData = TicketAgentGroups::where('company_id', company()->id)
+            ->where('status', 'enabled')
+            ->where('group_id', request()->group_id)
+            ->pluck('agent_id')
+            ->toArray();
+        $ticketData = $ticket->where('company_id', company()->id)
+            ->where('group_id', request()->group_id)
+            ->whereIn('agent_id', $agentGroupData)
+            ->whereIn('status', ['open', 'pending'])
+            ->whereNotNull('agent_id')
+            ->pluck('agent_id')
+            ->toArray();
+
+        $diffAgent = array_diff($agentGroupData, $ticketData);
+
+        if (is_null(request()->agent_id)) {
+
+            if (!empty($diffAgent)) {
+                $ticket->agent_id = current($diffAgent);
+
+            } else {
+                $agentDuplicateCount = array_count_values($ticketData);
+
+                if(!empty($agentDuplicateCount)) {
+                    $minVal = min($agentDuplicateCount);
+                    $agentId = array_search($minVal, $agentDuplicateCount);
+                    $ticket->agent_id = $agentId;
+                }
+
+            }
+        } else {
+            $ticket->agent_id = request()->agent_id;
+        }
+
         $ticket->save();
 
         // Save tags
@@ -385,6 +424,46 @@ class TicketController extends AccountBaseController
         $ticket->update(['status' => $request->status]);
 
         return Reply::successWithData(__('messages.updateSuccess'), ['status' => 'success']);
+    }
+
+    public function agentGroup($id)
+    {
+        $groups = TicketGroup::with('enabledAgents', 'enabledAgents.user');
+        $groups = $groups->where('id', $id)->first();
+        $ticketNumber = request()->ticketNumber;
+        $ticket = Ticket::where('ticket_number', $ticketNumber)->first();
+        $groupData = [];
+        $userData = [];
+
+        if (isset($groups) && count($groups->enabledAgents) > 0)
+        {
+            $data = [];
+
+            foreach ($groups->enabledAgents as $agent)
+            {
+                    $selected = (!is_null($ticket) && $agent->user->id == $ticket->agent_id) ? true : false;
+
+                    $url = route('employees.show', [$agent->user->id]);
+                    $userData[] = ['id' => $agent->user->id, 'value' => $agent->user->name, 'image' => $agent->user->image_url, 'link' => $url];
+
+                $data[] = view('components.user-option', [
+                    'user' => $agent->user,
+                    'agent' => false,
+                    'pill' => false,
+                    'selected' => $selected,
+                ])->render();
+            }
+
+            $groupData = $userData;
+        }
+        else
+        {
+            $data = '<option value="">--</option>';
+        }
+
+        return Reply::dataOnly(['data' => $data , 'groupData' => $groupData]);
+
+
     }
 
 }

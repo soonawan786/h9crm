@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Traits\HasCompany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use App\Scopes\ActiveScope;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * App\Models\DiscussionReply
@@ -32,12 +34,18 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|DiscussionReply whereUserId($value)
  * @method static \Illuminate\Database\Query\Builder|DiscussionReply withTrashed()
  * @method static \Illuminate\Database\Query\Builder|DiscussionReply withoutTrashed()
- * @mixin \Eloquent
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\DiscussionFile[] $files
  * @property-read int|null $files_count
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|DiscussionReply whereCompanyId($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionDiscussionReply
+ * @property-read int|null $mention_discussion_reply_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @property-read int|null $mention_user_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionDiscussionReply
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @mixin \Eloquent
  */
 class DiscussionReply extends BaseModel
 {
@@ -59,6 +67,16 @@ class DiscussionReply extends BaseModel
     public function files(): HasMany
     {
         return $this->hasMany(DiscussionFile::class, 'discussion_reply_id');
+    }
+
+    public function mentionUser(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'mention_users')->withoutGlobalScope(ActiveScope::class)->using(MentionUser::class);
+    }
+
+    public function mentionDiscussionReply(): HasMany
+    {
+        return $this->hasMany(MentionUser::class, 'discussion_reply_id');
     }
 
 }

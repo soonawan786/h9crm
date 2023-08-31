@@ -3,7 +3,7 @@
 
 
 <div class="row">
-    @if (in_array('clients', $modules) && in_array('total_clients', $activeWidgets))
+    @if (in_array('clients', user_modules()) && in_array('total_clients', $activeWidgets))
         <div class="col-xl-4 col-lg-6 col-md-6 mb-3">
             <a href="javascript:;" id="totalClients">
                 <x-cards.widget :title="__('modules.dashboard.totalClients')" :value="$totalClient" icon="users" />
@@ -11,7 +11,7 @@
         </div>
     @endif
 
-    @if (in_array('leads', $modules) && in_array('total_leads', $activeWidgets))
+    @if (in_array('leads', user_modules()) && in_array('total_leads', $activeWidgets))
         <div class="col-xl-4 col-lg-6 col-md-6 mb-3">
             <a href="javascript:;" id="totalLeads">
                 <x-cards.widget :title="__('modules.dashboard.totalLeads')" :value="$totalLead" icon="users" />
@@ -19,7 +19,7 @@
         </div>
     @endif
 
-    @if (in_array('leads', $modules) && in_array('total_lead_conversions', $activeWidgets))
+    @if (in_array('leads', user_modules()) && in_array('total_lead_conversions', $activeWidgets))
         <div class="col-xl-4 col-lg-6 col-md-6 mb-3">
             <a href="javascript:;" id="totalLeadConversions">
                 <x-cards.widget :title="__('modules.dashboard.totalLeadConversions')" :value="$totalLeadConversions"
@@ -28,7 +28,7 @@
         </div>
     @endif
 
-    @if (in_array('contracts', $modules) && in_array('total_contracts_generated', $activeWidgets))
+    @if (in_array('contracts', user_modules()) && in_array('total_contracts_generated', $activeWidgets))
         <div class="col-xl-4 col-lg-6 col-md-6 mb-3">
             <a href="javascript:;" id="totalContractsGenerated">
                 <x-cards.widget :title="__('modules.dashboard.totalContractsGenerated')"
@@ -37,7 +37,7 @@
         </div>
     @endif
 
-    @if (in_array('contracts', $modules) && in_array('total_contracts_signed', $activeWidgets))
+    @if (in_array('contracts', user_modules()) && in_array('total_contracts_signed', $activeWidgets))
         <div class="col-xl-4 col-lg-6 col-md-6 mb-3">
             <a href="javascript:;" id="totalContractsSigned">
                 <x-cards.widget :title="__('modules.dashboard.totalContractsSigned')" :value="$totalContractsSigned"
@@ -49,7 +49,7 @@
 </div>
 
 <div class="row">
-    @if (in_array('payments', $modules) && in_array('client_wise_earnings', $activeWidgets))
+    @if (in_array('payments', user_modules()) && in_array('client_wise_earnings', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data
                 :title="__('modules.dashboard.clientWiseEarnings').' <i class=\'fa fa-question-circle\' data-toggle=\'popover\' data-placement=\'top\' data-content=\''.__('messages.earningChartNote').'\' data-trigger=\'hover\'></i>'">
@@ -58,7 +58,7 @@
         </div>
     @endif
 
-    @if (in_array('timelogs', $modules) && in_array('client_wise_timelogs', $activeWidgets))
+    @if (in_array('timelogs', user_modules()) && in_array('client_wise_timelogs', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.clientWiseTimelogs')">
                 <x-line-chart id="task-chart2" :chartData="$clientTimelogChart" height="300" />
@@ -66,7 +66,7 @@
         </div>
     @endif
 
-    @if (in_array('leads', $modules) && in_array('lead_vs_status', $activeWidgets))
+    @if (in_array('leads', user_modules()) && in_array('lead_vs_status', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.leadVsStatus')">
                 <x-pie-chart id="task-chart3" :labels="$leadStatusChart['labels']" :values="$leadStatusChart['values']"
@@ -75,7 +75,7 @@
         </div>
     @endif
 
-    @if (in_array('leads', $modules) && in_array('lead_vs_source', $activeWidgets))
+    @if (in_array('leads', user_modules()) && in_array('lead_vs_source', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.leadVsSource')">
                 <x-pie-chart id="task-chart4" :labels="$leadSourceChart['labels']" :values="$leadSourceChart['values']"
@@ -84,7 +84,7 @@
         </div>
     @endif
 
-    @if (in_array('clients', $modules) && in_array('latest_client', $activeWidgets))
+    @if (in_array('clients', user_modules()) && in_array('latest_client', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.latestClient')" padding="false" otherClasses="h-200">
                 <x-table class="border-0 pb-3 admin-dash-table table-hover">
@@ -115,7 +115,7 @@
         </div>
     @endif
 
-    @if (in_array('clients', $modules) && in_array('recent_login_activities', $activeWidgets))
+    @if (in_array('clients', user_modules()) && in_array('recent_login_activities', $activeWidgets))
         <div class="col-sm-12 col-lg-6 mt-3">
             <x-cards.data :title="__('modules.dashboard.recentLoginActivities')" padding="false" otherClasses="h-200">
                 <x-table class="border-0 pb-3 admin-dash-table table-hover">

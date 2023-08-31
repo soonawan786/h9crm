@@ -6,20 +6,20 @@
 
     .permisison-table .thead-light {
         top: 107px;
+        z-index: unset;
     }
+    
 
 </style>
 
-@if ($employee->customised_permissions)
-    <x-alert type="warning" class="mt-4">
-        <div class="d-flex justify-content-between">
-            <div class="pt-2">
-                <i class="fa fa-exclamation-triangle"></i> @lang('messages.customPermissionError')
-            </div>
-            <x-forms.button-secondary id="reset-user-permissions" icon="sync">@lang('app.reset') @lang('modules.permission.permissions')</x-forms.button-secondary>
+<x-alert type="warning" @class(['mt-4', 'd-none' => !($employee->customised_permissions)])>
+    <div class="d-flex justify-content-between">
+        <div class="pt-2">
+            <i class="fa fa-exclamation-triangle"></i> @lang('messages.customPermissionError')
         </div>
-    </x-alert>
-@endif
+        <x-forms.button-secondary id="reset-user-permissions" icon="sync">@lang('app.reset') @lang('modules.permission.permissions')</x-forms.button-secondary>
+    </div>
+</x-alert>
 
 @if ($employee->hasRole('admin'))
     <x-alert type="danger" class="mt-5" icon="exclamation-triangle">
@@ -66,14 +66,16 @@
                 @endif
 
                 <td class="text-center bg-light border-left">
-                    @if ($moduleData->custom_permissions_count > 0)
-                        <div class="p-2">
+                    <div class="p-2">
+                        @if ($moduleData->custom_permissions_count > 0)
                             <a href="javascript:;" data-module-id="{{ $moduleData->id }}"
                                 class="text-dark-grey show-custom-permission dropdown-toggle">
                                 @lang('app.more') <i class="fa fa-chevron-down"></i>
                             </a>
-                        </div>
-                    @endif
+                        @else
+                            &nbsp;
+                        @endif
+                    </div>
                 </td>
 
 
@@ -131,6 +133,9 @@
                     'permissionType': permissionType,
                     'permissionCustomised': 1,
                     '_token': '{{ csrf_token() }}'
+                },
+                success: function (response) {
+                    $('#reset-user-permissions').closest('.alert').removeClass('d-none');
                 }
             });
         });

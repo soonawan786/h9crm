@@ -70,7 +70,7 @@
                             data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($projects as $project)
-                                <option value="{{ $project->id }}">{{ mb_ucwords($project->project_name) }}</option>
+                                <option value="{{ $project->id }}">{{ $project->project_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -111,7 +111,7 @@
             <div id="table-actions" class="flex-grow-1 align-items-center">
                 @if ($addInvoicesPermission == 'all' || $addInvoicesPermission == 'added')
                     <x-forms.link-primary :link="route('recurring-invoices.create')" class="mr-3 float-left" icon="plus">
-                        @lang('app.add') @lang('app.invoiceRecurring')
+                        @lang('app.addInvoiceRecurring')
                     </x-forms.link-primary>
                 @endif
             </div>

@@ -119,7 +119,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|Setting whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Setting whereWeatherKey($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Setting whereWebsite($value)
- * @mixin \Eloquent
  * @property int $ticket_form_google_captcha
  * @property int $lead_form_google_captcha
  * @property string|null $last_cron_run
@@ -162,6 +161,23 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|GlobalSetting whereMomentDateFormat($value)
  * @method static \Illuminate\Database\Eloquent\Builder|GlobalSetting whereRtl($value)
  * @method static \Illuminate\Database\Eloquent\Builder|GlobalSetting whereShowUpdatePopup($value)
+ * @property string $header_color
+ * @property string|null $hash
+ * @property string|null $last_license_verified_at
+ * @property int $datatable_row_limit
+ * @method static \Illuminate\Database\Eloquent\Builder|GlobalSetting whereDatatableRowLimit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|GlobalSetting whereHash($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|GlobalSetting whereHeaderColor($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|GlobalSetting whereLastLicenseVerifiedAt($value)
+ * @property string $auth_theme_text
+ * @method static \Illuminate\Database\Eloquent\Builder|GlobalSetting whereAuthThemeText($value)
+ * @property string $sign_up_terms
+ * @property string|null $terms_link
+ * @property int $allow_max_no_of_files
+ * @method static \Illuminate\Database\Eloquent\Builder|GlobalSetting whereAllowMaxNoOfFiles($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|GlobalSetting whereSignUpTerms($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|GlobalSetting whereTermsLink($value)
+ * @mixin \Eloquent
  * @property string $company_email
  * @property string|null $company_phone
  * @property int $front_design
@@ -381,7 +397,12 @@ class GlobalSetting extends BaseModel
 
     public function currency(): BelongsTo
     {
+        // WORKSUITE SAAS
         return $this->belongsTo(GlobalCurrency::class, 'currency_id');
+
+        if (isWorksuite()) {
+            return $this->belongsTo(Currency::class, 'currency_id');
+        }
     }
 
     public function getLogoUrlAttribute()
@@ -400,7 +421,7 @@ class GlobalSetting extends BaseModel
             return asset('img/worksuite-logo.png');
         }
 
-        return asset_url('app-logo/' . $this->light_logo);
+        return asset_url_local_s3('app-logo/' . $this->light_logo, true, 'image');
 
     }
 
@@ -410,7 +431,7 @@ class GlobalSetting extends BaseModel
             return asset('img/worksuite-logo.png');
         }
 
-        return asset_url('app-logo/' . $this->logo);
+        return asset_url_local_s3('app-logo/' . $this->logo, true, 'image');
     }
 
     public function getLightLogoUrlAttribute()
@@ -419,7 +440,7 @@ class GlobalSetting extends BaseModel
             return asset('img/worksuite-logo.png');
         }
 
-        return asset_url('app-logo/' . $this->light_logo);
+        return asset_url_local_s3('app-logo/' . $this->light_logo, true, 'image');
     }
 
     public function getDarkLogoUrlAttribute()
@@ -429,7 +450,7 @@ class GlobalSetting extends BaseModel
             return asset('img/worksuite-logo.png');
         }
 
-        return asset_url('app-logo/' . $this->logo);
+        return asset_url_local_s3('app-logo/' . $this->logo, true, 'image');
     }
 
     public function getLoginBackgroundUrlAttribute()
@@ -439,7 +460,7 @@ class GlobalSetting extends BaseModel
             return null;
         }
 
-        return asset_url('login-background/' . $this->login_background);
+        return asset_url_local_s3('login-background/' . $this->login_background);
     }
 
     public function getShowPublicMessageAttribute()
@@ -463,7 +484,7 @@ class GlobalSetting extends BaseModel
             return asset('favicon.png');
         }
 
-        return asset_url('favicon/' . $this->favicon);
+        return asset_url_local_s3('favicon/' . $this->favicon, true, 'image');
     }
 
     public function getLogoFrontUrlAttribute()
@@ -476,7 +497,7 @@ class GlobalSetting extends BaseModel
             return $this->logo_url;
         }
 
-        return asset_url('app-logo/' . $this->logo_front);
+        return asset_url_local_s3('app-logo/' . $this->logo_front, true, 'image');
     }
 
     public static function checkListCompleted()
@@ -498,7 +519,6 @@ class GlobalSetting extends BaseModel
         if (!is_null(global_setting()->favicon)) {
             $checkListCompleted++;
         }
-
 
         return $checkListCompleted;
     }
@@ -537,6 +557,21 @@ class GlobalSetting extends BaseModel
             abort_403(!in_array('admin', user_roles()));
         }
 
+    }
+
+    public static function validateSuperAdmin($permission = null)
+    {
+        // WORKSUITESAAS
+        if (isWorksuiteSaas() && user()->is_superadmin) {
+            if (!is_null($permission)) {
+                return (user()->permission($permission) !== 'all') ? true : false;
+            }
+
+            return false;
+
+        }
+
+        return !in_array('admin', user_roles()) ? true : false;
     }
 
 }

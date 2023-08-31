@@ -1,7 +1,7 @@
 <div class="col-xl-8 col-lg-12 col-md-12 ntfcn-tab-content-left w-100 p-4 ">
     @include('sections.password-autocomplete-hide')
 
-    <div class="col-sm-12" id="alert">
+    <div id="alert">
     </div>
 
     <div class="row">
@@ -90,26 +90,8 @@
     </x-setting-form-actions>
 </div>
 <!-- Buttons End -->
-<script src="https://js.pusher.com/7.0/pusher.min.js"></script>
 
 <script>
-    // Enable pusher logging - don't include this in production
-    // Pusher.logToConsole = true;
-
-    const pusher = new Pusher('{{ $pusherSettings->pusher_app_key }}', {
-        cluster: '{{ $pusherSettings->pusher_cluster }}',
-        forceTLS: '{{ $pusherSettings->force_tls }}'
-    });
-</script>
-<script>
-
-    if({{$pusherSettings->status}} == 1){
-
-        var channel = pusher.subscribe('test-pusher-channel');
-        channel.bind('test-pusher-message', function (data) {
-            localStorage.setItem('credential', '1');
-        });
-    }
 
     $('body').on('click', '#save-pusher-form', function() {
         var url = "{{ route('pusher-settings.update', $pusherSettings->id) }}";
@@ -122,33 +104,27 @@
             data: $('#editSettings').serialize(),
             success: function (response) {
 
-                if(response.pusherStatus == 1){
+                if(response.hasOwnProperty('error') && response.error != '')
+                {
+                    $('#alert').prepend(
+                        '<div class="alert alert-danger">{{ __('messages.pusherError') }}</div>'
+                    )
+                }
+
+                if(response.status == 1){
                     $('#pusher-setting-tab').addClass('text-light-green');
                     $('#pusher-setting-tab').removeClass('text-red');
-
-                    if(localStorage.getItem('credential') != null)
-                    {
-                        $('#alert').prepend(
-                            '<div class="alert alert-success">{{ __('messages.pusherSuccess') }}</div>'
-                        )
-                    }
-                    else
-                    {
-                        $('#alert').prepend(
-                            '<div class="alert alert-danger">{{ __('messages.pusherError') }}</div>'
-                        )
-                    }
+                    $('#alert').prepend(
+                        '<div class="alert alert-success">{{ __('messages.pusherSuccess') }}</div>'
+                    )
                 }
                 else
                 {
                     $('#pusher-setting-tab').removeClass('text-light-green');
                     $('#pusher-setting-tab').addClass('text-red');
                 }
-                localStorage.removeItem('credential');
             }
         })
     });
 
-
-    // show/hide pusher detail
 </script>

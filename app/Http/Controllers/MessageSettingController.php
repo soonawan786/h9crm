@@ -16,7 +16,8 @@ class MessageSettingController extends AccountBaseController
         $this->activeSettingMenu = 'message_settings';
 
         $this->middleware(function ($request, $next) {
-            abort_403(user()->permission('manage_message_setting') !== 'all');
+            abort_403(!(user()->permission('manage_message_setting') == 'all' && in_array('messages', user_modules())));
+
             return $next($request);
         });
     }

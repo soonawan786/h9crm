@@ -25,7 +25,7 @@ class UpdateRequest extends FormRequest
     public function rules()
     {
         $rules = [
-            'title' => 'required|unique:footer_menu,name,'.$this->footer_setting,
+            'title' => 'required',
         ];
 
         if($this->get('content') == 'desc'){

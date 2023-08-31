@@ -77,23 +77,8 @@ $addProductPermission = user()->permission('add_product');
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="form-group c-inv-select mb-lg-0 mb-md-0 mb-4">
-                            <x-forms.label fieldId="unit_type_id" :fieldLabel="__('modules.unitType.unitType')">
-                            </x-forms.label>
 
-                            <div class="select-others height-35 rounded">
-                                <input type="hidden" name="unit_type_id" value="{{ $creditNote->unit_id }}">
-                                <select class="form-control select-picker" disabled name="unit_type_id" id="unit_type_id">
-                                    @foreach ($unit_types as $unit_type)
-                                        <option @if ($creditNote->unit_id == $unit_type->id) selected @endif value="{{ $unit_type->id }}">
-                                            {{ $unit_type->unit_type }}
-                                        </option>
-                                    @endforeach
-                                </select>
-                            </div>
-                        </div>
-                    </div>
+
                     <!-- FREQUENCY END -->
                 </div>
                 <!-- INVOICE NUMBER, DATE, DUE DATE, FREQUENCY END -->
@@ -146,7 +131,7 @@ $addProductPermission = user()->permission('add_product');
                                             @if ($creditNoteSetting->hsn_sac_code_show)
                                                 <td width="10%" class="border-0" align="right">@lang("app.hsnSac")
                                             @endif
-                                            <td width="10%" class="border-0" align="right">{{ isset($creditNote->unit) ? $creditNote->unit->unit_type : 'Qty\hrs' }}
+                                            <td width="10%" class="border-0" align="right">@lang('modules.invoices.qty')
                                             </td>
                                             <td width="10%" class="border-0" align="right">
                                                 @lang("modules.invoices.unitPrice")</td>
@@ -167,31 +152,31 @@ $addProductPermission = user()->permission('add_product');
                                                     name="item_summary[]">{{ $item->item_summary }}</textarea>
                                             </td>
                                             @if ($creditNoteSetting->hsn_sac_code_show)
-                                                <td class="border-bottom-0">
+                                                <td class="border-bottom-0 text-right">
                                                     <input type="hidden" class="f-14 border-0 w-100 text-right hsn_sac_code"
                                                         value="{{ $item->hsn_sac_code }}" name="hsn_sac_code[]">
                                                     <span>{{ $item->hsn_sac_code }}</span>
                                                 </td>
                                             @endif
-                                            <td class="border-bottom-0">
+                                            <td class="border-bottom-0 text-right">
                                                 <input type="hidden" class="f-14 border-0 w-100 text-right quantity" value="{{ $item->quantity }}" name="quantity[]">
-                                                {{ $item->quantity }}
+                                                {{ $item->quantity }} @if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif
                                             </td>
-                                            <td class="border-bottom-0">
+                                            <td class="border-bottom-0 text-right">
                                                 <input type="hidden" class="f-14 border-0 w-100 text-right cost_per_item"
                                                     value="{{ $item->unit_price }}" name="cost_per_item[]">
                                                 <span>{{ $item->unit_price }}</span>
                                             </td>
-                                            <td class="border-bottom-0">
+                                            <td class="border-bottom-0 text-right">
                                                 <div class="select-others height-35 rounded border-0">
                                                     <select id="multiselect{{ $key }}"
                                                         multiple="multiple"
                                                         class="select-picker type customSequence border-0" data-size="3"
                                                         disabled>
                                                         @foreach ($taxes as $tax)
-                                                            <option data-rate="{{ $tax->rate_percent }}"
+                                                            <option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%"
                                                                 @if (isset($item->taxes) && array_search($tax->id, json_decode($item->taxes)) !== false) selected @endif value="{{ $tax->id }}">
-                                                                {{ strtoupper($tax->tax_name) }}:
+                                                                {{ $tax->tax_name }}:
                                                                 {{ $tax->rate_percent }}%</option>
                                                         @endforeach
                                                     </select>
@@ -219,7 +204,7 @@ $addProductPermission = user()->permission('add_product');
                                                 <input type="file"
                                                 class="dropify"
                                                 name="invoice_item_image[]"
-                                                data-allowed-file-extensions="png jpg jpeg"
+                                                data-allowed-file-extensions="png jpg jpeg bmp"
                                                 data-messages-default="test"
                                                 data-height="70"
                                                 data-id="{{ $item->id }}"
@@ -518,7 +503,7 @@ $addProductPermission = user()->permission('add_product');
                 calculateTotal();
             });
 
-            $('#saveInvoiceForm').on('change', '.type, #discount_type', function() {
+            $('#saveInvoiceForm').on('change', '.type, #discount_type, #calculate_tax', function() {
                 var quantity = $(this).closest('.item-row').find('.quantity').val();
                 var perItemCost = $(this).closest('.item-row').find('.cost_per_item').val();
                 var amount = (quantity * perItemCost);

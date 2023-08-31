@@ -56,8 +56,20 @@
             <div class="select-filter mb-4">
                 <select class="form-control select-picker" name="date_filter_on" id="date_filter_on">
                     <option value="created_at">@lang('app.createdOn')</option>
+                    <option value="updated_at">@lang('app.updatedOn')</option>
                     <option value="next_follow_up_date">@lang('modules.lead.nextFollowUp')</option>
                 </select>
+            </div>
+        </div>
+
+        <div class="more-filter-items">
+            <label class="f-14 text-dark-grey mb-12 text-capitalize" for="min">@lang('app.lead') @lang('app.value')</label>
+            <div class="select-filter mb-4">
+                <div class="select-status d-flex">
+                    <input type="number" class="position-relative text-dark form-control border-5 p-2 text-left f-14 f-w-500 border-additional-grey" placeholder="@lang('placeholders.min')" id="min" name="min" min="0">
+                    <span class="p-2 m-2">@lang('app.to')</span>
+                    <input type="number" class="position-relative text-dark form-control border-5 p-2 text-left f-14 f-w-500 border-additional-grey" placeholder="@lang('placeholders.max')" id="max" name="max" min="0">
+                </div>
             </div>
         </div>
 
@@ -127,7 +139,7 @@
                     <select class="form-control select-picker" id="filter_status_id" data-live-search="true" data-container="body" data-size="8">
                         <option value="all">@lang('app.all')</option>
                         @foreach ($status as $sts)
-                            <option data-content="<span class='fa fa-circle text-red' style='color: {{ $sts->label_color }}'></span> {{ mb_ucwords($sts->type) }}" value="{{ $sts->id }}">{{ $sts->type }}</option>
+                            <option data-content="<span class='fa fa-circle text-red' style='color: {{ $sts->label_color }}'></span> {{ $sts->type }}" value="{{ $sts->id }}">{{ $sts->type }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -140,7 +152,7 @@
 
 @push('scripts')
     <script>
-        $('#type, #followUp, #filter_agent_id, #category_id, #filter_source_id, #filter_status_id, #date_filter_on')
+        $('#type, #followUp, #filter_agent_id, #filter_category_id, #filter_source_id, #filter_status_id, #date_filter_on, #min, #max')
             .on('change keyup', function() {
                 if ($('#type').val() != "all") {
                     $('#reset-filters').removeClass('d-none');
@@ -148,10 +160,16 @@
                 } else if ($('#followUp').val() != "all") {
                     $('#reset-filters').removeClass('d-none');
                     showTable();
+                } else if ($('#min').val() != "all") {
+                    $('#reset-filters').removeClass('d-none');
+                    showTable();
+                } else if ($('#max').val() != "all") {
+                    $('#reset-filters').removeClass('d-none');
+                    showTable();
                 } else if ($('#filter_agent_id').val() != "all") {
                     $('#reset-filters').removeClass('d-none');
                     showTable();
-                } else if ($('#category_id').val() != "all") {
+                } else if ($('#filter_category_id').val() != "all") {
                     $('#reset-filters').removeClass('d-none');
                     showTable();
                 } else if ($('#filter_source_id').val() != "all") {

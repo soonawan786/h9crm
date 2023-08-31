@@ -44,6 +44,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectFile whereSize($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectFile whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectFile whereUserId($value)
+ * @property int|null $company_id
+ * @method static \Illuminate\Database\Eloquent\Builder|ProjectFile whereCompanyId($value)
  * @mixin \Eloquent
  */
 class ProjectFile extends BaseModel

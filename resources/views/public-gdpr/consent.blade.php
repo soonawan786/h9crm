@@ -119,6 +119,7 @@
     <script src="{{ asset('js/main.js') }}"></script>
 
     <script>
+        document.loading = '@lang('app.loading')';
          $(body).on('click', '#save-form', function() {
             $.easyAjax({
                 url: "{{ route('front.gdpr.consent.update', [md5($lead->id)]) }}",

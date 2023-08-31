@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\GdprController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\AwardController;
 use App\Http\Controllers\ImageController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\OrderController;
@@ -35,6 +36,8 @@ use App\Http\Controllers\ClientDocController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventFileController;
 use App\Http\Controllers\LeadBoardController;
+use App\Http\Controllers\LeaveFileController;
+use App\Http\Controllers\QuickbookController;
 use App\Http\Controllers\TaskBoardController;
 use App\Http\Controllers\TaskLabelController;
 use App\Http\Controllers\AttendanceController;
@@ -42,9 +45,9 @@ use App\Http\Controllers\ClientNoteController;
 use App\Http\Controllers\CreditNoteController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DiscussionController;
+use App\Http\Controllers\LeadReportController;
 use App\Http\Controllers\StickyNoteController;
 use App\Http\Controllers\TaskReportController;
-use App\Http\Controllers\TaxSettingController;
 use App\Http\Controllers\TicketFileController;
 use App\Http\Controllers\BankAccountController;
 use App\Http\Controllers\DesignationController;
@@ -57,9 +60,11 @@ use App\Http\Controllers\MessageFileController;
 use App\Http\Controllers\ProductFileController;
 use App\Http\Controllers\ProjectFileController;
 use App\Http\Controllers\ProjectNoteController;
+use App\Http\Controllers\SalesReportController;
 use App\Http\Controllers\SubTaskFileController;
 use App\Http\Controllers\TaskCommentController;
 use App\Http\Controllers\TicketReplyController;
+use App\Http\Controllers\AppreciationController;
 use App\Http\Controllers\ContractFileController;
 use App\Http\Controllers\ContractTypeController;
 use App\Http\Controllers\EmployeeVisaController;
@@ -67,6 +72,7 @@ use App\Http\Controllers\GdprSettingsController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\TaskCalendarController;
 use App\Http\Controllers\TaskCategoryController;
+use App\Http\Controllers\InvoiceFilesController;
 use App\Http\Controllers\ClientContactController;
 use App\Http\Controllers\ContractRenewController;
 use App\Http\Controllers\EventCalendarController;
@@ -83,12 +89,14 @@ use App\Http\Controllers\DiscussionFilesController;
 use App\Http\Controllers\DiscussionReplyController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ProductCategoryController;
+use App\Http\Controllers\ProjectCalendarController;
 use App\Http\Controllers\ProjectCategoryController;
 use App\Http\Controllers\ProjectTemplateController;
 use App\Http\Controllers\TimelogCalendarController;
 use App\Http\Controllers\AttendanceReportController;
 use App\Http\Controllers\ContractTemplateController;
 use App\Http\Controllers\EmergencyContactController;
+use App\Http\Controllers\EstimateTemplateController;
 use App\Http\Controllers\ProjectMilestoneController;
 use App\Http\Controllers\ProposalTemplateController;
 use App\Http\Controllers\RecurringExpenseController;
@@ -107,13 +115,8 @@ use App\Http\Controllers\KnowledgeBaseCategoryController;
 use App\Http\Controllers\ProjectTemplateMemberController;
 use App\Http\Controllers\ProjectTemplateSubTaskController;
 use App\Http\Controllers\EmployeeShiftChangeRequestController;
-use App\Http\Controllers\AwardController;
-use App\Http\Controllers\AppreciationController;
-use App\Http\Controllers\EstimateTemplateController;
-use App\Http\Controllers\LeaveFileController;
 use App\Http\Controllers\ProductBrandController;
 use App\Http\Controllers\ProductTagsController;
-use App\Http\Controllers\QuickbookController;
 use App\Http\Controllers\WooCommerceController;
 
 Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified'], 'prefix' => 'account'], function () {
@@ -140,6 +143,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::get('clients/gdpr-consent', [ClientController::class, 'consent'])->name('clients.gdpr_consent');
     Route::post('clients/save-client-consent/{lead}', [ClientController::class, 'saveClientConsent'])->name('clients.save_client_consent');
     Route::post('clients/ajax-details/{id}', [ClientController::class, 'ajaxDetails'])->name('clients.ajax_details');
+    Route::get('clients/client-details/{id}', [ClientController::class, 'clientDetails'])->name('clients.client_details');
     Route::post('clients/project-list/{id}', [ClientController::class, 'projectList'])->name('clients.project_list');
     Route::post('clients/apply-quick-action', [ClientController::class, 'applyQuickAction'])->name('clients.apply_quick_action');
     Route::get('clients/import', [ClientController::class, 'importClient'])->name('clients.import');
@@ -150,7 +154,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
 
     Route::post('client-contacts/apply-quick-action', [ClientContactController::class, 'applyQuickAction'])->name('client-contacts.apply_quick_action');
     Route::resource('client-contacts', ClientContactController::class);
-    //ajax call to update client phone and dob
+//ajax call to update client phone and dob
     Route::put('update-client', [InvoiceController::class, 'updateClient'])->name('update.client');
 
     Route::get('client-notes/ask-for-password/{id}', [ClientNoteController::class, 'askForPassword'])->name('client_notes.ask_for_password');
@@ -274,6 +278,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
             Route::get('project-template-task/data/{templateId?}', [ProjectTemplateTaskController::class, 'data'])->name('project_template_task.data');
             Route::resource('project-template-task', ProjectTemplateTaskController::class);
             Route::resource('project-template-sub-task', ProjectTemplateSubTaskController::class);
+            Route::resource('project-calendar', ProjectCalendarController::class);
 
         }
     );
@@ -288,12 +293,16 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     /* PRODUCTS */
     Route::post('products/apply-quick-action', [ProductController::class, 'applyQuickAction'])->name('products.apply_quick_action');
     Route::post('products/remove-cart-item/{id}', [ProductController::class, 'removeCartItem'])->name('products.remove_cart_item');
+    Route::get('products/options', [ProductController::class, 'allProductOption'])->name('products.options');
+
 
     Route::post('products/add-cart-item', [ProductController::class, 'addCartItem'])->name('products.add_cart_item');
     Route::get('products/cart', [ProductController::class, 'cart'])->name('products.cart');
+    Route::get('products/empty-cart', [ProductController::class, 'emptyCart'])->name('products.empty_cart');
+
     Route::resource('products', ProductController::class);
     Route::resource('productCategory', ProductCategoryController::class);
-    Route::resource('productBrand', ProductBrandController::class);
+Route::resource('productBrand', ProductBrandController::class);
     Route::resource('productTags', ProductTagsController::class);
     Route::get('getProductSubCategories/{id}', [ProductSubCategoryController::class, 'getSubCategories'])->name('get_product_sub_categories');
     Route::resource('productSubCategory', ProductSubCategoryController::class);
@@ -303,9 +312,11 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::post('product-files/delete-image/{id}', [ProductFileController::class, 'deleteImage'])->name('product-files.delete_image');
     Route::post('product-files/update-images', [ProductFileController::class, 'updateImages'])->name('product-files.update_images');
     Route::resource('product-files', ProductFileController::class);
-
-    // Tax Settings
     Route::resource('taxes', TaxSettingController::class);
+    /* INVOICE FILES */
+    Route::get('invoice-files/download/{id}', [InvoiceFilesController::class, 'download'])->name('invoice-files.download');
+    Route::resource('invoice-files', InvoiceFilesController::class);
+
 
     /* Payments */
     Route::get('orders/offline-payment-modal', [OrderController::class, 'offlinePaymentModal'])->name('orders.offline_payment_modal');
@@ -318,8 +329,9 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::post('orders/change-status/', [OrderController::class, 'changeStatus'])->name('orders.change_status');
     /* Payments */
     Route::get('orders/download/{id}', [OrderController::class, 'download'])->name('orders.download');
-    Route::get('orders/get-clients-data/{id}', [OrderController::class, 'getclients'])->name('orders.get_clients_data');
+    Route::post('orders/store-quantity/', [OrderController::class, 'storeQuantity'])->name('orders.store_quantity');
 
+    Route::get('orders/get-clients-data/{id}', [OrderController::class, 'getclients'])->name('orders.get_clients_data');
 
     /* Orders */
     Route::resource('orders', OrderController::class);
@@ -373,6 +385,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::post('tasks/gantt-task-update/{id}', [TaskController::class, 'updateTaskDuration'])->name('tasks.gantt_task_update');
     Route::get('tasks/members/{id}', [TaskController::class, 'members'])->name('tasks.members');
     Route::get('tasks/project_tasks/{id}', [TaskController::class, 'projectTasks'])->name('tasks.project_tasks');
+    Route::get('tasks/check-leaves', [TaskController::class, 'checkLeaves'])->name('tasks.checkLeaves');
 
 
     Route::group(['prefix' => 'tasks'], function () {
@@ -409,7 +422,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     // Holidays
     Route::get('holidays/mark-holiday', [HolidayController::class, 'markHoliday'])->name('holidays.mark_holiday');
     Route::post('holidays/mark-holiday-store', [HolidayController::class, 'markDayHoliday'])->name('holidays.mark_holiday_store');
-    Route::get('holidays/calendar', [HolidayController::class, 'calendar'])->name('holidays.calendar');
+    Route::get('holidays/table-view', [HolidayController::class, 'tableView'])->name('holidays.table_view');
     Route::post('holidays/apply-quick-action', [HolidayController::class, 'applyQuickAction'])->name('holidays.apply_quick_action');
     Route::resource('holidays', HolidayController::class);
 
@@ -487,11 +500,12 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::resource('message-file', MessageFileController::class);
 
     // Invoices
+    Route::get('invoices/offline-method-description', [InvoiceController::class, 'offlineDescription'])->name('invoices.offline_method_description');
     Route::get('invoices/offline-payment-modal', [InvoiceController::class, 'offlinePaymentModal'])->name('invoices.offline_payment_modal');
     Route::get('invoices/stripe-modal', [InvoiceController::class, 'stripeModal'])->name('invoices.stripe_modal');
     Route::post('invoices/save-stripe-detail/', [InvoiceController::class, 'saveStripeDetail'])->name('invoices.save_stripe_detail');
     Route::get('invoices/delete-image', [InvoiceController::class, 'deleteInvoiceItemImage'])->name('invoices.delete_image');
-    Route::get('invoices/show-image', [InvoiceController::class, 'showImage'])->name('invoices.show_image');
+Route::get('invoices/show-image', [InvoiceController::class, 'showImage'])->name('invoices.show_image');
     Route::post('invoices/store-offline-payment', [InvoiceController::class, 'storeOfflinePayment'])->name('invoices.store_offline_payment');
     Route::post('invoices/store_file', [InvoiceController::class, 'storeFile'])->name('invoices.store_file');
     Route::get('invoices/file-upload', [InvoiceController::class, 'fileUpload'])->name('invoices.file_upload');
@@ -506,12 +520,13 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::get('invoices/get-client-company/{projectID?}', [InvoiceController::class, 'getClientOrCompanyName'])->name('invoices.get_client_company');
     Route::post('invoices/fetchTimelogs', [InvoiceController::class, 'fetchTimelogs'])->name('invoices.fetch_timelogs');
     Route::get('invoices/check-shipping-address', [InvoiceController::class, 'checkShippingAddress'])->name('invoices.check_shipping_address');
+    Route::get('invoices/product-category/{id}', [InvoiceController::class, 'productCategory'])->name('invoices.product_category');
 
     Route::get('invoices/toggle-shipping-address/{invoice}', [InvoiceController::class, 'toggleShippingAddress'])->name('invoices.toggle_shipping_address');
     Route::get('invoices/shipping-address-modal/{invoice}', [InvoiceController::class, 'shippingAddressModal'])->name('invoices.shipping_address_modal');
     Route::post('invoices/add-shipping-address/{clientId}', [InvoiceController::class, 'addShippingAddress'])->name('invoices.add_shipping_address');
     Route::get('invoices/get-exchange-rate/{id}', [InvoiceController::class, 'getExchangeRate'])->name('invoices.get_exchange_rate');
-    Route::get('get_clients_data/{id}', [InvoiceController::class, 'getclients'])->name('get_clients_data');
+Route::get('get_clients_data/{id}', [InvoiceController::class, 'getclients'])->name('get_clients_data');
 
     Route::group(['prefix' => 'invoices'], function () {
         // Invoice recurring
@@ -521,7 +536,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
         Route::resource('recurring-invoices', RecurringInvoiceController::class);
     });
     Route::resource('invoices', InvoiceController::class);
-    //referral invoice name
+//referral invoice name
     Route::get('referral_name',[InvoiceController::class,'getReferralName']);
     Route::get('client-invoice-history/{id}', [InvoiceController::class, 'clientHistory']);
 
@@ -532,19 +547,22 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::get('estimates/change-status/{id}', [EstimateController::class, 'changeStatus'])->name('estimates.change_status');
     Route::post('estimates/accept/{id}', [EstimateController::class, 'accept'])->name('estimates.accept');
     Route::post('estimates/decline/{id}', [EstimateController::class, 'decline'])->name('estimates.decline');
+    Route::get('estimates/add-item', [EstimateController::class, 'addItem'])->name('estimates.add_item');
     Route::resource('estimates', EstimateController::class);
-    Route::get('get_clients_data/{id}', [EstimateController::class, 'getclients'])->name('get_clients_data');
+Route::get('get_clients_data/{id}', [EstimateController::class, 'getclients'])->name('get_clients_data');
 
 
     // Proposals
     Route::get('proposals/delete-image', [ProposalController::class, 'deleteProposalItemImage'])->name('proposals.delete_image');
     Route::get('proposals/download/{id}', [ProposalController::class, 'download'])->name('proposals.download');
     Route::post('proposals/send-proposal/{id}', [ProposalController::class, 'sendProposal'])->name('proposals.send_proposal');
+    Route::get('proposals/add-item', [ProposalController::class, 'addItem'])->name('proposals.add_item');
     Route::resource('proposals', ProposalController::class);
-    Route::get('get_clients_data/{id}', [ProposalController::class, 'getclients'])->name('get_clients_data');
+Route::get('get_clients_data/{id}', [ProposalController::class, 'getclients'])->name('get_clients_data');
 
     // Proposal Template
     Route::post('proposal-template/apply-quick-action', [ProposalTemplateController::class, 'applyQuickAction'])->name('proposal_template.apply_quick_action');
+    Route::get('proposal-template/add-item', [ProposalController::class, 'addItem'])->name('proposal-template.add_item');
     Route::resource('proposal-template', ProposalTemplateController::class);
     Route::get('proposal-template/download/{id}', [ProposalTemplateController::class, 'download'])->name('proposal-template.download');
     Route::get('proposals-template/delete-image', [ProposalTemplateController::class, 'deleteProposalItemImage'])->name('proposal_template.delete_image');
@@ -553,7 +571,9 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::post('payments/apply-quick-action', [PaymentController::class, 'applyQuickAction'])->name('payments.apply_quick_action');
     Route::get('payments/download/{id}', [PaymentController::class, 'download'])->name('payments.download');
     Route::get('payments/account-list', [PaymentController::class, 'accountList'])->name('payments.account_list');
-    Route::get('offline-payments', [PaymentController::class, 'offlineMethods'])->name('offline.methods');
+    Route::get('payments/offline-payments', [PaymentController::class, 'offlineMethods'])->name('offline.methods');
+    Route::get('payments/add-bulk-payments', [PaymentController::class, 'addBulkPayments'])->name('payments.add_bulk_payments');
+    Route::post('payments/save-bulk-payments', [PaymentController::class, 'saveBulkPayments'])->name('payments.save_bulk_payments');
 
     Route::resource('payments', PaymentController::class);
 
@@ -565,7 +585,6 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::post('creditnotes/apply-invoice-credit/{id}', [CreditNoteController::class, 'applyInvoiceCredit'])->name('creditnotes.apply_invoice_credit');
     Route::get('creditnotes/apply-to-invoice/{id}', [CreditNoteController::class, 'applyToInvoice'])->name('creditnotes.apply_to_invoice');
     Route::get('creditnotes/download/{id}', [CreditNoteController::class, 'download'])->name('creditnotes.download');
-    Route::get('get_clients_data/{id}', [CreditNoteController::class, 'getclients'])->name('get_clients_data');
 
     Route::get('creditnotes/convert-invoice/{id}', [CreditNoteController::class, 'convertInvoice'])->name('creditnotes.convert-invoice');
 
@@ -596,7 +615,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     });
     Route::resource('expenses', ExpenseController::class);
     Route::resource('expenseCategory', ExpenseCategoryController::class);
-    //purchase from name
+//purchase from name
     Route::get('purchase-from',[ExpenseController::class,'getPurhcaseFromName']);
 
     // Timelogs
@@ -608,6 +627,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
         Route::get('show-active-timer', [TimelogController::class, 'showActiveTimer'])->name('timelogs.show_active_timer');
         Route::get('show-timer', [TimelogController::class, 'showTimer'])->name('timelogs.show_timer');
         Route::post('start-timer', [TimelogController::class, 'startTimer'])->name('timelogs.start_timer');
+        Route::get('timer-data', [TimelogController::class, 'timerData'])->name('timelogs.timer_data');
         Route::post('stop-timer', [TimelogController::class, 'stopTimer'])->name('timelogs.stop_timer');
         Route::post('pause-timer', [TimelogController::class, 'pauseTimer'])->name('timelogs.pause_timer');
         Route::post('resume-timer', [TimelogController::class, 'resumeTimer'])->name('timelogs.resume_timer');
@@ -623,6 +643,9 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::post('contracts/apply-quick-action', [ContractController::class, 'applyQuickAction'])->name('contracts.apply_quick_action');
     Route::get('contracts/download/{id}', [ContractController::class, 'download'])->name('contracts.download');
     Route::post('contracts/sign/{id}', [ContractController::class, 'sign'])->name('contracts.sign');
+    Route::post('companySign/sign/{id}', [ContractController::class, 'companySign'])->name('companySign.sign');
+    Route::get('companySignStore/sign/{id}', [ContractController::class, 'companiesSign'])->name('companySignStore.sign');
+    Route::post('contracts/project-detail/{id}', [ContractController::class, 'projectDetail'])->name('contracts.project_detail');
 
     Route::group(['prefix' => 'contracts'], function () {
         Route::resource('contractDiscussions', ContractDiscussionController::class);
@@ -641,7 +664,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
 
     // Attendance
     Route::get('attendances/export-attendance/{year}/{month}/{id}', [AttendanceController::class, 'exportAttendanceByMember'])->name('attendances.export_attendance');
-    Route::get('attendances/export-all-attendance/{year}/{month}/{id}/{late}/{department}/{designation}', [AttendanceController::class, 'exportAllAttendance'])->name('attendances.export_all_attendance');
+    Route::get('attendances/export-all-attendance/{year}/{month}/{id}/{department}/{designation}', [AttendanceController::class, 'exportAllAttendance'])->name('attendances.export_all_attendance');
     Route::post('attendances/employee-data', [AttendanceController::class, 'employeeData'])->name('attendances.employee_data');
     Route::get('attendances/mark/{id}/{day}/{month}/{year}', [AttendanceController::class, 'mark'])->name('attendances.mark');
     Route::get('attendances/by-member', [AttendanceController::class, 'byMember'])->name('attendances.by_member');
@@ -674,6 +697,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::post('tickets/updateOtherData/{id}', [TicketController::class, 'updateOtherData'])->name('tickets.update_other_data');
     Route::post('tickets/change-status', [TicketController::class, 'changeStatus'])->name('tickets.change-status');
     Route::post('tickets/refreshCount', [TicketController::class, 'refreshCount'])->name('tickets.refresh_count');
+    Route::get('tickets/agent-group/{id}', [TicketController::class, 'agentGroup'])->name('tickets.agent_group');
     Route::resource('tickets', TicketController::class);
 
     // Ticket Custom Embed From
@@ -701,7 +725,11 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::resource('attendance-report', AttendanceReportController::class);
 
     Route::post('expense-report-chart', [ExpenseReportController::class, 'expenseChartData'])->name('expense-report.chart');
+    Route::get('expense-report/expense-category-report', [ExpenseReportController::class, 'expenseCategoryReport'])->name('expense-report.expense_category_report');
+
     Route::resource('expense-report', ExpenseReportController::class);
+    Route::resource('lead-report', LeadReportController::class);
+    Route::resource('sales-report', SalesReportController::class);
 
     Route::resource('sticky-notes', StickyNoteController::class);
 
@@ -738,6 +766,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::get('hide-webhook-url', [SettingsController::class, 'hideWebhookAlert'])->name('hideWebhookAlert');
 
     // Estimate Template
+    Route::get('estimate-template/add-item', [EstimateTemplateController::class, 'addItem'])->name('estimate-template.add_item');
     Route::resource('estimate-template', EstimateTemplateController::class);
     Route::get('estimates-template/delete-image', [EstimateTemplateController::class, 'deleteEstimateItemImage'])->name('estimate-template.delete_image');
     Route::get('estimate-template/download/{id}', [EstimateTemplateController::class, 'download'])->name('estimate-template.download');
@@ -745,7 +774,7 @@ Route::group(['middleware' => ['auth', 'multi-company-select', 'email_verified']
     Route::get('quickbooks/{hash}/callback', [QuickbookController::class, 'callback'])->name('quickbooks.callback');
     Route::get('quickbooks', [QuickbookController::class, 'index'])->name('quickbooks.index');
 
-    //change order status
+//change order status
     Route::post('woocommerce/change-order-status',[WooCommerceController::class, 'changeOrderStatus'])->name('woo.change_order_status');
     //show woocommerce orders
     Route::get('woocommerce',[WooCommerceController::class, 'wooIndex'])->name('woo.orders');

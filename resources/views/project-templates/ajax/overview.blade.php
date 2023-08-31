@@ -25,11 +25,20 @@
         <!-- PROJECT DETAILS START -->
         <div class="row">
             <div class="col-md-12 mb-4">
-                <x-cards.data :title="__('app.project') . ' ' . __('app.details')"
+                <x-cards.data :title="__('app.project') . ' ' . __('app.description')"
                     otherClasses="d-flex justify-content-between align-items-center">
                     <div class="text-dark-grey mb-0">
                         {{ empty($template->project_summary) }}
                         {!! $template->project_summary !!}
+                    </div>
+                </x-cards.data>
+            </div>
+            <div class="col-md-12 mb-4">
+                <x-cards.data :title="__('app.project') . ' ' . __('app.note')"
+                    otherClasses="d-flex justify-content-between align-items-center">
+                    <div class="text-dark-grey mb-0">
+                        {{ empty($template->notes) }}
+                        {!! $template->notes !!}
                     </div>
                 </x-cards.data>
             </div>

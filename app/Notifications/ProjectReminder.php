@@ -54,18 +54,20 @@ class ProjectReminder extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
+
         $url = route('projects.index');
         $url = getDomainSpecificUrl($url, $this->company);
 
         $list = $this->projectList();
         $content = __('email.projectReminder.text') . ' ' . Carbon::now($this->data['company']->timezone)->addDays($this->data['project_setting']->remind_time)->toFormattedDateString() . '<br>' . new HtmlString($list) . '<br>' . __('email.messages.loginForMoreDetails');
 
-        return parent::build()
+        return $build
             ->subject(__('email.projectReminder.subject') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,
                 'content' => $content,
-                'themeColor' => $this->company->header_color,
+                'themeColor' => $this->company?->header_color,
                 'actionText' => __('email.projectReminder.action'),
                 'notifiableName' => $notifiable->name
             ]);

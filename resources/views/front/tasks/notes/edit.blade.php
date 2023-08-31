@@ -10,7 +10,7 @@
             <div class="col-md-12 p-20 ">
                 <div class="media">
                     <img src="{{ $note->user->image_url }}" class="align-self-start mr-3 taskEmployeeImg rounded"
-                        alt="{{ mb_ucwords($note->user->name) }}">
+                        alt="{{ $note->user->name }}">
                     <div class="media-body bg-white">
                         <div class="form-group">
                             <div id="task-edit-note">{!! $note->note !!}</div>

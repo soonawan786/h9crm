@@ -55,7 +55,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class BankTransaction extends BaseModel
 {
     use HasCompany;
-    protected $dates = ['transaction_date'];
+    protected $casts = [
+        'transaction_date' => 'datetime',
+    ];
 
     public function bankAccount(): BelongsTo
     {

@@ -12,14 +12,16 @@
         $title = $name . ' ' . __('app.and') . ' ' . $count . __('email.BirthdayReminder.birthdayNotificationText');
     }
 
-    $notificationUser = \App\Models\User::findOrFail($notification->data['birthday_name'][0]['id']);
+    $notificationUser = \App\Models\User::find($notification->data['birthday_name'][0]['id']);
 
 @endphp
 
-@if (\Carbon\Carbon::today()->timezone($global->timezone)->toDateString() == $date)
-    <x-cards.notification :notification="$notification"  :link="route('dashboard')" :image="$notificationUser->image_url"
-            :title="$title . ' ' . __('app.today')" :time="$notification->created_at" />
-@else
-    <x-cards.notification :notification="$notification"  :link="route('dashboard')" :image="$notificationUser->image_url"
-        :title="$title  . ' ' . $formatDate" :time="$notification->created_at" />
+@if ($notificationUser)
+    @if (\Carbon\Carbon::today()->timezone($global->timezone)->toDateString() == $date)
+        <x-cards.notification :notification="$notification"  :link="route('dashboard')" :image="$notificationUser->image_url"
+                :title="$title . ' ' . __('app.today')" :time="$notification->created_at" />
+    @else
+        <x-cards.notification :notification="$notification"  :link="route('dashboard')" :image="$notificationUser->image_url"
+            :title="$title  . ' ' . $formatDate" :time="$notification->created_at" />
+    @endif
 @endif

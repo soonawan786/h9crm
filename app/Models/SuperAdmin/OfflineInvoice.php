@@ -6,7 +6,7 @@ use App\Models\Company;
 use App\Scopes\CompanyScope;
 use App\Models\SuperAdmin\Package;
 use App\Models\OfflinePaymentMethod;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use App\Observers\SuperAdmin\OfflineInvoiceObserver;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -46,13 +46,18 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @method static \Illuminate\Database\Eloquent\Builder|OfflineInvoice whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class OfflineInvoice extends Model
+class OfflineInvoice extends BaseModel
 {
     const FILE_PATH = 'offline-invoice';
 
     protected $dates = [
         'pay_date',
         'next_pay_date'
+    ];
+
+    protected $casts = [
+        'pay_date' => 'datetime',
+        'next_pay_date' => 'datetime',
     ];
 
     protected static function boot()

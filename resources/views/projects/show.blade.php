@@ -165,15 +165,6 @@ $projectArchived = $project->trashed();
 @push('scripts')
 
     <script>
-        // Enable pusher logging - don't include this in production
-        // Pusher.logToConsole = true;
-
-        const pusher = new Pusher('{{ $pusherSettings->pusher_app_key }}', {
-            cluster: '{{ $pusherSettings->pusher_cluster }}',
-            forceTLS: '{{ $pusherSettings->force_tls }}'
-        });
-    </script>
-    <script>
         $("body").on("click", ".project-menu .ajax-tab", function(event) {
             event.preventDefault();
 

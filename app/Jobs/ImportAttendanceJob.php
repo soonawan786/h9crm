@@ -20,16 +20,18 @@ class ImportAttendanceJob implements ShouldQueue
 
     private $row;
     private $columns;
+    private $company;
 
     /**
      * Create a new job instance.
      *
      * @return void
      */
-    public function __construct($row, $columns)
+    public function __construct($row, $columns, $company = null)
     {
         $this->row = $row;
         $this->columns = $columns;
+        $this->company = $company;
     }
 
     /**
@@ -53,14 +55,15 @@ class ImportAttendanceJob implements ShouldQueue
                 DB::beginTransaction();
                 try {
                     Attendance::create([
+                        'company_id' => $this->company?->id,
                         'user_id' => $user->id,
-                        'clock_in_time' => Carbon::createFromFormat('Y-m-d H:i:s', $this->row[array_keys($this->columns, 'clock_in_time')[0]])->format('Y-m-d H:i:s'),
+                        'clock_in_time' => Carbon::createFromFormat('Y-m-d H:i:s', $this->row[array_keys($this->columns, 'clock_in_time')[0]], $this->company?->timezone)->timezone('UTC')->format('Y-m-d H:i:s'),
                         'clock_in_ip' => !empty(array_keys($this->columns, 'clock_in_ip')) ? $this->row[array_keys($this->columns, 'clock_in_ip')[0]] : '127.0.0.1',
-                        'clock_out_time' => !empty(array_keys($this->columns, 'clock_out_time')) ? Carbon::createFromFormat('Y-m-d H:i:s', $this->row[array_keys($this->columns, 'clock_out_time')[0]])->format('Y-m-d H:i:s') : null,
+                        'clock_out_time' => !empty(array_keys($this->columns, 'clock_out_time')) ? Carbon::createFromFormat('Y-m-d H:i:s', $this->row[array_keys($this->columns, 'clock_out_time')[0]], $this->company?->timezone)->timezone('UTC')->format('Y-m-d H:i:s') : null,
                         'clock_out_ip' => !empty(array_keys($this->columns, 'clock_out_ip')) ? $this->row[array_keys($this->columns, 'clock_out_ip')[0]] : null,
                         'working_from' => !empty(array_keys($this->columns, 'working_from')) ? $this->row[array_keys($this->columns, 'working_from')[0]] : 'office',
-                        'late' => !empty(array_keys($this->columns, 'late')) ? $this->row[array_keys($this->columns, 'late')[0]] : 'no',
-                        'half_day' => !empty(array_keys($this->columns, 'half_day')) ? $this->row[array_keys($this->columns, 'half_day')[0]] : 'no',
+                        'late' => !empty(array_keys($this->columns, 'late')) && str($this->row[array_keys($this->columns, 'late')[0]])->lower() == 'yes' ? 'yes' : 'no',
+                        'half_day' => !empty(array_keys($this->columns, 'half_day')) && str($this->row[array_keys($this->columns, 'half_day')[0]])->lower() == 'yes' ? 'yes' : 'no',
                     ]);
 
                     DB::commit();

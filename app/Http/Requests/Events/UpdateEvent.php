@@ -30,10 +30,21 @@ class UpdateEvent extends CoreRequest
             'event_name' => 'required',
             'start_date' => 'required',
             'end_date' => 'required|date_format:"' . $setting->date_format . '"|after_or_equal:start_date',
+            'start_time' => 'required',
+            'end_time' => 'required|after_or_equal:start_time',
             'all_employees' => 'sometimes',
             'where' => 'required',
+            'user_id.0' => 'required_unless:all_employees,true',
             'description' => 'required',
             'event_link' => 'nullable|url'
+        ];
+    }
+
+    public function messages()
+    {
+        return [
+            'user_id.0.required_unless' => __('messages.atleastOneValidation'),
+            'end_time.after_or_equal' => __('messages.endTimeAfterOrEqual'),
         ];
     }
 

@@ -30,7 +30,11 @@ class LicenseExpire extends BaseNotification
      */
     public function via($notifiable)
     {
-        $via = ['mail'];
+        $via = ['database'];
+
+        if ($notifiable->email_notifications && $notifiable->email != '') {
+            array_push($via, 'mail');
+        }
 
         return $via;
     }

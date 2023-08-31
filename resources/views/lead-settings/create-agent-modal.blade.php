@@ -11,7 +11,7 @@
                             <x-forms.select fieldId="agent_name" :fieldLabel="__('modules.tickets.chooseAgents')"
                                             fieldName="agent_name[]" search="true" multiple="true" fieldRequired="true">
                                 @foreach ($employees as $emp)
-                                    <x-user-option :user="$emp" />
+                                    <x-user-option :user="$emp" :pill="true"/>
                                 @endforeach
                             </x-forms.select>
                         </div>

@@ -30,7 +30,8 @@ class CustomModuleController extends AccountBaseController
         $this->pageTitle = 'app.menu.moduleSettings';
         $this->activeSettingMenu = 'module_settings';
         $this->middleware(function ($request, $next) {
-            GlobalSetting::validateAdmin();
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_custom_module_settings'));
+
             return $next($request);
         });
     }
@@ -250,7 +251,7 @@ class CustomModuleController extends AccountBaseController
             Artisan::call('module:migrate', array($plugin, '--force' => true));
         }
 
-        $command = strtolower($moduleName) . ':activate';
+        $command = $moduleName . ':activate';
 
         // We will call the module function php artisan asset:activate, zoom:active , etc
         if (array_has(\Artisan::all(), $command) && ($status == 'active')) {

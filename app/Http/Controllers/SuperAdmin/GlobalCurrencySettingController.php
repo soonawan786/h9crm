@@ -10,6 +10,7 @@ use App\Http\Requests\SuperAdmin\GlobalCurrency\StoreGlobalCurrencyExchangeKey;
 use App\Http\Requests\SuperAdmin\GlobalCurrency\StoreGlobalCurrency;
 use App\Http\Requests\SuperAdmin\GlobalCurrency\UpdateGlobalCurrency;
 use App\Models\CurrencyFormatSetting;
+use App\Models\GlobalSetting;
 use App\Models\SuperAdmin\GlobalCurrency;
 use GuzzleHttp\Client;
 use App\Traits\SuperAdmin\GlobalCurrencyExchange;
@@ -24,7 +25,7 @@ class GlobalCurrencySettingController extends AccountBaseController
         $this->pageTitle = 'app.menu.currencySettings';
         $this->activeSettingMenu = 'currency_settings';
         $this->middleware(function ($request, $next) {
-            abort_403((user()->permission('manage_currency_setting') !== 'all') && (!user()->is_superadmin));
+            abort_403(user()->permission('manage_currency_setting') !== 'all' && GlobalSetting::validateSuperAdmin('manage_superadmin_currency_settings'));
             return $next($request);
         });
     }

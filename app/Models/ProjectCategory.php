@@ -25,10 +25,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectCategory whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectCategory whereLastUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectCategory whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectCategory whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ProjectCategory extends BaseModel
 {

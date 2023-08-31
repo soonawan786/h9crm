@@ -36,17 +36,22 @@
 @endsection
 
 @section('content')
+@php
+    $addSuperadminPermission = user()->permission('add_superadmin');
+@endphp
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
         <div class="d-flex">
             <div id="table-actions" class="flex-grow-1 align-items-center">
+                @if($addSuperadminPermission == 'all')
                 <x-forms.link-primary :link="route('superadmin.superadmin.create')" class="mr-3 float-left openRightModal"
                     icon="plus">
                     @lang('app.add')
                     @lang('app.new')
                     @lang('superadmin.menu.superAdmin')
                 </x-forms.link-primary>
+                @endif
             </div>
         </div>
 
@@ -146,6 +151,32 @@
                     });
                 }
             });
+        });
+
+        $('body').on('change', '.assign_role', function () {
+            var id = $(this).data('user-id');
+            var role = $(this).val();
+            var token = "{{ csrf_token() }}";
+
+            if (typeof id !== 'undefined') {
+                $.easyAjax({
+                    url: "{{ route('superadmin.superadmin.assign_role') }}",
+                    type: "POST",
+                    blockUI: true,
+                    container: '#superadmin-table',
+                    data: {
+                        role: role,
+                        userId: id,
+                        _token: token
+                    },
+                    success: function (response) {
+                        if (response.status == "success") {
+                            window.LaravelDataTables["superadmin-table"].draw(false);
+                        }
+                    }
+                })
+            }
+
         });
 
 

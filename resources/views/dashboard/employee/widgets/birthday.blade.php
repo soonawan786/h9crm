@@ -1,4 +1,4 @@
-@if (in_array('birthday', $activeWidgets))
+@if (in_array('birthday', $activeWidgets) && in_array('employees', user_modules()))
     <!-- EMP DASHBOARD BIRTHDAY START -->
     <div class="col-sm-12">
         <x-cards.data class="e-d-info mb-3" :title="__('modules.dashboard.birthday')" padding="false"
@@ -17,7 +17,11 @@
                         </td>
                         <td class="pr-20" align="right">
                             @php
+                                $currentYear = now(company()->timezone)->year;
                                 $year = $upcomingBirthday->date_of_birth->timezone(company()->timezone)->year(date('Y'));
+                                $dateBirth = $upcomingBirthday->date_of_birth->format($currentYear . '-m-d');
+                                $dateBirth = \Carbon\Carbon::parse($dateBirth);
+
                                 $diffInDays = $year->copy()->diffForHumans(now()->timezone(company()->timezone),[
                                     'syntax' => \Carbon\CarbonInterface::DIFF_RELATIVE_AUTO,
                                     'options' => \Carbon\Carbon::JUST_NOW | \Carbon\Carbon::ONE_DAY_WORDS | \Carbon\Carbon::TWO_DAY_WORDS,
@@ -25,7 +29,7 @@
 
                             @endphp
 
-                            @if ($upcomingBirthday->date_of_birth->isToday())
+                            @if ($dateBirth->isToday())
                                 <span class="badge badge-light text-success p-2"><i class="fa fa-smile"></i> @lang('app.today')</span>
                             @else
                                 <span class="badge badge-light p-2">{{ $diffInDays }}</span>

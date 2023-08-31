@@ -64,12 +64,13 @@ class TicketAgent extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
-        $url = route('tickets.show', $this->ticket->id);
+        $build = parent::build();
+        $url = route('tickets.show', $this->ticket->ticket_number);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $content = __('email.ticketAgent.text') . '<br>' . __('modules.tickets.ticket') . ' # ' . $this->ticket->id . '<br>' . __('app.subject') . ' - ' . $this->ticket->subject;
 
-        return parent::build()
+        return $build
             ->subject(__('email.ticketAgent.subject') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,
@@ -90,7 +91,7 @@ class TicketAgent extends BaseNotification
     public function toArray($notifiable)
     {
         return [
-            'id' => $this->ticket->id,
+            'id' => $this->ticket->ticket_number,
             'subject' => $this->ticket->subject
         ];
     }
@@ -110,7 +111,7 @@ class TicketAgent extends BaseNotification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content('*' . __('email.ticketAgent.subject') . '*' . "\n" . ucfirst($this->ticket->subject) . "\n" . __('modules.tickets.requesterName') . ' - ' . mb_ucwords($this->ticket->requester->name));
+                ->content('*' . __('email.ticketAgent.subject') . '*' . "\n" . $this->ticket->subject . "\n" . __('modules.tickets.requesterName') . ' - ' . $this->ticket->requester->name);
         }
 
         return (new SlackMessage())
@@ -123,8 +124,8 @@ class TicketAgent extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.ticketAgent.subject'))
-            ->body(__('email.ticketAgent.text'));
+            ->setSubject(__('email.ticketAgent.subject'))
+            ->setBody(__('email.ticketAgent.text'));
     }
 
 }

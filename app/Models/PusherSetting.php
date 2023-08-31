@@ -27,14 +27,13 @@ namespace App\Models;
  * @method static \Illuminate\Database\Eloquent\Builder|PusherSetting wherePusherCluster($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PusherSetting whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PusherSetting whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int $taskboard
  * @property int $messages
  * @method static \Illuminate\Database\Eloquent\Builder|PusherSetting whereMessages($value)
  * @method static \Illuminate\Database\Eloquent\Builder|PusherSetting whereTaskboard($value)
+ * @mixin \Eloquent
  */
 class PusherSetting extends BaseModel
 {
-
 
 }

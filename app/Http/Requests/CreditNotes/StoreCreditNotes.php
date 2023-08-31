@@ -26,7 +26,7 @@ class StoreCreditNotes extends CoreRequest
     public function rules()
     {
         $rules = [
-            'cn_number' => Rule::unique('credit_notes'),
+            'cn_number' => Rule::unique('credit_notes')->where('company_id', company()->id),
             'issue_date' => 'required',
             'sub_total' => 'required',
             'total' => 'required',

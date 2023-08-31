@@ -53,7 +53,6 @@ class InvoiceItemImage extends BaseModel
 
         return '';
 
-
     }
 
 }

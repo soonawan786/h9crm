@@ -32,6 +32,9 @@ $addAttendancePermission = user()->permission('add_attendance');
                             @if ($day == 'Leave')
                                 <span data-toggle="tooltip" data-original-title="{{ $leaveReasons[$userId][$key2] }}"><i
                                         class="fa fa-plane-departure text-red"></i></span>
+                            @elseif ($day == 'Day Off')
+                                <span data-toggle="tooltip" data-original-title="@lang('modules.attendance.dayOff')"><i
+                                        class="fa fa-calendar-week text-red"></i></span>
                             @elseif ($day == 'Half Day')
                                 @if ($attendanceDate->isFuture())
                                     <span data-toggle="tooltip" data-original-title="@lang('modules.attendance.halfDay')"><i

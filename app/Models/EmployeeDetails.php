@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property string|null $slack_username
  * @property int|null $department_id
  * @property int|null $designation_id
+ * @property int|null $data
  * @property \Illuminate\Support\Carbon|null $created_at
  * @property \Illuminate\Support\Carbon|null $updated_at
  * @property \Illuminate\Support\Carbon $joining_date
@@ -48,7 +49,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static Builder|EmployeeDetails whereSlackUsername($value)
  * @method static Builder|EmployeeDetails whereUpdatedAt($value)
  * @method static Builder|EmployeeDetails whereUserId($value)
- * @mixin \Eloquent
  * @property string|null $attendance_reminder
  * @method static Builder|EmployeeDetails whereAttendanceReminder($value)
  * @property \Illuminate\Support\Carbon|null $date_of_birth
@@ -64,6 +64,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static Builder|EmployeeDetails whereCalendarView($value)
  * @method static Builder|EmployeeDetails whereCompanyId($value)
  * @method static Builder|EmployeeDetails whereReportingTo($value)
+ * @property string|null $contract_end_date
+ * @property string|null $internship_end_date
+ * @property string|null $employment_type
+ * @property string|null $marriage_anniversary_date
+ * @property string|null $marital_status
+ * @property string|null $notice_period_end_date
+ * @property string|null $notice_period_start_date
+ * @property string|null $probation_end_date
+ * @property string|null $name
+ * @property string|null $occassion
+ * @method static Builder|EmployeeDetails whereContractEndDate($value)
+ * @method static Builder|EmployeeDetails whereEmploymentType($value)
+ * @method static Builder|EmployeeDetails whereInternshipEndDate($value)
+ * @method static Builder|EmployeeDetails whereMaritalStatus($value)
+ * @method static Builder|EmployeeDetails whereMarriageAnniversaryDate($value)
+ * @method static Builder|EmployeeDetails whereNoticePeriodEndDate($value)
+ * @method static Builder|EmployeeDetails whereNoticePeriodStartDate($value)
+ * @method static Builder|EmployeeDetails whereProbationEndDate($value)
+ * @mixin \Eloquent
  */
 class EmployeeDetails extends BaseModel
 {
@@ -72,17 +91,18 @@ class EmployeeDetails extends BaseModel
 
     protected $table = 'employee_details';
 
-    protected $dates = ['joining_date', 'last_date', 'date_of_birth'];
+    protected $casts = [
+        'joining_date' => 'datetime',
+        'last_date' => 'datetime',
+        'date_of_birth' => 'datetime',
+        'calendar_view	' => 'array',
+    ];
 
     protected $with = ['designation', 'company', 'department'];
 
     protected $appends = ['upcoming_birthday'];
 
     const CUSTOM_FIELD_MODEL = 'App\Models\EmployeeDetails';
-
-    protected $casts = [
-        'calendar_view	' => 'array'
-    ];
 
     public function getUpcomingBirthdayAttribute()
     {

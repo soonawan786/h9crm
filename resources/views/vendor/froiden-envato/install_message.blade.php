@@ -99,7 +99,7 @@ if (function_exists('apache_get_modules')) {
 
 
             <div class="alert alert-warning" role="alert">
-                <strong>{{ mb_ucwords(config('froiden_envato.envato_product_name'))}} not installed!</strong> Visit <a
+                <strong>{{ config('froiden_envato.envato_product_name')}} not installed!</strong> Visit <a
                     href="{{ url('/install')}}"
                     class="alert-link">{{ url('/install')}}</a>
                 to get the installer.

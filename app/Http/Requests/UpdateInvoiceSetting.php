@@ -25,10 +25,6 @@ class UpdateInvoiceSetting extends CoreRequest
     public function rules()
     {
         $rules = [
-            'invoice_prefix' => 'required',
-            'estimate_prefix' => 'required',
-            'credit_note_prefix' => 'required',
-            'template' => 'required',
             'due_after' => 'required|numeric',
             'invoice_terms' => 'required'
         ];

@@ -60,12 +60,13 @@ class ExpenseRecurringStatus extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('recurring-expenses.show', $this->expense->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $content = $this->expense->item_name . ' - ' . __('email.expenseRecurringStatus.text') . ' ' . $this->expense->status . '.';
 
-        return parent::build()
+        return $build
             ->subject(__('email.expenseRecurringStatus.subject') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,
@@ -116,8 +117,8 @@ class ExpenseRecurringStatus extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.expenseRecurringStatus.subject'))
-            ->body($this->expense->item_name . ' - ' . __('email.expenseStatus.text') . ' ' . $this->expense->status . '.');
+            ->setSubject(__('email.expenseRecurringStatus.subject'))
+            ->setBody($this->expense->item_name . ' - ' . __('email.expenseStatus.text') . ' ' . $this->expense->status . '.');
     }
 
 }

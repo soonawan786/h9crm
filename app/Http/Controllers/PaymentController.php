@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\DataTables\PaymentsDataTable;
 use App\Helper\Files;
 use App\Helper\Reply;
+use App\Http\Requests\Payments\StoreBulkPayments;
 use App\Http\Requests\Payments\StorePayment;
 use App\Http\Requests\Payments\UpdatePayments;
 use App\Models\BankAccount;
@@ -17,6 +18,7 @@ use App\Models\Project;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PaymentController extends AccountBaseController
 {
@@ -34,6 +36,7 @@ class PaymentController extends AccountBaseController
 
     public function index(PaymentsDataTable $dataTable)
     {
+
         $viewPermission = user()->permission('view_payments');
         abort_403(!in_array($viewPermission, ['all', 'added', 'owned']));
 
@@ -62,13 +65,13 @@ class PaymentController extends AccountBaseController
         case 'delete':
             $this->deleteRecords($request);
 
-            return Reply::success(__('messages.deleteSuccess'));
+                return Reply::success(__('messages.deleteSuccess'));
         case 'change-status':
             $this->changeStatus($request);
 
-            return Reply::success(__('messages.updateSuccess'));
+                return Reply::success(__('messages.updateSuccess'));
         default:
-            return Reply::error(__('messages.selectAction'));
+                return Reply::error(__('messages.selectAction'));
         }
     }
 
@@ -79,9 +82,10 @@ class PaymentController extends AccountBaseController
         $items = explode(',', $request->row_ids);
 
         foreach ($items as $id) {
-            $payment = Payment::findOrFail($id);
 
-            if ($payment) {
+            $payment = ($id != 'on') ? Payment::findOrFail($id) : '';
+
+            if ($payment && $payment != '') {
                 $payment->delete();
             }
         }
@@ -133,7 +137,6 @@ class PaymentController extends AccountBaseController
             }
 
             $bankAccountQuery = $bankAccountQuery->where('status', 1)->where('currency_id', $this->invoice->currency_id);
-
         }
         elseif (request()->has('default_client') && request('default_client') != '') {
             $this->invoices = Invoice::with('payment', 'currency')
@@ -143,7 +146,6 @@ class PaymentController extends AccountBaseController
                     $q->where('status', 'unpaid')
                         ->orWhere('status', 'partial');
                 })->get();
-
         }
         elseif (request()->has('project')) {
             $this->invoices = Invoice::with('payment')
@@ -153,7 +155,6 @@ class PaymentController extends AccountBaseController
                     $q->where('status', 'unpaid')
                         ->orWhere('status', 'partial');
                 })->get();
-
         }
         else {
             $this->invoices = Invoice::with('payment')->where(function ($q) {
@@ -164,10 +165,10 @@ class PaymentController extends AccountBaseController
                 ->get();
 
             $bankAccountQuery = $bankAccountQuery->where('status', 1)->where('currency_id', company()->currency_id);
-
         }
 
-        if($this->viewBankAccountPermission == 'added'){
+
+        if ($this->viewBankAccountPermission == 'added') {
             $bankAccountQuery = $bankAccountQuery->where('added_by', user()->id);  /* @phpstan-ignore-line */
         }
 
@@ -190,7 +191,6 @@ class PaymentController extends AccountBaseController
         $this->view = 'payments.ajax.create';
 
         return view('payments.create', $this->data);
-
     }
 
     public function store(StorePayment $request)
@@ -269,14 +269,15 @@ class PaymentController extends AccountBaseController
         $payment = Payment::with('invoice')->findOrFail($id);
         $this->deletePermission = user()->permission('delete_payments');
 
-        abort_403(!(
-            $this->deletePermission == 'all'
+        abort_403(!($this->deletePermission == 'all'
             || ($this->deletePermission == 'added' && $payment->added_by == user()->id)
             || ($this->deletePermission == 'owned' && user()->id == $payment->invoice->client_id)
             || ($this->deletePermission == 'both' && (user()->id == $payment->invoice->client_id && user()->id == $payment->added_by))
         ));
 
-        $payment->delete();
+        if ($payment) {
+            $payment->delete();
+        }
 
         return Reply::success(__('messages.deleteSuccess'));
     }
@@ -287,8 +288,7 @@ class PaymentController extends AccountBaseController
         $this->editPermission = user()->permission('edit_payments');
         $this->methods = OfflinePaymentMethod::all();
 
-        abort_403(!(
-            $this->editPermission == 'all'
+        abort_403(!($this->editPermission == 'all'
             || ($this->editPermission == 'added' && $this->payment->added_by == user()->id)
             || ($this->editPermission == 'owned' && $this->payment->invoice && $this->payment->invoice->client_id == user()->id)
             || ($this->editPermission == 'both' && (($this->payment->invoice && $this->payment->invoice->client_id == user()->id) || $this->payment->added_by == user()->id) || ($this->payment->gateway == null || $this->payment == 'Offline'))
@@ -304,7 +304,7 @@ class PaymentController extends AccountBaseController
 
         $bankAccounts = BankAccount::where('status', 1)->where('currency_id', $this->payment->currency_id);
 
-        if($this->viewBankAccountPermission == 'added'){
+        if ($this->viewBankAccountPermission == 'added') {
             $bankAccounts = $bankAccounts->where('added_by', user()->id);
         }
 
@@ -319,8 +319,7 @@ class PaymentController extends AccountBaseController
                 $query->where('invoices.project_id', $this->payment->project_id)
                     ->whereNotNull('invoices.project_id');
             }
-        })
-            ->pending()->get();
+        })->pending()->get();
 
         $this->linkPaymentPermission = user()->permission('link_payment_bank_account');
 
@@ -337,7 +336,7 @@ class PaymentController extends AccountBaseController
 
     public function update(UpdatePayments $request, $id)
     {
-       
+
         $payment = Payment::findOrFail($id);
 
         if ($request->project_id != '' && $request->project_id != '0') {
@@ -379,7 +378,6 @@ class PaymentController extends AccountBaseController
             $payment->project_id = $invoice->project_id;
             $payment->invoice_id = $invoice->id;
             $payment->currency_id = $invoice->currency->id;
-
         }
         else {
             $payment->invoice_id = null;
@@ -405,19 +403,17 @@ class PaymentController extends AccountBaseController
         }
 
         return Reply::successWithData(__('messages.recordSaved'), ['redirectUrl' => route('payments.index')]);
-
     }
 
     public function show($id)
     {
-        $this->payment = Payment::with(['invoice', 'project', 'currency', 'offlineMethods', 'transactions' => function($q){
+        $this->payment = Payment::with(['invoice', 'project', 'currency', 'offlineMethods', 'transactions' => function ($q) {
             $q->orderBy('id', 'desc')->limit(1);
         }, 'transactions.bankAccount'])->findOrFail($id);
 
         $this->viewPermission = user()->permission('view_payments');
 
-        abort_403(!(
-            $this->viewPermission == 'all'
+        abort_403(!($this->viewPermission == 'all'
             || ($this->viewPermission == 'added' && $this->payment->added_by == user()->id)
             || ($this->viewPermission == 'owned' && !is_null($this->payment->project_id) && $this->payment->project->client_id == user()->id)
             || ($this->viewPermission == 'owned' && !is_null($this->payment->invoice_id) && $this->payment->invoice->client_id == user()->id)
@@ -435,7 +431,6 @@ class PaymentController extends AccountBaseController
         $this->view = 'payments.ajax.show';
 
         return view('payments.create', $this->data);
-
     }
 
     public function download($id)
@@ -445,8 +440,7 @@ class PaymentController extends AccountBaseController
         $this->payment = Payment::with('invoice', 'project', 'currency')->findOrFail($id);
         $this->viewPermission = user()->permission('view_payments');
 
-        abort_403(!(
-            $this->viewPermission == 'all'
+        abort_403(!($this->viewPermission == 'all'
             || ($this->viewPermission == 'added' && $this->payment->added_by == user()->id)
             || ($this->viewPermission == 'owned' && !is_null($this->payment->project_id) && $this->payment->project->client_id == user()->id)
             || ($this->viewPermission == 'owned' && !is_null($this->payment->invoice_id) && $this->payment->invoice->client_id == user()->id)
@@ -487,7 +481,7 @@ class PaymentController extends AccountBaseController
 
         $bankAccounts = BankAccount::where('status', 1)->where('currency_id', $request->curId);
 
-        if($this->viewBankAccountPermission == 'added'){
+        if ($this->viewBankAccountPermission == 'added') {
             $bankAccounts = $bankAccounts->where('added_by', user()->id);
         }
 
@@ -497,12 +491,11 @@ class PaymentController extends AccountBaseController
 
             $bankName = '';
 
-            if($bankAccount->type == 'bank')
-            {
-                $bankName = $bankAccount->bank_name.' |';
+            if ($bankAccount->type == 'bank') {
+                $bankName = $bankAccount->bank_name . ' |';
             }
 
-            $options .= '<option value="' . $bankAccount->id . '"> '.$bankName .' '.mb_ucwords($bankAccount->account_name). ' </option>';
+            $options .= '<option value="' . $bankAccount->id . '"> ' . $bankName . ' ' . $bankAccount->account_name . ' </option>';
         }
 
         $exchangeRate = Currency::where('id', $request->curId)->pluck('exchange_rate')->toArray();
@@ -513,8 +506,151 @@ class PaymentController extends AccountBaseController
     public function offlineMethods()
     {
         $offlineMethod = OfflinePaymentMethod::all();
-        return Reply::dataOnly(['status' => 'success', 'data' => $offlineMethod ] );
+        return Reply::dataOnly(['status' => 'success', 'data' => $offlineMethod]);
+    }
 
+    public function addBulkPayments()
+    {
+        $this->addPermission = user()->permission('add_payments');
+        abort_403(!in_array($this->addPermission, ['all', 'added']));
+
+        $this->pageTitle = __('modules.payments.addBulkPayment');
+        $this->viewBankAccountPermission = user()->permission('view_bankaccount');
+
+        $clientId = in_array('client', user_roles()) ? $this->user->id : request()->client_id;
+
+        $this->pendingPayments = Invoice::with(['bankAccount', 'currency'])->where(function ($q) {
+            $q->where('status', 'unpaid');
+            $q->orWhere('status', 'partial');
+        });
+
+        if ($clientId != 'all' && $clientId != null) {
+            $this->pendingPayments = $this->pendingPayments->where('client_id', $clientId)->get();
+        }
+        else {
+            $this->pendingPayments = $this->pendingPayments->get();
+        }
+
+        $this->paymentGateway = PaymentGatewayCredentials::first();
+        $this->offlineMethods = OfflinePaymentMethod::where('status', 'yes')->get();
+        $this->linkPaymentPermission = user()->permission('link_payment_bank_account');
+        $this->companyCurrency = Currency::where('id', $this->company->currency_id)->first();
+
+        $bankAccounts = BankAccount::where('status', 1);
+
+        if ($this->viewBankAccountPermission == 'added') {
+            $bankAccounts = $bankAccounts->where('added_by', user()->id);
+        }
+
+        $bankAccounts = $bankAccounts->get();
+        $this->bankDetails = $bankAccounts;
+
+        if (in_array('client', user_roles())) {
+
+            $this->clients = User::client();
+        }
+        else {
+            $this->clients = User::allClients();
+        }
+
+        $this->paymentID = request()->payment_id;
+        $this->offlineID = request()->offline_id;
+
+        if (request()->ajax() && (($clientId == 'all' || $clientId != null) || ($this->paymentID == 'all' || $this->paymentID != null) || ($this->offlineID == 'all' || $this->offlineID != null))) {
+            $table = view('payments.ajax.bulk-payments', $this->data)->render();
+
+            return Reply::dataOnly(['status' => 'success', 'table' => $table, 'payment' => $this->paymentID]);
+        }
+
+        if (request()->ajax()) {
+            $html = view('payments.ajax.add-bulk-payments', $this->data)->render();
+
+            return Reply::dataOnly(['status' => 'success', 'html' => $html, 'title' => $this->pageTitle]);
+        }
+
+        $this->view = 'payments.ajax.add-bulk-payments';
+
+        return view('payments.create', $this->data);
+    }
+
+    public function saveBulkPayments(StoreBulkPayments $request)
+    {
+        $invoiceIds = $request->invoice_number;
+
+        // Give error if no data was selected in any of the field
+        $insertRecord = 0;
+        $totalRecord = count($invoiceIds);
+
+        foreach ($invoiceIds as $index => $invoiceId) {
+            $gateway = $request->gateway[$index];
+
+            if ($gateway == 'all') {
+                $insertRecord = $insertRecord + 1;
+            }
+        }
+
+        if ($totalRecord === $insertRecord) {
+            return Reply::error(__('messages.pleaseEnterSomeData'));
+        }
+
+        DB::beginTransaction();
+
+        foreach ($invoiceIds as $index => $invoiceId) {
+            $amount = $request->amount[$index];
+
+            if ($amount > 0 && ($amount != 0 || $amount != '0')) {
+
+                $invoice = Invoice::findOrFail($invoiceId);
+
+                if ($amount > $invoice->amountDue()) {
+                    return Reply::error(__('messages.invoicePaymentExceedError'));
+                }
+
+                $paidAmount = $invoice->amountPaid();
+                $gateway = $request->gateway[$index];
+                $transaction_id = $request->transaction_id[$index];
+                $bank_account_id = $request->bank_account_id[$index];
+                $offline_method_id = $request->offline_method_id[$index];
+                $payment_date = $request->payment_date[$index] ? Carbon::createFromFormat($this->company->date_format, $request->payment_date[$index])->format('Y-m-d') : null;
+
+                $payment = new Payment();
+
+                $payment->gateway = $gateway;
+                $payment->status = 'complete';
+                $payment->paid_on = $payment_date;
+                $payment->invoice_id = $invoice->id;
+                $payment->amount = round($amount, 2);
+                $payment->transaction_id = $transaction_id;
+                $payment->project_id = $invoice->project_id;
+                $payment->bank_account_id = $bank_account_id;
+                $payment->exchange_rate = $invoice->exchange_rate;
+                $payment->default_currency_id = company()->currency_id;
+                $payment->offline_method_id = ($gateway == 'Offline') ? $offline_method_id : null;
+                $payment->currency_id = $invoice->currency ? $invoice->currency->id : $this->company->currency_id;
+
+                $payment->save();
+
+                if ((float)($paidAmount + $amount) >= (float)$invoice->total) {
+                    $invoice->status = 'paid';
+                    $invoice->payment_status = '1';
+                }
+                else {
+                    $invoice->status = 'partial';
+                }
+
+                $invoice->save();
+            }
+        }
+
+        DB::commit();
+
+        $redirectUrl = urldecode($request->redirect_url);
+
+        if ($redirectUrl == '') {
+            $redirectUrl = route('payments.index');
+        }
+
+        return Reply::successWithData(__('messages.recordSaved'), ['redirectUrl' => $redirectUrl]);
     }
 
 }

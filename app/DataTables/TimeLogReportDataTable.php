@@ -61,12 +61,12 @@ class TimeLogReportDataTable extends BaseDataTable
 
                     $totalMinutes = now()->diffInMinutes($row->start_time) - $row->breaks->sum('total_minutes');
 
-                    $timeLog = CarbonInterval::formatHuman($totalMinutes - $row->breaks->sum('total_minutes'));
+                    $timeLog = CarbonInterval::formatHuman($totalMinutes - $row->breaks->sum('total_minutes')); /** @phpstan-ignore-line */
                     $timeLog .= ' <i data-toggle="tooltip" data-original-title="' . __('app.active') . '" class="fa fa-hourglass-start" ></i>';
                 }
                 else {
                     $totalMinutes = $row->total_minutes - $row->breaks->sum('total_minutes');
-                    $timeLog = CarbonInterval::formatHuman($totalMinutes - $row->breaks->sum('total_minutes'));
+                    $timeLog = CarbonInterval::formatHuman($totalMinutes - $row->breaks->sum('total_minutes')); /** @phpstan-ignore-line */
 
                     if ($row->approved) {
                         $timeLog .= ' <i data-toggle="tooltip" data-original-title="' . __('app.approved') . '" class="fa fa-check-circle text-primary"></i>';
@@ -120,7 +120,15 @@ class TimeLogReportDataTable extends BaseDataTable
             ->setRowId(function ($row) {
                 return 'row-' . $row->id;
             })
-            ->rawColumns(['end_time', 'action', 'project', 'task', 'task_project', 'name', 'total_hours', 'total_minutes', 'check'])
+            ->editColumn('short_code', function ($row) {
+
+                if (is_null($row->task_short_code)) {
+                    return ' -- ';
+                }
+
+                return '<a href="' . route('tasks.show', [$row->task_id]) . '" class="text-darkest-grey openRightModal">' . $row->task_short_code . '</a>';
+            })
+            ->rawColumns(['end_time', 'action', 'project', 'task', 'task_project', 'name', 'total_hours', 'total_minutes', 'check', 'short_code'])
             ->removeColumn('project_id')
             ->removeColumn('task_id');
     }
@@ -149,7 +157,7 @@ class TimeLogReportDataTable extends BaseDataTable
             ->leftJoin('tasks', 'tasks.id', '=', 'project_time_logs.task_id')
             ->leftJoin('projects', 'projects.id', '=', 'project_time_logs.project_id');
 
-        $model = $model->select('project_time_logs.id', 'project_time_logs.start_time', 'project_time_logs.end_time', 'project_time_logs.total_hours', 'project_time_logs.total_minutes', 'project_time_logs.memo', 'project_time_logs.user_id', 'project_time_logs.project_id', 'project_time_logs.task_id', 'users.name', 'users.image', 'project_time_logs.hourly_rate', 'project_time_logs.earnings', 'project_time_logs.approved', 'tasks.heading', 'projects.project_name', 'projects.client_id', 'designations.name as designation_name');
+        $model = $model->select('project_time_logs.id', 'project_time_logs.start_time', 'project_time_logs.end_time', 'project_time_logs.total_hours', 'project_time_logs.total_minutes', 'project_time_logs.memo', 'project_time_logs.user_id', 'project_time_logs.project_id', 'project_time_logs.task_id', 'users.name', 'users.image', 'project_time_logs.hourly_rate', 'project_time_logs.earnings', 'project_time_logs.approved', 'tasks.heading', 'projects.project_name', 'projects.client_id', 'designations.name as designation_name', 'tasks.task_short_code');
 
 
         if ($request->startDate !== null && $request->startDate != 'null' && $request->startDate != '') {
@@ -208,7 +216,8 @@ class TimeLogReportDataTable extends BaseDataTable
             $model->where(function ($query) {
                 $query->where('tasks.heading', 'like', '%' . request('searchText') . '%')
                     ->orWhere('project_time_logs.memo', 'like', '%' . request('searchText') . '%')
-                    ->orWhere('projects.project_name', 'like', '%' . request('searchText') . '%');
+                    ->orWhere('projects.project_name', 'like', '%' . request('searchText') . '%')
+                    ->orWhere('tasks.task_short_code', 'like', '%' . request('searchText') . '%');
             });
         }
 
@@ -246,8 +255,9 @@ class TimeLogReportDataTable extends BaseDataTable
     protected function getColumns()
     {
         return [
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'visible' => false, 'title' => __('app.id')],
+            __('modules.taskCode') => ['data' => 'short_code', 'name' => 'task_short_code', 'title' => __('modules.taskCode')],
             __('app.project') => ['data' => 'project', 'visible' => false, 'title' => __('app.project')],
             __('app.task') => ['data' => 'task', 'visible' => false, 'title' => __('app.task')],
             __('app.tasks') => ['data' => 'task_project', 'name' => 'heading', 'width' => '200', 'exportable' => false, 'title' => __('app.tasks')],
@@ -259,16 +269,6 @@ class TimeLogReportDataTable extends BaseDataTable
             __('modules.timeLogs.totalMinutes') => ['data' => 'total_minutes', 'visible' => false, 'title' => __('modules.timeLogs.totalMinutes')],
             __('app.earnings') => ['data' => 'earnings', 'name' => 'earnings', 'title' => __('app.earnings')]
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'time_log_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

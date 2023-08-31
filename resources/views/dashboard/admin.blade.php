@@ -51,7 +51,7 @@
                        ajax="false"/>
             @endif
 
-            @if ($viewHRDashboard == 'all')
+            @if ($viewHRDashboard == 'all' && (in_array('employees', user_modules()) || in_array('leaves', user_modules()) || in_array('attendance', user_modules())))
                 <x-tab :href="route('dashboard.advanced').'?tab=hr'" :text="__('app.menu.hr')" class="hr" ajax="false"/>
             @endif
 
@@ -60,7 +60,7 @@
                        ajax="false"/>
             @endif
 
-            @if ($viewFinanceDashboard == 'all')
+            @if ($viewFinanceDashboard == 'all' && (in_array('invoices', user_modules()) || in_array('estimates', user_modules()) || in_array('leads', user_modules())))
                 <x-tab :href="route('dashboard.advanced').'?tab=finance'" :text="__('app.menu.finance')" class="finance"
                        ajax="false"/>
             @endif
@@ -88,7 +88,7 @@
                             <a class="d-flex align-items-center justify-content-center dropdown-toggle px-lg-4 border-left-grey text-dark"
                                type="link" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true"
                                aria-expanded="false">
-                                <i class="fa fa-cog" title="{{__('modules.dashboard.dashboardWidgetsSettings')}}" data-toggle="tooltip"></i>
+                                <i class="fa fa-cog" data-original-title="{{__('modules.dashboard.dashboardWidgetsSettings')}}" data-toggle="tooltip"></i>
                             </a>
                             <!-- Dropdown - User Information -->
                             <ul class="dropdown-menu dropdown-menu-right dashboard-settings p-20"
@@ -147,8 +147,8 @@
     <script type="text/javascript">
         $(function () {
             var format = '{{ company()->moment_date_format }}';
-            var startDate = "{{ $startDate->translatedFormat(company()->date_format) }}";
-            var endDate = "{{ $endDate->translatedFormat(company()->date_format) }}";
+            var startDate = "{{ $startDate->format(company()->date_format) }}";
+            var endDate = "{{ $endDate->format(company()->date_format) }}";
             var start = moment(startDate, format);
             var end = moment(endDate, format);
 

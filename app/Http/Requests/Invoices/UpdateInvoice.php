@@ -36,6 +36,8 @@ class UpdateInvoice extends CoreRequest
             'sub_total' => 'required',
             'total' => 'required',
             'currency_id' => 'required',
+            'gateway' => 'required_if:payment_status,1',
+            'offline_methods' => 'required_if:gateway,Offline,payment_status,1',
         ];
 
         if ($this->has('due_date')) {
@@ -63,7 +65,8 @@ class UpdateInvoice extends CoreRequest
     public function messages()
     {
         return [
-            'client_id.required' => __('modules.projects.selectClient')
+            'client_id.required' => __('modules.projects.selectClient'),
+            'gateway.required_if' => __('modules.projects.selectPayment')
         ];
     }
 

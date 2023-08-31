@@ -50,11 +50,7 @@ $deletePermission = user()->permission('delete_appreciation');
                         <p class="mb-0 text-lightest f-14 w-30 text-capitalize">@lang('modules.appreciations.appreciationType')</p>
                         <div class="mb-0 text-dark-grey f-14 w-70 text-wrap ql-editor p-0">
                             @if(isset($appreciation->award->awardIcon->icon))
-                                <div class="position-relative d-flex">
-                                    <i class="bi bi-{{ $appreciation->award->awardIcon->icon }} f-15 text-white position-absolute appreciation-icon"></i>
-                                    <i class="bi bi-hexagon-fill fs-40" style="color: {{ $appreciation->award->color_code }};"></i>
-                                    <span class="align-self-center ml-2">{{ mb_ucwords($appreciation->award->title) }}</span>
-                                </div>
+                                <x-award-icon :award="$appreciation->award" />
                             @endif
 
                         </div>

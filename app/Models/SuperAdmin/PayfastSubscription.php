@@ -2,9 +2,9 @@
 
 namespace App\Models\SuperAdmin;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class PayfastSubscription extends Model
+class PayfastSubscription extends BaseModel
 {
     //
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Helper\Reply;
+use App\Http\Requests\TimelogBreak\UpdateTimelogBreak;
 use App\Models\ProjectTimeLog;
 use App\Models\ProjectTimeLogBreak;
 use Carbon\Carbon;
@@ -26,7 +27,7 @@ class ProjectTimelogBreakController extends AccountBaseController
         return view('timelog-break.edit', $this->data);
     }
 
-    public function update(Request $request, $id)
+    public function update(UpdateTimelogBreak $request, $id)
     {
         $timeLogBreak = ProjectTimeLogBreak::findOrfail($id);
         $timeLog = ProjectTimeLog::findOrFail($timeLogBreak->project_time_log_id);

@@ -1,6 +1,6 @@
 <div id="task-detail-section">
 
-    <h3 class="heading-h1 mb-3">{{ ucfirst($task->heading) }}</h3>
+    <h3 class="heading-h1 mb-3">{{ $task->heading }}</h3>
     <div class="row">
         <div class="col-sm-9">
             <div class="card bg-white border-0 b-shadow-4">
@@ -54,7 +54,7 @@
                                     @foreach ($task->users as $item)
                                         <div class="taskEmployeeImg rounded-circle mr-1">
                                             <span>
-                                                <img data-toggle="tooltip" data-original-title="{{ mb_ucwords($item->name) }}"
+                                                <img data-toggle="tooltip" data-original-title="{{ $item->name }}"
                                                     src="{{ $item->image_url }}">
                                             </span>
                                         </div>

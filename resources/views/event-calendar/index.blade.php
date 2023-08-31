@@ -15,7 +15,7 @@
                 <div class="select-status">
                     <select class="form-control select-picker" name="employee" id="employee" data-live-search="true"
                         data-size="8">
-                        @if ($employees->count() > 1)
+                        @if ($employees->count() > 1 || in_array('admin', user_roles()))
                             <option value="all">@lang('app.all')</option>
                         @endif
                         @foreach ($employees as $employee)
@@ -132,6 +132,7 @@ $addEventsPermission = user()->permission('add_events');
         var calendar = new FullCalendar.Calendar(calendarEl, {
             locale: initialLocaleCode,
             timeZone: '{{ company()->timezone }}',
+            firstDay: parseInt("{{ attendance_setting()?->week_start_from }}"),
             headerToolbar: {
                 left: 'prev,next today',
                 center: 'title',

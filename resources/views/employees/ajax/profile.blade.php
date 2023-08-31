@@ -49,7 +49,7 @@ $viewAppreciationPermission = user()->permission('view_appreciation');
                             <div class="row">
                                 <div class="col-10">
                                     <h4 class="card-title f-15 f-w-500 text-darkest-grey mb-0">
-                                        {{ ucfirst($employee->salutation) . ' ' . $employee->name }}
+                                        {{ $employee->salutation . ' ' . $employee->name }}
                                         @isset($employee->country)
                                             <x-flag :country="$employee->country" />
                                         @endisset
@@ -76,9 +76,9 @@ $viewAppreciationPermission = user()->permission('view_appreciation');
                             </div>
 
                             <p class="f-12 font-weight-normal text-dark-grey mb-0">
-                                {{ !is_null($employee->employeeDetail) && !is_null($employee->employeeDetail->designation) ? mb_ucfirst($employee->employeeDetail->designation->name) : '' }}
+                                {{ !is_null($employee->employeeDetail) && !is_null($employee->employeeDetail->designation) ? $employee->employeeDetail->designation->name : '' }}
                                 &bull;
-                                {{ isset($employee->employeeDetail) && !is_null($employee->employeeDetail->department) && !is_null($employee->employeeDetail->department) ? mb_ucfirst($employee->employeeDetail->department->team_name) : '' }}
+                                {{ isset($employee->employeeDetail) && !is_null($employee->employeeDetail->department) && !is_null($employee->employeeDetail->department) ? $employee->employeeDetail->department->team_name : '' }}
                             </p>
 
                             @if ($employee->status == 'active')
@@ -134,18 +134,16 @@ $viewAppreciationPermission = user()->permission('view_appreciation');
 
                         <x-cards.data :title="__('modules.client.profileInfo')" class=" mt-4">
                             <x-cards.data-row :label="__('modules.employees.employeeId')"
-                                :value="(!is_null($employee->employeeDetail) && !is_null($employee->employeeDetail->employee_id)) ? mb_ucwords($employee->employeeDetail->employee_id) : '--'" />
+                                :value="(!is_null($employee->employeeDetail) && !is_null($employee->employeeDetail->employee_id)) ? ($employee->employeeDetail->employee_id) : '--'" />
 
                             <x-cards.data-row :label="__('modules.employees.fullName')"
                                 :value="$employee->name" />
 
-                            <x-cards.data-row :label="__('app.email')" :value="$employee->email" />
-
                             <x-cards.data-row :label="__('app.designation')"
-                                :value="(!is_null($employee->employeeDetail) && !is_null($employee->employeeDetail->designation)) ? mb_ucfirst($employee->employeeDetail->designation->name) : '--'" />
+                                :value="(!is_null($employee->employeeDetail) && !is_null($employee->employeeDetail->designation)) ? ($employee->employeeDetail->designation->name) : '--'" />
 
                             <x-cards.data-row :label="__('app.department')"
-                                :value="(isset($employee->employeeDetail) && !is_null($employee->employeeDetail->department) && !is_null($employee->employeeDetail->department)) ? mb_ucfirst($employee->employeeDetail->department->team_name) : '--'" />
+                                :value="(isset($employee->employeeDetail) && !is_null($employee->employeeDetail->department) && !is_null($employee->employeeDetail->department)) ? ($employee->employeeDetail->department->team_name) : '--'" />
 
                             <div class="col-12 px-0 pb-3 d-block d-lg-flex d-md-flex">
                                 <p class="mb-0 text-lightest f-14 w-30 d-inline-block text-capitalize">
@@ -155,8 +153,6 @@ $viewAppreciationPermission = user()->permission('view_appreciation');
                                 </p>
                             </div>
 
-                            <x-cards.data-row :label="__('modules.employees.joiningDate')"
-                            :value="(!is_null($employee->employeeDetail) && !is_null($employee->employeeDetail->joining_date)) ? $employee->employeeDetail->joining_date->translatedFormat(company()->date_format) : '--'" />
 
                             @php
                                 $currentyearJoiningDate = \Carbon\Carbon::parse(now(company()->timezone)->year.'-'.$employee->employeeDetail->joining_date->translatedFormat('m-d'));
@@ -172,8 +168,10 @@ $viewAppreciationPermission = user()->permission('view_appreciation');
                                               :value="(!is_null($employee->employeeDetail) && !is_null($employee->employeeDetail->date_of_birth)) ? $employee->employeeDetail->date_of_birth->translatedFormat('d F') : '--'" />
 
                             @if ($showFullProfile)
+                                <x-cards.data-row :label="__('app.email')" :value="$employee->email" />
+
                                 <x-cards.data-row :label="__('app.mobile')"
-                                :value="(!is_null($employee->country_id) ? '+'.$employee->country->phonecode.'-' : '--'). $employee->mobile ?? '--'" />
+                                :value="$employee->mobile_with_phonecode" />
 
                                 <x-cards.data-row :label="__('modules.employees.slackUsername')"
                                     :value="(isset($employee->employeeDetail) && !is_null($employee->employeeDetail->slack_username)) ? '@'.$employee->employeeDetail->slack_username : '--'" />
@@ -200,23 +198,27 @@ $viewAppreciationPermission = user()->permission('view_appreciation');
                                 :value="$employee->employeeDetail->notice_period_end_date ? Carbon\Carbon::parse($employee->employeeDetail->notice_period_end_date)->translatedFormat(company()->date_format) : '--'" />
 
                                 <x-cards.data-row :label="__('modules.employees.maritalStatus')"
-                                :value="mb_ucwords($employee->employeeDetail->marital_status) ?? '--'" />
+                                :value="$employee?->employeeDetail?->marital_status ? __('modules.leaves.' . $employee->employeeDetail->marital_status) : '--'" />
 
                                 <x-cards.data-row :label="__('modules.employees.marriageAnniversaryDate')"
                                 :value="$employee->employeeDetail->marriage_anniversary_date ? Carbon\Carbon::parse($employee->employeeDetail->marriage_anniversary_date)->translatedFormat('d F') : '--'" />
 
                                 <x-cards.data-row :label="__('modules.employees.employmentType')"
-                                :value="mb_ucwords($employee->employeeDetail->employment_type) ?? '--'" />
+                                :value="$employee?->employeeDetail?->employment_type ? __('modules.employees.' . $employee?->employeeDetail?->employment_type) : '--'" />
 
                                 @if($employee->employeeDetail->employment_type == 'internship')
                                     <x-cards.data-row :label="__('modules.employees.internshipEndDate')"
                                     :value="$employee->employeeDetail->internship_end_date ? Carbon\Carbon::parse($employee->employeeDetail->internship_end_date)->translatedFormat(company()->date_format) : '--'" />
                                 @endif
 
-                                @if($employee->employeeDetail->employment_type == 'on contract')
+                                @if($employee->employeeDetail->employment_type == 'on_contract')
                                     <x-cards.data-row :label="__('modules.employees.contractEndDate')"
                                     :value="$employee->employeeDetail->contract_end_date ? Carbon\Carbon::parse($employee->employeeDetail->contract_end_date)->translatedFormat(company()->date_format) : '--'" />
                                 @endif
+
+                                <x-cards.data-row :label="__('modules.employees.joiningDate')"
+                                :value="(!is_null($employee->employeeDetail) && !is_null($employee->employeeDetail->joining_date)) ? $employee->employeeDetail->joining_date->translatedFormat(company()->date_format) : '--'" />
+
 
                                 {{-- Custom fields data --}}
                                 <x-forms.custom-field-show :fields="$fields" :model="$employee->employeeDetail"></x-forms.custom-field-show>
@@ -230,19 +232,20 @@ $viewAppreciationPermission = user()->permission('view_appreciation');
 
                     <div class="col-xl-5 col-lg-6 col-md-6">
 
-                        <x-cards.data class="mb-4" :title="__('modules.appreciations.appreciation')">
-                            @forelse ($employee->appreciationsGrouped as $item)
-                            <div class="float-left position-relative mb-2" style="width: 50px" data-toggle="tooltip" data-original-title="@if(isset($item->award->title)){{  mb_ucwords($item->award->title) }} @endif">
-                                @if(isset($item->award->awardIcon->icon))
-                                <i class="bi bi-hexagon-fill fs-40" style="color: {{ $item->award->color_code }}"></i>
-                                <i class="bi bi-{{ $item->award->awardIcon->icon }} f-15 text-white position-absolute appreciation-icon"></i>
-                                @endif
-                                <span class="position-absolute badge badge-secondary rounded-circle border-additional-grey appreciation-count">{{ $item->no_of_awards }}</span>
-                            </div>
-                            @empty
-                                <x-cards.no-record icon="medal" :message="__('messages.noRecordFound')" />
-                            @endforelse
-                        </x-cards.data>
+                        @if ($showFullProfile)
+                            <x-cards.data class="mb-4" :title="__('modules.appreciations.appreciation')">
+                                @forelse ($employee->appreciationsGrouped as $item)
+                                <div class="float-left position-relative mb-2" style="width: 50px" data-toggle="tooltip" data-original-title="@if(isset($item->award->title)){{  $item->award->title }} @endif">
+                                    @if(isset($item->award->awardIcon->icon))
+                                        <x-award-icon :award="$item->award" />
+                                    @endif
+                                    <span class="position-absolute badge badge-secondary rounded-circle border-additional-grey appreciation-count">{{ $item->no_of_awards }}</span>
+                                </div>
+                                @empty
+                                    <x-cards.no-record icon="medal" :message="__('messages.noRecordFound')" />
+                                @endforelse
+                            </x-cards.data>
+                        @endif
 
                         <x-cards.data class="mb-4">
                             <div class="d-flex justify-content-between">
@@ -263,7 +266,7 @@ $viewAppreciationPermission = user()->permission('view_appreciation');
                                                 @foreach ($employee->reportingTeam as $item)
                                                     <div class="taskEmployeeImg rounded-circle mr-1">
                                                         <a href="{{ route('employees.show', $item->user->id) }}">
-                                                            <img data-toggle="tooltip" data-original-title="{{ mb_ucwords($item->user->name) }}"
+                                                            <img data-toggle="tooltip" data-original-title="{{ $item->user->name }}"
                                                                 src="{{ $item->user->image_url }}">
                                                         </a>
                                                     </div>

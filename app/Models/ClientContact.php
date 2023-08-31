@@ -28,7 +28,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|ClientContact wherePhone($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientContact whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientContact whereUserId($value)
- * @mixin \Eloquent
  * @property int|null $added_by
  * @property int|null $last_updated_by
  * @method static Builder|ClientContact whereAddedBy($value)
@@ -38,6 +37,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static Builder|ClientContact whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ClientContact extends BaseModel
 {

@@ -9,12 +9,7 @@
     <!-- SETTINGS START -->
     <div class="w-100 d-flex ">
 
-        {{-- WORKSUITESAAS --}}
-        @if(user()->is_superadmin)
-            <x-super-admin.setting-sidebar :activeMenu="$activeSettingMenu"/>
-        @else
-            <x-setting-sidebar :activeMenu="$activeSettingMenu"/>
-        @endif
+        @include('sections.setting-sidebar')
 
         <x-setting-card>
 
@@ -65,7 +60,7 @@
 
                     @forelse($languages as $language)
                         <tr id="languageRow{{ $language->id }}" @class(['bg-additional-grey' => companyOrGlobalSetting()->locale === $language->language_code]) >
-                            <td>{{ mb_ucwords($language->language_name) }}</td>
+                            <td><span class='flag-icon flag-icon-{{ $language->language_code=='en'?'gb':$language->flag_code }} flag-icon-squared'></span> {{ $language->language_name }}</td>
                             <td>{{ $language->language_code }}</td>
                             <td>
                                 @if(companyOrGlobalSetting()->locale !== $language->language_code)
@@ -82,6 +77,7 @@
                                 @endif
 
                             </td>
+                            @php $appSettingLink = "<a href='".route('app-settings.index')."'>".__('app.menu.appSettings')."</a>" @endphp
                             <td @class(['text-right'=>companyOrGlobalSetting()->locale !== $language->language_code,'text-left' => companyOrGlobalSetting()->locale === $language->language_code])>
                                 @if($language->language_code !=='en' && companyOrGlobalSetting()->locale != $language->language_code)
                                     @if (companyOrGlobalSetting()->locale != $language->language_code)
@@ -99,11 +95,11 @@
                                         </div>
 
                                     @else
-                                        @lang('messages.defaultLanguageCantChange')
+                                        @lang('messages.defaultLanguageCantChange',['appsettings'=> $appSettingLink])
                                     @endif
                                 @else
                                     @if (companyOrGlobalSetting()->locale == $language->language_code)
-                                        <span class="f-12">@lang('messages.defaultLanguageCantChange')</span>
+                                        <span class="f-12">@lang('messages.defaultLanguageCantChange',['appsettings' => $appSettingLink])</span>
                                     @else
                                         <span class="f-12">@lang('messages.defaultEnLanguageCantChange')</span>
                                     @endif

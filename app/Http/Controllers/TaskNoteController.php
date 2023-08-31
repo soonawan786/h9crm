@@ -81,6 +81,19 @@ class TaskNoteController extends AccountBaseController
         $this->editTaskNotePermission = user()->permission('edit_task_notes');
         abort_403(!($this->editTaskNotePermission == 'all' || ($this->editTaskNotePermission == 'added' && $this->note->added_by == user()->id)));
 
+        $taskuserData = [];
+        $usersData = $this->note->task->users;
+
+        foreach ($usersData as $user) {
+            $url = route('employees.show', [$user->id]);
+
+            $taskuserData[] = ['id' => $user->id, 'value' => $user->name, 'image' => $user->image_url, 'link' => $url];
+
+        }
+
+        $this->taskuserData = $taskuserData;
+
+
         return view('tasks.notes.edit', $this->data);
 
     }

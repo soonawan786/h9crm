@@ -70,7 +70,7 @@ class DepartmentDataTable extends BaseDataTable
             ->editColumn(
                 'name',
                 function ($row) {
-                    return '<h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('departments.show', [$row->id]) . '" class="openRightModal">' . ucfirst($row->team_name) . '</a></h5>';
+                    return '<h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('departments.show', [$row->id]) . '" class="openRightModal">' . $row->team_name . '</a></h5>';
                 }
             )
             ->editColumn('parent_id', function ($row) {
@@ -95,7 +95,7 @@ class DepartmentDataTable extends BaseDataTable
     /**
      * Get query source of dataTable.
      *
-     * @param \App\Models\DepartmentDataTable $model
+     * @param \App\Models\Team $model
      * @return \Illuminate\Database\Eloquent\Builder
      */
 
@@ -172,7 +172,7 @@ class DepartmentDataTable extends BaseDataTable
                 'searchable' => false,
                 'visible' => !in_array('client', user_roles())
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.name') => ['data' => 'name', 'name' => 'team_name', 'title' => __('app.name')],
             __('modules.department.parentDepartment') => ['data' => 'parent_id', 'name' => 'parent_id', 'exportable' => true, 'title' => __('modules.department.parentDepartment')],
             Column::computed('action', __('app.action'))
@@ -182,17 +182,6 @@ class DepartmentDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-
-    protected function filename()
-    {
-        return 'Department_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

@@ -17,9 +17,9 @@
             </x-slot>
             <div class="accordionItemContent pb-2">
                 <x-sub-menu-item :link="route('dashboard')"
-                                 :text="__('app.private') . ' ' .__('app.menu.dashboard')" />
+                                 :text="__('app.menu.privateDashboard')" />
                 <x-sub-menu-item :link="route('dashboard.advanced')"
-                                 :text="__('app.menu.advanced')  . ' ' . __('app.menu.dashboard')" />
+                                 :text="__('app.menu.advanceDashboard')" />
             </div>
         </x-menu-item>
     @else
@@ -32,26 +32,6 @@
             </x-slot>
         </x-menu-item>
     @endif
-
-    <!-- NAV ITEM - ORDER COLLAPASE MENU -->
-    @if ((in_array('orders', user_modules()) || in_array('woo_commerce', user_modules())) && ($sidebarUserPermissions['view_order'] != 5 && $sidebarUserPermissions['view_order'] != 'none' ))
-        <x-menu-item icon="briefcase" :text="__('app.menu.orders')">
-            <x-slot name="iconPath">
-                <path
-                    d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .49.598l-1 5a.5.5 0 0 1-.465.401l-9.397.472L4.415 11H13a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l.84 4.479 9.144-.459L13.89 4H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
-            </x-slot>
-
-            <div class="accordionItemContent pb-2">
-                @if (in_array('orders', user_modules()) && $sidebarUserPermissions['view_order'] != 5 && $sidebarUserPermissions['view_order'] != 'none')
-                    <x-sub-menu-item :link="route('orders.index')" :text="__('app.menu.internal_orders')" />
-                @endif
-                @if (in_array('woo_commerce', user_modules()))
-                    <x-sub-menu-item :link="route('woo.orders')" :text="__('app.menu.online_orders')" />
-                @endif
-            </div>
-        </x-menu-item>
-    @endif
-
 
 <!-- NAV ITEM - CUSTOMERS COLLAPASE MENU -->
     @if (!in_array('client', user_roles()) && in_array('leads', user_modules()) && $sidebarUserPermissions['view_lead'] != 5 && $sidebarUserPermissions['view_lead'] != 'none')
@@ -186,15 +166,15 @@
         </x-menu-item>
     @endif
 
-<!-- NAV ITEM - ORDERS -->
-    {{-- @if (in_array('orders', user_modules()) && $sidebarUserPermissions['view_order'] != 5 && $sidebarUserPermissions['view_order'] != 'none')
+<!-- NAV ITEM - PRODUCTS -->
+    @if (in_array('orders', user_modules()) && $sidebarUserPermissions['view_order'] != 5 && $sidebarUserPermissions['view_order'] != 'none')
         <x-menu-item icon="cart3" :text="__('app.menu.orders')" :link="route('orders.index')">
             <x-slot name="iconPath">
                 <path
                     d="M0 1.5A.5.5 0 0 1 .5 1H2a.5.5 0 0 1 .485.379L2.89 3H14.5a.5.5 0 0 1 .49.598l-1 5a.5.5 0 0 1-.465.401l-9.397.472L4.415 11H13a.5.5 0 0 1 0 1H4a.5.5 0 0 1-.491-.408L2.01 3.607 1.61 2H.5a.5.5 0 0 1-.5-.5zM3.102 4l.84 4.479 9.144-.459L13.89 4H3.102zM5 12a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm7 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-7 1a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
             </x-slot>
         </x-menu-item>
-    @endif --}}
+    @endif
 
 <!-- NAV ITEM - TICKETS -->
     @if (in_array('tickets', user_modules()) && $sidebarUserPermissions['view_tickets'] != 5 && $sidebarUserPermissions['view_tickets'] != 'none')
@@ -302,12 +282,12 @@
             </x-slot>
         </x-menu-item>
     @endif
-
+@if (checkCompanyPackageIsValid(user()->company_id))
 <!-- NAV ITEM - CUSTOM MODULES  -->
     @foreach ($worksuitePlugins as $item)
         @includeIf(strtolower($item) . '::sections.sidebar')
     @endforeach
-
+@endif
 <!-- NAV ITEM - NOTICES -->
     @if (in_array('reports', user_modules()) && ($sidebarUserPermissions['view_task_report'] == 4 || $sidebarUserPermissions['view_time_log_report'] == 4 || (isset($sidebarUserPermissions['view_expense_report']) && $sidebarUserPermissions['view_expense_report'] == 4) || $sidebarUserPermissions['view_finance_report'] != 5 || $sidebarUserPermissions['view_income_expense_report'] == 4 || $sidebarUserPermissions['view_leave_report'] == 4 || $sidebarUserPermissions['view_attendance_report'] == 4) && ($sidebarUserPermissions['view_task_report'] != 'none' || $sidebarUserPermissions['view_time_log_report'] != 'none' || $sidebarUserPermissions['view_finance_report'] != 'none' || $sidebarUserPermissions['view_income_expense_report'] != 'none' || $sidebarUserPermissions['view_leave_report'] != 'none' || $sidebarUserPermissions['view_attendance_report'] != 'none' || (isset($sidebarUserPermissions['view_expense_report']) && $sidebarUserPermissions['view_expense_report'] != 'none')))
         <x-menu-item icon="graph-up" :text="__('app.menu.reports')">
@@ -349,9 +329,39 @@
                     <x-sub-menu-item :link="route('expense-report.index')"
                                      :text="__('app.menu.expenseReport')" />
                 @endif
+                @if (isset($sidebarUserPermissions['view_lead_report']) && $sidebarUserPermissions['view_lead_report'] == 4 && $sidebarUserPermissions['view_lead_report'] != 'none' && in_array('leads', user_modules()))
+                    <x-sub-menu-item :link="route('lead-report.index')"
+                                     :text="__('app.menu.leadReport')" />
+                @endif
+                @if (isset($sidebarUserPermissions['view_sales_report']) && $sidebarUserPermissions['view_sales_report'] == 4 && $sidebarUserPermissions['view_sales_report'] != 'none' && in_array('invoices', user_modules()))
+                    <x-sub-menu-item :link="route('sales-report.index')"
+                                     :text="__('app.menu.salesReport')" />
+                @endif
             </div>
         </x-menu-item>
 @endif
+
+<!-- NAV ITEM - CUSTOM LINK -->
+
+    @php
+    $role = user()->role->last();
+    @endphp
+
+    @foreach ($customLink as $item)
+        @if((in_array($role->role_id, json_decode($item->can_be_viewed_by)) || in_array('admin', user_roles())) && $item->status == 'active')
+            <li>
+                <a class="nav-item text-lightest f-15 sidebar-text-color" href={{$item->url}} target="_blank"
+                title={{$item->link_title}}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                        class="bi bi-link" viewBox="0 0 16 16">
+                        <path d="M6.354 5.5H4a3 3 0 0 0 0 6h3a3 3 0 0 0 2.83-4H9c-.086 0-.17.01-.25.031A2 2 0 0 1 7 10.5H4a2 2 0 1 1 0-4h1.535c.218-.376.495-.714.82-1z"/>
+                        <path d="M9 5.5a3 3 0 0 0-2.83 4h1.098A2 2 0 0 1 9 6.5h3a2 2 0 1 1 0 4h-1.535a4.02 4.02 0 0 1-.82 1H12a3 3 0 1 0 0-6H9z"/>
+                    </svg>
+                    <span class="pl-3">{{$item->link_title}}</span>
+                </a>
+            </li>
+        @endif
+    @endforeach
 
 <!-- NAV ITEM - REPORTS COLLAPASE MENU -->
     <!-- NAV ITEM - SETTINGS -->
@@ -365,20 +375,17 @@
         </x-slot>
     </x-menu-item>
 
-    @if (in_array('admin', user_roles()))
-        <li class='accordionItem closeIt border-0 shadow-none mt-2 ml-3'>
-            <a class="nav-item badge badge-secondary d-inline p-1 mt-1" href="{{ route('superadmin.faqs.index') }}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="currentColor"
-                     class="bi bi-question-circle" viewBox="0 0 16 16">
-
-                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
-                    <path
-                        d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
-                </svg>
-                <span class="pl-1">@lang('app.menu.help')</span>
-            </a>
-
-        </li>
+    @if(isWorksuiteSaas())
+        @if (in_array('admin', user_roles()) )
+        <x-menu-item icon="question" :text="__('app.menu.help')" class="d-block d-lg-none d-xl-none"
+        :link="route('superadmin.faqs.index')">
+            <x-slot name="iconPath">
+            <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+            <path d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"/>
+            </x-slot>
+        </x-menu-item>
+        @endif
     @endif
+
 
 </ul>

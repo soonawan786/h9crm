@@ -9,7 +9,6 @@ use Illuminate\Notifications\Messages\SlackMessage;
 class NewUser extends BaseNotification
 {
 
-
     /**
      * Create a new notification instance.
      *
@@ -66,12 +65,17 @@ class NewUser extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
+
         $url = route('login');
         $url = getDomainSpecificUrl($url, $this->company);
 
+        // WORKSUITESAAS
+        $this->password = $this->password ? $this->password : __('superadmin.previousPassword');
+
         $content = __('email.newUser.text') . '<br><br>' . __('app.email') . ': <b>' . $notifiable->email . '</b><br>' . __('app.password') . ': <b>' . $this->password.'</b>';
 
-        return parent::build()
+        return $build
             ->subject(__('email.newUser.subject') . ' ' . config('app.name') . '.')
             ->markdown('mail.email', [
                 'url' => $url,
@@ -114,12 +118,11 @@ class NewUser extends BaseNotification
             $url = route('login');
             $url = getDomainSpecificUrl($url, $this->company);
 
-            //phpcs:ignore
-            return $slackMessage
-                    //phpcs:ignore
-                ->to('@' . $notifiable->employee[0]->slack_username)
-                //phpcs:ignore
-                ->content('*' . __('email.newUser.subject') . ' ' . config('app.name') . '!*' . "\n" . __('email.newUser.text')) . "\n" . '<' . $url . '|' . __('email.newUser.action') . '>';
+            $to = '@'.$notifiable->employee[0]->slack_username;
+            $content = '*'. __('email.newUser.subject') . ' ' . config('app.name') . '!*' . "\n" . __('email.newUser.text');
+            $url = "\n" . '<' . $url . '|' . __('email.newUser.action') . '>';
+
+            return $slackMessage->to($to)->content($content . $url);
 
         } catch (\Exception $e) {
             return $slackMessage->content('*' . __('email.newUser.subject') . '*' . "\n" .'This is a redirected notification. Add slack username for *' . $notifiable->name . '*');

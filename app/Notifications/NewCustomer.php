@@ -39,12 +39,13 @@ class NewCustomer extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('clients.show', $this->user->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $content = __('email.newCustomer.text') . '<br>' . __('app.name') . ': ' . $this->user->name . '<br>' . __('app.email') . ': ' . $this->user->email;
 
-        return parent::build()
+        return $build
             ->subject(__('email.newCustomer.subject') . ' - ' . config('app.name') . '.')
             ->markdown('mail.email', [
                 'url' => $url,

@@ -127,13 +127,13 @@
 
                     <div class="col-md-6">
                         <x-forms.text :fieldLabel="__('modules.accountSettings.latitude')"
-                                      fieldPlaceholder="e.g. 38.895"
+                                        :fieldPlaceholder="__('placeholders.latitude')"
                                       fieldName="latitude" fieldId="latitude"/>
                     </div>
 
                     <div class="col-md-6">
                         <x-forms.text :fieldLabel="__('modules.accountSettings.longitude')"
-                                      fieldPlaceholder="e.g. -77.0364"
+                                        :fieldPlaceholder="__('placeholders.longitude')"
                                       fieldName="longitude" fieldId="longitude"/>
                     </div>
 

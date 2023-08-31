@@ -18,10 +18,10 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|ClientCategory whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientCategory whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientCategory whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ClientCategory whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ClientCategory extends BaseModel
 {

@@ -67,7 +67,7 @@
                             data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($projects as $project)
-                                <option value="{{ $project->id }}">{{ mb_ucwords($project->project_name) }}</option>
+                                <option value="{{ $project->id }}">{{ $project->project_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -110,6 +110,11 @@
                     <x-forms.link-primary :link="route('payments.create')" class="mr-3 float-left openRightModal"
                         icon="plus">
                         @lang('modules.payments.addPayment')
+                    </x-forms.link-primary>
+
+                    <x-forms.link-primary :link="route('payments.add_bulk_payments')" class="mr-3 float-left openRightModal"
+                        icon="plus">
+                        @lang('modules.payments.addBulkPayment')
                     </x-forms.link-primary>
                 @endif
             </div>
@@ -184,23 +189,21 @@
             window.LaravelDataTables["payments-table"].draw(false);
         }
 
-        $('#clientID, #project_id, #status')
-            .on('change keyup',
-                function() {
-                    if ($('#project_id').val() != "all") {
-                        $('#reset-filters').removeClass('d-none');
-                        showTable();
-                    } else if ($('#status').val() != "all") {
-                        $('#reset-filters').removeClass('d-none');
-                        showTable();
-                    } else if ($('#clientID').val() != "all") {
-                        $('#reset-filters').removeClass('d-none');
-                        showTable();
-                    } else {
-                        $('#reset-filters').addClass('d-none');
-                        showTable();
-                    }
-                });
+        $('#clientID, #project_id, #status').on('change keyup', function() {
+            if ($('#project_id').val() != "all") {
+                $('#reset-filters').removeClass('d-none');
+                showTable();
+            } else if ($('#status').val() != "all") {
+                $('#reset-filters').removeClass('d-none');
+                showTable();
+            } else if ($('#clientID').val() != "all") {
+                $('#reset-filters').removeClass('d-none');
+                showTable();
+            } else {
+                $('#reset-filters').addClass('d-none');
+                showTable();
+            }
+        });
 
         $('#search-text-field').on('keyup', function() {
             if ($('#search-text-field').val() != "") {

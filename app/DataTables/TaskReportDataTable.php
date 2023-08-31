@@ -51,7 +51,7 @@ class TaskReportDataTable extends BaseDataTable
                 $members = '';
 
                 foreach ($row->users as $member) {
-                    $img = '<img data-toggle="tooltip" data-original-title="' . mb_ucwords($member->name) . '" src="' . $member->image_url . '">';
+                    $img = '<img data-toggle="tooltip" data-original-title="' . $member->name . '" src="' . $member->image_url . '">';
 
                     $members .= '<div class="taskEmployeeImg rounded-circle"><a href="' . route('employees.show', $member->id) . '">' . $img . '</a></div> ';
                 }
@@ -68,10 +68,10 @@ class TaskReportDataTable extends BaseDataTable
                 return implode(',', $members);
             })
             ->editColumn('clientName', function ($row) {
-                return ($row->clientName) ? mb_ucwords($row->clientName) : '-';
+                return ($row->clientName) ? $row->clientName : '-';
             })
             ->addColumn('task', function ($row) {
-                return ucfirst($row->heading);
+                return $row->heading;
             })
             ->editColumn('heading', function ($row) {
                 $private = $pin = $timer = '';
@@ -90,7 +90,7 @@ class TaskReportDataTable extends BaseDataTable
 
                 return '<div class="media align-items-center">
                         <div class="media-body">
-                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('tasks.show', [$row->id]) . '" class="openRightModal">' . ucfirst($row->heading) . '</a></h5>
+                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('tasks.show', [$row->id]) . '" class="openRightModal">' . $row->heading . '</a></h5>
                     <p class="mb-0">' . $private . ' ' . $pin . ' ' . $timer . '</p>
                     </div>
                   </div>';
@@ -99,19 +99,27 @@ class TaskReportDataTable extends BaseDataTable
                 return '<i class="fa fa-circle mr-2" style="color: ' . $row->label_color . '"></i>' . $row->board_column;
             })
             ->addColumn('status', function ($row) {
-                return ucfirst($row->board_column);
+                return $row->board_column;
             })
             ->editColumn('project_name', function ($row) {
                 if (is_null($row->project_id)) {
                     return '-';
                 }
 
-                return '<a href="' . route('projects.show', $row->project_id) . '" class="text-darkest-grey">' . ucfirst($row->project_name) . '</a>';
+                return '<a href="' . route('projects.show', $row->project_id) . '" class="text-darkest-grey">' . $row->project_name . '</a>';
+            })
+            ->editColumn('short_code', function ($row) {
+
+                if (is_null($row->task_short_code)) {
+                    return ' -- ';
+                }
+
+                return '<a href="' . route('tasks.show', [$row->id]) . '" class="text-darkest-grey openRightModal">' . $row->task_short_code . '</a>';
             })
             ->setRowId(function ($row) {
                 return 'row-' . $row->id;
             })
-            ->rawColumns(['board_column', 'project_name', 'clientName', 'due_date', 'users', 'heading'])
+            ->rawColumns(['board_column', 'project_name', 'clientName', 'due_date', 'users', 'heading', 'short_code'])
             ->removeColumn('project_id')
             ->removeColumn('image')
             ->removeColumn('created_image')
@@ -155,7 +163,7 @@ class TaskReportDataTable extends BaseDataTable
 
         $model->leftJoin('users as creator_user', 'creator_user.id', '=', 'tasks.created_by')
             ->leftJoin('task_labels', 'task_labels.task_id', '=', 'tasks.id')
-            ->selectRaw('tasks.id, tasks.added_by, projects.project_name, projects.client_id, tasks.heading, client.name as clientName, creator_user.name as created_by, creator_user.image as created_image, tasks.board_column_id,
+            ->selectRaw('tasks.id, tasks.added_by, projects.project_name, projects.client_id, tasks.heading, client.name as clientName, creator_user.name as created_by, creator_user.image as created_image, tasks.board_column_id,tasks.task_short_code,
              tasks.due_date, taskboard_columns.column_name as board_column, taskboard_columns.label_color,
               tasks.project_id, tasks.is_private ,( select count("id") from pinned where pinned.task_id = tasks.id and pinned.user_id = ' . user()->id . ') as pinned_task')
             ->addSelect('tasks.company_id') // Company_id is fetched so the we have fetch company relation with it)
@@ -221,7 +229,8 @@ class TaskReportDataTable extends BaseDataTable
             $model->where(function ($query) {
                 $query->where('tasks.heading', 'like', '%' . request('searchText') . '%')
                     ->orWhere('member.name', 'like', '%' . request('searchText') . '%')
-                    ->orWhere('projects.project_name', 'like', '%' . request('searchText') . '%');
+                    ->orWhere('projects.project_name', 'like', '%' . request('searchText') . '%')
+                    ->orWhere('tasks.task_short_code', 'like', '%' . request('searchText') . '%');
             });
         }
 
@@ -257,6 +266,7 @@ class TaskReportDataTable extends BaseDataTable
     {
         return [
             '#' => ['data' => 'id', 'name' => 'id', 'visible' => false],
+            __('modules.taskCode') => ['data' => 'short_code', 'name' => 'task_short_code', 'title' => __('modules.taskCode')],
             __('app.task') => ['data' => 'heading', 'name' => 'heading', 'exportable' => false, 'title' => __('app.task')],
             __('app.menu.tasks') => ['data' => 'task', 'name' => 'heading', 'visible' => false, 'title' => __('app.menu.tasks')],
             __('app.project') => ['data' => 'project_name', 'name' => 'projects.project_name', 'title' => __('app.project')],
@@ -266,16 +276,6 @@ class TaskReportDataTable extends BaseDataTable
             __('app.task') . ' ' . __('app.status') => ['data' => 'status', 'name' => 'board_column', 'visible' => false, 'title' => __('app.task')],
             __('app.columnStatus') => ['data' => 'board_column', 'name' => 'board_column', 'exportable' => false, 'searchable' => false, 'title' => __('app.columnStatus')]
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'task_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

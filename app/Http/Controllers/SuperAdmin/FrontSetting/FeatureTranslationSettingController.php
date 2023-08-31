@@ -5,6 +5,7 @@ namespace App\Http\Controllers\SuperAdmin\FrontSetting;
 use App\Helper\Reply;
 use App\Http\Requests\SuperAdmin\FeatureTranslation\StoreRequest;
 use App\Http\Controllers\AccountBaseController;
+use App\Models\GlobalSetting;
 use App\Models\LanguageSetting;
 use App\Models\SuperAdmin\TrFrontDetail;
 
@@ -16,6 +17,12 @@ class FeatureTranslationSettingController extends AccountBaseController
         parent::__construct();
         $this->pageTitle = 'superadmin.menu.featureTranslation';
         $this->activeSettingMenu = 'feature_translation';
+
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_front_settings'));
+
+            return $next($request);
+        });
     }
 
     /**

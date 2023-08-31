@@ -13,16 +13,21 @@ return new class extends Migration {
 
     public function up()
     {
-        Schema::table('invoice_recurring', function (Blueprint $table) {
-            $table->boolean('immediate_invoice')->default(false);
-            $table->date('next_invoice_date')->nullable()->after('issue_date');
-        });
 
-        Schema::table('expenses_recurring', function (Blueprint $table) {
-            $table->date('issue_date')->after('billing_cycle');
-            $table->boolean('immediate_expense')->default(false)->after('purchase_from');
-            $table->date('next_expense_date')->nullable()->after('issue_date');
-        });
+        if (!Schema::hasColumn('invoice_recurring', 'next_invoice_date')) {
+            Schema::table('invoice_recurring', function (Blueprint $table) {
+                $table->boolean('immediate_invoice')->default(false);
+                $table->date('next_invoice_date')->nullable()->after('issue_date');
+            });
+        }
+
+        if (!Schema::hasColumn('expenses_recurring', 'issue_date')) {
+            Schema::table('expenses_recurring', function (Blueprint $table) {
+                $table->date('issue_date')->after('billing_cycle');
+                $table->boolean('immediate_expense')->default(false)->after('purchase_from');
+                $table->date('next_expense_date')->nullable()->after('issue_date');
+            });
+        }
 
         $module = Module::where('module_name', 'invoices')->first();
 
@@ -40,9 +45,14 @@ return new class extends Migration {
                 continue;
             }
 
-            if (is_null($recurring->issue_date)) {
-                continue;
+            try {
+                if (is_null($recurring->issue_date)) {
+                    continue;
+                }
+            } catch (\Exception $exception) {
+                echo $exception->getMessage();
             }
+
 
             $this->saveNextInvoiceDate($recurring, 'invoice');
         }
@@ -56,10 +66,11 @@ return new class extends Migration {
             }
 
             $expense = $recurring->recurrings->first();
+
             try {
                 $recurring->update(['issue_date' => $expense->purchase_date]);
-            }catch (\Exception $e){
-
+            } catch (\Exception $exception) {
+                echo $exception->getMessage();
             }
 
             $totalExistingCount = $recurring->recurrings->count();
@@ -100,7 +111,6 @@ return new class extends Migration {
         $issueDate = $recurring->recurrings->last();
 
         if ($type == 'invoice') {
-
             $date = $issueDate->issue_date ?? now();
         }
         else {

@@ -50,13 +50,13 @@ $deletePermission = user()->permission('delete_product');
                             <x-cards.data-row :label="__('modules.invoices.tax')" :value="!empty($taxValue) ? strtoupper($taxValue) : '--'" />
                             <x-cards.data-row :label="__('modules.unitType.unitType')" :value="ucfirst($product->unit->unit_type ?? '--')" />
                             <x-cards.data-row :label="__('app.hsnSac')" :value="$product->hsn_sac_code ?? '--'" />
-                            <x-cards.data-row :label="__('modules.productBrand.productBrand')"
+<x-cards.data-row :label="__('modules.productBrand.productBrand')"
                                 :value="$product->brand->brand_name ?? '--'" />
                             <x-cards.data-row :label="__('modules.productCategory.productCategory')"
                                 :value="$product->category->category_name ?? '--'" />
                             <x-cards.data-row :label="__('modules.productCategory.productSubCategory')"
                                 :value="$product->subCategory->category_name ?? '--'" />
-                            <x-cards.product-tags :product="$product" />
+<x-cards.product-tags :product="$product" />
 
                             @if (!in_array('client', user_roles()))
                                 <x-cards.data-row :label="__('app.purchaseAllow')" :value="($product->allow_purchase) ? '<span class=\'badge badge-success\'>'.

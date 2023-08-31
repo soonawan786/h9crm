@@ -3,6 +3,7 @@
 namespace App\Http\Requests\Expenses;
 
 use App\Http\Requests\CoreRequest;
+use App\Models\BankAccount;
 
 class StoreRecurringExpense extends CoreRequest
 {
@@ -28,9 +29,17 @@ class StoreRecurringExpense extends CoreRequest
 
         $rules = [
             'item_name' => 'required',
+            'user_id' => 'required',
             'price' => 'required|numeric',
             'billing_cycle' => 'required',
         ];
+
+
+        if (request('bank_account_id') != '') {
+            $bankBalance = BankAccount::findOrFail(request('bank_account_id'));
+
+            $rules['price'] = 'required|numeric|max:'.$bankBalance->bank_balance;
+        }
 
         return $rules;
     }

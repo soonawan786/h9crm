@@ -7,144 +7,16 @@
     <div class="row">
 
         <div class="col-lg-6">
-            <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2"
+            <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2"
                             :fieldLabel="__('modules.invoiceSettings.logo')"
                             fieldName="logo" fieldId="logo" :fieldValue="$invoiceSetting->logo_url"
                             :popover="__('messages.invoiceLogoTooltip')"/>
         </div>
         <div class="col-lg-6">
-            <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2"
+            <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2"
                             :fieldLabel="__('modules.invoiceSettings.authorisedSignatorySignature')"
                             fieldName="authorised_signatory_signature" fieldId="authorised_signatory_signature" :fieldValue="$invoiceSetting->authorised_signatory_signature_url"
                             :popover="__('messages.authorisedSignatorySignatureTooltip')"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.invoicePrefix')"
-                            :fieldPlaceholder="__('placeholders.invoices.invoicePrefix')"
-                            fieldName="invoice_prefix"
-                            fieldId="invoice_prefix" :fieldValue="$invoiceSetting->invoice_prefix"
-                            fieldRequired="true"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.invoiceNumberSeparator')"
-                            :fieldPlaceholder="__('placeholders.invoices.invoiceNumberSeparator')"
-                            fieldName="invoice_number_separator"
-                            fieldId="invoice_number_separator" :fieldValue="$invoiceSetting->invoice_number_separator" />
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.number class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.invoiceDigit')"
-                            fieldName="invoice_digit"
-                            fieldId="invoice_digit" :fieldValue="$invoiceSetting->invoice_digit"
-                            minValue="2"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.invoiceLookLike')"
-                            fieldId="invoice_look_like"
-                            fieldName="invoice_look_like" fieldReadOnly="true"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.estimatePrefix')"
-                            :fieldPlaceholder="__('placeholders.invoices.estimatePrefix')"
-                            fieldName="estimate_prefix"
-                            fieldRequired="true" fieldId="estimate_prefix"
-                            :fieldValue="$invoiceSetting->estimate_prefix"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.estimateNumberSeparator')"
-                            :fieldPlaceholder="__('placeholders.invoices.estimateNumberSeparator')"
-                            fieldName="estimate_number_separator"
-                            fieldId="estimate_number_separator" :fieldValue="$invoiceSetting->estimate_number_separator"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.number class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.estimateDigit')"
-                            fieldName="estimate_digit"
-                            fieldId="estimate_digit" :fieldValue="$invoiceSetting->estimate_digit"
-                            minValue="2"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.estimateLookLike')"
-                            fieldName="estimate_look_like"
-                            fieldId="estimate_look_like" fieldValue="" fieldReadOnly="true"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.credit_notePrefix')"
-                            :fieldPlaceholder="__('placeholders.invoices.creditNotePrefix')"
-                            fieldName="credit_note_prefix"
-                            fieldRequired="true" fieldId="credit_note_prefix"
-                            :fieldValue="$invoiceSetting->credit_note_prefix"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.credit_noteNumberSeparator')"
-                            :fieldPlaceholder="__('placeholders.invoices.credit_noteNumberSeparator')"
-                            fieldName="credit_note_number_separator"
-                            fieldId="credit_note_number_separator" :fieldValue="$invoiceSetting->credit_note_number_separator"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.number class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.credit_noteDigit')"
-                            fieldName="credit_note_digit"
-                            fieldId="credit_note_digit" :fieldValue="$invoiceSetting->credit_note_digit"
-                            minValue="2"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.credit_noteLookLike')"
-                            fieldName="credit_note_look_like" fieldId="credit_note_look_like" fieldValue=""
-                            fieldReadOnly="true"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.contractPrefix')"
-                            :fieldPlaceholder="__('placeholders.invoices.contractPrefix')"
-                            fieldName="contract_prefix"
-                            fieldRequired="true" fieldId="contract_prefix"
-                            :fieldValue="$invoiceSetting->contract_prefix"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.contractNumberSeparator')"
-                            :fieldPlaceholder="__('placeholders.invoices.contractNumberSeparator')"
-                            fieldName="contract_number_separator"
-                            fieldId="contract_number_separator" :fieldValue="$invoiceSetting->contract_number_separator"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.number class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.contractDigit')"
-                            fieldName="contract_digit"
-                            fieldId="contract_digit" :fieldValue="$invoiceSetting->contract_digit"
-                            minValue="2"/>
-        </div>
-
-        <div class="col-lg-3">
-            <x-forms.text class="mr-0 mr-lg-2 mr-md-2"
-                            :fieldLabel="__('modules.invoiceSettings.contractLookLike')"
-                            fieldName="contract_look_like" fieldId="contract_look_like" fieldValue=""
-                            fieldReadOnly="true"/>
         </div>
 
 
@@ -152,8 +24,8 @@
             <x-forms.select fieldId="locale" :fieldLabel="__('modules.accountSettings.language')"
                             fieldName="locale" search="true">
                 @foreach ($languageSettings as $language)
-                    <option {{ company()->locale == $language->language_code ? 'selected' : '' }}
-                            data-content="<span class='flag-icon flag-icon-{{ ($language->flag_code == 'en') ? 'gb' : strtolower($language->flag_code) }} flag-icon-squared'></span> {{ $language->language_name }}"
+                    <option
+                            data-content="<span class='flag-icon flag-icon-{{ ($language->flag_code == 'en') ? 'gb' : $language->flag_code }} flag-icon-squared'></span> {{ $language->language_name }}"
                             @if ($invoiceSetting->locale == $language->language_code) selected
                             @endif value="{{ $language->language_code }}">
                         {{ $language->language_name }}</option>
@@ -225,55 +97,22 @@
                                 fieldName="show_tax_calculation_msg" fieldId="show_tax_calculation_msg"/>
         </div>
 
-        <div class="col-lg-4 mt-5">
+        <div class="col-lg-4 mt-2">
             <x-forms.checkbox :checked="$invoiceSetting->show_status==1"
                                 :fieldLabel="__('app.showStatus')"
                                 fieldName="show_status" fieldId="show_status" :popover="__('messages.invoiceStatusShowTooltip')"/>
         </div>
 
-        <div class="col-lg-4 mt-5">
+        <div class="col-lg-4 mt-2">
             <x-forms.checkbox :checked="$invoiceSetting->authorised_signatory==1"
                                 :fieldLabel="__('app.showAuthorisedSignatory')"
                                 fieldName="show_authorised_signatory" fieldId="show_authorised_signatory" :popover="__('messages.invoiceAuthorisedSignatoryShowTooltip')"/>
         </div>
 
-        <div class="col-lg-12 mt-4">
-            <div class="form-group">
-                <x-forms.label fieldId="template" :fieldLabel="__('modules.invoiceSettings.template')"
-                                fieldRequired="true">
-                </x-forms.label>
-                <select name="template" class="image-picker show-labels show-html">
-                    <option data-img-src="{{ asset('img/invoice-template/1.png') }}"
-                            @if ($invoiceSetting->template == 'invoice-1') selected @endif
-                            value="invoice-1">@lang('modules.invoiceSettings.template') 1
-                    </option>
-                    <option data-img-src="{{ asset('img/invoice-template/2.png') }}"
-                            @if ($invoiceSetting->template == 'invoice-2') selected @endif
-                            value="invoice-2">@lang('modules.invoiceSettings.template') 2
-                    </option>
-                    <option data-img-src="{{ asset('img/invoice-template/3.png') }}"
-                            @if ($invoiceSetting->template == 'invoice-3') selected @endif
-                            value="invoice-3">@lang('modules.invoiceSettings.template') 3
-                    </option>
-                    <option data-img-src="{{ asset('img/invoice-template/4.png') }}"
-                            @if ($invoiceSetting->template == 'invoice-4') selected @endif
-                            value="invoice-4">@lang('modules.invoiceSettings.template') 4
-                    </option>
-                    <option data-img-src="{{ asset('img/invoice-template/5.png') }}"
-                            @if ($invoiceSetting->template == 'invoice-5') selected @endif
-                            value="invoice-5">@lang('modules.invoiceSettings.template') 5
-                    </option>
-                </select>
-            </div>
-        </div>
-
         <div class="col-lg-12">
             <div class="row">
-                <div class="col-lg-12">
-                    <x-forms.label fieldId="template"
-                                    :fieldLabel="__('modules.invoiceSettings.showFieldsInInvoice')"
-                                    fieldRequired="">
-                    </x-forms.label>
+                <div class="col-lg-12 mb-2 mt-5">
+                    <h5 class="heading-h4">@lang('modules.invoiceSettings.showFieldsInInvoice')</h5>
                 </div>
                 <div class="col-lg-4">
                     <x-forms.checkbox :checked="$invoiceSetting->show_client_name=='yes'"
@@ -293,20 +132,20 @@
                                         fieldName="show_client_phone"
                                         fieldId="show_client_phone"/>
                 </div>
-                <div class="col-lg-4">
+                <div class="col-lg-4 mt-2">
                     <x-forms.checkbox :checked="$invoiceSetting->show_client_company_name=='yes'"
                                         :fieldLabel="__('modules.client.companyName')"
                                         fieldName="show_client_company_name"
                                         fieldId="show_client_company_name"/>
                 </div>
-                <div class="col-lg-4">
+                <div class="col-lg-4 mt-2">
                     <x-forms.checkbox :checked="$invoiceSetting->show_client_company_address=='yes'"
                                         :fieldLabel="__('app.client').' '.__('modules.client.address')"
                                         fieldName="show_client_company_address"
                                         fieldId="show_client_company_address"/>
                 </div>
 
-                <div class="col-lg-4">
+                <div class="col-lg-4 mt-2">
                     <x-forms.checkbox :checked="$invoiceSetting->show_project== 1"
                                         :fieldLabel="__('app.showProjectOnInvoice')" fieldName="show_project"
                                         fieldId="show_project"/>
@@ -359,12 +198,6 @@
             buttonSelector: "#save-form",
         })
     });
-
-    $('#invoice_prefix, #invoice_number_separator, #invoice_digit, #estimate_prefix,#estimate_number_separator, #estimate_digit, #credit_note_prefix, #credit_note_number_separator, #credit_note_digit, #contract_prefix, #contract_number_separator, #contract_digit').on(
-        'keyup',
-        function () {
-            genrateInvoiceNumber();
-        });
 
     genrateInvoiceNumber();
 

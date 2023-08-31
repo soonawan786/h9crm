@@ -44,37 +44,48 @@ $addPermission = user()->permission('add_clients');
                             <div class="col-md-4">
                                 <x-forms.select fieldId="country" :fieldLabel="__('app.country')" fieldName="country"
                                     search="true">
-                                    <option value="">--</option>
                                     @foreach ($countries as $item)
-                                        <option @if (isset($lead) && $lead->country == $item->nicename) selected @endif data-tokens="{{ $item->iso3 }}"
-                                            data-content="<span class='flag-icon flag-icon-{{ strtolower($item->iso) }} flag-icon-squared'></span> {{ $item->nicename }}"
-                                            value="{{ $item->id }}">{{ $item->nicename }}</option>
-                                    @endforeach
+                                    <option data-tokens="{{ $item->iso3 }}" data-phonecode = "{{$item->phonecode}}"
+                                        data-content="<span class='flag-icon flag-icon-{{ strtolower($item->iso) }} flag-icon-squared'></span> {{ $item->nicename }}"
+                                        value="{{ $item->id }}">{{ $item->nicename }}</option>
+                                @endforeach
                                 </x-forms.select>
                             </div>
-                            <div class="col-md-3">
-                                <x-forms.tel fieldId="mobile" :fieldLabel="__('app.mobile')" fieldName="mobile"
-                                   :fieldPlaceholder="__('placeholders.mobile')" :fieldValue="$lead->mobile ?? ''"></x-forms.tel>
-                            </div>
-                            <div class="col-md-3">
-                                <x-forms.datepicker fieldId="date_of_birth" :fieldLabel="__('modules.employees.dateOfBirth')"
-                                    fieldName="date_of_birth" :fieldPlaceholder="__('placeholders.date')" />
-                            </div>
-                            <div class="col-md-2">
-                                <x-forms.select fieldId="gender" :fieldLabel="__('modules.employees.gender')"
-                                    fieldName="gender">
-                                    <option value="">--</option>
-                                    <option value="male">@lang('app.male')</option>
-                                    <option value="female">@lang('app.female')</option>
-                                    <option value="others">@lang('app.others')</option>
-                                </x-forms.select>
+                            <div class="col-md-4">
+                                <x-forms.label class="my-3" fieldId="mobile"
+                                    :fieldLabel="__('app.mobile')"></x-forms.label>
+                                <x-forms.input-group style="margin-top:-4px">
+
+
+                                    <x-forms.select fieldId="country_phonecode" fieldName="country_phonecode"
+                                        search="true">
+
+                                        @foreach ($countries as $item)
+                                            <option data-tokens="{{ $item->name }}"
+                                                    data-content="{{$item->flagSpanCountryCode()}}"
+                                                    value="{{ $item->phonecode }}">{{ $item->phonecode }}
+                                            </option>
+                                        @endforeach
+                                    </x-forms.select>
+                                    <input type="tel" class="form-control height-35 f-14" placeholder="@lang('placeholders.mobile')"
+                                        name="mobile" id="mobile">
+                                </x-forms.input-group>
                             </div>
                         </div>
                     </div>
                     <div class="col-lg-3">
-                        <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2 cropper"
+                        <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2 cropper"
                             :fieldLabel="__('modules.profile.profilePicture')" fieldName="image" fieldId="image"
                             fieldHeight="119" :popover="__('messages.fileFormat.ImageFile')" />
+                    </div>
+
+                    <div class="col-md-3">
+                        <x-forms.select fieldId="gender" :fieldLabel="__('modules.employees.gender')"
+                            fieldName="gender">
+                            <option value="male">@lang('app.male')</option>
+                            <option value="female">@lang('app.female')</option>
+                            <option value="others">@lang('app.others')</option>
+                        </x-forms.select>
                     </div>
 
                     <div class="col-md-4">
@@ -82,7 +93,7 @@ $addPermission = user()->permission('add_clients');
                             fieldName="locale" search="true">
                             @foreach ($languages as $language)
                                 <option {{ user()->locale == $language->language_code ? 'selected' : '' }}
-                                data-content="<span class='flag-icon flag-icon-{{ ($language->flag_code == 'en') ? 'gb' : strtolower($language->flag_code) }} flag-icon-squared'></span> {{ $language->language_name }}"
+                                data-content="<span class='flag-icon flag-icon-{{ ($language->flag_code == 'en') ? 'gb' : $language->flag_code }} flag-icon-squared'></span> {{ $language->language_name }}"
                                 value="{{ $language->language_code }}">{{ $language->language_name }}</option>
                             @endforeach
                         </x-forms.select>
@@ -176,34 +187,34 @@ $addPermission = user()->permission('add_clients');
                     <div class="col-md-4">
                         <x-forms.text class="mb-3 mt-3 mt-lg-0 mt-md-0" fieldId="website"
                             :fieldLabel="__('modules.client.website')" fieldName="website"
-                            fieldPlaceholder="e.g. https://www.spacex.com/" :fieldValue="$lead->website ?? ''">
+                            :fieldPlaceholder="__('placeholders.website')" :fieldValue="$lead->website ?? ''">
                         </x-forms.text>
                     </div>
                     <div class="col-md-4">
                         <x-forms.text class="mb-3 mt-3 mt-lg-0 mt-md-0" fieldId="gst_number"
                             :fieldLabel="__('app.gstNumber')" fieldName="gst_number"
-                            fieldPlaceholder="e.g. 18AABCU960XXXXX" :fieldValue="$lead->gst_number ?? ''">
+                            :fieldPlaceholder="__('placeholders.gstNumber')" :fieldValue="$lead->gst_number ?? ''">
                         </x-forms.text>
                     </div>
 
                     <div class="col-md-3">
                         <x-forms.text fieldId="office" :fieldLabel="__('modules.client.officePhoneNumber')"
-                            fieldName="office" fieldPlaceholder="e.g. +19876543" :fieldValue="$lead->office ?? ''">
+                            fieldName="office" :fieldPlaceholder="__('placeholders.mobileWithPlus')" :fieldValue="$lead->office ?? ''">
                         </x-forms.text>
                     </div>
                     <div class="col-md-3">
                         <x-forms.text fieldId="city" :fieldLabel="__('modules.stripeCustomerAddress.city')"
-                            fieldName="city" fieldPlaceholder="e.g. Hawthorne" :fieldValue="$lead->city ?? ''">
+                            fieldName="city" :fieldPlaceholder="__('placeholders.city')" :fieldValue="$lead->city ?? ''">
                         </x-forms.text>
                     </div>
                     <div class="col-md-3">
                         <x-forms.text fieldId="state" :fieldLabel="__('modules.stripeCustomerAddress.state')"
-                            fieldName="state" fieldPlaceholder="e.g. California" :fieldValue="$lead->state ?? ''">
+                            fieldName="state" :fieldPlaceholder="__('placeholders.state')" :fieldValue="$lead->state ?? ''">
                         </x-forms.text>
                     </div>
                     <div class="col-md-3">
                         <x-forms.text fieldId="postalCode" :fieldLabel="__('modules.stripeCustomerAddress.postalCode')"
-                            fieldName="postal_code" fieldPlaceholder="e.g. 90250"
+                            fieldName="postal_code" :fieldPlaceholder="__('placeholders.postalCode')"
                             :fieldValue="$lead->postal_code ?? ''">
                         </x-forms.text>
                     </div>
@@ -225,7 +236,7 @@ $addPermission = user()->permission('add_clients');
                         <div class="form-group my-3">
                             <x-forms.textarea class="mr-0 mr-lg-2 mr-md-2"
                                 :fieldLabel="__('modules.accountSettings.companyAddress')" fieldName="address"
-                                fieldId="address" fieldPlaceholder="e.g. Rocket Road"
+                                fieldId="address" :fieldPlaceholder="__('placeholders.address')"
                                 :fieldValue="$lead->address ?? ''">
                             </x-forms.textarea>
                         </div>
@@ -234,16 +245,26 @@ $addPermission = user()->permission('add_clients');
                         <div class="form-group my-3">
                             <x-forms.textarea class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.shippingAddress')"
                                 fieldName="shipping_address" fieldId="shipping_address"
-                                fieldPlaceholder="e.g. Rocket Road" :fieldValue="$lead->shipping_address ?? ''">
+                                :fieldPlaceholder="__('placeholders.address')" :fieldValue="$lead->shipping_address ?? ''">
                             </x-forms.textarea>
                         </div>
                     </div>
 
                     @if (function_exists('sms_setting') && sms_setting()->telegram_status)
-                        <div class="col-md-4">
+                        <div class="col-md-6">
                             <x-forms.number fieldName="telegram_user_id" fieldId="telegram_user_id"
                                 fieldLabel="<i class='fab fa-telegram'></i> {{ __('sms::modules.telegramUserId') }}"
                                 :popover="__('sms::modules.userIdInfo')" />
+                            <p class="text-bold text-danger">
+                                @lang('sms::modules.telegramBotNameInfo')
+                            </p>
+                            <p class="text-bold"><span id="telegram-link-text">https://t.me/{{ sms_setting()->telegram_bot_name }}</span>
+                                <a href="javascript:;" class="btn-copy btn-secondary f-12 rounded p-1 py-2 ml-1"
+                                    data-clipboard-target="#telegram-link-text">
+                                    <i class="fa fa-copy mx-1"></i>@lang('app.copy')</a>
+                                <a href="https://t.me/{{ sms_setting()->telegram_bot_name }}" target="_blank" class="btn-secondary f-12 rounded p-1 py-2 ml-1">
+                                    <i class="fa fa-copy mx-1"></i>@lang('app.openInNewTab')</a>
+                            </p>
                         </div>
                     @endif
 
@@ -259,7 +280,7 @@ $addPermission = user()->permission('add_clients');
                     @endif
 
                     <div class="col-lg-12">
-                        <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2"
+                        <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2"
                                                :fieldLabel="__('modules.contracts.companyLogo')" fieldName="company_logo"
                                                :fieldValue="(company()->logo_url)" fieldId="company_logo" :popover="__('messages.fileFormat.ImageFile')"/>
                     </div>
@@ -285,21 +306,25 @@ $addPermission = user()->permission('add_clients');
 </div>
 
 <script src="{{ asset('vendor/jquery/dropzone.min.js') }}"></script>
+@if (function_exists('sms_setting') && sms_setting()->telegram_status)
+    <script src="{{ asset('vendor/jquery/clipboard.min.js') }}"></script>
+@endif
 <script>
     var add_client_note_permission = "{{  $addClientNotePermission }}";
 
     $(document).ready(function() {
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
-        datepicker('#date_of_birth', {
-            position: 'bl',
-            maxDate: new Date(),
-            ...datepickerConfig
+
+        $('#country').change(function(){
+            var phonecode = $(this).find(':selected').data('phonecode');
+            $('#country_phonecode').val(phonecode);
+            $('.select-picker').selectpicker('refresh');
         });
 
         if(add_client_note_permission == 'all' || add_client_note_permission == 'added' || add_client_note_permission == 'both')
@@ -441,4 +466,27 @@ $addPermission = user()->permission('add_clients');
         });
         $('#' + id).val(checkedData);
     }
+
+    @if (function_exists('sms_setting') && sms_setting()->telegram_status)
+        var clipboard = new ClipboardJS('.btn-copy');
+
+        clipboard.on('success', function(e) {
+            Swal.fire({
+                icon: 'success',
+                text: '@lang("app.urlCopied")',
+                toast: true,
+                position: 'top-end',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
+                showClass: {
+                    popup: 'swal2-noanimation',
+                    backdrop: 'swal2-noanimation'
+                },
+            })
+        });
+    @endif
 </script>

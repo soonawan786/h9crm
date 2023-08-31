@@ -10,14 +10,20 @@ use Illuminate\Auth\Events\Login;
 class LogSuccessfulLogin
 {
 
-    public function handle()
+    /**
+     * Handle the event.
+     *
+     * @param Login $event
+     * @return void
+     */
+    public function handle(Login $event)
     {
         // WORKSUITESAAS
         if (!session()->has('impersonate') && !session()->has('stop_impersonate')) {
-            $user = User::withoutGlobalScopes([CompanyScope::class, ActiveScope::class])->where('id', user()->id)->first();
+            $user = $event->user->user;
             $user->last_login = now();  /* @phpstan-ignore-line */
             $user->save();
-    
+
             if (company()) {
                 $company = company();
                 $company->last_login = now();  /* @phpstan-ignore-line */

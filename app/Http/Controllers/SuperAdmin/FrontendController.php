@@ -18,7 +18,6 @@ use App\Models\SuperAdmin\SeoDetail;
 use Illuminate\Support\Facades\Auth;
 use App\Models\SuperAdmin\FooterMenu;
 use App\Models\SuperAdmin\FrontDetail;
-use Illuminate\Support\Facades\Cookie;
 use App\Models\SuperAdmin\FrontClients;
 use App\Models\SuperAdmin\FrontFeature;
 use App\Models\SuperAdmin\Testimonials;
@@ -31,16 +30,12 @@ use App\Http\Requests\SuperAdmin\ContactUs\ContactUsRequest;
 use App\Http\Requests\SuperAdmin\Register\StoreClientRequest;
 use App\Models\UserAuth;
 use Illuminate\Support\Facades\DB;
-use function Amp\Promise\all;
-use Illuminate\Support\Facades\Response;
 
 class FrontendController extends FrontBaseController
 {
 
     public function index($slug = null)
     {
-        $this->global = global_setting();
-        App::setLocale($this->locale);
 
         if ($this->global->setup_homepage == 'custom') {
             return response(file_get_contents($this->global->custom_homepage_url));
@@ -54,31 +49,52 @@ class FrontendController extends FrontBaseController
             return $this->loadLoginPage();
         }
 
-        $this->seoDetail = SeoDetail::where('page_name', 'home')->first();
+        $this->seoDetail = SeoDetail::where('page_name', 'home')->where('language_setting_id', $this->localeLanguage?->id)->first() ?: SeoDetail::where('page_name', 'home')->first();
 
         $this->pageTitle = $this->seoDetail ? $this->seoDetail->seo_title : __('app.menu.home');
         $this->packages = Package::where('default', 'no')->where('is_private', 0)->orderBy('sort', 'ASC')->get();
 
-        $imageFeaturesCount = Feature::select('id', 'language_setting_id', 'type')->where(['language_setting_id' => $this->localeLanguage ? $this->localeLanguage->id : null, 'type' => 'image'])->count();
-        $iconFeaturesCount = Feature::select('id', 'language_setting_id', 'type')->where(['language_setting_id' => $this->localeLanguage ? $this->localeLanguage->id : null, 'type' => 'icon'])->count();
-        $frontClientsCount = FrontClients::select('id', 'language_setting_id')->where('language_setting_id', $this->localeLanguage ? $this->localeLanguage->id : null)->count();
-        $testimonialsCount = Testimonials::select('id', 'language_setting_id')->where('language_setting_id', $this->localeLanguage ? $this->localeLanguage->id : null)->count();
+        $localeLanguageId = optional($this->localeLanguage)->id;
+        $imageFeaturesCount = Feature::where('language_setting_id', $localeLanguageId)->where('type', 'image')->count();
+        $iconFeaturesCount = Feature::where('language_setting_id', $localeLanguageId)->where('type', 'icon')->count();
+        $frontClientsCount = FrontClients::select('id', 'language_setting_id')->where('language_setting_id', $localeLanguageId)->count();
+        $testimonialsCount = Testimonials::select('id', 'language_setting_id')->where('language_setting_id', $localeLanguageId)->count();
 
         $this->featureWithImages = Feature::where([
-            'language_setting_id' => $imageFeaturesCount > 0 ? ($this->localeLanguage ? $this->localeLanguage->id : null) : null,
+            'language_setting_id' => $imageFeaturesCount > 0 ? ($localeLanguageId) : null,
             'type' => 'image'
         ])->whereNull('front_feature_id')->get();
 
         $this->featureWithIcons = Feature::where([
-            'language_setting_id' => $iconFeaturesCount > 0 ? ($this->localeLanguage ? $this->localeLanguage->id : null) : null,
+            'language_setting_id' => $iconFeaturesCount > 0 ? ($localeLanguageId) : null,
             'type' => 'icon'
         ])->whereNull('front_feature_id')->get();
 
-        $this->frontClients = FrontClients::where('language_setting_id', $frontClientsCount > 0 ? ($this->localeLanguage ? $this->localeLanguage->id : null) : null)->get();
-        $this->testimonials = Testimonials::where('language_setting_id', $testimonialsCount > 0 ? ($this->localeLanguage ? $this->localeLanguage->id : null) : null)->get();
+        $this->frontClients = FrontClients::where('language_setting_id', $frontClientsCount > 0 ? ($localeLanguageId) : null)->get();
+        $this->testimonials = Testimonials::where('language_setting_id', $testimonialsCount > 0 ? ($localeLanguageId) : null)->get();
 
+        $this->trialPackage = Package::where('default', 'trial')->first();
+
+        // Check if trail is active
+        $this->packageSetting = PackageSetting::where('status', 'active')->first();
+
+        // Multi-Page design
+        if ($this->global->front_design == 1) {
+
+            if ($slug) {
+                $this->slugData = FooterMenu::where('slug', $slug)->first();
+                $this->pageTitle = ucwords($this->slugData->name);
+
+                return view('super-admin.saas.footer-page', $this->data);
+            }
+
+            return view('super-admin.saas.home', $this->data);
+        }
+
+        // Single page design is selected
         $this->packageFeaturesModuleData = Module::where('module_name', '<>', 'settings')
             ->where('module_name', '<>', 'dashboards')
+            ->where('module_name', '<>', 'restApi')
             ->whereNotIn('module_name', Module::disabledModuleArray())
             ->get();
 
@@ -86,29 +102,15 @@ class FrontendController extends FrontBaseController
         $this->packageModuleData = $this->packageFeaturesModuleData->pluck('module_name', 'id')->all();
 
         $this->activeModule = $this->packageFeatures;
-        // Check if trail is active
-        $this->packageSetting = PackageSetting::where('status', 'active')->first();
-        $this->trialPackage = Package::where('default', 'trial')->first();
-
-
-        if ($slug) {
-            $this->slugData = FooterMenu::where('slug', $slug)->first();
-            $this->pageTitle = ucwords($this->slugData->name);
-
-            return view('super-admin.saas.footer-page', $this->data);
-        }
-
-        if ($this->global->front_design == 1) {
-            return view('super-admin.saas.home', $this->data);
-        }
 
         return view('super-admin.front.home', $this->data);
+
     }
 
     public function feature()
     {
         App::setLocale($this->locale);
-        $this->seoDetail = SeoDetail::where('page_name', 'feature')->first();
+        $this->seoDetail = SeoDetail::where('page_name', 'feature')->where('language_setting_id', $this->localeLanguage?->id)->first() ?: SeoDetail::where('page_name', 'feature')->first();
 
         $this->pageTitle = isset($this->seoDetail) ? $this->seoDetail->seo_title : __('superadmin.menu.features');
         $types = ['task', 'bills', 'team', 'apps'];
@@ -137,7 +139,7 @@ class FrontendController extends FrontBaseController
     public function pricing()
     {
         App::setLocale($this->locale);
-        $this->seoDetail = SeoDetail::where('page_name', 'pricing')->first();
+        $this->seoDetail = SeoDetail::where('page_name', 'pricing')->where('language_setting_id', $this->localeLanguage?->id)->first() ?: SeoDetail::where('page_name', 'pricing')->first();
         $this->pageTitle = isset($this->seoDetail) ? $this->seoDetail->seo_title : __('app.menu.pricing');
         $this->packages = Package::where('default', 'no')
             ->where('is_private', 0)
@@ -150,6 +152,7 @@ class FrontendController extends FrontBaseController
 
         $this->packageFeaturesModuleData = Module::where('module_name', '<>', 'settings')
             ->where('module_name', '<>', 'dashboards')
+            ->where('module_name', '<>', 'restApi')
             ->whereNotIn('module_name', Module::disabledModuleArray())
             ->get();
 
@@ -179,7 +182,7 @@ class FrontendController extends FrontBaseController
     public function contact()
     {
         App::setLocale($this->locale);
-        $this->seoDetail = SeoDetail::where('page_name', 'contact')->first();
+        $this->seoDetail = SeoDetail::where('page_name', 'contact')->where('language_setting_id', $this->localeLanguage?->id)->first() ?: SeoDetail::where('page_name', 'contact')->first();
         $this->pageTitle = $this->seoDetail ? $this->seoDetail->seo_title : __('app.menu.contact');
 
         abort_if($this->setting->front_design != 1, 403);
@@ -190,11 +193,10 @@ class FrontendController extends FrontBaseController
     public function page($slug = null)
     {
         App::setLocale($this->locale);
-        $this->slugData = FooterMenu::where('slug', $slug)->first();
-        abort_if(is_null($this->slugData), 404);
+        $this->slugData = FooterMenu::where('slug', $slug)->where('language_setting_id', $this->localeLanguage->id)->firstOrFail();
 
-        $this->seoDetail = SeoDetail::where('page_name', $this->slugData->slug)->first();
-        $this->pageTitle = isset($this->seoDetail) ? $this->seoDetail->seo_title : __('app.menu.contact');
+        $this->seoDetail = SeoDetail::where('page_name', $this->slugData->slug)->where('language_setting_id', $this->localeLanguage?->id)->first() ?: SeoDetail::where('page_name', $this->slugData->slug)->first();
+        $this->pageTitle = $this->slugData->name;
 
         if ($this->setting->front_design == 1) {
             return view('super-admin.saas.footer-page', $this->data);
@@ -244,7 +246,7 @@ class FrontendController extends FrontBaseController
     {
         $global = global_setting();
 
-        if ($global->google_recaptcha_status) {
+        if ($global->google_recaptcha_status == 'active') {
             $gRecaptchaResponseInput = 'g-recaptcha-response';
 
             $gRecaptchaResponse = $global->google_captcha_version == 'v2' ? $request->{$gRecaptchaResponseInput} : $request->get('recaptcha_token');
@@ -293,7 +295,7 @@ class FrontendController extends FrontBaseController
             return redirect(getDomainSpecificUrl(route('login'), \user()->company));
         }
 
-        $this->seoDetail = SeoDetail::where('page_name', 'home')->first();
+        $this->seoDetail = SeoDetail::where('page_name', 'home')->where('language_setting_id', $this->localeLanguage?->id)->first() ?: SeoDetail::where('page_name', 'home')->first();
         $this->pageTitle = 'Sign Up';
 
         $view = ($this->setting->front_design == 1) ? 'super-admin.saas.register' : 'super-admin.front.register';
@@ -368,7 +370,7 @@ class FrontendController extends FrontBaseController
         $role = Role::where('company_id', $company->id)->where('name', 'client')->select('id')->first();
         $user->attachRole($role->id);
 
-        $user->insertUserRolePermission($role->id);
+        $user->assignUserRolePermission($role->id);
 
         $log = new AccountBaseController();
 
@@ -393,14 +395,6 @@ class FrontendController extends FrontBaseController
         DB::commit();
 
         return Reply::redirect(route('dashboard'), __('superadmin.clientRegistrationSuccess'));
-    }
-
-    //download profile logic
-    public function downloadProfile(){
-
-        $pathToFile = public_path('h9_profile.pdf');
-        $fileName = 'h9_profile.pdf';
-        return Response::download($pathToFile, $fileName);
     }
 
 }

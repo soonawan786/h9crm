@@ -36,11 +36,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|ClientDocument whereSize($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientDocument whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientDocument whereUserId($value)
- * @mixin \Eloquent
  * @property-read \App\Models\User|null $client
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ClientDocument whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ClientDocument extends BaseModel
 {

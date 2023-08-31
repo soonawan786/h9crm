@@ -66,7 +66,7 @@ class LoginController extends Controller
         }
 
         // Reset codes and expire_at after failure
-        $user->userAuth->resetTwoFactorCode();
+        $user->resetTwoFactorCode();
 
         return redirect()->back()->withErrors(['two_factor_code' => __('messages.codeNotMatch')]);
     }
@@ -89,12 +89,14 @@ class LoginController extends Controller
 
     public function callback(Request $request, $provider)
     {
+
         $this->setSocailAuthConfigs();
 
         try {
             try {
                 if ($provider != 'twitter') {
-                    $data = Socialite::driver($provider)->stateless()->user(); /* @phpstan-ignore-line */
+                    $data = Socialite::driver($provider)->stateless()->user();
+                    /* @phpstan-ignore-line */
                 }
                 else {
                     $data = Socialite::driver($provider)->user();
@@ -140,6 +142,7 @@ class LoginController extends Controller
 
     public function redirectPath()
     {
+
         if (isWorksuiteSaas()) {
             session(['user' => User::find(user()->id)]);
 
@@ -148,10 +151,18 @@ class LoginController extends Controller
             }
 
             $emailCountInCompanies = DB::table('users')->where('email', user()->email)->count();
-            session(['user_company_count' => $emailCountInCompanies]);
+            session()->forget('user_company_count');
 
             if ($emailCountInCompanies > 1) {
-                return (route('superadmin.superadmin.workspaces'));
+                if (module_enabled('Subdomain')) {
+                    UserAuth::multipleUserLoginSubdomain();
+                }
+                else {
+                    session(['user_company_count' => $emailCountInCompanies]);
+
+                    return route('superadmin.superadmin.workspaces');
+                }
+
             }
 
             return (session()->has('url.intended') ? session()->get('url.intended') : RouteServiceProvider::HOME);

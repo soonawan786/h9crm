@@ -35,11 +35,11 @@
 
                     @elseif($field->type == 'textarea')
                         <x-forms.textarea :fieldLabel="$field->label"
-                                          fieldName="custom_fields_data[{{ $field->name . '_' . $field->id }}]"
-                                          fieldId="custom_fields_data[{{ $field->name . '_' . $field->id }}]"
-                                          :fieldRequired="($field->required === 'yes') ? true : false"
-                                          :fieldPlaceholder="$field->label"
-                                          :fieldValue="$model->custom_fields_data['field_'.$field->id] ?? ''">
+                              fieldName="custom_fields_data[{{ $field->name . '_' . $field->id }}]"
+                              fieldId="custom_fields_data[{{ $field->name . '_' . $field->id }}]"
+                              :fieldRequired="($field->required === 'yes') ? true : false"
+                              :fieldPlaceholder="$field->label"
+                              :fieldValue="$model->custom_fields_data['field_'.$field->id] ?? ''">
                         </x-forms.textarea>
 
                     @elseif($field->type == 'radio')
@@ -74,12 +74,12 @@
 
                     @elseif($field->type == 'date')
                         <x-forms.datepicker custom="true"
-                                            fieldId="custom_fields_data[{{ $field->name . '_' . $field->id }}]"
-                                            :fieldRequired="($field->required === 'yes') ? true : false"
-                                            :fieldLabel="$field->label"
-                                            fieldName="custom_fields_data[{{ $field->name . '_' . $field->id }}]"
-                                            :fieldValue="($model && $model->custom_fields_data['field_'.$field->id] != '') ? \Carbon\Carbon::parse($model->custom_fields_data['field_'.$field->id])->format(company()->date_format) : now()->format(company()->date_format)"
-                                            :fieldPlaceholder="$field->label"/>
+                            fieldId="custom_fields_data[{{ $field->name . '_' . $field->id }}]"
+                            :fieldRequired="($field->required === 'yes') ? true : false"
+                            :fieldLabel="$field->label"
+                            fieldName="custom_fields_data[{{ $field->name . '_' . $field->id }}]"
+                            :fieldValue="($model && $model->custom_fields_data['field_'.$field->id] != '') ? \Carbon\Carbon::parse($model->custom_fields_data['field_'.$field->id])->format(companyOrGlobalSetting()->date_format) : now()->format(companyOrGlobalSetting()->date_format)"
+                            :fieldPlaceholder="$field->label"/>
 
                     @elseif($field->type == 'checkbox')
                         <div class="form-group my-3">
@@ -113,6 +113,7 @@
                     @elseif ($field->type == 'file')
                             <input type="hidden" name="custom_fields_data[{{$field->name.'_'.$field->id}}]" value="{{ $model ? $model->custom_fields_data['field_'.$field->id]:''}}">
                             <x-forms.file
+                                 class="custom-field-file"
                                 :fieldLabel="$field->label"
                                 :fieldRequired="($field->required === 'yes') ? true : false"
                                 :fieldName="'custom_fields_data[' . $field->name . '_' . $field->id . ']'"

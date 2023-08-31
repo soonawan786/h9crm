@@ -28,5 +28,5 @@ class LoginRequest extends FormRequest
             'email' => 'required|email:rfc'
         ];
     }
-    
+
 }

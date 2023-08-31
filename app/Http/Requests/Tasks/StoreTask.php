@@ -47,11 +47,17 @@ class StoreTask extends CoreRequest
         $unassignedPermission = user()->permission('create_unassigned_tasks');
 
         $user = user();
+
         $rules = [
             'heading' => 'required',
             'start_date' => 'required|date_format:"' . $setting->date_format . '"',
             'priority' => 'required'
         ];
+
+        if(in_array('client', user_roles()))
+        {
+            $rules['project_id'] = 'required';
+        }
 
         if(!$this->has('without_duedate'))
         {

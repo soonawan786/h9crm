@@ -71,13 +71,13 @@ class ClientContactsDataTable extends BaseDataTable
             ->editColumn(
                 'contact_name',
                 function ($row) {
-                    return ucfirst($row->contact_name);
+                    return $row->contact_name;
                 }
             )
             ->editColumn(
                 'title',
                 function ($row) {
-                    return ucfirst($row->title);
+                    return $row->title;
                 }
             )
             ->editColumn(
@@ -140,7 +140,7 @@ class ClientContactsDataTable extends BaseDataTable
                 'orderable' => false,
                 'searchable' => false
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.title') => ['data' => 'title', 'name' => 'title', 'title' => __('app.title')],
             __('app.name') => ['data' => 'contact_name', 'name' => 'contact_name', 'title' => __('app.name')],
             __('app.email') => ['data' => 'email', 'name' => 'email', 'title' => __('app.email')],
@@ -153,16 +153,6 @@ class ClientContactsDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'clients_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

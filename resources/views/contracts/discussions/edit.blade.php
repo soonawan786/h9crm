@@ -10,7 +10,7 @@
             <div class="col-md-12 p-20 ">
                 <div class="media">
                     <img src="{{ $comment->user->image_url }}" class="align-self-start mr-3 taskEmployeeImg rounded"
-                        alt="{{ mb_ucwords($comment->user->name) }}">
+                        alt="{{ $comment->user->name }}">
                     <div class="media-body bg-white">
                         <div class="form-group">
                             <div id="task-edit-comment">{!! $comment->message !!}</div>
@@ -33,7 +33,8 @@
 
     $(document).ready(function() {
         if (edit_task_comments == "all" || edit_task_comments == "added") {
-            quillImageLoad('#task-edit-comment');
+            quillMention(null, '#task-edit-comment');
+
         }
 
         $('#save-edit-comment').click(function() {

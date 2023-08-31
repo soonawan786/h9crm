@@ -11,27 +11,29 @@
         <div class="select-box d-flex pr-2 border-right-grey border-right-grey-sm-0">
             <p class="mb-0 pr-2 f-14 text-dark-grey d-flex align-items-center">@lang('app.duration')</p>
             <div class="select-status d-flex">
-                <input type="text" class="position-relative text-dark form-control border-0 p-2 text-left f-14 f-w-500 border-additional-grey"
+                <input type="text"
+                    class="position-relative text-dark form-control border-0 p-2 text-left f-14 f-w-500 border-additional-grey"
                     id="datatableRange" placeholder="@lang('placeholders.dateRange')">
             </div>
         </div>
         <!-- DATE END -->
 
         @if (!in_array('client', user_roles()))
-        <!-- CLIENT START -->
-        <div class="select-box d-flex py-2 px-lg-2 px-md-2 px-0 border-right-grey border-right-grey-sm-0">
-            <p class="mb-0 pr-2 f-14 text-dark-grey d-flex align-items-center">@lang('app.client')</p>
-            <div class="select-status">
-                <select class="form-control select-picker" name="client" id="client" data-live-search="true" data-size="8">
-                    @if (!in_array('client', user_roles()))
-                        <option value="all">@lang('app.all')</option>
-                    @endif
-                    @foreach ($clients as $client)
+            <!-- CLIENT START -->
+            <div class="select-box d-flex py-2 px-lg-2 px-md-2 px-0 border-right-grey border-right-grey-sm-0">
+                <p class="mb-0 pr-2 f-14 text-dark-grey d-flex align-items-center">@lang('app.client')</p>
+                <div class="select-status">
+                    <select class="form-control select-picker" name="client" id="client" data-live-search="true"
+                        data-size="8">
+                        @if (!in_array('client', user_roles()))
+                            <option value="all">@lang('app.all')</option>
+                        @endif
+                        @foreach ($clients as $client)
                             <x-user-option :user="$client" />
-                    @endforeach
-                </select>
+                        @endforeach
+                    </select>
+                </div>
             </div>
-        </div>
         @endif
 
         <!-- CLIENT END -->
@@ -43,7 +45,7 @@
                     data-size="8">
                     <option value="all">@lang('app.all')</option>
                     @foreach ($contractTypes as $item)
-                        <option value="{{ $item->id }}">{{ mb_ucwords($item->name) }}</option>
+                        <option value="{{ $item->id }}">{{ $item->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -78,8 +80,8 @@
 @endsection
 
 @php
-$addContractPermission = user()->permission('add_contract');
-$manageContractTemplatePermission = user()->permission('manage_contract_template');
+    $addContractPermission = user()->permission('add_contract');
+    $manageContractTemplatePermission = user()->permission('manage_contract_template');
 
 @endphp
 
@@ -97,8 +99,8 @@ $manageContractTemplatePermission = user()->permission('manage_contract_template
                 @endif
 
                 @if ($manageContractTemplatePermission == 'all' || $manageContractTemplatePermission == 'added')
-                    <x-forms.link-secondary :link="route('contract-template.index')"
-                        class="mr-3 mb-2 mb-lg-0 mb-md-0 float-left" icon="layer-group">
+                    <x-forms.link-secondary :link="route('contract-template.index')" class="mr-3 mb-2 mb-lg-0 mb-md-0 float-left"
+                        icon="layer-group">
                         @lang('app.menu.contractTemplate')
                     </x-forms.link-secondary>
                 @endif
@@ -114,12 +116,20 @@ $manageContractTemplatePermission = user()->permission('manage_contract_template
                     </div>
                 </x-datatable.actions>
             @endif
+            {{--
+            <div id="sign-modals" class="modal fade sign-modal" tabindex="-1" role="dialog" aria-hidden="true">
+                <div class="modal-dialog d-flex justify-content-center align-items-center modal-xl">
+                    <div class="modal-content">
+                        @include('contracts.companysign.sign')
+                    </div>
+                </div>
+            </div> --}}
 
         </div>
         <!-- Add Task Export Buttons End -->
 
         <!-- Task Box Start -->
-        <div class="d-flex flex-column w-tables rounded mt-3 bg-white">
+        <div class="d-flex flex-column w-tables rounded mt-3 bg-white table-responsive">
 
             {!! $dataTable->table(['class' => 'table table-hover border-0 w-100']) !!}
 
@@ -127,14 +137,13 @@ $manageContractTemplatePermission = user()->permission('manage_contract_template
         <!-- Task Box End -->
     </div>
     <!-- CONTENT WRAPPER END -->
-
 @endsection
 
 @push('scripts')
     @include('sections.datatable_js')
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@2.3.2/dist/signature_pad.min.js"></script>
 
     <script>
-
         $('#contracts-table').on('preXhr.dt', function(e, settings, data) {
             var dateRangePicker = $('#datatableRange').data('daterangepicker');
             var startDate = $('#datatableRange').val();
@@ -159,7 +168,7 @@ $manageContractTemplatePermission = user()->permission('manage_contract_template
             data['contract_type'] = contract_type;
             data['client'] = client;
             data['searchText'] = searchText;
-            
+
         });
         const showTable = () => {
             window.LaravelDataTables["contracts-table"].draw(false);
@@ -308,15 +317,23 @@ $manageContractTemplatePermission = user()->permission('manage_contract_template
             })
         };
 
-        $( document ).ready(function() {
+        $(document).ready(function() {
             @if (!is_null(request('start')) && !is_null(request('end')))
-            $('#datatableRange').val('{{ request('start') }}' +
-            ' @lang("app.to") ' + '{{ request('end') }}');
-            $('#datatableRange').data('daterangepicker').setStartDate("{{ request('start') }}");
-            $('#datatableRange').data('daterangepicker').setEndDate("{{ request('end') }}");
+                $('#datatableRange').val('{{ request('start') }}' +
+                    ' @lang('app.to') ' + '{{ request('end') }}');
+                $('#datatableRange').data('daterangepicker').setStartDate("{{ request('start') }}");
+                $('#datatableRange').data('daterangepicker').setEndDate("{{ request('end') }}");
                 showTable();
             @endif
         });
 
+        $('body').on('click', '.sign-modal', function() {
+            var id = $(this).data('contract-id');
+            url = "{{ route('companySignStore.sign', ':id') }}";
+            url = url.replace(':id', id);
+            console.log(url);
+            $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
+            $.ajaxModal(MODAL_LG, url);
+        });
     </script>
 @endpush

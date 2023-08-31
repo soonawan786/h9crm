@@ -72,7 +72,7 @@ return new class extends Migration {
             $table->string('status')->after('remind_type')->nullable();
         });
 
-        
+
         foreach ($companies as $company) {
             EmployeeShift::create([
                 'company_id' => $company->id,

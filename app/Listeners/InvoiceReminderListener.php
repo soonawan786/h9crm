@@ -18,7 +18,7 @@ class InvoiceReminderListener
 
     public function handle(InvoiceReminderEvent $event)
     {
-        Notification::send($event->notifyUser, new InvoiceReminder($event));
+        Notification::send($event->notifyUser, new InvoiceReminder($event->invoice));
     }
 
 }

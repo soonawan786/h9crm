@@ -73,7 +73,7 @@ class BankAccountDataTable extends BaseDataTable
                 return $action;
             })
             ->editColumn('bank_name', function ($row) {
-                return $row->type == 'bank' ? Ucfirst($row->bank_name) : '--';
+                return $row->type == 'bank' ? $row->bank_name : '--';
             })
             ->editColumn('bank_name_logo', function ($row) {
                 $bankLogo = '';
@@ -86,16 +86,16 @@ class BankAccountDataTable extends BaseDataTable
                     $bankLogo = $row->file_url;
                 }
 
-                return '<a class="text-darkest-grey" href="' . route('bankaccounts.show', $row->id) . '">' . $bankLogo . ' ' . ucfirst($row->bank_name) . '</a>';
+                return '<a class="text-darkest-grey" href="' . route('bankaccounts.show', $row->id) . '">' . $bankLogo . ' ' . $row->bank_name . '</a>';
             })
             ->editColumn('account_name', function ($row) {
-                return '<a class="text-darkest-grey" href="' . route('bankaccounts.show', $row->id) . '">' . mb_ucwords($row->account_name) . '</a>';
+                return '<a class="text-darkest-grey" href="' . route('bankaccounts.show', $row->id) . '">' . $row->account_name . '</a>';
             })
             ->editColumn('account_type', function ($row) {
-                return $row->type == 'bank' ? Ucfirst($row->account_type) : '--';
+                return $row->type == 'bank' ? __('modules.bankaccount.'.$row->account_type) : '--';
             })
             ->editColumn('type', function ($row) {
-                return Ucfirst($row->type);
+                return $row->type ? __('modules.bankaccount.'.$row->type) : '--';
             })
             ->addColumn('currency', function ($row) {
                 return $row->currency->currency_code . ' (' . $row->currency->currency_symbol . ')';
@@ -139,6 +139,10 @@ class BankAccountDataTable extends BaseDataTable
             ->editColumn('bank_balance', function ($row) {
                 return currency_format($row->bank_balance, $row->currencyId);
             })
+            ->addColumn('bank_balance_export', function ($row) {
+                return $row->bank_balance;
+            })
+
             ->editColumn('id', function ($row) {
                 return $row->id;
             })
@@ -232,7 +236,7 @@ class BankAccountDataTable extends BaseDataTable
                 'orderable' => false,
                 'searchable' => false
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'visible' => false, 'exportable' => false, 'title' => __('app.id')],
             __('modules.bankaccount.bankName') => ['data' => 'bank_name', 'name' => 'bank_name', 'title' => __('modules.bankaccount.bankName'), 'visible' => false],
             __('app.menu.bankaccount') => ['data' => 'bank_name_logo', 'name' => 'bank_name', 'title' => __('app.menu.bankaccount'), 'exportable' => false],
@@ -240,7 +244,8 @@ class BankAccountDataTable extends BaseDataTable
             __('modules.bankaccount.accountType') => ['data' => 'account_type', 'name' => 'account_type', 'title' => __('modules.bankaccount.accountType')],
             __('modules.bankaccount.type') => ['data' => 'type', 'name' => 'type', 'title' => __('modules.bankaccount.type')],
             __('app.currency') => ['data' => 'currency', 'name' => 'currency', 'title' => __('app.currency')],
-            __('modules.bankaccount.bankBalance') => ['data' => 'bank_balance', 'name' => 'bank_balance', 'title' => __('modules.bankaccount.bankBalance')],
+            __('modules.bankaccount.bankBalance') => ['data' => 'bank_balance', 'name' => 'bank_balance', 'title' => __('modules.bankaccount.bankBalance'), 'exportable' => false],
+            __('modules.bankaccount.bankBalance') . 'export'  => ['data' => 'bank_balance_export', 'name' => 'bank_balance', 'title' => __('modules.bankaccount.bankBalance'), 'visible' => false],
             __('app.status') => ['data' => 'status', 'name' => 'status', 'title' => __('app.status'), 'exportable' => false],
             __('modules.bankaccount.accountStatus') => ['data' => 'account_status', 'name' => 'status', 'title' => __('modules.bankaccount.accountStatus'), 'visible' => false],
             Column::computed('action', __('app.action'))
@@ -253,16 +258,6 @@ class BankAccountDataTable extends BaseDataTable
 
         return $data;
 
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'bank_account_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

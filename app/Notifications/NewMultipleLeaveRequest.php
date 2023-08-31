@@ -63,22 +63,20 @@ class NewMultipleLeaveRequest extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $url = route('leaves.show', $this->leave->unique_id);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $user = $notifiable;
-        $dates = explode(',', $this->multiDates);
+        $dates = str_replace(',', ' to ', $this->multiDates);;
+
         $emailDate = '';
+            $emailDate .= $dates;
+        $content = __('email.leaves.subject') . ' ' . __('app.from') . ' ' . $this->leave->user->name . '.' . '<p><b>' . __('modules.leaves.leaveType') . ':</b> ' . $this->leave->type->type_name . '</p><p><b>' . __('modules.leaves.reason') . '</b></p><p>' . $this->leave->reason . '</p><p><b>' . __('app.leaveDate') . '</b></p><p>' . $emailDate . '</p>';
 
-        foreach ($dates as $key => $date) {
-            $emailDate .= ($key + 1) . '. ' . $date . '<br>';
-        }
-
-        $content = __('email.leaves.subject') . ' ' . __('app.from') . ' ' . mb_ucwords($this->leave->user->name) . '.' . '<p><b>' . __('modules.leaves.leaveType') . ':</b> ' . $this->leave->type->type_name . '</p><p><b>' . __('modules.leaves.reason') . '</b></p><p>' . $this->leave->reason . '</p><p><b>' . __('app.leaveDate') . '</b></p><p>' . $emailDate . '</p>';
-
-        return parent::build()
+        return $build
             ->subject(__('email.leaves.subject') . ' - ' . config('app.name'))
-            ->greeting(__('email.hello') . ' ' . mb_ucwords($user->name) . '!')
+            ->greeting(__('email.hello') . ' ' . $user->name . '!')
             ->markdown('mail.leaves.multiple', [
                 'url' => $url,
                 'content' => $content,
@@ -112,7 +110,7 @@ class NewMultipleLeaveRequest extends BaseNotification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content(__('email.leaves.subject') . "\n" . mb_ucwords($this->leave->user->name) . "\n" . '*' . __('app.date') . '*: ' . $this->leave->leave_date->format($this->company->date_format) . "\n" . '*' . __('modules.leaves.leaveType') . '*: ' . $this->leave->type->type_name . "\n" . '*' . __('modules.leaves.reason') . '*' . "\n" . $this->leave->reason);
+                ->content(__('email.leaves.subject') . "\n" . $this->leave->user->name . "\n" . '*' . __('app.date') . '*: ' . $this->leave->leave_date->format($this->company->date_format) . "\n" . '*' . __('modules.leaves.leaveType') . '*: ' . $this->leave->type->type_name . "\n" . '*' . __('modules.leaves.reason') . '*' . "\n" . $this->leave->reason);
         }
 
         return (new SlackMessage())
@@ -125,8 +123,8 @@ class NewMultipleLeaveRequest extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.leaves.subject'))
-            ->body('by ' . mb_ucwords($this->leave->user->name));
+            ->setSubject(__('email.leaves.subject'))
+            ->setBody('by ' . $this->leave->user->name);
     }
 
 }

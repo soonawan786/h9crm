@@ -9,7 +9,7 @@
          @forelse($leadCategories as $key => $category)
             <tr class="row{{ $category->id }}">
                 <td>{{ ($key+1) }}</td>
-                <td>{{ mb_ucwords($category->category_name) }}</td>
+                <td>{{ $category->category_name }}</td>
                 <td class="text-right">
                     <div class="task_view">
                         <a href="javascript:;" data-category-id="{{ $category->id }}" class="edit-category task_view_more d-flex align-items-center justify-content-center" > <i class="fa fa-edit icons mr-2"></i>  @lang('app.edit')

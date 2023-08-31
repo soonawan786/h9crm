@@ -80,7 +80,7 @@
                             data-container="body" data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($categories as $category)
-                                <option value="{{ $category->id }}">{{ mb_ucwords($category->category_name) }}</option>
+                                <option value="{{ $category->id }}">{{ $category->category_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -142,7 +142,8 @@
                             data-container="body" data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($countries as $country)
-                                <option value="{{ $country->id }}">{{ $country->nicename }}</option>
+                                <option value="{{ $country->id }}"
+                                    data-content="<span class='flag-icon flag-icon-{{ strtolower($country->iso) }} flag-icon-squared'></span> {{ $country->nicename }}">{{ $country->nicename }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -150,7 +151,7 @@
             </div>
 
             <div class="more-filter-items">
-                <label class="f-14 text-dark-grey mb-12 text-capitalize" for="usr">@lang('app.verify')</label>
+                <label class="f-14 text-dark-grey mb-12 text-capitalize" for="usr">@lang('app.verify') <i class="fa fa-question-circle" data-toggle="popover" data-placement="top" data-content="@lang('messages.clientFilterVerification')" data-html="true" data-trigger="hover"></i></label>
                 <div class="select-filter mb-4">
                     <div class="select-others">
                         <select class="form-control select-picker" id="verification" data-container="body" data-size="8">
@@ -173,7 +174,7 @@
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
-        <div class="d-block d-lg-flex d-md-flex justify-content-between action-bar dd">
+        <div class="d-grid d-lg-flex d-md-flex action-bar">
 
             <div id="table-actions" class="flex-grow-1 align-items-center">
                 @if ($addClientPermission == 'all' || $addClientPermission == 'added' || $addClientPermission == 'both')
@@ -184,7 +185,7 @@
                 @endif
 
                 @if ($addClientPermission == 'all' || $addClientPermission == 'added' || $addClientPermission == 'both')
-                    <x-forms.link-secondary :link="route('clients.import')" class="mr-3 float-left mb-2 mb-lg-0 mb-md-0 d-sm-bloc" icon="file-upload">
+                    <x-forms.link-secondary :link="route('clients.import')" class="mr-3 float-left mb-2 mb-lg-0 mb-md-0 d-sm-bloc d-none d-lg-block" icon="file-upload">
                         @lang('app.importExcel')
                     </x-forms.link-secondary>
                 @endif
@@ -207,7 +208,7 @@
             </x-datatable.actions>
 
 
-            <div class="btn-group ml-0 ml-lg-3 ml-md-3" role="group">
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group">
                 <a href="{{ route('clients.index') }}" class="btn btn-secondary f-14 btn-active show-clients" data-toggle="tooltip"
                     data-original-title="@lang('app.menu.clients')"><i class="side-icon bi bi-list-ul"></i></a>
 
@@ -219,7 +220,7 @@
         <!-- Add Task Export Buttons End -->
 
         <!-- Task Box Start -->
-        <div class="d-flex flex-column w-tables rounded mt-3 bg-white">
+        <div class="d-flex flex-column w-tables rounded mt-3 bg-white table-responsive">
 
             {!! $dataTable->table(['class' => 'table table-hover border-0 w-100']) !!}
 

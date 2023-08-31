@@ -39,7 +39,7 @@
 
             <x-cards.data-row :label="__('modules.lead.clientEmail')" :value="$lead->client_email ?? '--'" />
 
-            <x-cards.data-row :label="__('modules.lead.companyName')" :value="!empty($lead->company_name) ? mb_ucwords($lead->company_name) : '--'" />
+            <x-cards.data-row :label="__('modules.lead.companyName')" :value="!empty($lead->company_name) ? $lead->company_name : '--'" />
 
             <x-cards.data-row :label="__('modules.lead.website')" :value="$lead->website ?? '--'" />
 
@@ -68,13 +68,13 @@
                 </p>
             </div>
 
-            <x-cards.data-row :label="__('modules.lead.source')" :value="$lead->leadSource ? mb_ucwords($lead->leadSource->type) : '--'" />
+            <x-cards.data-row :label="__('modules.lead.source')" :value="$lead->leadSource ? $lead->leadSource->type : '--'" />
 
             @if ($lead->leadStatus)
                 <div class="col-12 px-0 pb-3 d-flex">
                     <p class="mb-0 text-lightest f-14 w-30 d-inline-block text-capitalize">@lang('app.status')</p>
                     <p class="mb-0 text-dark-grey f-14">
-                        <x-status :value="ucfirst($lead->leadStatus->type)"
+                        <x-status :value="$lead->leadStatus->type"
                             :style="'color:'.$lead->leadStatus->label_color" />
                     </p>
 

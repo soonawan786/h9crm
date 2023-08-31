@@ -1,4 +1,4 @@
-@if (in_array('work_anniversary', $activeWidgets))
+@if (in_array('work_anniversary', $activeWidgets) && in_array('employees', user_modules()))
 <!-- EMP DASHBOARD ANNIVERSARY START -->
 <div class="col-sm-12">
     <x-cards.data class="e-d-info" :title="__('modules.employees.joineeAndWorkAnniversary')" padding="false" otherClasses="h-200">

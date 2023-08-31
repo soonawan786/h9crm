@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="{{ asset('vendor/css/dropzone.min.css') }}">
 
 <div class="modal-header">
-    <h5 class="modal-title">@lang('app.edit') @lang('app.visa')</h5>
+    <h5 class="modal-title">@lang('app.editVisa')</h5>
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 </div>
 <div class="modal-body">
@@ -46,7 +46,7 @@
                 </div>
 
                 <div class="col-lg-12">
-                    <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2"
+                    <x-forms.file allowedFileExtensions="png jpg jpeg svg pdf doc docx" class="mr-0 mr-lg-2 mr-md-2"
                         :fieldLabel="__('modules.employees.scanCopy')" fieldName="file"
                         :fieldValue="$visa->file ? $visa->image_url : '' "
                         fieldId="file">

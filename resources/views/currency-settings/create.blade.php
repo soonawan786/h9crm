@@ -72,7 +72,7 @@
                             @lang('modules.currencySettings.fetchLatestExchangeRate')
                         </a>
                     @else
-                        @lang('messages.configureCurrencyConverterKey',['link'=> '<a href="javascript:;" class="fetch-exchange-rate" icon="key"><i class="fa fa-key"></i> '.ucwords(__("app.clickHere")).'</a>'])
+                        @lang('messages.configureCurrencyConverterKey',['link'=> '<a href="javascript:;" class="fetch-exchange-rate" icon="key"><i class="fa fa-key"></i> '.__("app.clickHere").'</a>'])
                     @endif
                 </div>
 

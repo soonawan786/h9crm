@@ -25,7 +25,7 @@ class ClientContactController extends AccountBaseController
 
     public function create()
     {
-        $this->pageTitle = __('app.add') . ' ' . __('app.contact');
+        $this->pageTitle = __('app.addContact');
         $this->addClientPermission = user()->permission('add_client_contacts');
 
         abort_403(!in_array($this->addClientPermission, ['all', 'added']));
@@ -52,7 +52,7 @@ class ClientContactController extends AccountBaseController
 
     public function edit($id)
     {
-        $this->pageTitle = __('app.edit') . ' ' . __('app.contact');
+        $this->pageTitle = __('app.editContact');
         $this->contact = ClientContact::findOrFail($id);
 
         $this->editPermission = user()->permission('edit_client_contacts');

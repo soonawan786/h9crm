@@ -31,6 +31,7 @@
         let url = '{{ route("leaves.leave_action") }}';
         let action = '{{ $leaveAction }}';
         let leaveId = '{{ $leaveID }}';
+        let type = '{{$type}}';
         let userId = $('.leave-action-reject').data('user-id');
         let reason = $('#reason').val();
 
@@ -38,7 +39,13 @@
             url: url,
             type: "POST",
             blockUI: true,
-            data: { 'action': action, 'leaveId': leaveId, '_token': '{{ csrf_token() }}', 'reason': reason, 'userId': userId },
+            data: { 'action': action,
+                'leaveId': leaveId,
+                '_token': '{{ csrf_token() }}',
+                'reason': reason,
+                'userId': userId,
+                'type' : type
+            },
             success: function(response) {
                 if (response.status == "success") {
                     window.location.reload();

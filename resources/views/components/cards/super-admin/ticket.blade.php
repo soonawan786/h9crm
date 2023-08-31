@@ -1,13 +1,13 @@
 <div class="card ticket-message rounded-0 border-0  @if (user()->id == $user->id) bg-white-shade @endif" id="message-{{ $message->id }}">
     <div class="card-horizontal">
         <div class="card-img">
-            <a
-                href="{{ $user->is_superadmin ? route('superadmin.superadmin.index') : route('employees.show', $user->id) }}"><img
-                    class="" src="{{ $user->image_url }}" alt="{{ $user->name }}"></a>
+            <a href="{{ $user->is_superadmin ? 'javascript:;' : route('superadmin.companies.show', $user->company_id) }}">
+                <img class="" src="{{ $user->image_url }}" alt="{{ $user->name }}">
+            </a>
         </div>
         <div class="card-body border-0 pl-0">
             <div class="d-flex">
-                <a href="{{ $user->is_superadmin ? route('superadmin.superadmin.index') : route('employees.show', $user->id) }}">
+                <a href="{{ $user->is_superadmin ? 'javascript:;' : (user()->is_superadmin ? route('superadmin.companies.show', $user->company_id) : route('employees.show', $user->id)) }}">
                     <h4 class="card-title f-15 f-w-500 text-dark mr-3">{{ $user->name }}</h4>
                 </a>
                 <p class="card-date f-11 text-lightest mb-0">

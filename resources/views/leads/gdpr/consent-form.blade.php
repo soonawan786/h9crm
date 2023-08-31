@@ -20,7 +20,7 @@
                 <div class="col-md-12">
                         <x-forms.textarea class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.gdpr.purposeDescription')"
                         fieldName="consent_description" fieldRequired="true" fieldId="consent_description"
-                        :fieldPlaceholder="__('placeholders.milestone.consent_description')" :fieldValue="$consent->description">
+                        :fieldPlaceholder="__('placeholders.consent_description')" :fieldValue="$consent->description">
                     </x-forms.textarea>
                 </div>
             @endif

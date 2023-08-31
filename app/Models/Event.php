@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Scopes\ActiveScope;
 use App\Traits\HasCompany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -52,7 +54,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|Event whereStartDateTime($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Event whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Event whereWhere($value)
- * @mixin \Eloquent
  * @property string|null $event_id
  * @method static \Illuminate\Database\Eloquent\Builder|Event whereEventId($value)
  * @property int|null $company_id
@@ -62,13 +63,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read int|null $files_count
  * @method static \Illuminate\Database\Eloquent\Builder|Event whereCompanyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Event whereEventLink($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionEvent
+ * @property-read int|null $mention_event_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @property-read int|null $mention_user_count
+ * @mixin \Eloquent
  */
 class Event extends BaseModel
 {
 
     use HasFactory, HasCompany;
 
-    protected $dates = ['start_date_time', 'end_date_time'];
+    protected $casts = [
+        'start_date_time' => 'datetime',
+        'end_date_time' => 'datetime',
+    ];
     protected $fillable = ['start_date_time', 'end_date_time', 'event_name', 'where', 'description'];
 
     public function attendee(): HasMany
@@ -90,6 +99,16 @@ class Event extends BaseModel
     public function files()
     {
         return $this->hasMany(EventFile::class, 'event_id')->orderBy('id', 'desc');
+    }
+
+    public function mentionUser(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'mention_users')->withoutGlobalScope(ActiveScope::class)->using(MentionUser::class);
+    }
+
+    public function mentionEvent(): HasMany
+    {
+        return $this->hasMany(MentionUser::class, 'event_id');
     }
 
 }

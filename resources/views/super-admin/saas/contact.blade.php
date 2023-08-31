@@ -50,16 +50,20 @@
                                    name="email" id="email">
                         </div>
                         <div class="form-group mb-4 col-12">
-                            <textarea rows="6" name="message" class="form-control br-10"
+                            <textarea rows="6" name="message" class="form-control"
                                       placeholder="@lang('modules.messages.message')"
                                       id="message"></textarea>
                         </div>
 
                         @if ($global->google_recaptcha_status == 'active' && $global->google_recaptcha_v2_status == 'active')
                             <div class="form-group col-12" id="captcha_container"></div>
+                            <input type="hidden" id="g_recaptcha" name="g_recaptcha">
                         @endif
-
-                        <input type="hidden" id="g_recaptcha" name="g_recaptcha">
+                        @if ($global->google_recaptcha_status == 'active' && $global->google_recaptcha_v3_status == 'active')
+                            <div class="form-group col-12">
+                                <input type="hidden" id="g_recaptcha" name="g_recaptcha">
+                            </div>
+                        @endif
 
                         <div class="col-12" style="margin-top: 12px;">
                             <button type="button" class="btn btn-lg btn-custom mt-1" id="contact-submit">

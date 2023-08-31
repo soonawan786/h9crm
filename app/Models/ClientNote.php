@@ -36,13 +36,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|ClientNote whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientNote whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientNote whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read \App\Models\User|null $client
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\ClientUserNote[] $members
  * @property-read int|null $members_count
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ClientNote whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ClientNote extends BaseModel
 {

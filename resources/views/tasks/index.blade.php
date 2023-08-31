@@ -220,7 +220,7 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
-        <div class="d-block d-lg-flex d-md-flex justify-content-between action-bar">
+        <div class="d-grid d-lg-flex d-md-flex action-bar">
             <div id="table-actions" class="flex-grow-1 align-items-center">
                 @if ($addTaskPermission == 'all' || $addTaskPermission == 'added')
                     <x-forms.link-primary :link="route('tasks.create')" class="mr-3 openRightModal float-left" icon="plus">
@@ -254,7 +254,7 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
                 </div>
             </x-datatable.actions>
 
-            <div class="btn-group mt-3 mt-lg-0 mt-md-0 ml-lg-3" role="group">
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group">
                 <a href="{{ route('tasks.index') }}" class="btn btn-secondary f-14 btn-active task" data-toggle="tooltip"
                     data-original-title="@lang('app.menu.tasks')"><i class="side-icon bi bi-list-ul"></i></a>
 
@@ -271,7 +271,7 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
 
         <!-- Add Task Export Buttons End -->
         <!-- Task Box Start -->
-        <div class="d-flex flex-column w-tables rounded mt-3 bg-white">
+        <div class="d-flex flex-column w-tables rounded mt-3 bg-white table-responsive">
 
             {!! $dataTable->table(['class' => 'table table-hover border-0 w-100']) !!}
 
@@ -286,6 +286,11 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
     @include('sections.datatable_js')
 
     <script>
+        $(document).ready(()=>{
+            let assignedVal = "{{ $assignedTo }}";
+            $('.filter-box #assignedTo').val(assignedVal);
+        });
+
         $('#allTasks-table').on('preXhr.dt', function(e, settings, data) {
 
             var dateRangePicker = $('#datatableRange').data('daterangepicker');
@@ -334,7 +339,7 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
             data['milestone_id'] = milestone_id;
         });
         const showTable = () => {
-            window.LaravelDataTables["allTasks-table"].draw(false);
+            window.LaravelDataTables["allTasks-table"].draw(true);
         }
 
         $('#milestone_id, #billable_task, #status, #clientID, #category_id, #assignedBY, #assignedTo, #label, #project_id_filter, #pinned, #date_filter_on')
@@ -587,7 +592,7 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
                         } else {
                             $('#show-active-timer .active-timer-count').addClass('d-none');
                         }
-                        
+
                         $('#timer-clock').html(response.clockHtml);
                         if ($('#allTasks-table').length) {
                             window.LaravelDataTables["allTasks-table"].draw(false);
@@ -617,8 +622,12 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
                     } else {
                         $('#show-active-timer .active-timer-count').addClass('d-none');
                     }
-                    
-                    $('#timer-clock').html(response.clockHtml);
+
+                    if (response.activeTimer == null) {
+                        $('#timer-clock').html('');
+                        runTimeClock = false;
+                    }
+
                     if ($('#allTasks-table').length) {
                         window.LaravelDataTables["allTasks-table"].draw(false);
                     }
@@ -646,7 +655,7 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
                         } else {
                             $('#show-active-timer .active-timer-count').addClass('d-none');
                         }
-                        
+
                         $('#timer-clock').html(response.clockHtml);
                         if ($('#allTasks-table').length) {
                             window.LaravelDataTables["allTasks-table"].draw(false);
@@ -678,8 +687,10 @@ $viewUnassignedTasksPermission = user()->permission('view_unassigned_tasks');
                         } else {
                             $('#show-active-timer .active-timer-count').addClass('d-none');
                         }
-                        
+
                         $('#timer-clock').html(response.clockHtml);
+                        runTimeClock = false;
+
                         if ($('#allTasks-table').length) {
                             window.LaravelDataTables["allTasks-table"].draw(false);
                         }

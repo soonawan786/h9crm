@@ -45,7 +45,7 @@ class AutoCreateRecurringInvoices extends Command
 
     public function handle()
     {
-        $companies = Company::select('id')->with('currency')->get();
+        $companies = Company::select('id', 'timezone')->get();
 
         foreach ($companies as $company) {
 
@@ -62,7 +62,7 @@ class AutoCreateRecurringInvoices extends Command
 
                 if ($recurring->unlimited_recurring == 1 || ($totalExistingCount < $recurring->billing_cycle)) {
 
-                    if ($recurring->next_invoice_date->timezone($recurring->company->timezone)->isToday()) {
+                    if ($recurring->next_invoice_date->timezone($company->timezone)->isToday()) {
                         $this->invoiceCreate($recurring);
                         $this->saveNextInvoiceDate($recurring);
                     }
@@ -123,8 +123,8 @@ class AutoCreateRecurringInvoices extends Command
         $invoice->note = $recurring->note;
         $invoice->show_shipping_address = $recurring->show_shipping_address;
         $invoice->send_status = 1;
-        $invoice->unit_id = (is_null($recurring->unit_type_id)) ? $recurring->unit_type_id : $unitType->id;
         $invoice->company_address_id = $defaultAddress->id;
+        $invoice->bank_account_id = $recurring->bank_account_id;
         $invoice->save();
 
         if ($invoice->show_shipping_address) {
@@ -148,6 +148,8 @@ class AutoCreateRecurringInvoices extends Command
                     'invoice_id' => $invoice->id,
                     'item_name' => $item->item_name,
                     'item_summary' => $item->item_summary,
+                    'unit_id' => (!is_null($item->unit_id)) ? $item->unit_id : null,
+                    'product_id' => (!is_null($item->product_id)) ? $item->product_id : null,
                     'hsn_sac_code' => (isset($item->hsn_sac_code)) ? $item->hsn_sac_code : null,
                     'type' => 'item',
                     'quantity' => $item->quantity,

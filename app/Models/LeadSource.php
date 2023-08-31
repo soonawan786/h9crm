@@ -26,10 +26,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|LeadSource whereLastUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadSource whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadSource whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|LeadSource whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class LeadSource extends BaseModel
 {

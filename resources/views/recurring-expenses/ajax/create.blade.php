@@ -32,10 +32,11 @@ foreach ($projects as $project) {
                     </div>
 
                     <div class="col-md-6 col-lg-4">
-                        <x-forms.select :fieldLabel="__('modules.invoices.currency')" fieldName="currency_id"
-                            fieldRequired="true" fieldId="currency_id">
+                        <input type="hidden" id="currency_id" name="currency_id" value="{{company()->currency_id}}">
+                        <x-forms.select :fieldLabel="__('modules.invoices.currency')" fieldName="currency"
+                            fieldRequired="true" fieldId="currency">
                             @foreach ($currencies as $currency)
-                                <option @if ($currency->id == company()->currency_id) selected @endif value="{{ $currency->id }}">
+                                <option @if ($currency->id == company()->currency_id) selected @endif value="{{ $currency->id }}" data-currency-name="{{$currency->currency_name}}">
                                     {{ $currency->currency_name }} - ({{ $currency->currency_symbol }})
                                 </option>
                             @endforeach
@@ -77,13 +78,29 @@ foreach ($projects as $project) {
                                 search="true">
                                 <option value="">--</option>
                                 @foreach ($projects as $project)
-                                    <option @if ($projectId == $project->id) selected @endif value="{{ $project->id }}">
-                                        {{ mb_ucwords($project->project_name) }}
+                                    <option data-currency-id="{{ $project->currency_id }}" @if ($projectId == $project->id) selected @endif value="{{ $project->id }}">
+                                        {{ $project->project_name }}
                                     </option>
                                 @endforeach
                             </x-forms.select>
                         @endif
                     </div>
+
+                    @if($linkExpensePermission == 'all')
+                        <div class="col-md-6 col-lg-4">
+                            <x-forms.select fieldId="bank_account_id" :fieldLabel="__('app.menu.bankaccount')" fieldName="bank_account_id"
+                                search="true">
+                                <option value="">--</option>
+                                @if($viewBankAccountPermission != 'none')
+                                    @foreach ($bankDetails as $bankDetail)
+                                        <option value="{{ $bankDetail->id }}">@if($bankDetail->type == 'bank')
+                                            {{ $bankDetail->bank_name }} | @endif {{ $bankDetail->account_name }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </x-forms.select>
+                        </div>
+                    @endif
 
                     <div class="col-md-6">
                         <x-forms.label class="mt-3" fieldId="category_id"
@@ -94,7 +111,7 @@ foreach ($projects as $project) {
                                 data-live-search="true">
                                 <option value="">--</option>
                                 @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}">{{ mb_ucwords($category->category_name) }}
+                                    <option value="{{ $category->id }}">{{ $category->category_name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -194,12 +211,12 @@ foreach ($projects as $project) {
 
 <script>
     $(document).ready(function() {
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         const dp1 = datepicker('#start_date', {
             position: 'bl',
@@ -252,6 +269,11 @@ foreach ($projects as $project) {
                 success: function(response) {
                     $('#project_id').html('<option value="">--</option>' + response.data);
                     $('#project_id').selectpicker('refresh')
+                    if($('#project_id').val() == '')
+                    {
+                        $('#currency').prop('disabled', false);
+                        $('#currency').selectpicker('refresh');
+                    }
                 }
             });
 
@@ -364,4 +386,37 @@ foreach ($projects as $project) {
 
         $('#next_date').html("{{__('modules.expensesRecurring.nextExpenseDate')}}" + ' ' + value);
     }
+
+    $('body').on("change", '#currency, #project_id', function() {
+        if ($('#project_id').val() != '') {
+            var curId = $('#project_id option:selected').attr('data-currency-id');
+            $('#currency').removeAttr('disabled');
+            $('#currency').selectpicker('refresh');
+            $('#currency').val(curId);
+            $('#currency').prop('disabled', true);
+            $('#currency').selectpicker('refresh');
+        } else {
+            $('#currency').prop('disabled', false);
+            $('#currency').selectpicker('refresh');
+        }
+
+        var id = $('#currency').val();
+        $('#currency_id').val(id);
+        var currencyId = $('#currency_id').val();
+
+        var token = "{{ csrf_token() }}";
+
+        $.easyAjax({
+            url: "{{ route('payments.account_list') }}",
+            type: "GET",
+            blockUI: true,
+            data: { 'curId' : currencyId , _token: token},
+            success: function(response) {
+                if (response.status == 'success') {
+                    $('#bank_account_id').html(response.data);
+                    $('#bank_account_id').selectpicker('refresh');
+                }
+            }
+        });
+    });
 </script>

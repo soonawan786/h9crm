@@ -1,5 +1,5 @@
-<div class="modal-header">
-    <h5 class="modal-title" id="modelHeading">@lang('app.edit') @lang('modules.lead.followUp')</h5>
+    <div class="modal-header">
+    <h5 class="modal-title" id="modelHeading">@lang('modules.lead.editFollowUp')</h5>
     <button type="button"  class="close" data-dismiss="modal" aria-label="Close"><span
             aria-hidden="true">×</span></button>
 </div>
@@ -24,10 +24,22 @@
                         </div>
                     </div>
 
-                     <div class="col-lg-12 mb-2">
-                        <x-forms.checkbox :fieldLabel="__('modules.tasks.reminder')" fieldName="send_reminder"
-                            fieldId="send_reminder" fieldValue="yes" fieldRequired="true"
-                            :checked="$follow->send_reminder == 'yes'" />
+                    <div class="col-md-12">
+                        <div class="row">
+                            <div class="col-md-6 mb-2">
+                                <x-forms.select fieldId="status" :fieldLabel="__('modules.employees.status')" fieldName="status" search="true">
+                                        <option value="incomplete"  @if($follow->status == 'incomplete') selected @endif  data-content="<i class='fa fa-circle mr-2 text-red'></i> @lang('app.incomplete') " >@lang('app.incomplete')</option>
+                                        <option value="canceled" @if($follow->status == 'canceled') selected @endif data-content="<i class='fa fa-circle mr-2 text-warning'></i> @lang('app.canceled') " >@lang('app.canceled')</option>
+                                        <option value="completed" @if($follow->status == 'completed') selected @endif data-content="<i class='fa fa-circle mr-2 text-dark-green'></i> @lang('app.completed') " >@lang('app.completed')</option>
+                                    </x-forms.select>
+                            </div>
+
+                            <div class="col-md-6 mt-5">
+                                <x-forms.checkbox :fieldLabel="__('modules.tasks.reminder')" fieldName="send_reminder"
+                                    fieldId="send_reminder" fieldValue="yes" fieldRequired="true"
+                                    :checked="$follow->send_reminder == 'yes'" />
+                            </div>
+                        </div>
                     </div>
 
                     <div class="col-lg-12 send_reminder_div @if ($follow->send_reminder == null) d-none @endif">

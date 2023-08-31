@@ -56,11 +56,11 @@ $viewAppreciationPermission = user()->permission('view_appreciation');
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
-        <div class="d-flex justify-content-between action-bar">
+        <div class="d-grid d-lg-flex d-md-flex action-bar">
             <div id="table-actions" class="flex-grow-1 align-items-center">
                 @if ($manageAppreciationTypePermission == 'all')
                     <x-forms.link-primary :link="route('awards.create')" class="mr-3 openRightModal float-left" icon="plus">
-                        @lang('app.add') @lang('modules.appreciations.appreciationType')
+                        @lang('modules.appreciations.addAppreciationType')
                     </x-forms.link-primary>
                 @endif
             </div>
@@ -84,13 +84,11 @@ $viewAppreciationPermission = user()->permission('view_appreciation');
             </x-datatable.actions>
 
 
-            <div class="btn-group mt-3 mt-lg-0 mt-md-0 ml-lg-3" role="group">
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group">
                 @if($viewAppreciationPermission != 'none')
                 <a href="{{ route('appreciations.index') }}" class="btn btn-secondary f-14 " data-toggle="tooltip"
                    data-original-title="@lang('app.menu.appreciation')"><i class="side-icon bi bi-trophy"></i></a>
-                @endif
 
-                @if ($manageAppreciationTypePermission == 'all')
                     <a href="{{ route('awards.index') }}" class="btn btn-secondary f-14 btn-active" data-toggle="tooltip"
                        data-original-title="@lang('app.menu.award')"><i class="side-icon bi bi-award"></i></a>
                 @endif
@@ -189,7 +187,7 @@ $viewAppreciationPermission = user()->permission('view_appreciation');
 
             if(appreciationCount != 0){
                  alertText = "@lang('messages.recoverAwardRecord')";
-                 alertText = alertText.replace(':employeCount', appreciationCount);
+                 alertText = alertText.replace(':employeeCount', appreciationCount);
             }
 
             Swal.fire({

@@ -27,10 +27,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|RemovalRequestLead whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|RemovalRequestLead whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|RemovalRequestLead whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|RemovalRequestLead whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class RemovalRequestLead extends BaseModel
 {

@@ -2,12 +2,14 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\CustomModuleController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SuperAdmin\FaqController;
 use App\Http\Controllers\SuperAdmin\MollieController;
 use App\Http\Controllers\SuperAdmin\BillingController;
 use App\Http\Controllers\SuperAdmin\CompanyController;
 use App\Http\Controllers\SuperAdmin\InvoiceController;
 use App\Http\Controllers\SuperAdmin\PackageController;
+use App\Http\Controllers\SuperAdmin\PayFastController;
 use App\Http\Controllers\SuperAdmin\PaystackController;
 use App\Http\Controllers\SuperAdmin\AuthorizeController;
 use App\Http\Controllers\SuperAdmin\DashboardController;
@@ -32,10 +34,12 @@ use App\Http\Controllers\SuperAdmin\SupportTicketReplyController;
 use App\Http\Controllers\SuperAdmin\FrontSetting\SignUpController;
 use App\Http\Controllers\SuperAdmin\GlobalCurrencySettingController;
 use App\Http\Controllers\SuperAdmin\OfflinePaymentSettingController;
+use App\Http\Controllers\SuperAdmin\FrontSetting\FrontMenuController;
 use App\Http\Controllers\SuperAdmin\FrontSetting\SeoDetailController;
 use App\Http\Controllers\SuperAdmin\FrontSetting\FaqSettingController;
 use App\Http\Controllers\SuperAdmin\FrontSetting\FrontWidgetController;
 use App\Http\Controllers\SuperAdmin\PaymentGatewayCredentialController;
+use App\Http\Controllers\SuperAdmin\SuperadminRolePermissionController;
 use App\Http\Controllers\SuperAdmin\FrontSetting\FrontSettingController;
 use App\Http\Controllers\SuperAdmin\FrontSetting\ClientSettingController;
 use App\Http\Controllers\SuperAdmin\FrontSetting\FooterSettingController;
@@ -44,13 +48,16 @@ use App\Http\Controllers\SuperAdmin\FrontSetting\SocialLinkSettingController;
 use App\Http\Controllers\SuperAdmin\FrontSetting\TestimonialSettingController;
 use App\Http\Controllers\SuperAdmin\FrontSetting\FeatureTranslationSettingController;
 use App\Http\Controllers\SuperAdmin\FrontSetting\ThemeSettingController as FrontThemeSettingController;
-use App\Http\Controllers\SuperAdmin\PayFastController;
 
 Route::group(['middleware' => ['auth'], 'prefix' => 'account', 'as' => 'superadmin.'], function () {
     Route::get('impersonate/stop_impersonate', [SuperAdminController::class, 'stopImpersonate'])->name('superadmin.stop_impersonate');
     Route::get('workspaces', [SuperAdminController::class, 'workspaces'])->name('superadmin.workspaces');
     Route::post('choose-workspace', [SuperAdminController::class, 'chooseWorkspace'])->name('superadmin.choose_workspace');
     Route::get('clearCache', [\App\Http\Controllers\AppSettingController::class, 'resetCache'])->name('superadmin.clear-cache');
+
+    Route::post('signup/verifyEmail', [SignUpController::class, 'verifyEmail'])->name('signup.verifyEmail');
+    Route::get('notify-admin', [NotificationController::class, 'notifyAdmin'])->name('notify.admin');
+    Route::post('notify-admin', [NotificationController::class, 'notifyAdminSubmit'])->name('notify.admin.submit');
 });
 
 Route::group(['middleware' => ['auth', 'super-admin'], 'prefix' => 'account', 'as' => 'superadmin.'], function () {
@@ -62,13 +69,13 @@ Route::group(['middleware' => ['auth', 'super-admin'], 'prefix' => 'account', 'a
     Route::post('companies/approve_company', [CompanyController::class, 'approveCompany'])->name('companies.approve_company');
     Route::resource('faqCategory', FaqCategoryController::class)->except(['index', 'edit', 'show']);
     Route::post('faqs/file-store', [FaqController::class, 'fileStore'])->name('faqs.file-store');
-    Route::get('faqs/download/{id}', [FaqController::class, 'download'])->name('faqs.download');
     Route::post('faqs/file-destroy/{id}', [FaqController::class, 'fileDelete'])->name('faqs.file-destroy');
 
     Route::resource('companies', CompanyController::class);
     Route::resource('superadmin-invoices', InvoiceController::class)->only(['index']);
     Route::resource('packages', PackageController::class)->except(['show']);
 
+    Route::post('superadmin/assignRole', [SuperAdminController::class, 'assignRole'])->name('superadmin.assign_role');
     Route::resource('superadmin', SuperAdminController::class)->except(['show']);
 
     Route::get('offline-plan/change-plan/{id}/{status}', [OfflinePlanChangeController::class, 'confirmChangePlan'])->name('offline-plan.confirmChangePlan');
@@ -79,8 +86,6 @@ Route::group(['middleware' => ['auth', 'super-admin'], 'prefix' => 'account', 'a
     Route::post('support-tickets/updateOtherData/{id}', [SupportTicketsController::class, 'updateOtherData'])->name('support-tickets.update_other_data');
     Route::get('company-ajax', [CompanyController::class, 'ajaxLoadCompany'])->name('get.company-ajax');
 
-    Route::get('support-ticket-files/download/{id}', [SupportTicketFileController::class, 'download'])->name('support-ticket-files.download');
-    Route::resource('support-ticket-files', SupportTicketFileController::class);
     Route::resource('support-ticketTypes', SupportTicketTypeController::class);
 
     Route::group(['prefix' => 'front-settings', 'as' => 'front-settings.'], function () {
@@ -104,6 +109,7 @@ Route::group(['middleware' => ['auth', 'super-admin'], 'prefix' => 'account', 'a
 
         Route::put('footer-settings-translation', [FooterSettingController::class, 'updateLang'])->name('footer-settings.update_lang');
         Route::resource('footer-settings', FooterSettingController::class)->except(['index','show']);
+        Route::post('footer-settings-slug', [FooterSettingController::class, 'generateSlug'])->name('footer-settings.generate_slug');
         Route::get('footer-settings/{lang?}', [FooterSettingController::class, 'index'])->name('footer-settings.index');
 
         Route::get('cta-settings/{lang?}', [FooterSettingController::class, 'ctaLang'])->name('cta-settings.lang');
@@ -138,27 +144,38 @@ Route::group(['middleware' => ['auth', 'super-admin'], 'prefix' => 'account', 'a
         Route::resource('faq-settings', FaqSettingController::class)->except(['index','show']);
         Route::get('faq-settings/{lang?}', [FaqSettingController::class, 'index'])->name('faq-settings.index');
 
+        Route::put('front-menu-settings', [FrontMenuController::class, 'updateLang'])->name('front_menu_settings.updateLang');
+        Route::get('front-menu-settings/{lang?}', [FrontMenuController::class, 'lang'])->name('front_menu_settings.lang');
 
     });
 
-    Route::group(['middleware' => 'auth', 'prefix' => 'account/settings', 'as' => 'settings.'], function () {
+    Route::group(['middleware' => 'auth', 'prefix' => 'settings', 'as' => 'settings.'], function () {
         Route::resource('super-admin-profile', ProfileSettingController::class);
         Route::resource('super-admin-theme-settings', ThemeSettingController::class);
         Route::resource('custom-module-settings', CustomModuleController::class);
         Route::resource('global-custom-fields', CustomFieldController::class);
         // Currency Settings routes
-        Route::get('currency-settings/update/exchange-rates', [GlobalCurrencySettingController::class, 'updateExchangeRate'])->name('currency_settings.update_exchange_rates');
+        Route::get('global-currency-settings/update/exchange-rates', [GlobalCurrencySettingController::class, 'updateExchangeRate'])->name('currency_settings.update_exchange_rates');
 
         /* Start Currency Settings routes */
-        Route::get('currency-settings/exchange-key', [GlobalCurrencySettingController::class, 'currencyExchangeKey'])->name('currency_settings.exchange_key');
-        Route::post('currency-settings/exchange-key-store', [GlobalCurrencySettingController::class, 'currencyExchangeKeyStore'])->name('currency_settings.exchange_key_store');
-        Route::get('currency-settings/exchange-rate/{currency}', [GlobalCurrencySettingController::class, 'exchangeRate'])->name('currency_settings.exchange_rate');
+        Route::get('global-currency-settings/exchange-key', [GlobalCurrencySettingController::class, 'currencyExchangeKey'])->name('currency_settings.exchange_key');
+        Route::post('global-currency-settings/exchange-key-store', [GlobalCurrencySettingController::class, 'currencyExchangeKeyStore'])->name('currency_settings.exchange_key_store');
+        Route::get('global-currency-settings/exchange-rate/{currency}', [GlobalCurrencySettingController::class, 'exchangeRate'])->name('currency_settings.exchange_rate');
 
-        Route::get('currency-settings/update-currency-format', [GlobalCurrencySettingController::class, 'updateCurrencyFormat'])->name('currency_settings.update_currency_format');
+        Route::get('global-currency-settings/update-currency-format', [GlobalCurrencySettingController::class, 'updateCurrencyFormat'])->name('currency_settings.update_currency_format');
         Route::resource('global-currency-settings', GlobalCurrencySettingController::class);
         Route::resource('global-payment-gateway-settings', PaymentGatewayCredentialController::class);
         Route::resource('global-offline-payment-setting', OfflinePaymentSettingController::class);
         Route::resource('global-invoice-settings', InvoiceSettingController::class);
+
+         // SuperAdmin Role Permissions
+        Route::post('superadmin-permissions/storeRole', [SuperadminRolePermissionController::class, 'storeRole'])->name('superadmin-permissions.store_role');
+        Route::post('superadmin-permissions/deleteRole', [SuperadminRolePermissionController::class, 'deleteRole'])->name('superadmin-permissions.delete_role');
+        Route::post('superadmin-permissions/permissions', [SuperadminRolePermissionController::class, 'permissions'])->name('superadmin-permissions.permissions');
+        Route::post('superadmin-permissions/customPermissions', [SuperadminRolePermissionController::class, 'customPermissions'])->name('superadmin-permissions.custom_permissions');
+        Route::post('superadmin-permissions/reset-permissions', [SuperadminRolePermissionController::class, 'resetPermissions'])->name('superadmin-permissions.reset_permissions');
+        Route::resource('superadmin-permissions', SuperadminRolePermissionController::class);
+
     });
 
 });
@@ -216,10 +233,14 @@ Route::post('payfast-notification/{id}', [PayFastWebhookController::class, 'save
 Route::get('billing/paystack/callback', [PaystackController::class, 'handleGatewayCallback'])->name('billing.paystack.callback');
 Route::group(['middleware' => ['auth', 'admin-or-super-admin'], 'prefix' => 'account', 'as' => 'superadmin.'], function () {
     Route::get('superadmin-invoices/download/{id}', [InvoiceController::class, 'download'])->name('invoices.download');
-    Route::get('task-files/download/{id}', [OfflinePlanChangeController::class, 'download'])->name('offline-plan.download');
+    Route::get('offline-plan-files/download/{id}', [OfflinePlanChangeController::class, 'download'])->name('offline-plan.download');
+    Route::get('billing-offline-plan-file/download/{id}', [BillingController::class, 'offlineFileDownload'])->name('billin-offline-plan.download');
     Route::get('faqs/searchquery/{query?}', [FaqController::class, 'searchQuery'])->name('faqs.searchQuery');
+    Route::get('faqs/download/{id}', [FaqController::class, 'download'])->name('faqs.download');
     Route::resource('faqs', FaqController::class);
     Route::resource('support-tickets', SupportTicketsController::class);
+    Route::get('support-ticket-files/download/{id}', [SupportTicketFileController::class, 'download'])->name('support-ticket-files.download');
+    Route::resource('support-ticket-files', SupportTicketFileController::class);
     Route::resource('support-ticket-replies', SupportTicketReplyController::class);
 
 });

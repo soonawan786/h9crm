@@ -64,4 +64,12 @@
         color: var(--header_color) !important;
     }
 
+    .menu-item-count, .unread-notifications-count, .active-timer-count {
+        background-color: var(--header_color) !important;
+    }
+
+    .dropdown-item.active .text-dark-grey {
+        color: #ffffff;
+    }
+
 </style>

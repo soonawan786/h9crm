@@ -1,36 +1,18 @@
 <!doctype html>
 <html lang="en">
-
 <head>
     <!-- Required meta tags -->
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>@lang('app.estimate')</title>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>@lang('app.estimate') - {{ $estimate->estimate_number }}</title>
     <meta name="msapplication-TileColor" content="#ffffff">
     <meta name="msapplication-TileImage" content="{{ $company->favicon_url }}">
     <meta name="theme-color" content="#ffffff">
-
-    @if ($invoiceSetting->locale == 'ru')
-        <style>
-            body {
-                margin: 0;
-                font-family: dejavu sans;
-                font-size: 13px;
-            }
-        </style>
-    @else
-        <style>
-            body {
-                margin: 0;
-                font-family: Verdana, DejaVu Sans, Arial, Helvetica, sans-serif;
-                font-size: 13px;
-            }
-        </style>
-    @endif
-
+    @includeIf('estimates.pdf.estimate_pdf_css')
     <style>
-
-        .bg-grey {
+    .bg-grey {
             background-color: #F2F4F7;
         }
 
@@ -266,6 +248,19 @@
         .h3-border {
             border-bottom: 1px solid #AAAAAA;
         }
+
+        @if ($invoiceSetting->locale == 'th')
+
+            table td {
+                font-weight: bold !important;
+                font-size: 20px !important;
+            }
+
+            .description {
+                font-weight: bold !important;
+                font-size: 16px !important;
+            }
+        @endif
     </style>
 </head>
 
@@ -274,7 +269,7 @@
         <tbody>
             <!-- Table Row Start -->
             <tr>
-                <td><img src="{{ $invoiceSetting->logo_url }}" alt="{{ mb_ucwords($company->company_name) }}"
+                <td><img src="{{ $invoiceSetting->logo_url }}" alt="{{ $company->company_name }}"
                         id="logo" /></td>
                 <td align="right" class="f-21 text-black font-weight-700 text-uppercase">@lang('app.estimate')</td>
             </tr>
@@ -282,8 +277,8 @@
             <!-- Table Row Start -->
             <tr>
                 <td>
-                    <p class="line-height mt-1 mb-0 f-14 text-black">
-                        {{ mb_ucwords($company->company_name) }}<br>
+                    <p class="line-height mt-1 mb-0 f-14 text-black description">
+                        {{ $company->company_name }}<br>
                         @if (!is_null($company))
                             {!! nl2br($company->defaultAddress->address) !!}<br>
                             {{ $company->company_phone }}
@@ -301,7 +296,8 @@
                         </tr>
                         <tr>
                             <td class="heading-table-left">@lang('modules.estimates.validTill')</td>
-                            <td class="heading-table-right">{{ $estimate->valid_till->translatedFormat($company->date_format) }}
+                            <td class="heading-table-right">
+                                {{ $estimate->valid_till->translatedFormat($company->date_format) }}
                             </td>
                         </tr>
                     </table>
@@ -340,16 +336,16 @@
                                         @lang("modules.invoices.billedTo")
                                     </span><br>
                                     @if ($estimate->client && $estimate->client->name && $invoiceSetting->show_client_name == 'yes')
-                                        {{ mb_ucwords($estimate->client->name) }}<br>
+                                        {{ $estimate->client->name }}<br>
                                     @endif
                                     @if ($estimate->client && $estimate->client->email && $invoiceSetting->show_client_email == 'yes')
                                         {{ $estimate->client->email }}<br>
                                     @endif
                                     @if ($estimate->client && $estimate->client->mobile && $invoiceSetting->show_client_phone == 'yes')
-                                    @if(isset($estimate->clientdetails->user->country))+{{$estimate->clientdetails->user->country->phonecode}} @endif {{ $estimate->client->mobile }}<br>
+                                        {{ $estimate->client->mobile }}<br>
                                     @endif
                                     @if ($estimate->clientDetails && $estimate->clientDetails->company_name && $invoiceSetting->show_client_company_name == 'yes')
-                                        {{ mb_ucwords($estimate->clientDetails->company_name) }}<br>
+                                        {{ $estimate->clientDetails->company_name }}<br>
                                     @endif
                                     @if ($estimate->clientDetails && $estimate->clientDetails->address && $invoiceSetting->show_client_company_address == 'yes')
                                         {!! nl2br($estimate->clientDetails->address) !!}
@@ -365,13 +361,14 @@
 
                             <td align="right">
                                 <br />
-                                @if($estimate->clientDetails->company_logo)
+                                @if ($estimate->clientDetails->company_logo)
                                     <img src="{{ $estimate->clientDetails->image_url }}"
-                                        alt="{{ mb_ucwords($estimate->clientDetails->company_name) }}" class="logo" style="height:50px;"/>
-                                        <br><br><br>
+                                        alt="{{ $estimate->clientDetails->company_name }}" class="logo"
+                                        style="height:50px;" />
+                                    <br><br><br>
                                 @endif
                                 <div class="text-uppercase bg-white unpaid rightaligned">
-                                    @lang('modules.estimates.'.$estimate->status)
+                                    @lang('modules.estimates.' . $estimate->status)
                                 </div>
                             </td>
                         </tr>
@@ -382,7 +379,22 @@
     </table>
 
     @if ($estimate->description)
-        <div class="f-13 mb-3 mt-1 description">{!! nl2br(strip_tags($estimate->description, ['p', 'b', 'strong', 'a', 'ul', 'li', 'ol', 'i', 'u', 'em', 'blockquote', 'img'])) !!}</div>
+        <div class="f-13 mb-3 mt-1 description">{!! nl2br(
+            strip_tags($estimate->description, [
+                'p',
+                'b',
+                'strong',
+                'a',
+                'ul',
+                'li',
+                'ol',
+                'i',
+                'u',
+                'em',
+                'blockquote',
+                'img',
+            ]),
+        ) !!}</div>
     @endif
 
 
@@ -395,9 +407,9 @@
         <tr class="main-table-heading text-grey">
             <td width="40%">@lang('app.description')</td>
             @if ($invoiceSetting->hsn_sac_code_show)
-                <td align="right" width="10%">@lang("app.hsnSac")</td>
+                <td align="right" width="10%">@lang('app.hsnSac')</td>
             @endif
-            <td align="right" width="10%">{{ isset($estimate->unit) ? $estimate->unit->unit_type : 'Qty\hrs' }}</td>
+            <td align="right" width="10%">@lang('modules.invoices.qty')</td>
             <td align="right">@lang("modules.invoices.unitPrice")</td>
             <td align="right">@lang("modules.invoices.tax")</td>
             <td align="right" width="{{ $invoiceSetting->hsn_sac_code_show ? '17%' : '20%' }}">@lang("modules.invoices.amount")
@@ -408,45 +420,50 @@
             @if ($item->type == 'item')
                 <!-- Table Row Start -->
                 <tr class="main-table-items text-black">
-                    <td width="40%">
-                        {{ ucfirst($item->item_name) }}
+                    <td width="40%" class="description">
+                        {{ $item->item_name }}
                     </td>
                     @if ($invoiceSetting->hsn_sac_code_show)
-                        <td align="right" class="border-bottom-0" width="10%">{{ $item->hsn_sac_code ?  : '--' }}</td>
+                        <td align="right" class="border-bottom-0" width="10%">{{ $item->hsn_sac_code ?: '--' }}
+                        </td>
                     @endif
-                    <td align="right" class="border-bottom-0" width="10%">{{ $item->quantity }}</td>
-                    <td align="right" class="border-bottom-0">{{ currency_format($item->unit_price, $estimate->currency_id, false) }}</td>
-                    <td align="right" class="border-bottom-0">{{ strtoupper($item->tax_list) }}</td>
-                    <td align="right" class="border-bottom-0" width="{{ $invoiceSetting->hsn_sac_code_show ? '17%' : '20%' }}">{{ currency_format($item->amount, $estimate->currency_id, false) }}</td>
+                    <td align="right" class="border-bottom-0" width="10%">{{ $item->quantity }}<br><span class="f-11 text-grey">{{ $item->unit->unit_type }}</td>
+                    <td align="right" class="border-bottom-0">
+                        {{ currency_format($item->unit_price, $estimate->currency_id, false) }}</td>
+                    <td align="right" class="border-bottom-0">{{ $item->tax_list }}</td>
+                    <td align="right" class="border-bottom-0"
+                        width="{{ $invoiceSetting->hsn_sac_code_show ? '17%' : '20%' }}">
+                        {{ currency_format($item->amount, $estimate->currency_id, false) }}</td>
                 </tr>
                 <!-- Table Row End -->
-            @if ($item->item_summary != '' || $item->estimateItemImage)
-                </table>
-                <div class="f-13 summary text-black border-bottom-0">
-                    {!! nl2br(strip_tags($item->item_summary, ['p', 'b', 'strong', 'a'])) !!}
-                    @if ($item->estimateItemImage)
-                        <p class="mt-2">
-                            <img src="{{ $item->estimateItemImage->file_url }}" width="60" height="60" class="img-thumbnail">
-                        </p>
-                    @endif
-                </div>
-                    <table class="bg-white" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
-            @endif
+                /* @if ($item->item_summary != '' || $item->estimateItemImage) */
+    </table>
+    <div class="f-13 summary text-black border-bottom-0 description">
+        {!! nl2br(strip_tags($item->item_summary, ['p', 'b', 'strong', 'a'])) !!}
+        @if ($item->estimateItemImage)
+            <p class="mt-2 description">
+                <img src="{{ $item->estimateItemImage->file_url }}" width="60" height="60"
+                    class="img-thumbnail">
+            </p>
+        @endif
+    </div>
+    <table class="bg-white" border="0" cellpadding="0" cellspacing="0" width="100%" role="presentation">
+        @endif
         @endif
         @endforeach
-            <!-- Table Row Start -->
+        <!-- Table Row Start -->
         <tr>
             <td class="total-box" align="right" colspan="{{ $invoiceSetting->hsn_sac_code_show ? '5' : '4' }}">
                 <table width="100%" border="0" class="b-collapse">
                     <!-- Table Row Start -->
                     <tr align="right" class="text-grey">
-                        <td width="50%" class="subtotal">@lang("modules.invoices.subTotal")</td>
+                        <td width="50%" class="subtotal">@lang('modules.invoices.subTotal')</td>
                     </tr>
                     <!-- Table Row End -->
                     @if ($discount != 0 && $discount != '')
                         <!-- Table Row Start -->
                         <tr align="right" class="text-grey">
-                            <td width="50%" class="subtotal">@lang("modules.invoices.discount")
+                            <td width="50%" class="subtotal">@lang('modules.invoices.discount')
                             </td>
                         </tr>
                         <!-- Table Row End -->
@@ -454,13 +471,13 @@
                     @foreach ($taxes as $key => $tax)
                         <!-- Table Row Start -->
                         <tr align="right" class="text-grey">
-                            <td width="50%" class="subtotal">{{ mb_strtoupper($key) }}</td>
+                            <td width="50%" class="subtotal">{{ $key }}</td>
                         </tr>
                         <!-- Table Row End -->
                     @endforeach
                     <!-- Table Row Start -->
                     <tr align="right" class="balance text-black">
-                        <td width="50%" class="balance-left">@lang("modules.invoices.total")</td>
+                        <td width="50%" class="balance-left">@lang('modules.invoices.total')</td>
                     </tr>
                     <!-- Table Row End -->
 
@@ -493,7 +510,8 @@
                     <!-- Table Row Start -->
                     <tr align="right" class="balance text-black">
                         <td class="total-amt f-15 balance-right">
-                            {{ currency_format($estimate->total, $estimate->currency_id, false) }} {!! htmlentities($estimate->currency->currency_code)  !!}</td>
+                            {{ currency_format($estimate->total, $estimate->currency_id, false) }}
+                            {!! htmlentities($estimate->currency->currency_code) !!}</td>
                     </tr>
                     <!-- Table Row End -->
 
@@ -508,16 +526,8 @@
             <tr>
                 <td height="10"></td>
             </tr>
-            <tr>
-                <td class="f-11">
-                    @lang('modules.invoiceSettings.invoiceTerms')</td>
-            </tr>
             <!-- Table Row End -->
             <!-- Table Row Start -->
-            <tr class="text-grey">
-                <td class="f-11 line-height">{!! nl2br($invoiceSetting->invoice_terms) !!}</td>
-            </tr>
-
             @if ($estimate->note != '')
                 <tr>
                     <td height="10"></td>
@@ -562,35 +572,41 @@
         </tbody>
     </table>
 
-      {{--Custom fields data--}}
-      @if(isset($fields) && count($fields) > 0)
-      <div class="page_break"></div>
-          <h3 class="box-title m-t-20 text-center h3-border"> @lang('modules.projects.otherInfo')</h3>
-          <table class="bg-white" border="0" cellspacing="0" cellpadding="0" width="100%" role="presentation">
-              @foreach($fields as $field)
-                  <tr>
-                      <td style="text-align: left;background: none;" >
-                          <div class="f-14">{{ ucfirst($field->label) }}</div>
-                          <p  class="f-14 line-height text-grey">
-                              @if( $field->type == 'text' || $field->type == 'password' || $field->type == 'number' || $field->type == 'textarea')
-                                  {{$estimate->custom_fields_data['field_'.$field->id] ?? '-'}}
-                              @elseif($field->type == 'radio')
-                                  {{ !is_null($estimate->custom_fields_data['field_'.$field->id]) ? $estimate->custom_fields_data['field_'.$field->id] : '-' }}
-                              @elseif($field->type == 'select')
-                                  {{ (!is_null($estimate->custom_fields_data['field_'.$field->id]) && $estimate->custom_fields_data['field_'.$field->id] != '') ? $field->values[$estimate->custom_fields_data['field_'.$field->id]] : '-' }}
-                              @elseif($field->type == 'checkbox')
-                                  {{ !is_null($estimate->custom_fields_data['field_'.$field->id]) ? $estimate->custom_fields_data['field_'.$field->id] : '-' }}
-                              @elseif($field->type == 'date')
-                                  {{ !is_null($estimate->custom_fields_data['field_'.$field->id]) ? \Carbon\Carbon::parse($estimate->custom_fields_data['field_'.$field->id])->translatedFormat($estimate->company->date_format) : '--'}}
-                              @endif
-                          </p>
-                      </td>
-                  </tr>
-              @endforeach
-          </table>
-      </div>
+    <p>
+    <div style="margin-top: 10px;" class="f-11 line-height text-grey">
+        <b>@lang('modules.invoiceSettings.invoiceTerms')</b><br>{!! nl2br($invoiceSetting->invoice_terms) !!}
+    </div>
+    </p>
 
-  @endif
+    {{-- Custom fields data --}}
+    @if (isset($fields) && count($fields) > 0)
+        <div class="page_break"></div>
+        <h3 class="box-title m-t-20 text-center h3-border"> @lang('modules.projects.otherInfo')</h3>
+        <table class="bg-white" border="0" cellspacing="0" cellpadding="0" width="100%" role="presentation">
+            @foreach ($fields as $field)
+                <tr>
+                    <td style="text-align: left;background: none;">
+                        <div class="f-14">{{ $field->label }}</div>
+                        <p class="f-14 line-height text-grey" id="notes">
+                            @if ($field->type == 'text' || $field->type == 'password' || $field->type == 'number' || $field->type == 'textarea')
+                                {{ $estimate->custom_fields_data['field_' . $field->id] ?? '-' }}
+                            @elseif($field->type == 'radio')
+                                {{ !is_null($estimate->custom_fields_data['field_' . $field->id]) ? $estimate->custom_fields_data['field_' . $field->id] : '-' }}
+                            @elseif($field->type == 'select')
+                                {{ !is_null($estimate->custom_fields_data['field_' . $field->id]) && $estimate->custom_fields_data['field_' . $field->id] != '' ? $field->values[$estimate->custom_fields_data['field_' . $field->id]] : '-' }}
+                            @elseif($field->type == 'checkbox')
+                                {{ !is_null($estimate->custom_fields_data['field_' . $field->id]) ? $estimate->custom_fields_data['field_' . $field->id] : '-' }}
+                            @elseif($field->type == 'date')
+                                {{ !is_null($estimate->custom_fields_data['field_' . $field->id]) ? \Carbon\Carbon::parse($estimate->custom_fields_data['field_' . $field->id])->translatedFormat($estimate->company->date_format) : '--' }}
+                            @endif
+                        </p>
+                    </td>
+                </tr>
+            @endforeach
+        </table>
+        </div>
+
+    @endif
 
 </body>
 

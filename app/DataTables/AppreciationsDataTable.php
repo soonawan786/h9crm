@@ -74,11 +74,9 @@ class AppreciationsDataTable extends BaseDataTable
                 'award_id',
                 function ($row) {
                     if (isset($row->award->awardIcon)) {
-                        return '<div class="position-relative d-flex">
-                        <i class="bi bi-' . $row->award->awardIcon->icon . ' f-15 text-white position-absolute appreciation-icon"></i>
-                        <i class="bi bi-hexagon-fill fs-40" style="color: ' . $row->award->color_code . '"></i>
-                        <span class="align-self-center ml-2">' . mb_ucwords($row->award->title) . '</span>
-                    </div>';
+                        return view('components.award-icon', [
+                            'award' => $row->award
+                        ]).' <span class="align-self-center ml-2">' . mb_ucwords($row->award->title) . '</span>'; /** @phpstan-ignore-line */
                     }
 
                     return '-';
@@ -89,7 +87,7 @@ class AppreciationsDataTable extends BaseDataTable
                 'appreciation_type',
                 function ($row) {
                     if ($row->award) {
-                        return mb_ucwords($row->award->title);
+                        return $row->award->title;
                     }
 
                     return '-';
@@ -133,8 +131,7 @@ class AppreciationsDataTable extends BaseDataTable
         $model = $model->with(['award', 'award.awardIcon', 'awardTo'])->select('id', 'award_id', 'award_to', 'award_date', 'image', 'summary', 'created_at');
 
         $model->join('awards', 'awards.id', '=', 'appreciations.award_id')
-            ->join('users', 'users.id', '=', 'appreciations.award_to')
-            ->where('users.status', 'active');
+            ->join('users', 'users.id', '=', 'appreciations.award_to');
 
         if ($request->startDate !== null && $request->startDate != 'null' && $request->startDate != '') {
             $startDate = Carbon::createFromFormat(company()->date_format, $request->startDate)->toDateString();
@@ -221,10 +218,10 @@ class AppreciationsDataTable extends BaseDataTable
                 'orderable' => false,
                 'searchable' => false
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('modules.appreciations.awardToEmployee') => ['data' => 'award_to', 'exportable' => false, 'name' => 'award_to', 'title' => __('modules.appreciations.awardToEmployee')],
             __('modules.appreciations.awardTo') => ['data' => 'award_employee', 'name' => 'award_employee', 'visible' => false, 'title' => __('modules.appreciations.awardTo')],
-            __('modules.appreciations.appreciationTypeNam') => ['data' => 'award_id', 'exportable' => false, 'name' => 'award_id', 'title' => __('modules.appreciations.appreciationTypeName')],
+            __('modules.appreciations.appreciationTypeName') => ['data' => 'award_id', 'exportable' => false, 'name' => 'award_id', 'title' => __('modules.appreciations.appreciationTypeName')],
             __('modules.appreciations.appreciationType') => ['data' => 'appreciation_type', 'name' => 'award_id', 'visible' => false, 'title' => __('modules.appreciations.appreciationType')],
             __('app.date') => ['data' => 'award_date', 'name' => 'award_date', 'title' => __('modules.appreciations.awardDate')],
             Column::computed('action', __('app.action'))
@@ -234,16 +231,6 @@ class AppreciationsDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'appreciation_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

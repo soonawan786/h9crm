@@ -3,7 +3,7 @@
 namespace App\Models\SuperAdmin;
 
 use App\Models\LanguageSetting;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\SuperAdmin\Testimonials
@@ -28,7 +28,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|Testimonials whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class Testimonials extends Model
+class Testimonials extends BaseModel
 {
     protected $guarded = ['id'];
 

@@ -9,7 +9,7 @@
 
         <div class="row">
             <div class="col-lg-12">
-                <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.projects.uploadFile')"
+                <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.projects.uploadFile')"
                     fieldName="file" fieldId="invoice-file" :popover="__('messages.fileFormat.ImageFile')" />
             </div>
         </div>

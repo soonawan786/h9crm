@@ -6,6 +6,7 @@ use App\Helper\Reply;
 use App\Http\Requests\DiscussionReply\StoreRequest;
 use App\Models\Discussion;
 use App\Models\DiscussionReply;
+use App\Models\Project;
 
 class DiscussionReplyController extends AccountBaseController
 {
@@ -23,6 +24,20 @@ class DiscussionReplyController extends AccountBaseController
         $reply->discussion_id = $request->discussion_id;
         $reply->body = trim_editor($request->description);
         $reply->save();
+
+        $project = Project::findOrFail($reply->discussion->project_id);
+        $userData = [];
+        $usersData = $project->projectMembers;
+
+        foreach ($usersData as $user) {
+
+            $url = route('employees.show', [$user->id]);
+
+            $userData[] = ['id' => $user->id, 'value' => $user->name, 'image' => $user->image_url, 'link' => $url];
+
+        }
+
+        $this->userData = $userData;
 
         $this->discussion = Discussion::with('category', 'replies', 'replies.user', 'replies.files')->findOrFail($reply->discussion_id);
         $html = view('discussions.replies.show', $this->data)->render();

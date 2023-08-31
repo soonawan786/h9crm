@@ -25,7 +25,7 @@ class StoreCurrency extends CoreRequest
     public function rules()
     {
         return [
-            'currency_name' => 'required|unique:currencies,currency_name,null,id,company_id,' . company()->id,
+            'currency_name' => 'required',
             'currency_symbol' => 'required',
             'no_of_decimal' => 'required',
             'usd_price' => 'required_if:is_cryptocurrency,yes',

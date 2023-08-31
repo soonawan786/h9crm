@@ -10,19 +10,26 @@
         @forelse($agents as $agent)
             <tr class="row{{ $agent->id }}">
                 <td>
-                    <x-employee :user="$agent->user" />
+                    <x-employee :user="$agent" />
                 </td>
                 <td>
-                    <select class="change-agent-group form-control select-picker" data-agent-id="{{ $agent->id }}">
+                    <select class="change-agent-group form-control select-picker" data-agent-id="{{ $agent->id }}" multiple name="groupId[]">
                         @foreach ($groups as $group)
-                            <option @if ($group->id == $agent->group_id) selected @endif value="{{ $group->id }}">{{ $group->group_name }}</option>
+                            <option 
+                                @foreach ($agent->agentGroup as $item)
+                                    @if ($item->id == $group->id)
+                                            selected
+                                        @endphp
+                                    @endif
+                                @endforeach
+                             value="{{ $group->id }}">{{ $group->group_name }}</option>
                         @endforeach
                     </select>
                 </td>
                 <td>
                     <select class="change-agent-status form-control select-picker" data-agent-id="{{ $agent->id }}">
-                        <option @if ($agent->status == 'enabled') selected @endif>@lang('app.enabled')</option>
-                        <option @if ($agent->status == 'disabled') selected @endif>@lang('app.disabled')</option>
+                        <option @if ($agent->agent[0]->status == 'enabled') selected @endif>@lang('app.enabled')</option>
+                        <option @if ($agent->agent[0]->status == 'disabled') selected @endif>@lang('app.disabled')</option>
                     </select>
                 </td>
                 <td class="text-right">

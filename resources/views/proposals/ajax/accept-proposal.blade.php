@@ -25,7 +25,7 @@
                 </div>
             </div>
             <div class="col-sm-12 p-4 d-none upload-image">
-                <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.estimates.signature')" fieldName="image"
+                <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.estimates.signature')" fieldName="image"
                     fieldId="image" :popover="__('messages.fileFormat.ImageFile')" :fieldRequired="$proposal->signature_approval ? true : false" />
             </div>
             <div class="col-sm-12 mt-3">

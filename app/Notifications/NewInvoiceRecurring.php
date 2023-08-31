@@ -48,6 +48,8 @@ class NewInvoiceRecurring extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $newInvoiceRecurring = parent::build();
+
         if (($this->invoice->project && !is_null($this->invoice->project->client)) || !is_null($this->invoice->client_id)) {
             // For Sending pdf to email
             $invoiceController = new InvoiceController();
@@ -61,7 +63,6 @@ class NewInvoiceRecurring extends BaseNotification
 
                 $content = __('email.invoice.text');
 
-                $newInvoiceRecurring = parent::build();
                 $newInvoiceRecurring  ->subject(__('email.invoice.subject') . ' - ' . config('app.name') . '.')
                     ->markdown('mail.email', [
                         'url' => $url,
@@ -70,7 +71,8 @@ class NewInvoiceRecurring extends BaseNotification
                         'actionText' => __('email.invoice.action'),
                         'notifiableName' => $notifiable->name
                     ]);
-                $newInvoiceRecurring ->attachData($pdf->output(), $filename . '.pdf');
+
+                $newInvoiceRecurring->attachData($pdf->output(), $filename . '.pdf');
 
                 return $newInvoiceRecurring;
             }

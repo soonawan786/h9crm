@@ -4,8 +4,9 @@ namespace App\Models;
 
 use App\Traits\HasCompany;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * App\Models\CustomFieldGroup
@@ -19,12 +20,12 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @method static \Illuminate\Database\Eloquent\Builder|CustomFieldGroup whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|CustomFieldGroup whereModel($value)
  * @method static \Illuminate\Database\Eloquent\Builder|CustomFieldGroup whereName($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|CustomFieldGroup whereCompanyId($value)
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\CustomField[] $customField
  * @property-read int|null $custom_field_count
+ * @mixin \Eloquent
  */
 class CustomFieldGroup extends BaseModel
 {
@@ -64,8 +65,9 @@ class CustomFieldGroup extends BaseModel
                 $customField->name => [
                     'data' => $customField->name,
                     'name' => $customField->name,
-                    'title' => $customField->name,
-                    'visible' => false
+                    'title' => $customField->label,
+                    'visible' => $customField['visible'],
+                    'orderable' => false,
                 ]
             ];
 
@@ -73,6 +75,26 @@ class CustomFieldGroup extends BaseModel
         }
 
         return $customFieldsDataMerge;
+    }
+
+    /**
+     * Get the custom field group's name.
+     */
+    protected function fields(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                return $this->customField->map(function ($item) {
+                    if (in_array($item->type, ['select', 'radio', 'checkbox'])) {
+                        $item->values = json_decode($item->values);
+
+                        return $item;
+                    }
+
+                    return $item;
+                });
+            },
+        );
     }
 
 }

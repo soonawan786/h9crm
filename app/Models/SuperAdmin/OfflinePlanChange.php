@@ -3,10 +3,10 @@
 namespace App\Models\SuperAdmin;
 
 use App\Models\Company;
+use App\Models\BaseModel;
 use App\Traits\HasCompany;
 use App\Scopes\CompanyScope;
 use App\Models\OfflinePaymentMethod;
-use Illuminate\Database\Eloquent\Model;
 
 /**
  * App\Models\SuperAdmin\OfflinePlanChange
@@ -42,7 +42,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|OfflinePlanChange whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class OfflinePlanChange extends Model
+class OfflinePlanChange extends BaseModel
 {
     use HasCompany;
 
@@ -51,6 +51,11 @@ class OfflinePlanChange extends Model
     protected $dates = [
         'pay_date',
         'next_pay_date'
+    ];
+
+    protected $casts = [
+        'pay_date' => 'datetime',
+        'next_pay_date' => 'datetime',
     ];
 
     protected $appends = ['file'];
@@ -72,7 +77,7 @@ class OfflinePlanChange extends Model
 
     public function getFileAttribute()
     {
-        return ($this->file_name) ? asset_url(OfflinePlanChange::FILE_PATH . '/' . $this->file_name) : asset('img/default-profile-3.png');
+        return ($this->file_name) ? asset_url_local_s3(OfflinePlanChange::FILE_PATH . '/' . $this->file_name) : asset('img/default-profile-3.png');
     }
 
 }

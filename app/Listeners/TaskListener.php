@@ -3,12 +3,15 @@
 namespace App\Listeners;
 
 use App\Events\TaskEvent;
+use App\Models\User;
 use App\Notifications\NewTask;
 use App\Notifications\TaskUpdated;
 use App\Notifications\NewClientTask;
 use App\Notifications\TaskCompleted;
 use App\Notifications\TaskUpdatedClient;
 use App\Notifications\TaskCompletedClient;
+use App\Notifications\TaskMention;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
 class TaskListener
@@ -41,6 +44,9 @@ class TaskListener
             }
             elseif ($event->notificationName == 'TaskUpdatedClient') {
                 Notification::send($event->notifyUser, new TaskUpdatedClient($event->task));
+            }
+            elseif ($event->notificationName == 'TaskMention') {
+                Notification::send($event->notifyUser, new TaskMention($event->task));
             }
         }
     }

@@ -28,20 +28,29 @@ class UpdateRequest extends CoreRequest
      */
     public function rules()
     {
+        \Illuminate\Support\Facades\Validator::extend('check_superadmin', function ($attribute, $value, $parameters, $validator) {
+            return !\App\Models\User::withoutGlobalScopes([\App\Scopes\ActiveScope::class, \App\Scopes\CompanyScope::class])
+                ->where('email', $value)
+                ->where('is_superadmin', 1)
+                ->exists();
+        });
+
         $detailID = EmployeeDetails::where('user_id', $this->route('employee'))->first();
         $setting = company();
+
+        $exists = !Rule::exists('users')->where(function ($query) {
+            return $query->where('is_superadmin', 0);
+        });
+
         $rules = [
             'employee_id' => 'required|max:50|unique:employee_details,employee_id,'.$detailID->id.',id,company_id,' . company()->id,
-            'email' => 'required|max:100|unique:users,email,'.$this->route('employee').',id,company_id,' . company()->id.'|'.Rule::exists('users')->where(function ($query) {
-                return $query->where('is_superadmin', 0);
-            }),
+            'email' => 'required|max:100|unique:users,email,'.$this->route('employee').',id,company_id,' . company()->id.'|'.$exists.'|check_superadmin',
             'name'  => 'required|max:50',
             'hourly_rate' => 'nullable|numeric',
             'department' => 'required',
             'designation' => 'required',
             'joining_date' => 'required',
             'last_date' => 'nullable|date_format:"' . $setting->date_format . '"|after_or_equal:joining_date',
-            'country' => 'required_with:mobile',
             'date_of_birth' => 'nullable|date_format:"' . $setting->date_format . '"|before_or_equal:'.now($setting->timezone)->toDateString(),
             'probation_end_date' => 'nullable|date_format:"' . $setting->date_format . '"|after_or_equal:joining_date',
             'notice_period_start_date' => 'nullable|required_with:notice_period_end_date|date_format:"' . $setting->date_format . '"',
@@ -82,7 +91,8 @@ class UpdateRequest extends CoreRequest
     public function messages()
     {
         return [
-            'email.exists' => __('validation.attributes.notAllowed')
+            'email.check_superadmin' => __('superadmin.emailAlreadyExist'),
+            'email.exists' => __('validation.notAllowed')
         ];
     }
 

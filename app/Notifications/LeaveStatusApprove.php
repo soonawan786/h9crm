@@ -55,17 +55,18 @@ class LeaveStatusApprove extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('leaves.show', $this->leave->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('email.leave.approve') . '<br>' . __('app.date') . ': ' . $this->leave->leave_date->format($this->company->date_format) . '<br>' . __('app.status') . ': ' . mb_ucwords($this->leave->status) . '<br>';
+        $content = __('email.leave.approve') . '<br>' . __('app.date') . ': ' . $this->leave->leave_date->format($this->company->date_format) . '<br>' . __('app.status') . ': ' . $this->leave->status . '<br>';
 
         if(!is_null($this->leave->approve_reason))
         {
-            $content .= __('messages.reasonForLeaveApproval') . ': ' . mb_ucwords($this->leave->approve_reason);
+            $content .= __('messages.reasonForLeaveApproval') . ': ' . $this->leave->approve_reason;
         }
 
-        return parent::build()
+        return $build
             ->subject(__('email.leaves.statusSubject') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,
@@ -98,13 +99,13 @@ class LeaveStatusApprove extends BaseNotification
                 ->from(config('app.name'))
                 ->to('@' . $notifiable->employee[0]->slack_username)
                 ->image($slack->slack_logo_url)
-                ->content(__('email.leave.approve') . "\n" . __('app.date') . ': ' . $this->leave->leave_date->format($this->company->date_format) ."\n" . __('app.status') . ': ' . mb_ucwords($this->leave->status));
+                ->content(__('email.leave.approve') . "\n" . __('app.date') . ': ' . $this->leave->leave_date->format($this->company->date_format) ."\n" . __('app.status') . ': ' . $this->leave->status);
         }
 
         return (new SlackMessage())
             ->from(config('app.name'))
             ->image($slack->slack_logo_url)
-            ->content(__('email.leave.approve') . "\n" . __('app.date') . ': ' . $this->leave->leave_date->format($this->company->date_format) . "\n" . __('app.status') . ': ' . mb_ucwords($this->leave->status));
+            ->content(__('email.leave.approve') . "\n" . __('app.date') . ': ' . $this->leave->leave_date->format($this->company->date_format) . "\n" . __('app.status') . ': ' . $this->leave->status);
 
 
     }

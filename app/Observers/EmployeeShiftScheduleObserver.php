@@ -3,9 +3,13 @@
 namespace App\Observers;
 
 use App\Events\EmployeeShiftScheduleEvent;
+use App\Helper\Files;
 use App\Models\EmployeeShift;
 use App\Models\EmployeeShiftSchedule;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Storage;
+use Maatwebsite\Excel\Files\Filesystem;
 
 class EmployeeShiftScheduleObserver
 {
@@ -20,7 +24,6 @@ class EmployeeShiftScheduleObserver
 
     public function creating(EmployeeShiftSchedule $employeeShiftSchedule)
     {
-
         if (user()) {
             $employeeShiftSchedule->added_by = user()->id;
             $employeeShiftSchedule->shift_start_time = $employeeShiftSchedule->date->toDateString() . ' ' . $employeeShiftSchedule->shift->office_start_time;
@@ -42,6 +45,14 @@ class EmployeeShiftScheduleObserver
         if (user()) {
             event(new EmployeeShiftScheduleEvent($employeeShiftSchedule));
         }
+
+        if (request()->hasFile('file')) {
+            Files::deleteFile(request()->file, 'employee-shift-file/' . $employeeShiftSchedule->id);
+            $fileName = Files::uploadLocalOrS3(request()->file, 'employee-shift-file/' . $employeeShiftSchedule->id);
+
+            $employeeShiftSchedule->file = $fileName;
+            $employeeShiftSchedule->saveQuietly();
+        }
     }
 
     public function updating(EmployeeShiftSchedule $employeeShiftSchedule)
@@ -50,7 +61,7 @@ class EmployeeShiftScheduleObserver
             $employeeShiftSchedule->last_updated_by = user()->id;
         }
 
-        if (!isRunningInConsoleOrSeeding() && user()) {
+        if (!isRunningInConsoleOrSeeding() && user() && request()->employee_shift_id) {
             $shift = EmployeeShift::findOrFail(request()->employee_shift_id);
 
         }
@@ -73,6 +84,14 @@ class EmployeeShiftScheduleObserver
     {
         if (user() && $employeeShiftSchedule->isDirty('employee_shift_id')) {
             event(new EmployeeShiftScheduleEvent($employeeShiftSchedule));
+        }
+    }
+
+    public function deleting(EmployeeShiftSchedule $employeeShiftSchedule)
+    {
+        if ($employeeShiftSchedule->file) {
+            Files::deleteFile($employeeShiftSchedule->file, 'employee-shift-file/' . $employeeShiftSchedule->id);
+            Files::deleteDirectory('employee-shift-file/' . $employeeShiftSchedule->id);
         }
     }
 

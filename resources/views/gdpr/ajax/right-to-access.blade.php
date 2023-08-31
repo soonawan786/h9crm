@@ -14,7 +14,7 @@
                             @php
                             $userImage = $user->hasGravatar($user->email) ? str_replace('?s=200&d=mp', '', $user->image_url) : asset('img/avatar.png');
                             @endphp
-                            <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.profile.profilePicture')"
+                            <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.profile.profilePicture')"
                                 :fieldValue="($user->image ? $user->image_url : $userImage)" fieldName="image"
                                 fieldId="profile-image" :popover="__('modules.themeSettings.logoSize')" :popover="__('messages.fileFormat.ImageFile')">
                             </x-forms.file>
@@ -23,7 +23,7 @@
                         <div class="col-lg-6">
                             <x-forms.text class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.profile.yourName')"
                                 :fieldPlaceholder="__('placeholders.name')" fieldName="name" fieldId="name"
-                                :fieldValue="mb_ucwords($user->name)"></x-forms.text>
+                                :fieldValue="$user->name"></x-forms.text>
                         </div>
 
                         <div class="col-lg-6">
@@ -35,7 +35,7 @@
                         <div class="col-lg-6">
                             <x-forms.password class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.profile.yourPassword')"
                                 fieldName="password" fieldId="password" :fieldHelp="__('modules.client.passwordUpdateNote')"
-                                fieldPlaceholder="Must have at least 6 characters"></x-forms.password>
+                                :fieldPlaceholder="__('placeholders.password')"></x-forms.password>
                         </div>
 
                         <div class="col-lg-6">
@@ -60,7 +60,7 @@
                         <div class="col-md-6">
                             <x-forms.text class="mb-3 mt-3 mt-lg-0 mt-md-0" fieldId="website"
                                 :fieldLabel="__('modules.client.website')" fieldName="website"
-                                fieldPlaceholder="e.g. https://www.spacex.com/" :fieldValue="$user->clientDetails->website">
+                                :fieldPlaceholder="__('placeholders.website')" :fieldValue="$user->clientDetails->website">
                             </x-forms.text>
                         </div>
 
@@ -121,7 +121,7 @@
 <script>
     $(body).on('click', '#save-right-to-access-data', function() {
 
-        var url = "{{ route('profile.update', [auth()->user()->id]) }}";
+        var url = "{{ route('profile.update', [ser()->id]) }}";
 
         $.easyAjax({
             url: url,

@@ -22,10 +22,11 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|CurrencyFormatSetting whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|CurrencyFormatSetting whereNoOfDecimal($value)
  * @method static \Illuminate\Database\Eloquent\Builder|CurrencyFormatSetting whereThousandSeparator($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|CurrencyFormatSetting whereCompanyId($value)
+ * @property-read \App\Models\Currency $currency
+ * @mixin \Eloquent
  */
 class CurrencyFormatSetting extends BaseModel
 {

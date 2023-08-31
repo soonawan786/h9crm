@@ -2,12 +2,13 @@
 
 namespace App\Mail;
 
-use App\Models\TicketEmailSetting;
-use App\Models\TicketReply as ModelsTicketReply;
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
+use App\Models\TicketEmailSetting;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Config;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use App\Models\TicketReply as ModelsTicketReply;
 
 class TicketReply extends Mailable implements ShouldQueue
 {
@@ -22,10 +23,11 @@ class TicketReply extends Mailable implements ShouldQueue
      *
      * @return void
      */
-    public function __construct(ModelsTicketReply $ticketReply)
+    public function __construct(ModelsTicketReply $ticketReply, TicketEmailSetting $ticketEmailSetting)
     {
-        $this->ticketEmailSetting = TicketEmailSetting::first();
+        $this->ticketEmailSetting = $ticketEmailSetting;
         $this->ticketReply = $ticketReply;
+        Config::set('app.logo', $ticketEmailSetting->company->logo_url);
     }
 
     /**
@@ -45,17 +47,13 @@ class TicketReply extends Mailable implements ShouldQueue
                 ->view('emails.ticket.reply');
 
             if (!is_null($previousReply) && !is_null($previousReply->imap_message_id)) {
-                $this->withSwiftMessage(function ($message) use ($previousReply) {
-                    $message->getHeaders()->addTextHeader(
-                        'In-Reply-To', '<' . $previousReply->imap_message_id . '>'
-                    );
-
-                    ModelsTicketReply::where('id', $this->ticketReply->id)->update(['imap_message_id' => $message->getId()]);
-                });
+                ModelsTicketReply::where('id', $this->ticketReply->id)->update(['imap_message_id' => $previousReply->imap_message_id]);
             }
 
             return $this;
         }
+
+        return $this;
     }
 
 }

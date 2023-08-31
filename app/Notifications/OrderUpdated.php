@@ -50,6 +50,7 @@ class OrderUpdated extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
 
         if ($this->order) {
             $url = route('orders.show', $this->order->id);
@@ -57,13 +58,13 @@ class OrderUpdated extends BaseNotification
 
             $content = __('email.order.updateText');
 
-            return parent::build()
+            return $build
                 ->subject(__('email.order.updateSubject') . ' - ' . config('app.name') . '.')
                 ->markdown('mail.email', [
                     'url' => $url,
                     'content' => $content,
                     'themeColor' => $this->company->header_color,
-                    'actionText' => __('email.thankyouNote'),
+                    'actionText' => __('email.order.action'),
                     'notifiableName' => $notifiable->name
                 ]);
         }

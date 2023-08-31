@@ -8,6 +8,7 @@ use App\Helper\Files;
 use App\Helper\Reply;
 use App\Http\Requests\Invoices\StoreRecurringInvoice;
 use App\Http\Requests\Invoices\UpdateRecurringInvoice;
+use App\Models\BankAccount;
 use App\Models\CompanyAddress;
 use App\Models\Currency;
 use App\Models\Invoice;
@@ -66,10 +67,10 @@ class RecurringInvoiceController extends AccountBaseController
         $this->addPermission = user()->permission('add_invoices');
         abort_403(!in_array($this->addPermission, ['all', 'added']));
 
-        $this->pageTitle = __('app.add') . ' ' . __('app.invoiceRecurring');
+        $this->pageTitle = __('app.addInvoiceRecurring');
         $this->projects = Project::all();
         $this->currencies = Currency::all();
-        $this->unit_types = UnitType::all();
+        $this->units = UnitType::all();
         $this->lastInvoice = Invoice::lastInvoiceNumber() + 1;
         $this->invoiceSetting = InvoiceSetting::first();
         $this->zero = '';
@@ -86,13 +87,24 @@ class RecurringInvoiceController extends AccountBaseController
         $this->products = Product::select(['id', 'name as title', 'name as text'])->get();
         $this->clients = User::allClients();
 
+        $this->linkInvoicePermission = user()->permission('link_invoice_bank_account');
+        $this->viewBankAccountPermission = user()->permission('view_bankaccount');
+
+        $bankAccounts = BankAccount::where('status', 1)->where('currency_id', company()->currency_id);
+
+        if($this->viewBankAccountPermission == 'added'){
+            $bankAccounts = $bankAccounts->where('added_by', user()->id);
+        }
+
+        $bankAccounts = $bankAccounts->get();
+        $this->bankDetails = $bankAccounts;
+
         $this->view = 'recurring-invoices.ajax.create';
 
         if (request()->ajax()) {
             $html = view($this->view, $this->data)->render();
             return Reply::dataOnly(['status' => 'success', 'html' => $html, 'title' => $this->pageTitle]);
         }
-
 
         return view('recurring-invoices.create', $this->data);
     }
@@ -148,7 +160,7 @@ class RecurringInvoiceController extends AccountBaseController
         $recurringInvoice->discount_type = $request->discount_type;
         $recurringInvoice->total = round($request->total, 2);
         $recurringInvoice->currency_id = $request->currency_id;
-        $recurringInvoice->unit_id = $request->unit_type_id;
+        $recurringInvoice->bank_account_id = $request->bank_account_id;
         $recurringInvoice->note = trim_editor($request->note);
 
         $recurringInvoice->rotation = $request->rotation;
@@ -184,6 +196,7 @@ class RecurringInvoiceController extends AccountBaseController
             $invoice->show_shipping_address = $request->show_shipping_address;
             $invoice->send_status = 1;
             $invoice->company_address_id = $defaultAddress->id;
+            $invoice->bank_account_id = $recurringInvoice->bank_account_id;
             $invoice->save();
 
             if ($invoice->show_shipping_address) {
@@ -294,12 +307,24 @@ class RecurringInvoiceController extends AccountBaseController
 
         $this->projects = Project::all();
         $this->currencies = Currency::all();
-        $this->unit_types = UnitType::all();
+        $this->units = UnitType::all();
         abort_403($this->invoice->status == 'paid');
 
         $this->taxes = Tax::all();
         $this->products = Product::select('id', 'name as title', 'name as text')->get();
         $this->clients = User::allClients();
+
+        $this->linkInvoicePermission = user()->permission('link_invoice_bank_account');
+        $this->viewBankAccountPermission = user()->permission('view_bankaccount');
+
+        $bankAccounts = BankAccount::where('status', 1)->where('currency_id', $this->invoice->currency_id);
+
+        if($this->viewBankAccountPermission == 'added'){
+            $bankAccounts = $bankAccounts->where('added_by', user()->id);
+        }
+
+        $bankAccounts = $bankAccounts->get();
+        $this->bankDetails = $bankAccounts;
 
         if ($this->invoice->project_id != '') {
             $companyName = Project::where('id', $this->invoice->project_id)->with('clientdetails')->first();
@@ -334,6 +359,7 @@ class RecurringInvoiceController extends AccountBaseController
             $invoice_item_image = $request->invoice_item_image;
             $invoice_item_image_url = $request->invoice_item_image_url;
             $item_ids = $request->item_ids;
+            $productId = $request->product_id;
 
             foreach ($quantity as $qty) {
                 if (!is_numeric($qty) && (intval($qty) < 1)) {
@@ -371,7 +397,7 @@ class RecurringInvoiceController extends AccountBaseController
             $invoice->discount_type = $request->discount_type;
             $invoice->total = round($request->total, 2);
             $invoice->currency_id = $request->currency_id;
-            $invoice->unit_id = $request->unit_type_id;
+            $invoice->bank_account_id = $request->bank_account_id;
             $invoice->note = trim_editor($request->note);
 
             $invoice->rotation = $request->rotation;
@@ -404,11 +430,15 @@ class RecurringInvoiceController extends AccountBaseController
                     RecurringInvoiceItems::whereNotIn('id', $item_ids)->delete();
                 }
 
+                $unitId = request()->unit_id;
+                $product = request()->product_id;
+
+
                 // Step2&3 - Find old invoices items, update it and check if images are newer or older
                 foreach ($items as $key => $item) {
                     $invoice_item_id = isset($item_ids[$key]) ? $item_ids[$key] : 0;
 
-                    $invoiceItem = RecurringInvoiceItems::findOrFail($invoice_item_id);
+                    $invoiceItem = RecurringInvoiceItems::find($invoice_item_id);
 
                     if ($invoiceItem === null) {
                         $invoiceItem = new RecurringInvoiceItems();
@@ -418,8 +448,11 @@ class RecurringInvoiceController extends AccountBaseController
                     $invoiceItem->item_name = $item;
                     $invoiceItem->item_summary = $itemsSummary[$key];
                     $invoiceItem->type = 'item';
+                    $invoiceItem->product_id = (isset($productId[$key]) && !is_null($productId[$key])) ? $productId[$key] : null;
                     $invoiceItem->hsn_sac_code = (isset($hsn_sac_code[$key]) && !is_null($hsn_sac_code[$key])) ? $hsn_sac_code[$key] : null;
                     $invoiceItem->quantity = $quantity[$key];
+                    $invoiceItem->unit_id = (isset($unitId[$key]) && !is_null($unitId[$key])) ? $unitId[$key] : null;
+                    $invoiceItem->product_id = (isset($product[$key]) && !is_null($product[$key])) ? $product[$key] : null;
                     $invoiceItem->unit_price = round($cost_per_item[$key], 2);
                     $invoiceItem->amount = round($amount[$key], 2);
                     $invoiceItem->taxes = ($tax ? (array_key_exists($key, $tax) ? json_encode($tax[$key]) : null) : null);

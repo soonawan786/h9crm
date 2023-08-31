@@ -42,7 +42,7 @@
                 $bankName = isset($expense->transactions[0]) && $expense->transactions[0]->bankAccount->bank_name ? $expense->transactions[0]->bankAccount->bank_name.' |' : ''
             @endphp
             <x-cards.data-row :label="__('app.menu.bankaccount')"
-            :value="(count($expense->transactions) > 0  ? $bankName.' '.mb_ucwords($expense->transactions[0]->bankAccount->account_name) : '--')" />
+            :value="(count($expense->transactions) > 0  ? $bankName.' '.$expense->transactions[0]->bankAccount->account_name : '--')" />
 
             <div class="col-12 px-0 pb-3 d-lg-flex d-md-flex d-block">
                 <p class="mb-0 text-lightest f-14 w-30 text-capitalize">
@@ -67,7 +67,8 @@
                 </p>
             </div>
             <x-cards.data-row :label="__('app.description')"
-                :value="(!is_null($expense->description) ? strip_tags($expense->description) : '--')" />
+            :value="!empty($expense->description) ? $expense->description : '--'"
+            html="true"/>
 
             <div class="col-12 px-0 pb-3 d-lg-flex d-md-flex d-block">
                 <p class="mb-0 text-lightest f-14 w-30 text-capitalize">

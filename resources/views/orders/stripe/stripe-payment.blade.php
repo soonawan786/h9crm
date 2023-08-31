@@ -10,7 +10,7 @@
 <div class="col-lg-12 col-md-12 text-center mt-2 mb-2">
     <x-forms.button-cancel data-dismiss="modal" class="border-0 mr-3">@lang('app.close')</x-forms.button-cancel>
     <button type="submit" class="btn-primary rounded f-15" id="card-button" data-secret="{{ $intent->client_secret }}">
-            <i class="fa fa-check mr-1"></i> {{ __('Pay') }}
+            <i class="fa fa-check mr-1"></i> {{ __('app.pay') }}
     </button>
 </div>
 

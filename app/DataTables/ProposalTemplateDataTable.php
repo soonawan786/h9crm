@@ -5,12 +5,16 @@ namespace App\DataTables;
 use App\DataTables\BaseDataTable;
 use App\Models\ProposalTemplate;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\DB;
-use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
 
 class ProposalTemplateDataTable extends BaseDataTable
 {
+
+    private $viewProposalPermission;
+    private $addProposalPermission;
+    private $editProposalsPermission;
+    private $deleteProposalPermission;
+    private $manageProposalTemplate;
 
     public function __construct()
     {
@@ -21,7 +25,6 @@ class ProposalTemplateDataTable extends BaseDataTable
         $this->editProposalsPermission = user()->permission('edit_lead_proposals');
         $this->deleteProposalPermission = user()->permission('delete_lead_proposals');
         $this->manageProposalTemplate = user()->permission('manage_proposal_template');
-
     }
 
     /**
@@ -47,14 +50,14 @@ class ProposalTemplateDataTable extends BaseDataTable
                 $action .= ' <a href="' . route('proposal-template.show', [$row->id]) . '" class="dropdown-item"><i class="fa fa-eye mr-2"></i>' . __('app.view') . '</a>';
 
                 if ($this->addProposalPermission == 'all' || $this->addProposalPermission == 'added') {
-                    $action .= '<a class="dropdown-item openRightModal" href="' . route('proposals.create') . '?template=' . $row->id . '">
+                    $action .= '<a class="dropdown-item" href="' . route('proposals.create') . '?template=' . $row->id . '">
                         <i class="fa fa-plus mr-2"></i>
                         ' . trans('app.create') . ' ' . trans('app.menu.proposal') . '
                     </a>';
                 }
 
                 if ($this->manageProposalTemplate == 'all' || $this->manageProposalTemplate == 'added') {
-                    $action .= '<a class="dropdown-item openRightModal" href="' . route('proposal-template.edit', [$row->id]) . '">
+                    $action .= '<a class="dropdown-item" href="' . route('proposal-template.edit', [$row->id]) . '">
                             <i class="fa fa-edit mr-2"></i>
                             ' . trans('app.edit') . '
                         </a>';
@@ -95,7 +98,7 @@ class ProposalTemplateDataTable extends BaseDataTable
     public function query(ProposalTemplate $model)
     {
         $request = $this->request();
-        $model = $model->select('proposal_templates.id', 'proposal_templates.name', 'proposal_templates.hash', 'total', 'currencies.currency_symbol', 'currencies.id as currencyId', 'proposal_templates.added_by')
+        $model = $model->select('proposal_templates.id', 'proposal_templates.name', 'proposal_templates.hash', 'total', 'currencies.currency_symbol', 'currencies.id as currencyId', 'proposal_templates.added_by', 'proposal_templates.created_at')
             ->join('currencies', 'currencies.id', '=', 'proposal_templates.currency_id');
 
         if ($this->manageProposalTemplate == 'added') {
@@ -142,11 +145,11 @@ class ProposalTemplateDataTable extends BaseDataTable
     protected function getColumns()
     {
         return [
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id')],
-            __('modules.proposals.name') => ['data' => 'name', 'name' => 'name', 'title' => __('modules.proposal.name')],
+            __('modules.proposal.name') => ['data' => 'name', 'name' => 'name', 'title' => __('modules.proposal.name')],
             __('modules.invoices.total') => ['data' => 'total', 'name' => 'total', 'title' => __('modules.invoices.total')],
-            __('app.date') => ['data' => 'created_at', 'name' => 'leads.created_at', 'title' => __('app.date')],
+            __('app.date') => ['data' => 'created_at', 'name' => 'created_at', 'title' => __('app.date')],
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -154,16 +157,6 @@ class ProposalTemplateDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'proposal_templates_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

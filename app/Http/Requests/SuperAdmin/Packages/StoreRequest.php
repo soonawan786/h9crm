@@ -3,7 +3,6 @@
 namespace App\Http\Requests\SuperAdmin\Packages;
 
 use App\Models\SuperAdmin\GlobalPaymentGatewayCredentials;
-use App\Models\SuperAdmin\StripeSetting;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreRequest extends FormRequest
@@ -37,8 +36,8 @@ class StoreRequest extends FormRequest
 
         $gateways = GlobalPaymentGatewayCredentials::first();
 
-        if(!$this->has('is_free') && $this->has('monthly_status')){
-            $data['monthly_price'] = 'required';
+        if(request()->package_type == 'paid' && $this->has('monthly_status')){
+            $data['monthly_price'] = 'required|numeric|gt:0';
 
 
             if(($this->get('annual_price') > 0 && $this->get('monthly_price') > 0 ) && $gateways->razorpay_status == 'active'){
@@ -47,8 +46,8 @@ class StoreRequest extends FormRequest
             }
         }
 
-        if(!$this->has('is_free') && $this->has('annual_status')){
-            $data['annual_price'] = 'required';
+        if(request()->package_type == 'paid' && $this->has('annual_status')){
+            $data['annual_price'] = 'required|numeric|gt:0';
 
             if($this->get('annual_price') > 0 && $this->get('monthly_price') > 0 && $gateways->stripe_status == 'active'){
                 $data['stripe_annual_plan_id'] = 'required';
@@ -57,14 +56,6 @@ class StoreRequest extends FormRequest
         }
 
         return $data;
-    }
-
-    public function messages()
-    {
-        return [
-            'max_storage_size.gte' => __('validation.max_storage_size'),
-        ];
-
     }
 
 }

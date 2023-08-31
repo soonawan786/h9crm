@@ -37,7 +37,7 @@
                                     @foreach ($teams as $team)
                                         <option
                                             {{ isset($notice->department_id) && $notice->department_id == $team->id ? 'selected' : '' }}
-                                            value="{{ $team->id }}">{{ mb_ucfirst($team->team_name) }}</option>
+                                            value="{{ $team->id }}">{{ $team->team_name }}</option>
                                     @endforeach
                                 </x-forms.select>
                             </div>
@@ -72,7 +72,7 @@
 <script>
     $(document).ready(function() {
 
-        quillImageLoad('#description');
+        quillMention(null, '#description');
 
         // show/hide project detail
         $(document).on('change', 'input[type=radio][name=to]', function() {

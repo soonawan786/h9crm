@@ -33,7 +33,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|SubTask whereTaskId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SubTask whereTitle($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SubTask whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property string|null $description
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\SubTaskFile[] $files
  * @property-read int|null $files_count
@@ -41,11 +40,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $assigned_to
  * @property-read \App\Models\User|null $assignedTo
  * @method static \Illuminate\Database\Eloquent\Builder|SubTask whereAssignedTo($value)
+ * @mixin \Eloquent
  */
 class SubTask extends BaseModel
 {
 
-    protected $dates = ['due_date', 'start_date'];
+    protected $casts = [
+        'start_date' => 'datetime',
+        'due_date' => 'datetime',
+    ];
 
     protected $with = ['assignedTo'];
 

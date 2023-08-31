@@ -25,10 +25,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|Pinned whereTaskId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Pinned whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Pinned whereUserId($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Pinned whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class Pinned extends BaseModel
 {

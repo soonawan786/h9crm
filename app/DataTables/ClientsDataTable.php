@@ -27,6 +27,7 @@ class ClientsDataTable extends BaseDataTable
         $this->viewClientPermission = user()->permission('view_clients');
         $this->editClientPermission = user()->permission('edit_clients');
         $this->deleteClientPermission = user()->permission('delete_clients');
+        $this->deleteClientPermission = user()->permission('delete_clients');
     }
 
     /**
@@ -82,7 +83,7 @@ class ClientsDataTable extends BaseDataTable
         });
 
         $datatables->addColumn('client_name', function ($row) {
-            return ucfirst($row->name);
+            return $row->name;
         });
 
         $datatables->addColumn('added_by', function ($row) {
@@ -120,10 +121,9 @@ class ClientsDataTable extends BaseDataTable
         });
 
         // Add Custom Field to datatable
-        $datatables->rawColumns(['name', 'action', 'status', 'check']);
+        $customFieldColumns = CustomField::customFieldData($datatables, ClientDetails::CUSTOM_FIELD_MODEL, 'clientDetails');
 
-        CustomField::customFieldData($datatables, ClientDetails::CUSTOM_FIELD_MODEL);
-
+        $datatables->rawColumns(array_merge(['name', 'action', 'status', 'check'], $customFieldColumns));
 
         return $datatables;
     }
@@ -245,7 +245,7 @@ class ClientsDataTable extends BaseDataTable
                 'orderable' => false,
                 'searchable' => false
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => !showId()],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => !showId(), 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id'), 'visible' => showId()],
             __('app.name') => ['data' => 'name', 'name' => 'name', 'exportable' => false, 'title' => __('app.name')],
             __('app.customers') => ['data' => 'client_name', 'name' => 'users.name', 'visible' => false, 'title' => __('app.customers')],
@@ -253,7 +253,10 @@ class ClientsDataTable extends BaseDataTable
             __('app.addedBy') => ['data' => 'added_by', 'name' => 'added_by', 'visible' => false, 'title' => __('app.addedBy')],
             __('app.mobile') => ['data' => 'mobile', 'name' => 'mobile', 'visible' => false, 'title' => __('app.mobile')],
             __('app.status') => ['data' => 'status', 'name' => 'status', 'title' => __('app.status')],
-            __('app.createdAt') => ['data' => 'created_at', 'name' => 'created_at', 'title' => __('app.createdAt')],
+            __('app.createdAt') => ['data' => 'created_at', 'name' => 'created_at', 'title' => __('app.createdAt')]
+        ];
+
+        $action = [
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -262,17 +265,7 @@ class ClientsDataTable extends BaseDataTable
                 ->addClass('text-right pr-20')
         ];
 
-        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new ClientDetails()));
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'clients_' .now()->format('Y-m-d-H-i-s');
+        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new ClientDetails()), $action);
     }
 
 }

@@ -37,6 +37,7 @@ $deleteTicketPermission = user()->permission('delete_tickets');
 $manageTypePermission = user()->permission('manage_ticket_type');
 $manageAgentPermission = user()->permission('manage_ticket_agent');
 $manageChannelPermission = user()->permission('manage_ticket_channel');
+$manageGroupPermission = user()->permission('manage_ticket_groups');
 @endphp
 
 @section('filter-section')
@@ -96,7 +97,7 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                             {{ $ticket->created_at->timezone(company()->timezone)->translatedFormat(company()->date_format . ' ' . company()->time_format) }}
                         </p>
                     </span>
-                    <span>
+                    <span id="ticketStatusBadge">
                         @if ($ticket->status == 'open')
                             @php
                                 $statusColor = 'red';
@@ -115,6 +116,7 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                             @endphp
                         @endif
                         <p class="mb-0 text-capitalize ticket-status">
+                           {!! $ticket->badge('span') !!}
                             <x-status :color="$statusColor" :value="__('app.'. $ticket->status)" />
                         </p>
                     </span>
@@ -147,7 +149,7 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                     </div>
                     <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2 upload-section d-none"
                         fieldLabel=""
-                        fieldName="file[]" fieldId="task-file-upload-dropzone" />
+                        fieldName="file[]" fieldId="ticket-file-upload-dropzone" />
                 </div>
 
                 <div class="ticket-reply-back justify-content-start px-lg-4 px-md-4 px-3 py-3  d-flex bg-white border-top-grey border-right-grey"
@@ -165,7 +167,7 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                     @if ($editTicketPermission == 'all'
                     || ($editTicketPermission == 'added' && user()->id == $ticket->added_by)
                     || ($editTicketPermission == 'owned' && (user()->id == $ticket->user_id || $ticket->agent_id == user()->id))
-                    || ($editTicketPermission == 'both' && (user()->id == $ticket->user_id || $ticket->agent_id == user()->id || $row->added_by == user()->id)))
+                    || ($editTicketPermission == 'both' && (user()->id == $ticket->user_id || $ticket->agent_id == user()->id || $ticket->added_by == user()->id)))
                         <div class="inv-action dropup mr-3">
                             <button class="btn-primary dropdown-toggle" type="button" data-toggle="dropdown"
                                 aria-haspopup="true" aria-expanded="false">
@@ -219,7 +221,7 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                             <ul class="dropdown-menu" aria-labelledby="dropdownMenuBtn" tabindex="0">
                                 @forelse($templates as $template)
                                     <li><a href="javascript:;" data-template-id="{{ $template->id }}"
-                                            class="dropdown-item f-14 text-dark apply-template">{{ ucfirst($template->reply_heading) }}</a>
+                                            class="dropdown-item f-14 text-dark apply-template">{{ $template->reply_heading }}</a>
                                     </li>
                                 @empty
                                     <li><a class="dropdown-item f-14 text-dark">@lang('messages.noTemplateFound')</a></li>
@@ -262,7 +264,28 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                             <!-- TICKET FILTERS START -->
                             <div class="ticket-filters p-4 w-100 position-relative border-bottom">
                                 <div class="more-filter-items mb-4">
+                                    @foreach ($groups as $group)
 
+                                            @endforeach
+                                    <x-forms.label class="my-3" fieldId="group_id"
+                                        :fieldLabel="__('modules.tickets.assignGroup')">
+                                    </x-forms.label>
+                                    <x-forms.input-group>
+                                        <select class="form-control select-picker " name="group_id" id="group_id"
+                                            data-live-search="true" data-container="body" data-size="8">
+                                            @foreach ($groups as $group)
+                                                <option @if($group->id == $ticket->group_id) selected @endif value="{{ $group->id }}">{{ $group->group_name }}</option>
+                                            @endforeach
+                                        </select>
+                                        @if($manageGroupPermission == 'all')
+                                            <x-slot name="append">
+                                                <button id="manage-groups" type="button"
+                                                    class="btn btn-outline-secondary border-grey">@lang('app.add')</button>
+                                            </x-slot>
+                                        @endif
+                                    </x-forms.input-group>
+                                </div>
+                                <div class="more-filter-items mb-4">
                                     <x-forms.label class="my-3" fieldId="agent_id"
                                         :fieldLabel="__('modules.tickets.agent')">
                                     </x-forms.label>
@@ -270,15 +293,6 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                                         <select class="form-control select-picker " name="agent_id" id="agent_id"
                                             data-live-search="true" data-container="body" data-size="8">
                                             <option value="">--</option>
-                                            @foreach ($groups as $group)
-                                                @if (count($group->enabledAgents) > 0)
-                                                    <optgroup label="{{ mb_ucwords($group->group_name) }}">
-                                                        @foreach ($group->enabledAgents as $agent)
-                                                            <x-user-option :user="$agent->user" :selected="$agent->user->id == $ticket->agent_id"></x-user-option>
-                                                        @endforeach
-                                                    </optgroup>
-                                                @endif
-                                            @endforeach
                                         </select>
                                         @if ($manageAgentPermission == 'all')
                                             <x-slot name="append">
@@ -291,10 +305,18 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                                 <div class="more-filter-items">
                                     <x-forms.select fieldId="priority" :fieldLabel="__('modules.tasks.priority')"
                                         fieldName="priority" data-container="body">
-                                        <option @if ($ticket->priority == 'low') selected @endif value="low">@lang('app.low')</option>
-                                        <option @if ($ticket->priority == 'medium') selected @endif value="medium">@lang('app.medium')</option>
-                                        <option @if ($ticket->priority == 'high') selected @endif value="high">@lang('app.high')</option>
-                                        <option @if ($ticket->priority == 'urgent') selected @endif value="urgent">@lang('app.urgent')</option>
+                                        <option @if ($ticket->priority == 'low') selected @endif value="low"
+                                            data-content="<i class='fa fa-circle mr-2 text-dark-green'></i> {{ __('app.low')}}"
+                                            >@lang('app.low')</option>
+                                        <option @if ($ticket->priority == 'medium') selected @endif value="medium"
+                                            data-content="<i class='fa fa-circle mr-2 text-blue'></i> {{ __('app.medium')}}"
+                                            >@lang('app.medium')</option>
+                                        <option @if ($ticket->priority == 'high') selected @endif value="high"
+                                            data-content="<i class='fa fa-circle mr-2 text-warning'></i> {{ __('app.high')}}"
+                                            >@lang('app.high')</option>
+                                        <option @if ($ticket->priority == 'urgent') selected @endif value="urgent"
+                                            data-content="<i class='fa fa-circle mr-2 text-red'></i> {{ __('app.urgent')}}"
+                                            >@lang('app.urgent')</option>
                                     </x-forms.select>
                                 </div>
                                 <div class="more-filter-items mb-4">
@@ -307,7 +329,7 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                                             <option value="">--</option>
                                             @foreach ($types as $type)
                                                 <option @if ($type->id == $ticket->type_id) selected @endif value="{{ $type->id }}">
-                                                    {{ mb_ucwords($type->type) }}</option>
+                                                    {{ $type->type }}</option>
                                             @endforeach
                                         </select>
                                         @if ($manageTypePermission == 'all')
@@ -328,7 +350,7 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                                             <option value="">--</option>
                                             @foreach ($channels as $channel)
                                                 <option @if ($channel->id == $ticket->channel_id) selected @endif value="{{ $channel->id }}">
-                                                    {{ mb_ucwords($channel->channel_name) }}
+                                                    {{ $channel->channel_name }}
                                                 </option>
                                             @endforeach
                                         </select>
@@ -383,7 +405,7 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                         <div class="card-horizontal bg-white-shade ticket-contact-owner p-4 rounded-0">
                             <div class="card-img mr-3">
                                 <img class="___class_+?88___" src="{{ $ticket->requester->image_url }}"
-                                    alt="{{ mb_ucwords($ticket->requester->name) }}">
+                                    alt="{{ $ticket->requester->name }}">
                             </div>
                             <div class="card-body border-0 p-0 w-100">
                                 <h4 class="card-title f-14 font-weight-normal mb-0">
@@ -392,7 +414,7 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                                     @else
                                         href="{{ route('clients.show', $ticket->requester->id) }}"
                                     @endif>
-                                    {{ mb_ucwords($ticket->requester->name) }}
+                                    {{ $ticket->requester->name }}
                                     </a>
                                 </h4>
                                 @if ($ticket->requester->country_id)
@@ -431,10 +453,10 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                                                 <div class="r-t-items-right ">
                                                     <h3 class="f-14 font-weight-bold">
                                                         <a class="text-dark"
-                                                            href="{{ route('tickets.show', $item->id) }}">{{ $item->subject }}</a>
+                                                            href="{{ route('tickets.show', $item->ticket_number) }}">{{ $item->subject }}</a>
                                                     </h3>
                                                     <span class="d-flex mb-1">
-                                                        <span class="mr-3 f-w-500 text-dark-grey">#{{ $item->id }}</span>
+                                                        <span class="mr-3 f-w-500 text-dark-grey">#{{ $item->ticket_number }}</span>
                                                         @if ($item->status == 'open')
                                                             @php
                                                                 $statusColor = 'red';
@@ -526,7 +548,7 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
 
             Dropzone.autoDiscover = false;
         //Dropzone class
-        taskDropzone = new Dropzone("div#task-file-upload-dropzone", {
+        ticketDropzone = new Dropzone("div#ticket-file-upload-dropzone", {
             dictDefaultMessage: "{{ __('app.dragDrop') }}",
             url: "{{ route('ticket-files.store') }}",
             headers: {
@@ -534,28 +556,50 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
             },
             paramName: "file",
             maxFilesize: DROPZONE_MAX_FILESIZE,
-            maxFiles: 10,
+            maxFiles: DROPZONE_MAX_FILES,
             autoProcessQueue: false,
             uploadMultiple: true,
             addRemoveLinks: true,
-            parallelUploads: 10,
+            parallelUploads: DROPZONE_MAX_FILES,
             acceptedFiles: DROPZONE_FILE_ALLOW,
             init: function() {
-                taskDropzone = this;
+                ticketDropzone = this;
             }
         });
-        taskDropzone.on('sending', function(file, xhr, formData) {
+        ticketDropzone.on('sending', function(file, xhr, formData) {
             var ids = $('#ticket_reply_id').val();
             formData.append('ticket_reply_id', ids);
             formData.append('ticket_id', '{{ $ticket->id }}');
             $.easyBlockUI();
         });
-        taskDropzone.on('uploadprogress', function() {
+        ticketDropzone.on('uploadprogress', function() {
             $.easyBlockUI();
         });
-        taskDropzone.on('completemultiple', function() {
+        ticketDropzone.on('queuecomplete', function() {
             var msgs = "@lang('messages.addDiscussion')";
             window.location.href = "{{ route('tickets.show', $ticket->ticket_number) }}";
+        });
+        ticketDropzone.on('removedfile', function () {
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).removeClass("has-error");
+            $(label).removeClass("is-invalid");
+        });
+        ticketDropzone.on('error', function (file, message) {
+            ticketDropzone.removeFile(file);
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).find(".help-block").remove();
+            var helpBlockContainer = $(grp);
+
+            if (helpBlockContainer.length == 0) {
+                helpBlockContainer = $(grp);
+            }
+
+            helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+            $(grp).addClass("has-error");
+            $(label).addClass("is-invalid");
+
         });
 
         $('.submit-ticket').click(function() {
@@ -576,9 +620,9 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                 success: function(response) {
 
                     if (response.status == 'success') {
-                        if (taskDropzone.getQueuedFiles().length > 0) {
+                        if (ticketDropzone.getQueuedFiles().length > 0) {
                             $('#ticket_reply_id').val(response.reply_id);
-                            taskDropzone.processQueue();
+                            ticketDropzone.processQueue();
                         } else {
                             window.location.href = "{{ route('tickets.show', $ticket->ticket_number) }}";
                         }
@@ -626,7 +670,7 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
                                     '<i class="fa fa-circle mr-2 text-red"></i>@lang("app.open")';
                                 break;
                         }
-                        $('.ticket-status').html(statusHtml);
+                        $('#ticketStatusBadge').html(statusHtml);
                     }
                 }
             })
@@ -808,5 +852,51 @@ $manageChannelPermission = user()->permission('manage_ticket_channel');
         }
 
         scrollToBottom('ticketMsg');
+
+        getAgents($('#group_id').val());
+
+        function getAgents(groupId){
+            var url = "{{ route('tickets.agent_group', ':id').'?ticketNumber='.$ticket->ticket_number}}";
+            url = url.replace(':id', groupId);
+            // alert(url);
+            // var ticket_number = "{{$ticket->ticket_number}}"
+            // alert(ticket);
+            $.easyAjax({
+                url: url,
+                type: "GET",
+                // data: ticket_number,
+                success: function(response)
+                {
+                    var options = [];
+                    var rData = [];
+                    if($.isArray(response.data))
+                    {
+                        rData = response.data;
+                        $.each(rData, function(index, value) {
+                            var selectData = '';
+                            options.push(value);
+                        });
+                        $('#agent_id').html('<option value="">--</option>' + options);
+                    }
+                    else
+                    {
+                        $('#agent_id').html(response.data);
+                    }
+                    $('#agent_id').selectpicker('refresh');
+                }
+            });
+        }
+
+        $('#group_id').change(function(){
+            var id = $(this).val();
+            getAgents(id)
+        });
+
+        $('#manage-groups').click(function() {
+            var url = "{{ route('ticket-groups.create') }}";
+            $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
+            $.ajaxModal(MODAL_LG, url);
+        });
+
     </script>
 @endpush

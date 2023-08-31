@@ -14,11 +14,14 @@ class TicketRequesterEvent
 
     public $ticket;
     public $notifyUser;
+    public $mentionUser;
 
-    public function __construct(Ticket $ticket, $notifyUser)
+    public function __construct(Ticket $ticket, $mentionUser = null, $notifyUser = null)
     {
         $this->ticket = $ticket;
         $this->notifyUser = $notifyUser;
+        $this->mentionUser = $mentionUser;
+
     }
 
 }

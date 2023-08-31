@@ -5,12 +5,7 @@
     <!-- SETTINGS START -->
     <div class="w-100 d-flex ">
 
-        {{-- WORKSUITESAAS --}}
-        @if(user()->is_superadmin)
-            <x-super-admin.setting-sidebar :activeMenu="$activeSettingMenu"/>
-        @else
-            <x-setting-sidebar :activeMenu="$activeSettingMenu"/>
-        @endif
+        @include('sections.setting-sidebar')
 
         <x-setting-card>
             <x-slot name="header">
@@ -67,6 +62,7 @@
 @endsection
 
 @push('scripts')
+<script src="{{ asset('vendor/jquery/clipboard.min.js') }}"></script>
 
     <script>
         /* manage menu active class */
@@ -110,6 +106,26 @@
                 success: function () {
                     window.location.reload();
                 }
+            })
+        });
+
+        var clipboard = new ClipboardJS('.btn-copy');
+        clipboard.on('success', function () {
+            Swal.fire({
+                icon: 'success',
+                text: '@lang("app.webhookUrlCopied")',
+                toast: true,
+                position: 'top-end',
+                timer: 3000,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                customClass: {
+                    confirmButton: 'btn btn-primary',
+                },
+                showClass: {
+                    popup: 'swal2-noanimation',
+                    backdrop: 'swal2-noanimation'
+                },
             })
         });
 

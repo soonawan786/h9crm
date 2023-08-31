@@ -49,7 +49,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|Leave whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Leave whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Leave whereUserId($value)
- * @mixin \Eloquent
  * @property string|null $event_id
  * @method static \Illuminate\Database\Eloquent\Builder|Leave whereEventId($value)
  * @property int|null $company_id
@@ -66,6 +65,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $approve_reason
  * @method static \Illuminate\Database\Eloquent\Builder|Leave whereApproveReason($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Leave whereManagerStatusPermission($value)
+ * @property string|null $unique_id
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\LeaveFile> $files
+ * @property-read int|null $files_count
+ * @property-read \App\Models\Leave|null $ldate
+ * @method static \Illuminate\Database\Eloquent\Builder|Leave whereUniqueId($value)
+ * @mixin \Eloquent
  */
 class Leave extends BaseModel
 {
@@ -73,7 +78,10 @@ class Leave extends BaseModel
     use HasFactory;
     use HasCompany;
 
-    protected $dates = ['leave_date', 'approved_at'];
+    protected $casts = [
+        'leave_date' => 'datetime',
+        'approved_at' => 'datetime',
+    ];
     protected $guarded = ['id'];
     protected $appends = ['date']; // Being used in attendance
 
@@ -146,8 +154,8 @@ class Leave extends BaseModel
             $user = User::withoutGlobalScope(ActiveScope::class)->withOut('clientDetails', 'role')->findOrFail($user);
         }
 
-        $leaveFrom = (is_null($year)) ? now(company()->timezone)->startOfYear()->toDateString() : Carbon::createFromFormat('m-Y', company()->year_starts_from.'-'.$year)->startOfMonth()->toDateString();
-        $leaveTo = (is_null($year)) ? now(company()->timezone)->endOfYear()->toDateString() : Carbon::parse($leaveFrom)->addYear()->subDay()->toDateString();
+        $leaveFrom = (is_null($year)) ? Carbon::createFromFormat('d-m-Y', '01-'.company()->year_starts_from.'-'.now(company()->timezone)->year)->startOfMonth()->toDateString() : Carbon::createFromFormat('d-m-Y', '01-'.company()->year_starts_from.'-'.$year)->startOfMonth()->toDateString();
+        $leaveTo = Carbon::parse($leaveFrom)->addYear()->subDay()->toDateString();
 
         if ($setting->leaves_start_from == 'joining_date' && isset($user->employee[0])) {
             $currentYearJoiningDate = Carbon::parse($user->employee[0]->joining_date->format((now(company()->timezone)->year) . '-m-d'));

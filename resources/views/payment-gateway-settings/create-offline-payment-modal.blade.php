@@ -10,12 +10,12 @@
             <div class="form-body">
                 <div class="form-group">
                     <x-forms.text class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.offlinePayment.method')"
-                                  fieldPlaceholder="e.g. cash" fieldName="name" fieldId="name" fieldRequired="true"></x-forms.text>
+                                :fieldPlaceholder="__('placeholders.offlinePayment.method')" fieldName="name" fieldId="name" fieldRequired="true"></x-forms.text>
                 </div>
                 <div class="form-group">
                     <x-forms.textarea class="mr-0 mr-lg-2 mr-md-2"
                                       :fieldLabel="__('modules.offlinePayment.description')" fieldName="description"
-                                      fieldId="description" fieldPlaceholder="e.g. via USD dollar" fieldRequired="true">
+                                      fieldId="description" :fieldPlaceholder="__('placeholders.offlinePayment.description')" fieldRequired="true">
                     </x-forms.textarea>
                 </div>
             </div>

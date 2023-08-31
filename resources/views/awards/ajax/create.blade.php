@@ -8,33 +8,32 @@
         <x-form id="createAppreciationType">
             <div class="add-client bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
-                    @lang('app.add') @lang('modules.appreciations.appreciationType')</h4>
+                    @lang('modules.appreciations.addAppreciationType')</h4>
                 <div class="row p-20">
                     <div class="col-lg-12">
                         <div class="row">
-                            <div class="col-lg-6 col-md-6">
+                            <div class="col-lg-6 col-md-6 col-xl-5">
                                 <x-forms.text fieldId="title" :fieldLabel="__('app.title')"
                                               fieldName="title" fieldRequired="true" :fieldPlaceholder="__('placeholders.appreciation.title')">
                                 </x-forms.text>
                             </div>
-                            <div class="col-lg-6 col-md-6">
+                            <div class="col-lg-6 col-md-6 col-xl-3">
                                 <x-forms.label class="mt-3" fieldId="icon"
                                                :fieldLabel="__('modules.appreciations.chooseIcon')" fieldRequired="true">
                                 </x-forms.label>
                                 <x-forms.input-group>
                                     <select class="form-control select-picker" name="icon" id="icon"
                                             data-live-search="true">
-                                        <option value="">--</option>
                                         @foreach ($icons as $item)
                                             <option data-icon="{{ $item->icon }}" data-content="<i class='bi bi-{{ $item->icon }}'></i> {{ $item->title }}" value="{{ $item->id }}">
-                                                {{ mb_ucwords($item->title) }}
+                                                {{ $item->title }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </x-forms.input-group>
                             </div>
 
-                            <div class="col-md-6 col-lg-4">
+                            <div class="col-md-6 col-lg-4 col-xl-3">
                                 <div class="form-group my-3">
                                     <x-forms.label fieldId="colorselector" fieldRequired="true"
                                         :fieldLabel="__('modules.awards.backgroundColor')">
@@ -50,7 +49,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-sm-6">
+                            <div class="col-sm-6 col-xl-1 text-right">
                                 <div class="position-relative icon-preview d-flex d-none mt-5">
 
                                 </div>
@@ -85,16 +84,21 @@
         });
 
         $('#icon, #colorselector').on('change', function(e) {
+           showIconPreview();
+        });
+
+        function showIconPreview() {
             var iconData = $('#icon').find(':selected').data('icon');
 
             var color = $('#colorselector').val();
 
             $('.icon-preview').show();
-            var iconDataBackground = '<i class="bi bi-'+iconData+' f-15 text-white position-absolute appreciation-icon"></i>'+
-            '<i class="bi bi-hexagon-fill fs-40" style="color: '+color+'; font-size:40px !important;"></i>';
+            var iconDataBackground = `<span class="align-items-center d-inline-flex height-40 justify-content-center rounded width-40" style="background-color: ${color}20;">
+                    <i class="bi bi-${iconData} f-15 text-white appreciation-icon" style="color: ${color}  !important"></i>
+                </span>`;
 
             $('.icon-preview').html(iconDataBackground);
-        });
+        }
 
         $('#save-appreciationType').click(function() {
             var url = "{{ route('awards.store') }}";
@@ -118,6 +122,9 @@
                 }
             })
         });
+
+        showIconPreview();
+
         init(RIGHT_MODAL);
     });
 </script>

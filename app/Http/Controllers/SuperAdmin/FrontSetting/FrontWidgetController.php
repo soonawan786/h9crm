@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\SuperAdmin\FrontWidget;
 use App\Http\Controllers\AccountBaseController;
 use App\Http\Requests\SuperAdmin\FrontWidget\StoreRequest;
+use App\Models\GlobalSetting;
 
 class FrontWidgetController extends AccountBaseController
 {
@@ -16,6 +17,12 @@ class FrontWidgetController extends AccountBaseController
         parent::__construct();
         $this->pageTitle = 'superadmin.menu.frontWidgets';
         $this->activeSettingMenu = 'front_widgets';
+
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_front_settings'));
+
+            return $next($request);
+        });
     }
 
     public function index()

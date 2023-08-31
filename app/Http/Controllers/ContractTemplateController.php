@@ -59,7 +59,7 @@ class ContractTemplateController extends AccountBaseController
         $this->currencies = Currency::all();
 
         if (request()->ajax()) {
-            $this->pageTitle = __('app.add') . ' ' . __('app.menu.contractTemplate');
+            $this->pageTitle = __('app.menu.addContractTemplate');
             $html = view('contract-template.ajax.create', $this->data)->render();
             return Reply::dataOnly(['status' => 'success', 'html' => $html, 'title' => $this->pageTitle]);
         }
@@ -189,5 +189,5 @@ class ContractTemplateController extends AccountBaseController
         $contract->destroy($id);
         return Reply::success(__('messages.deleteSuccess'));
     }
-    
+
 }

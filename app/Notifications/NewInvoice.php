@@ -56,6 +56,7 @@ class NewInvoice extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $newInvoice = parent::build();
 
         if (($this->invoice->project && !is_null($this->invoice->project->client)) || !is_null($this->invoice->client_id)) {
             // For Sending pdf to email
@@ -69,7 +70,6 @@ class NewInvoice extends BaseNotification
                 $url = getDomainSpecificUrl($url, $this->company);
                 //$content = __('email.invoice.text');
                 $content = __('email.invoice.line1').PHP_EOL. PHP_EOL .__('email.invoice.line2').PHP_EOL.PHP_EOL.PHP_EOL.__('email.invoice.symbol_at').$this->company->company_name.__('email.invoice.line3').PHP_EOL.PHP_EOL.__('email.invoice.line4').PHP_EOL.PHP_EOL.__('email.invoice.line5').'. Please click on the link below to view invoice.';
-                $newInvoice = parent::build();
                 $newInvoice->subject(__('email.invoice.subject') . ' - ' . config('app.name') . '.')
                     ->markdown('mail.email', [
                         'url' => $url,
@@ -109,7 +109,7 @@ class NewInvoice extends BaseNotification
                 ->from(config('app.name'))
                 ->to('@' . $notifiable->employee[0]->slack_username)
                 ->image($slack->slack_logo_url)
-                ->content(__('email.hello')  . ' ' .  mb_ucwords($notifiable->name) .' '. __('email.invoice.subject'));
+                ->content(__('email.hello')  . ' ' .  $notifiable->name .' '. __('email.invoice.subject'));
         }
 
         return (new SlackMessage())

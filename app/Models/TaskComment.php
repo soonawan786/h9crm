@@ -6,6 +6,7 @@ use App\Scopes\ActiveScope;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 /**
  * App\Models\TaskComment
@@ -32,6 +33,64 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
  * @method static \Illuminate\Database\Eloquent\Builder|TaskComment whereTaskId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskComment whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskComment whereUserId($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $commentEmoji
+ * @property-read int|null $comment_emoji_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $dislike
+ * @property-read int|null $dislike_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $dislikeUsers
+ * @property-read int|null $dislike_users_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $like
+ * @property-read int|null $like_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $likeUsers
+ * @property-read int|null $like_users_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $commentEmoji
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $dislike
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $dislikeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $like
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $likeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $commentEmoji
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $dislike
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $dislikeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $like
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $likeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $commentEmoji
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $dislike
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $dislikeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $like
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $likeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $commentEmoji
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $dislike
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $dislikeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $like
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $likeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $commentEmoji
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $dislike
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $dislikeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $like
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $likeUsers
+ * @property string|null $mention_user_id
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $commentEmoji
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $dislike
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $dislikeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $like
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $likeUsers
+ * @method static \Illuminate\Database\Eloquent\Builder|TaskComment whereMentionUserId($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $commentEmoji
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $dislike
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $dislikeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $like
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $likeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionComment
+ * @property-read int|null $mention_comment_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @property-read int|null $mention_user_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $commentEmoji
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $dislike
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $dislikeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\TaskCommentEmoji> $like
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $likeUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $mentionComment
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
  * @mixin \Eloquent
  */
 class TaskComment extends BaseModel
@@ -52,6 +111,16 @@ class TaskComment extends BaseModel
         return $this->hasMany(TaskCommentEmoji::class, 'comment_id');
     }
 
+    public function mentionUser(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'mention_users')->withoutGlobalScope(ActiveScope::class)->using(MentionUser::class);
+    }
+
+    public function mentionComment(): HasMany
+    {
+        return $this->hasMany(MentionUser::class, 'task_comment_id');
+    }
+    
     public function like(): HasMany
     {
         return $this->hasMany(TaskCommentEmoji::class, 'comment_id')->where('emoji_name', 'thumbs-up');

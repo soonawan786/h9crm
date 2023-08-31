@@ -14,7 +14,7 @@ class LeadAgentSettingController extends AccountBaseController
     {
         parent::__construct();
         $this->middleware(function ($request, $next) {
-            abort_403(!in_array('leads', $this->modules));
+            abort_403(!in_array('leads', $this->user->modules));
             return $next($request);
         });
     }
@@ -62,7 +62,7 @@ class LeadAgentSettingController extends AccountBaseController
         foreach ($leadAgents as $item) {
 
             $list .= '<option
-                data-content="<div class=\'d-inline-block mr-1\'><img class=\'taskEmployeeImg rounded-circle\' src=' . $item->user->image_url . ' ></div> ' . ucfirst($item->user->name) . '"
+                data-content="<div class=\'d-inline-block mr-1\'><img class=\'taskEmployeeImg rounded-circle\' src=' . $item->user->image_url . ' ></div> ' . $item->user->name . '"
                 value="' . $item->id . '"> ' . $item->user->name . ' </option>';
         }
 

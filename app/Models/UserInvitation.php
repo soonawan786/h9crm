@@ -35,10 +35,10 @@ use Illuminate\Notifications\Notifiable;
  * @method static \Illuminate\Database\Eloquent\Builder|UserInvitation whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|UserInvitation whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|UserInvitation whereUserId($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|UserInvitation whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class UserInvitation extends BaseModel
 {

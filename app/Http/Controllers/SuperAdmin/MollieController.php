@@ -48,7 +48,6 @@ class MollieController extends Controller
         $subscription->gateway_name = 'mollie';
         $subscription->subscription_status = 'inactive';
         $subscription->subscribed_on_date = Carbon::now()->format('Y-m-d H:i:s');
-        $subscription->pay_date = Carbon::now()->format('Y-m-d');
         $subscription->save();
 
         $metadata = [
@@ -160,7 +159,7 @@ class MollieController extends Controller
             $company->save();
 
             // Send superadmin notification
-            $generatedBy = $generatedBy = User::allSuperAdmin();
+            $generatedBy = User::allSuperAdmin();
             $allAdmins = User::allAdmins($company->id);
             Notification::send($generatedBy, new CompanyUpdatedPlan($company, $globalSubscription->package_id));
             Notification::send($allAdmins, new CompanyUpdatedPlan($company, $globalSubscription->package_id));

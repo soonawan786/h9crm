@@ -46,7 +46,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|Product whereSubCategoryId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Product whereTaxes($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Product whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read \App\Models\ProductCategory|null $category
  * @property string|null $image
  * @property-read mixed $image_url
@@ -66,6 +65,38 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read \App\Models\Company|null $company
  * @property-read mixed $tax_list
  * @method static \Illuminate\Database\Eloquent\Builder|Product whereCompanyId($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Lead> $leads
+ * @property-read int|null $leads_count
+ * @property-read \App\Models\UnitType|null $unit
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereUnitId($value)
+
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\OrderItems> $orderItem
+ * @property-read int|null $order_item_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Lead> $leads
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\OrderItems> $orderItem
+ * @property string|null $purchase_price
+ * @property string $purchase_information
+ * @property string $track_inventory
+ * @property string|null $sales_description
+ * @property string|null $purchase_description
+ * @property int|null $opening_stock
+ * @property float|null $rate_per_unit
+ * @property string|null $sku
+ * @property string|null $type
+ * @property string $status
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\Lead> $leads
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\OrderItems> $orderItem
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereOpeningStock($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product wherePurchaseDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product wherePurchaseInformation($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product wherePurchasePrice($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereRatePerUnit($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereSalesDescription($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereSku($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereTrackInventory($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Product whereType($value)
+ * @mixin \Eloquent
  */
 class Product extends BaseModel
 {
@@ -76,7 +107,7 @@ class Product extends BaseModel
     protected $table = 'products';
     const FILE_PATH = 'products';
 
-    protected $fillable = ['name', 'price', 'description', 'taxes','quantity'];
+    protected $fillable = ['name', 'price', 'description', 'taxes'];
 
     protected $appends = ['total_amount', 'image_url', 'download_file_url'];
 
@@ -172,6 +203,10 @@ class Product extends BaseModel
     public function tags(){
         return $this->belongsToMany(ProductTags::class, 'product_tag', 'product_id', 'tag_id');
     }
+    public function orderItem(): HasMany
+    {
+        return $this->hasMany(OrderItems::class, 'product_id');
 
+    }
 
 }

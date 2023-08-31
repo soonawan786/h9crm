@@ -38,8 +38,8 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|TicketEmailSetting whereSyncInterval($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketEmailSetting whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TicketEmailSetting whereVerified($value)
- * @mixin \Eloquent
  * @property-read \App\Models\Company|null $company
+ * @mixin \Eloquent
  */
 class TicketEmailSetting extends BaseModel
 {

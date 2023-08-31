@@ -9,7 +9,7 @@
             <div class="col-lg-12">
                 <x-forms.textarea class="mr-0 mr-lg-2 mr-md-2"
                     :fieldLabel="__('modules.clients.shippingAddress')" fieldName="shipping_address"
-                    fieldId="shipping_address" fieldPlaceholder="e.g. Rocket Road"
+                    fieldId="shipping_address" :fieldPlaceholder="__('placeholders.address')"
                     fieldValue="">
                 </x-forms.textarea>
             </div>

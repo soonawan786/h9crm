@@ -3,11 +3,12 @@
         <x-form id="save-holiday-data-form" method="post">
             <div class="add-client bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
-                    @lang('app.add') @lang('app.menu.holiday')</h4>
+                    @lang('app.menu.addHoliday')</h4>
+                <input type="hidden" name="redirect_url" value="{{ $redirectUrl }}">
                 <div class="row pl-20 pr-20 pt-20">
                     <div class="col-lg-5">
                         <x-forms.text class="date-picker" :fieldLabel="__('app.date')" fieldName="date[]"
-                            fieldId="dateField1" :fieldPlaceholder="__('app.date')" fieldValue=""
+                            fieldId="dateField1" :fieldPlaceholder="__('app.date')" fieldValue="{{ $date }}"
                             fieldRequired="true" />
                     </div>
                     <div class="col-lg-5">
@@ -55,7 +56,7 @@
 
             $(`<div id="addMoreBox${i}" class="row pl-20 pr-20 clearfix">
                 <div class="col-lg-5 col-md-6 col-12"> <x-forms.text class="date-picker" :fieldLabel="__('app.date')" fieldName="date[]"
-                fieldId="dateField${i}" :fieldPlaceholder="__('app.date')" fieldValue="" fieldRequired="true"  />
+                fieldId="dateField${i}" :fieldPlaceholder="__('app.date')" fieldValue="{{ $date }}" fieldRequired="true"  />
                 </div>  <div class="col-lg-5 col-md-5 col-10"> <div class="form-group my-3">
                 <x-forms.text :fieldLabel="__('modules.holiday.occasion')" fieldName="occassion[]" fieldId="occassion${i}" :fieldPlaceholder="__('modules.holiday.occasion')" fieldValue="" fieldRequired="true" />
                 </div> </div> <div class="col-lg-2 col-md-1 col-2"><a href="javascript:;" class="d-flex align-items-center justify-content-center mt-5 remove-item" data-item-id="${i}"><i class="fa fa-times-circle f-20 text-lightest"></i></a></div> </div> `)

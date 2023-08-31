@@ -23,6 +23,8 @@ class LeadImport implements ToArray
             array('id' => 'city', 'name' => __('modules.stripeCustomerAddress.city'), 'required' => 'No'),
             array('id' => 'postal_code', 'name' => __('modules.stripeCustomerAddress.postalCode'), 'required' => 'No'),
             array('id' => 'address', 'name' => __('app.address'), 'required' => 'No'),
+            array('id' => 'source', 'name' => __('modules.lead.leadSource'), 'required' => 'No'),
+            array('id' => 'created_at', 'name' => __('app.createdOn'), 'required' => 'No'),
         );
     }
 

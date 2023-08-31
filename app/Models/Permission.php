@@ -30,9 +30,9 @@ use Trebol\Entrust\EntrustPermission;
  * @method static \Illuminate\Database\Eloquent\Builder|Permission whereModuleId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Permission whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Permission whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property string|null $allowed_permissions
  * @method static \Illuminate\Database\Eloquent\Builder|Permission whereAllowedPermissions($value)
+ * @mixin \Eloquent
  */
 class Permission extends EntrustPermission
 {
@@ -48,7 +48,6 @@ class Permission extends EntrustPermission
     const ALL_4_ADDED_1_OWNED_2_NONE_5 = '{"all":4, "added":1, "owned":2, "none":5}';
 
     const ALL_4_ADDED_1_OWNED_2_BOTH_3_NONE_5 = '{"all":4, "added":1, "owned":2,"both":3, "none":5}';
-
 
     protected $fillable = ['name', 'display_name', 'description', 'module_id', 'is_custom', 'allowed_permissions'];
 

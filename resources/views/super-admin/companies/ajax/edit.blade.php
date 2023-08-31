@@ -75,7 +75,7 @@
                                                 :fieldLabel="__('modules.accountSettings.defaultTimezone')"
                                                 fieldName="timezone">
                                     @foreach($timezones as $tz)
-                                        <option @if($company->timezone == $tz) selected @endif>{{ $tz }}</option>
+                                        <option @if($company->timezone == $tz) selected @endif  value="{{ $tz }}">{{ $tz }}</option>
                                     @endforeach
                                 </x-forms.select>
                             </div>
@@ -209,6 +209,13 @@
 
 <script>
     $(document).ready(function () {
+
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
+                position: 'bl',
+                ...datepickerConfig
+            });
+        });
 
         $('#update-company-form').click(function () {
             const url = "{{ route('superadmin.companies.update', [$company->id])}}";

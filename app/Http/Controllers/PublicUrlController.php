@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\App;
 use Nwidart\Modules\Facades\Module;
 use App\Traits\UniversalSearchTrait;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Redirect;
 use App\Http\Requests\EstimateAcceptRequest;
 use App\Http\Requests\Admin\Contract\SignRequest;
 
@@ -36,18 +37,25 @@ class PublicUrlController extends Controller
         $pageTitle = 'app.menu.contracts';
         $pageIcon = 'fa fa-file';
         $contract = Contract::where('hash', $hash)
-            ->with('client', 'contractType', 'signature', 'discussion', 'discussion.user')
             ->withoutGlobalScope(ActiveScope::class)
             ->firstOrFail()->withCustomFields();
+
         $company = $contract->company;
         $invoiceSetting = $contract->company->invoiceSetting;
         $fields = [];
 
-        if (!empty($contract->getCustomFieldGroupsWithFields())) {
+        if ($contract->getCustomFieldGroupsWithFields()) {
             $fields = $contract->getCustomFieldGroupsWithFields()->fields;
         }
 
-        return view('contract', ['contract' => $contract, 'company' => $company, 'pageTitle' => $pageTitle, 'pageIcon' => $pageIcon, 'invoiceSetting' => $invoiceSetting, 'fields' => $fields]);
+        return view('contract', [
+            'contract' => $contract,
+            'company' => $company,
+            'pageTitle' => $pageTitle,
+            'pageIcon' => $pageIcon,
+            'invoiceSetting' => $invoiceSetting,
+            'fields' => $fields
+        ]);
     }
 
     public function contractSign(SignRequest $request, $id)
@@ -65,6 +73,8 @@ class PublicUrlController extends Controller
         $sign->full_name = $request->first_name . ' ' . $request->last_name;
         $sign->contract_id = $this->contract->id;
         $sign->email = $request->email;
+        $sign->place = $request->place;
+        $sign->date = Carbon::now()->format('Y-m-d');
         $imageName = null;
 
         if ($request->signature_type == 'signature') {
@@ -76,10 +86,11 @@ class PublicUrlController extends Controller
             Files::createDirectoryIfNotExist('contract/sign');
 
             File::put(public_path() . '/' . Files::UPLOAD_FOLDER . '/contract/sign/' . $imageName, base64_decode($image));
+            Files::uploadLocalFile($imageName, 'contract/sign', $this->company->id);
         }
         else {
             if ($request->hasFile('image')) {
-                $imageName = Files::upload($request->image, 'contract/sign', 300);
+                $imageName = Files::uploadLocalOrS3($request->image, 'contract/sign', 300);
             }
         }
 
@@ -93,11 +104,11 @@ class PublicUrlController extends Controller
 
     public function contractDownload($id)
     {
-        $contract = Contract::findOrFail($id)->withCustomFields();
+        $contract = Contract::where('hash', $id)->firstOrFail()->withCustomFields();
         $company = $contract->company;
         $fields = [];
 
-        if (!empty($contract->getCustomFieldGroupsWithFields())) {
+        if ($contract->getCustomFieldGroupsWithFields()) {
             $fields = $contract->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -105,11 +116,13 @@ class PublicUrlController extends Controller
 
         $pdf = app('dompdf.wrapper');
         $pdf->setOption('enable_php', true);
-        $pdf->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
 
         App::setLocale($this->invoiceSetting->locale);
         Carbon::setLocale($this->invoiceSetting->locale);
-        $pdf->loadView('contracts.contract-pdf', ['contract' => $contract, 'company' => $company, 'fields' => $fields]);
+
+        $pdf->loadView('contracts.contract-pdf', ['contract' => $contract, 'company' => $company, 'fields' => $fields, 'invoiceSetting' => $this->invoiceSetting]);
 
         $dom_pdf = $pdf->getDomPDF();
         $canvas = $dom_pdf->getCanvas();
@@ -197,7 +210,7 @@ class PublicUrlController extends Controller
         DB::beginTransaction();
 
         $estimate = Estimate::with('sign')->findOrFail($id);
-        $company  = $estimate->company;
+        $company = $estimate->company;
 
         /** @phpstan-ignore-next-line */
         if ($estimate && $estimate->sign) {
@@ -220,10 +233,11 @@ class PublicUrlController extends Controller
             Files::createDirectoryIfNotExist('estimate/accept');
 
             File::put(public_path() . '/' . Files::UPLOAD_FOLDER . '/estimate/accept/' . $imageName, base64_decode($image));
+            Files::uploadLocalFile($imageName, 'estimate/accept', $estimate->company_id);
         }
         else {
             if ($request->hasFile('image')) {
-                $imageName = Files::upload($request->image, 'estimate/accept/', 300);
+                $imageName = Files::uploadLocalOrS3($request->image, 'estimate/accept/', 300);
             }
         }
 
@@ -289,7 +303,7 @@ class PublicUrlController extends Controller
 
     public function estimateDownload($id)
     {
-        $this->estimate = Estimate::with('client', 'clientdetails')->findOrFail($id);
+        $this->estimate = Estimate::with('client', 'clientdetails')->where('hash', $id)->firstOrFail();
         $this->invoiceSetting = $this->estimate->company->invoiceSetting;
         App::setLocale($this->invoiceSetting->locale);
         Carbon::setLocale($this->invoiceSetting->locale);
@@ -304,7 +318,7 @@ class PublicUrlController extends Controller
 
     public function domPdfObjectForDownload($id)
     {
-        $this->estimate = Estimate::findOrFail($id);
+        $this->estimate = Estimate::where('hash', $id)->firstOrFail();
         $this->company = $this->estimate->company;
         $this->invoiceSetting = $this->company->invoiceSetting;
         App::setLocale($this->invoiceSetting->locale);
@@ -363,7 +377,8 @@ class PublicUrlController extends Controller
 
         $pdf = app('dompdf.wrapper');
         $pdf->setOption('enable_php', true);
-        $pdf->setOptions(['isHtml5ParserEnabled' => true, 'isRemoteEnabled' => true]);
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
 
         $pdf->loadView('estimates.pdf.' . $this->invoiceSetting->template, $this->data);
 
@@ -386,7 +401,7 @@ class PublicUrlController extends Controller
 
         foreach ($plugins as $key => $plugin) {
             $modulePath = $plugin->getPath();
-            $version = trim(File::get($modulePath.'/version.txt'));
+            $version = trim(File::get($modulePath . '/version.txt'));
 
             if ($plugin->isEnabled()) {
                 $updateArrayEnabled[$key] = $version;

@@ -17,7 +17,7 @@ trait ImportExcel
         // get class name from $importClass
         $this->importClassName = (new \ReflectionClass($importClass))->getShortName();
 
-        $this->file = Files::upload($request->import_file, Files::IMPORT_FOLDER, false, false, false);
+        $this->file = Files::upload($request->import_file, Files::IMPORT_FOLDER);
         $excelData = Excel::toArray(new $importClass, public_path(Files::UPLOAD_FOLDER . '/' . Files::IMPORT_FOLDER . '/' . $this->file))[0];
         $this->hasHeading = $request->has('heading');
         $this->heading = array();
@@ -72,7 +72,7 @@ trait ImportExcel
 
         foreach ($excelData as $row) {
 
-            $jobs[] = (new $importJobClass($row, $columns));
+            $jobs[] = (new $importJobClass($row, $columns, company()));
         }
 
         $batch = Bus::batch($jobs)->onConnection('database')->onQueue($importClassName)->name($importClassName)->dispatch();

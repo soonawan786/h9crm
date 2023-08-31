@@ -24,10 +24,10 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|SlackSetting whereSlackWebhook($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SlackSetting whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|SlackSetting whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|SlackSetting whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class SlackSetting extends BaseModel
 {
@@ -42,7 +42,7 @@ class SlackSetting extends BaseModel
             return $this->company->logo_url;
         }
 
-        return asset_url('slack-logo/' . $this->slack_logo);
+        return asset_url_local_s3('slack-logo/' . $this->slack_logo);
     }
 
     public static function setting()

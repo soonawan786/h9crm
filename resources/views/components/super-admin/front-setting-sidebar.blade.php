@@ -92,6 +92,11 @@
                              :text="__('superadmin.menu.signUpSetting')">
         </x-setting-menu-item>
 
+        <x-setting-menu-item :active="$activeMenu" menu="front_menu_settings"
+                             :href="route('superadmin.front-settings.front_menu_settings.lang')"
+                             :text="__('superadmin.menu.frontMenuSettings')">
+        </x-setting-menu-item>
+
         <x-setting-menu-item :active="$activeMenu" menu="contact_settings"
                              :href="route('superadmin.front-settings.contact_settings')"
                              :text="__('superadmin.menu.contactSetting')">

@@ -63,13 +63,14 @@ class NewNotice extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
+        $build = parent::build();
         $url = route('notices.show', $this->notice->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('email.newNotice.text') . '<br>' . ucfirst($this->notice->heading);
+        $content = __('email.newNotice.text') . '<br>' . $this->notice->heading;
 
 
-        return parent::build()
+        return $build
             ->subject(__('email.newNotice.subject') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,
@@ -107,7 +108,7 @@ class NewNotice extends BaseNotification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content('*' . __('email.newNotice.subject') . ' : ' . ucfirst($this->notice->heading) . '*' . "\n" . strip_tags($this->notice->description));
+                ->content('*' . __('email.newNotice.subject') . ' : ' . $this->notice->heading . '*' . "\n" . strip_tags($this->notice->description));
         }
 
         return (new SlackMessage())
@@ -120,8 +121,8 @@ class NewNotice extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.newNotice.subject'))
-            ->body($this->notice->heading);
+            ->setSubject(__('email.newNotice.subject'))
+            ->setBody($this->notice->heading);
     }
 
 }

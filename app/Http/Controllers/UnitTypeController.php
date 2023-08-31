@@ -12,6 +12,9 @@ use App\Models\UnitType;
 use App\Models\BaseModel;
 use Illuminate\Http\Request;
 use App\Http\Requests\UnitTypeRequest;
+use App\Models\EstimateItem;
+use App\Models\InvoiceItems;
+use App\Models\ProposalItem;
 
 class UnitTypeController extends AccountBaseController
 {
@@ -86,25 +89,21 @@ class UnitTypeController extends AccountBaseController
 
     public function destroy($id)
     {
+        $unitExists1 = Product::where('company_id', company()->id)
+        ->where('unit_id', $id)->first();
 
-        $unitData = UnitType::where('company_id', company()->id)
-        ->where('default', 1)->first();
+        $unitExists2 = InvoiceItems::where('unit_id', $id)->first();
 
-        Product::where('company_id', company()->id)
-        ->where('unit_id', $id)->update(['unit_id' => $unitData->id]);
+        $unitExists3 = ProposalItem::where('unit_id', $id)->first();
 
-        Invoice::where('company_id', company()->id)
-        ->where('unit_id', $id)->update(['unit_id' => $unitData->id]);
+        $unitExists4 = EstimateItem::where('unit_id', $id)->first();
 
-        Proposal::where('company_id', company()->id)
-        ->where('unit_id', $id)->update(['unit_id' => $unitData->id]);
+        if(is_null($unitExists1) && is_null($unitExists2) && is_null($unitExists3) && is_null($unitExists4)) {
+            UnitType::destroy($id);
+            return Reply::success(__('messages.deleteSuccess'));
+        }
 
-        Estimate::where('company_id', company()->id)
-        ->where('unit_id', $id)->update(['unit_id' => $unitData->id]);
-
-        UnitType::destroy($id);
-
-        return Reply::successWithData(__('messages.deleteSuccess'), ['data' => $unitData]);
+        return Reply::error(__('messages.unitDeleteError'));
 
     }
 

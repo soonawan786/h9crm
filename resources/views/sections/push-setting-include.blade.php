@@ -94,7 +94,7 @@
     </script>
 @endif
 
-@if ($pusherSettings->status && app()->environment('codecanyon'))
+@if ($pusherSettings->status)
     <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
 
     <script>
@@ -105,5 +105,6 @@
             cluster: '{{ $pusherSettings->pusher_cluster }}',
             forceTLS: '{{ $pusherSettings->force_tls }}'
         });
+        
     </script>
 @endif

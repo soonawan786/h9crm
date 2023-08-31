@@ -39,6 +39,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @method static \Illuminate\Database\Eloquent\Builder|EmployeeShiftSchedule whereShiftStartTime($value)
  * @method static \Illuminate\Database\Eloquent\Builder|EmployeeShiftSchedule whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|EmployeeShiftSchedule whereUserId($value)
+ * @property string $file
+ * @property-read mixed $download_file_url
+ * @property-read mixed $file_url
+ * @property-read \App\Models\EmployeeShiftSchedule|null $dates
+ * @method static \Illuminate\Database\Eloquent\Builder|EmployeeShiftSchedule whereFile($value)
  * @mixin \Eloquent
  */
 class EmployeeShiftSchedule extends BaseModel
@@ -46,11 +51,27 @@ class EmployeeShiftSchedule extends BaseModel
 
     use HasFactory;
 
-    protected $dates = ['date', 'shift_start_time', 'shift_end_time'];
+    protected $casts = [
+        'date' => 'datetime',
+        'shift_start_time' => 'datetime',
+        'shift_end_time' => 'datetime',
+    ];
+
+    protected $appends = ['file_url', 'download_file_url'];
 
     protected $guarded = ['id'];
 
     protected $with = ['shift'];
+
+    public function getFileUrlAttribute()
+    {
+        return ($this->file) ? asset_url_local_s3('employee-shift-file/'. $this->id.'/' . $this->file) : '';
+    }
+
+    public function getDownloadFileUrlAttribute()
+    {
+        return ($this->file) ? asset_url_local_s3('employee-shift-file/'. $this->id.'/' . $this->file) : null;
+    }
 
     public function user(): BelongsTo
     {

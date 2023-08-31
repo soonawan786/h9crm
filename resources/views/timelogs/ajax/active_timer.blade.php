@@ -2,9 +2,19 @@
 $editTimelogPermission = user()->permission('edit_timelogs');
 $addTaskPermission = user()->permission('add_tasks');
 @endphp
+<style>
+    #employee-header{
+        padding-left: 58px !important;
+    }
+    .project-name{
+        width:143px !important;
+    }
+    .employee-user{
+        padding-right: 38px !important;
 
+    }
+    </style>
 @include('sections.datatable_css')
-
 <div class="modal-header">
     <h5 class="modal-title" id="modelHeading">@lang('modules.projects.activeTimers')</h5>
     <button type="button"  class="close" data-dismiss="modal" aria-label="Close"><span
@@ -18,7 +28,7 @@ $addTaskPermission = user()->permission('add_tasks');
                 <x-cards.data>
                     <div class="row">
                         <div class="col-sm-12">
-                            {{ $myActiveTimer->start_time->timezone(company()->timezone)->translatedFormat('M d, Y' . ' - ' . company()->time_format) }}
+                            {{$myActiveTimer->start_time->timezone(company()->timezone)->translatedFormat(company()->date_format . ' ' . company()->time_format) }}
                             <p class="text-primary my-2">
                                 @php
                                     $totalMinutes =  now()->diffInMinutes($myActiveTimer->start_time) - $myActiveTimer->breaks->sum('total_minutes');
@@ -66,12 +76,12 @@ $addTaskPermission = user()->permission('add_tasks');
                                 )
 
                                 @if (is_null($myActiveTimer->activeBreak))
-                                    <x-forms.button-secondary icon="pause-circle" data-time-id="{{ $myActiveTimer->id }}" id="pause-timer-btn">@lang('modules.timeLogs.pauseTimer')</x-forms.button-secondary>
+                                    <x-forms.button-secondary icon="pause-circle" data-time-id="{{ $myActiveTimer->id }}" id="pause-timer-btn" data-url="{{ url()->current() }}">@lang('modules.timeLogs.pauseTimer')</x-forms.button-secondary>
                                 @else
-                                    <x-forms.button-secondary id="resume-timer-btn" icon="play-circle"
+                                    <x-forms.button-secondary id="resume-timer-btn" icon="play-circle" data-url="{{ url()->current() }}"
                                     data-time-id="{{ $myActiveTimer->activeBreak->id }}">@lang('modules.timeLogs.resumeTimer')</x-forms.button-secondary>
                                 @endif
-                                <x-forms.button-primary class="ml-3 stop-active-timer" data-time-id="{{ $myActiveTimer->id }}" icon="stop-circle">@lang('modules.timeLogs.stopTimer')</x-forms.button-primary>
+                                <x-forms.button-primary class="ml-3 stop-active-timer" data-url="{{ url()->current() }}" data-time-id="{{ $myActiveTimer->id }}" icon="stop-circle">@lang('modules.timeLogs.stopTimer')</x-forms.button-primary>
                             @endif
                         </div>
                     </div>
@@ -89,7 +99,7 @@ $addTaskPermission = user()->permission('add_tasks');
                                     <option value="">--</option>
                                     @foreach ($projects as $data)
                                         <option value="{{ $data->id }}">
-                                            {{ mb_ucwords($data->project_name) }}
+                                            {{ $data->project_name }}
                                         </option>
                                     @endforeach
                                 </x-forms.select>
@@ -130,16 +140,18 @@ $addTaskPermission = user()->permission('add_tasks');
 
         <div class="my-3 col-lg-8 col-md-7">
             <div class="table-responsive">
-                <x-table class="table-bordered table-hover rounded" id="active-timer-table" headType="thead-light">
+                <x-table class="table-bordered table-hover rounded" id="active-timer-table" width="100%" headType="thead-light">
                     <x-slot name="thead">
                         <th>#</th>
                         <th>@lang('app.task')</th>
-                        <th>@lang('app.employee')</th>
-                        <th class="w-180">@lang('modules.timeLogs.startTime')</th>
+                        <th id="employee-header">@lang('app.employee')</th>
+                        <th class="text-right w-180">@lang('modules.timeLogs.startTime')</th>
                         <th class="text-right w-150">@lang('app.action')</th>
                     </x-slot>
 
                     @forelse ($activeTimers as $key => $item)
+                        @if (is_null($item->activeBreak))
+
                         <tr id="timer-{{ $item->id }}">
                             <td>{{ $key + 1 }}</td>
                             <td>
@@ -147,18 +159,17 @@ $addTaskPermission = user()->permission('add_tasks');
                                     {{ $item->task->heading }}
                                 </a>
                                 @if ($item->task->project_id)
-                                    <p class="text-lightest mb-0">{{ $item->task->project->project_name }}</p>
+                                    <p class="text-lightest mb-0 project-name">{{ $item->task->project->project_name }}</p>
                                 @endif
                             </td>
-                            <td>
+                            <td class="text-right employee-user" >
+                               <div style="display: none"> {{ $item->user->name }} </div>
                                 <x-employee-image :user="$item->user" />
                             </td>
-                            <td>
+                            <td class="text-right">
                                 {{ $item->start_time->timezone(company()->timezone)->translatedFormat(company()->date_format . ' ' . company()->time_format) }}
                                 <div class="mt-1 f-12">
                                     @if (is_null($item->activeBreak))
-
-
                                         <span class="badge badge-secondary">
                                             <i data-toggle="tooltip" data-original-title="@lang('app.active')"
                                             class="fa fa-hourglass-start"></i>
@@ -185,6 +196,7 @@ $addTaskPermission = user()->permission('add_tasks');
                                 @endif
                             </td>
                         </tr>
+                        @endif
 
                     @empty
                         <tr>
@@ -211,8 +223,10 @@ $addTaskPermission = user()->permission('add_tasks');
     $(function(){
 
         $(document).ready(function () {
+
             $('#active-timer-table').DataTable({
-                dom: "<'row'<'col-sm-12'tr>><'d-flex'<'flex-grow-1'l><i><p>>"
+                dom: "<'row'<'col-sm-12'tr>><'d-flex'<'flex-grow-1'l><i><p>>",
+                pageLength:{{companyOrGlobalSetting()->datatable_row_limit ?? 10}},
             });
         });
 

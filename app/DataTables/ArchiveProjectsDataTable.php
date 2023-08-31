@@ -11,6 +11,7 @@ class ArchiveProjectsDataTable extends BaseDataTable
 {
 
     private $viewProjectPermission;
+    private $editProjectPermission;
     private $deleteProjectPermission;
 
     public function __construct()
@@ -68,7 +69,7 @@ class ArchiveProjectsDataTable extends BaseDataTable
 
                 if (count($row->members) > 0) {
                     foreach ($row->members as $member) {
-                        $img = '<img data-toggle="tooltip" data-original-title="' . mb_ucwords($member->user->name) . '" src="' . $member->user->image_url . '">';
+                        $img = '<img data-toggle="tooltip" data-original-title="' . $member->user->name . '" src="' . $member->user->image_url . '">';
 
                         $members .= '<div class="taskEmployeeImg rounded-circle"><a href="' . route('employees.show', $member->user->id) . '">' . $img . '</a></div> ';
                     }
@@ -94,7 +95,7 @@ class ArchiveProjectsDataTable extends BaseDataTable
 
                 return '<div class="media align-items-center">
                         <div class="media-body">
-                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('projects.show', [$row->id]) . '">' . ucfirst($row->project_name) . '</a></h5>
+                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('projects.show', [$row->id]) . '">' . $row->project_name . '</a></h5>
                     </div>
                 </div>';
             })
@@ -125,7 +126,7 @@ class ArchiveProjectsDataTable extends BaseDataTable
                     if ($row->status == $status->status_name) {
                         $color = $status->color;
 
-                        return ' <i class="fa fa-circle mr-1 f-10" style="color:' . $color . '"></i>' . ucfirst($status->status_name);
+                        return ' <i class="fa fa-circle mr-1 f-10" style="color:' . $color . '"></i>' . $status->status_name;
                     }
                 }
             })
@@ -269,7 +270,7 @@ class ArchiveProjectsDataTable extends BaseDataTable
     {
         return [
 
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('modules.projects.projectName') => ['data' => 'project_name', 'name' => 'project_name', 'title' => __('modules.projects.projectName')],
             __('modules.projects.members') => ['data' => 'members', 'name' => 'members', 'exportable' => false, 'width' => '25%', 'title' => __('modules.projects.members')],
             __('modules.projects.projectMembers') => ['data' => 'name', 'name' => 'name', 'visible' => false, 'title' => __('modules.projects.projectMembers')],
@@ -286,16 +287,6 @@ class ArchiveProjectsDataTable extends BaseDataTable
                 ->width(150)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Projects_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

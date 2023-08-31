@@ -24,7 +24,7 @@
                                 <option value="">--</option>
                                 @foreach ($categories as $category)
                                     <option @if ($task->project_template_task_category_id == $category->id) selected @endif value="{{ $category->id }}">
-                                        {{ mb_ucwords($category->category_name) }}
+                                        {{ $category->category_name }}
                                     </option>
                                 @endforeach
                             </select>

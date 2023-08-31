@@ -28,7 +28,7 @@
             </x-forms.select>
         </div>
 
-        <div 
+        <div
             @class([
                 'col-lg-8',
                 'd-none' => ($quickbookSetting->environment == 'Production')
@@ -58,7 +58,7 @@
             </div>
         </div>
 
-        <div 
+        <div
             @class([
                 'col-lg-8',
                 'd-none' => ($quickbookSetting->environment == 'Development')
@@ -118,11 +118,11 @@
 
             @if($quickbookSetting->status)
                 @if($quickbookSetting->access_token == '' || $quickbookSetting->refresh_token == '')
-                    <a href="{{ route('quickbooks.index') }}"><img src="{{ asset('img/C2QB_auth.png') }}" class="height-35"></a>                
+                    <a href="{{ route('quickbooks.index') }}"><img src="{{ asset('img/C2QB_auth.png') }}" class="height-35"></a>
                 @else
                     <x-forms.link-secondary class="mr-3" icon="key" :link="route('quickbooks.index')">@lang('modules.invoiceSettings.reauthorizeQuickBooks')
-                    </x-forms.link-secondary>                
-                @endif                
+                    </x-forms.link-secondary>
+                @endif
             @endif
         </div>
     </x-setting-form-actions>
@@ -156,7 +156,7 @@ var clipboard = new ClipboardJS('.btn-copy');
     $("body").on("change", "#quickbook_status", function (event) {
         $('#paypal_details').toggleClass('d-none');
     });
-    
+
     $("body").on("change", "#paypal_mode", function () {
         $('#sandbox_paypal_details').toggleClass('d-none');
         $('#live_paypal_details').toggleClass('d-none');

@@ -6,6 +6,9 @@ use App\Models\Product;
 use App\Models\EstimateTemplate;
 use App\Models\LanguageSetting;
 use App\Models\Invoice;
+use App\Models\Payment;
+use App\Models\Project;
+use App\Models\GlobalSetting;
 use App\Models\Proposal;
 use App\Models\ProposalTemplate;
 use App\Models\RecurringInvoice;
@@ -14,7 +17,6 @@ use App\Models\UnitType;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
-
 
 return new class extends Migration {
 
@@ -82,6 +84,11 @@ return new class extends Migration {
         if (Schema::hasColumn('project_notes', 'note_details')) {
             Schema::table('project_notes', function (Blueprint $table) {
                 $table->renameColumn('note_details', 'details');
+            });
+        }
+
+        if (Schema::hasColumn('project_notes', 'details')) {
+            Schema::table('project_notes', function (Blueprint $table) {
                 $table->longText('details')->change();
             });
         }

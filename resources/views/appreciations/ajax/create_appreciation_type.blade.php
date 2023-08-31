@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="{{ asset('vendor/css/bootstrap-colorpicker.css') }}" />
 <!-- Bootstrap-Iconpicker -->
 <div class="modal-header">
-    <h5 class="modal-title" id="modelHeading">@lang('app.add') @lang('modules.appreciations.appreciationType')</h5>
+    <h5 class="modal-title" id="modelHeading">@lang('modules.appreciations.addAppreciationType')</h5>
     <button type="button"  class="close" data-dismiss="modal" aria-label="Close"><span
             aria-hidden="true">×</span></button>
 </div>
@@ -26,7 +26,7 @@
                                 <option value="">--</option>
                                 @foreach ($icons as $item)
                                     <option data-icon="{{ $item->icon }}" data-content="<i class='bi bi-{{ $item->icon }}'></i> {{ $item->title }}" value="{{ $item->id }}">
-                                        {{ mb_ucwords($item->title) }}
+                                        {{ $item->title }}
                                     </option>
                                 @endforeach
                             </select>
@@ -84,8 +84,10 @@
             var color = $('#colorselector').val();
 
             $('.icon-preview').show();
-            var iconDataBackground = '<i class="bi bi-'+iconData+' f-15 text-white position-absolute appreciation-icon"></i>'+
-                '<i class="bi bi-hexagon-fill fs-40" style="color: '+color+'; font-size:40px !important;"></i>';
+
+            var iconDataBackground = `<span class="align-items-center d-inline-flex height-40 justify-content-center rounded width-40" style="background-color: ${color}20;">
+                    <i class="bi bi-${iconData} f-15 text-white appreciation-icon" style="color: ${color}  !important"></i>
+                </span>`;
 
             $('.icon-preview').html(iconDataBackground);
         });

@@ -26,7 +26,7 @@ $addLeavePermission = user()->permission('add_leave');
                         data-size="8">
                         <option value="all">@lang('app.all')</option>
                         @foreach ($leaveTypes as $leaveType)
-                            <option value="{{ $leaveType->id }}">{{ mb_ucwords($leaveType->type_name) }}</option>
+                            <option value="{{ $leaveType->id }}">{{ $leaveType->type_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -348,7 +348,11 @@ $addLeavePermission = user()->permission('add_leave');
     $('body').on('click', '.leave-action-approved', function() {
             let action = $(this).data('leave-action');
             let leaveId = $(this).data('leave-id');
-            let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId;
+            var type = $(this).data('type');
+            if(type == undefined){
+                var type = 'single';
+            }
+            let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId + "&type=" + type;
             let url = "{{ route('leaves.show_approved_modal') }}" + searchQuery;
 
             $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
@@ -358,7 +362,11 @@ $addLeavePermission = user()->permission('add_leave');
     $('body').on('click', '.leave-action-reject', function() {
         let action = $(this).data('leave-action');
         let leaveId = $(this).data('leave-id');
-        let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId;
+        var type = $(this).data('type');
+            if(type == undefined){
+                var type = 'single';
+            }
+        let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId + "&type=" + type;
         let url = "{{ route('leaves.show_reject_modal') }}" + searchQuery;
 
         $(MODAL_LG + ' ' + MODAL_HEADING).html('...');

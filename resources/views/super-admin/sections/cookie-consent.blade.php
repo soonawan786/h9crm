@@ -28,15 +28,15 @@
             page_scripts: true,                        // default: false
             gui_options: {
                 consent_modal: {
-                    layout: 'cloud',               // box/cloud/bar
-                    position: 'bottom center',     // bottom/middle/top + left/right/center
+                    layout: 'box',               // box/cloud/bar
+                    position: 'bottom right',     // bottom/middle/top + left/right/center
                     transition: 'slide',           // zoom/slide
-                    swap_buttons: false            // enable to invert buttons
+                    swap_buttons: true            // enable to invert buttons
                 },
                 settings_modal: {
                     layout: 'box',                 // box/bar
-                    position: 'left',           // left/right
-                    transition: 'slide'            // zoom/slide
+                    position: 'right',           // left/right
+                    transition: 'zoom'            // zoom/slide
                 }
             },
             languages: {
@@ -101,8 +101,8 @@
                                     }
                                 ]
                             }, {
-                                title: 'Advertisement and Targeting cookies',
-                                description: 'These cookies collect information about how you use the website, which pages you visited and which links you clicked on. All of the data is anonymized and cannot be used to identify you',
+                                title: '{{__('cookie.advertisementTitle')}}',
+                                description: '{{__('cookie.advertisementTitleDescription')}}',
                                 toggle: {
                                     value: 'targeting',
                                     enabled: false,
@@ -110,7 +110,7 @@
                                 }
                             }, {
                                 title: '{{__('cookie.moreInformation')}}',
-                                description: '{{__('cookie.moreInformationDescription')}} <a class="cc-link" href="{{route('front.contact')}}">{{ $frontMenu->contact }}</a>.',
+                                description: '{{__('cookie.moreInformationDescription')}} <a class="cc-link" href="{{ route('front.contact')}}">{{ $frontMenu->contact }}</a>.',
                             }
                         ]
                     }

@@ -11,6 +11,7 @@ use App\Models\SuperAdmin\TrFrontDetail;
 use App\Http\Controllers\AccountBaseController;
 use App\Http\Requests\SuperAdmin\ClientSettings\StoreRequest;
 use App\Http\Requests\SuperAdmin\ClientSettings\UpdateRequest;
+use App\Models\GlobalSetting;
 
 class ClientSettingController extends AccountBaseController
 {
@@ -20,6 +21,12 @@ class ClientSettingController extends AccountBaseController
         parent::__construct();
         $this->pageTitle = 'superadmin.menu.clientSetting';
         $this->activeSettingMenu = 'client_settings';
+
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_front_settings'));
+
+            return $next($request);
+        });
     }
 
     /**

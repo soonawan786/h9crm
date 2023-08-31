@@ -53,7 +53,6 @@
                 margin-right: 4px;
             }
 
-
         </style>
     @endisset
 
@@ -71,6 +70,25 @@
 
         .fc a[data-navlink] {
             color: #99a5b5;
+        }
+        .ql-editor p{
+            line-height: 1.42;
+        }
+        .ql-container .ql-tooltip {
+            left: 8.5px !important;
+            top: -17px !important;
+        }
+        .table [contenteditable="true"]{
+            height: 55px;
+        }
+        .table [contenteditable="true"]:hover::after {
+            content: "{{ __('app.clickEdit') }}" !important;
+        }
+        .table [contenteditable="true"]:focus::after {
+            content: "{{ __('app.anywhereSave') }}" !important;
+        }
+        .table-bordered .displayName {
+            padding: 17px;
         }
     </style>
 
@@ -146,6 +164,12 @@
 <!-- Global Required Javascript -->
 <script src="{{ asset('js/main.js') }}"></script>
 <script>
+    // Translation of default values for the select picker box.
+    $.fn.selectpicker.Constructor.DEFAULTS.noneSelectedText = "@lang('placeholders.noneSelectedText')";
+    $.fn.selectpicker.Constructor.DEFAULTS.noneResultsText = "@lang('placeholders.noneResultsText')";
+    $.fn.selectpicker.Constructor.DEFAULTS.selectAllText = "@lang('placeholders.selectAllText')";
+    $.fn.selectpicker.Constructor.DEFAULTS.deselectAllText = "@lang('placeholders.deselectAllText')";
+
     const MODAL_DEFAULT = '#myModalDefault';
     const MODAL_LG = '#myModal';
     const MODAL_XL = '#myModalXl';
@@ -161,7 +185,7 @@
 
     const datepickerConfig = {
         formatter: (input, date, instance) => {
-            input.value = moment(date).format('{{ $company->moment_date_format }}')
+            input.value = moment(date).format('{{ companyOrGlobalSetting()->moment_date_format }}')
         },
         showAllDates: true,
         customDays: {!!  json_encode(\App\Models\GlobalSetting::getDaysOfWeek())!!},
@@ -169,7 +193,7 @@
         customOverlayMonths: {!!  json_encode(\App\Models\GlobalSetting::getMonthsOfYear())!!},
         overlayButton: "@lang('app.submit')",
         overlayPlaceholder: "@lang('app.enterYear')",
-        startDay: parseInt("{{ attendance_setting()->week_start_from }}")
+        startDay: parseInt("{{ attendance_setting()?->week_start_from }}")
     };
 
     const daterangeConfig = {
@@ -190,7 +214,7 @@
         "cancelLabel": "@lang('app.cancel')",
         "monthNames": {!!  json_encode(\App\Models\GlobalSetting::getMonthsOfYear())!!},
         "daysOfWeek": {!!  json_encode(\App\Models\GlobalSetting::getDaysOfWeek())!!},
-        "firstDay": parseInt("{{ attendance_setting()->week_start_from }}")
+        "firstDay": parseInt("{{ attendance_setting()?->week_start_from }}")
     };
 
     const dropifyMessages = {
@@ -202,6 +226,17 @@
 
     const DROPZONE_FILE_ALLOW = "{{ global_setting()->allowed_file_types }}";
     const DROPZONE_MAX_FILESIZE = "{{ global_setting()->allowed_file_size }}";
+    const DROPZONE_MAX_FILES = "{{ global_setting()->allow_max_no_of_files }}";
+
+    Dropzone.prototype.defaultOptions.dictFallbackMessage = "{{ __('modules.projectTemplate.dropFallbackMessage') }}";
+    Dropzone.prototype.defaultOptions.dictFallbackText = "{{ __('modules.projectTemplate.dropFallbackText') }}";
+    Dropzone.prototype.defaultOptions.dictFileTooBig = "{{ __('modules.projectTemplate.dropFileTooBig') }}";
+    Dropzone.prototype.defaultOptions.dictInvalidFileType = "{{ __('modules.projectTemplate.dropInvalidFileType') }}";
+    Dropzone.prototype.defaultOptions.dictResponseError = "{{ __('modules.projectTemplate.dropResponseError') }}";
+    Dropzone.prototype.defaultOptions.dictCancelUpload = "{{ __('modules.projectTemplate.dropCancelUpload') }}";
+    Dropzone.prototype.defaultOptions.dictCancelUploadConfirmation = "{{ __('modules.projectTemplate.dropCancelUploadConfirmation') }}";
+    Dropzone.prototype.defaultOptions.dictRemoveFile = "{{ __('modules.projectTemplate.dropRemoveFile') }}";
+    Dropzone.prototype.defaultOptions.dictMaxFilesExceeded = "{{ __('modules.projectTemplate.dropMaxFilesExceeded') }}";
     Dropzone.prototype.defaultOptions.dictDefaultMessage = "{{ __('modules.projectTemplate.dropFile') }}";
     Dropzone.prototype.defaultOptions.timeout = 0;
 
@@ -270,9 +305,9 @@
 
     $('body').on('click', '.img-lightbox', function () {
         const imageUrl = $(this).data('image-url');
-        const url = "{{ route('invoices.show_image').'?image_url=' }}" + encodeURIComponent(imageUrl);
-        $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
-        $.ajaxModal(MODAL_LG, url);
+        const url = "{{ route('front.public.show_image').'?image_url=' }}" + encodeURIComponent(imageUrl);
+        $(MODAL_XL + ' ' + MODAL_HEADING).html('...');
+        $.ajaxModal(MODAL_XL, url);
     });
 
     function updateOnesignalPlayerId(userId) {
@@ -296,14 +331,13 @@
         $(this).siblings('span').toggleClass('blur-code ');
     });
 
-
 </script>
 
 <script>
     let quillArray = {};
 
     function quillImageLoad(ID) {
-
+        const quillContainer = document.querySelector(ID);
         quillArray[ID] = new Quill(ID, {
             modules: {
                 toolbar: [
@@ -317,7 +351,7 @@
                         'list': 'bullet'
                     }],
                     ['bold', 'italic', 'underline', 'strike'],
-                    ['image', 'code-block', 'link'],
+                    ['image', 'code-block', 'link','video'],
                     [{
                         'direction': 'rtl'
                     }],
@@ -330,14 +364,115 @@
                 "emoji-textarea": true,
                 "emoji-shortname": true,
             },
-            theme: 'snow'
+            theme: 'snow',
+            bounds: quillContainer
         });
         $.each(quillArray, function (key, quill) {
             quill.getModule('toolbar').addHandler('image', selectLocalImage);
         });
 
-    }
 
+    }
+        function destory_editor(selector){
+            if($(selector)[0])
+            {
+                var content = $(selector).find('.ql-editor').html();
+                $(selector).html(content);
+
+                $(selector).siblings('.ql-toolbar').remove();
+                $(selector + " *[class*='ql-']").removeClass (function (index, class_name) {
+                return (class_name.match (/(^|\s)ql-\S+/g) || []).join(' ');
+                });
+
+                $(selector + "[class*='ql-']").removeClass (function (index, class_name) {
+                return (class_name.match (/(^|\s)ql-\S+/g) || []).join(' ');
+                });
+            }
+            else
+            {
+                console.error('editor not exists');
+            }
+        }
+    function quillMention(atValues,ID) {
+        const mentionItemTemplate = '<div class="mention-item"> <img src="{image}" class="align-self-start mr-3 taskEmployeeImg rounded">{name}</div>';
+
+        const customRenderItem = function(item, searchTerm) {
+            const html = mentionItemTemplate.replace('{image}', item.image).replace('{name}', item.value);
+            return html;
+        }
+        let placeholder;
+        if (ID === '#submitTexts') {
+            placeholder = "@lang('placeholders.message')";
+        } else {
+            placeholder = '';
+        }
+
+        var quillEditor = new Quill(ID, {
+            placeholder: placeholder,
+            modules: {
+                magicUrl: {
+                    urlRegularExpression: /(https?:\/\/[\S]+)|(www.[\S]+)|(tel:[\S]+)/g,
+                    globalRegularExpression: /(https?:\/\/|www\.|tel:)[\S]+/g,
+                },
+                toolbar: [
+                    [{
+                        header: [1, 2, 3, 4, 5, false]
+                    }],
+                    [{
+                        'list': 'ordered'
+                    }, {
+                        'list': 'bullet'
+                    }],
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['image', 'code-block', 'link','video'],
+                    [{
+                        'direction': 'rtl'
+                    }],
+                    ['clean']
+                ],
+                mention: {
+                    allowedChars: /^[A-Za-z\sÅÄÖåäö]*$/,
+                    mentionDenotationChars: ["@", "#"],
+                    source: function(searchTerm, renderList, mentionChar) {
+                    let values;
+                    if (mentionChar === "@") {
+                        values = atValues;
+                    } else {
+                        values = hashValues;
+                    }
+
+                    if (searchTerm.length === 0) {
+                        renderList(values, searchTerm);
+
+                    } else {
+                        const matches = [];
+                        for (i = 0; i < values.length; i++)
+                        if (
+                            ~values[i].value
+                            .toLowerCase()
+                            .indexOf(searchTerm.toLowerCase())
+                        )
+                            matches.push(values[i]);
+                        renderList(matches, searchTerm);
+                    }
+                    },
+                    renderItem: customRenderItem,
+
+                },
+
+            },
+            theme: 'snow'
+        });
+    }
+     /**
+     * click to open user profile
+     *
+     */
+    window.addEventListener('mention-clicked', function ({ value }) {
+    if (value?.link) {
+        window.open(value.link, value?.target ?? '_blank');
+    }
+    });
     /**
      * Step1. select local image
      *
@@ -402,6 +537,9 @@
         let url = "{{ route('timelogs.pause_timer', ':id') }}";
         url = url.replace(':id', id);
         const token = '{{ csrf_token() }}';
+
+        let currentUrl = $(this).data('url');
+
         $.easyAjax({
             url: url,
             blockUI: true,
@@ -410,6 +548,7 @@
             buttonSelector: "#pause-timer-btn",
             data: {
                 timeId: id,
+                currentUrl: currentUrl,
                 _token: token
             },
             success: function (response) {
@@ -426,7 +565,11 @@
                         window.LaravelDataTables["allTasks-table"].draw(false);
                     }
 
-                    $('#timer-clock').html(response.clockHtml);
+                    if (response.reload === 'yes') {
+                        window.location.reload();
+                    } else {
+                        $('#timer-clock').html(response.clockHtml);
+                    }
                 }
             }
         })
@@ -437,6 +580,9 @@
         let url = "{{ route('timelogs.resume_timer', ':id') }}";
         url = url.replace(':id', id);
         const token = '{{ csrf_token() }}';
+
+        let currentUrl = $(this).data('url');
+
         $.easyAjax({
             url: url,
             blockUI: true,
@@ -445,9 +591,11 @@
             buttonSelector: "#resume-timer-btn",
             data: {
                 timeId: id,
+                currentUrl: currentUrl,
                 _token: token
             },
             success: function (response) {
+
                 if (response.status === 'success') {
                     if ($('#myActiveTimer').length > 0) {
                         $(MODAL_XL + ' .modal-content').html(response.html);
@@ -456,6 +604,10 @@
                     $('#timer-clock').html(response.clockHtml);
                     if ($('#allTasks-table').length) {
                         window.LaravelDataTables["allTasks-table"].draw(false);
+                    }
+
+                    if (response.reload === 'yes') {
+                        window.location.reload();
                     }
                 }
             }
@@ -467,11 +619,15 @@
         let url = "{{ route('timelogs.stop_timer', ':id') }}";
         url = url.replace(':id', id);
         const token = '{{ csrf_token() }}';
+
+        let currentUrl = $(this).data('url');
+
         $.easyAjax({
             url: url,
             type: "POST",
             data: {
                 timeId: id,
+                currentUrl: currentUrl,
                 _token: token
             },
             success: function (response) {
@@ -485,9 +641,13 @@
                     $('#show-active-timer .active-timer-count').addClass('d-none');
                 }
 
-                $('#timer-clock').html(response.clockHtml);
+                $('#timer-clock').html('');
                 if ($('#allTasks-table').length) {
                     window.LaravelDataTables["allTasks-table"].draw(false);
+                }
+
+                if (response.reload === 'yes') {
+                    window.location.reload();
                 }
 
             }
@@ -495,6 +655,10 @@
 
     });
 
+</script>
+
+@if (in_array('messages', user_modules()))
+<script>
     function newMessageNotificationPlay() { var audio = new Audio("{{ asset('message-notification.mp3') }}"); audio.play(); }
 
     function checkNewMessage() {
@@ -541,7 +705,9 @@
         }
     @endif
 
-</script>
+    </script>
+@endif
+
 </body>
 
 </html>

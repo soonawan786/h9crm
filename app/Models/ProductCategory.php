@@ -20,12 +20,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Models\ProductSubCategory[] $subCategories
  * @property-read int|null $sub_categories_count
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ProductCategory whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ProductCategory extends BaseModel
 {

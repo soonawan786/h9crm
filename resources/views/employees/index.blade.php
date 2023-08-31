@@ -13,7 +13,7 @@
             <div class="select-status">
                 <select class="form-control select-picker" name="employee" id="employee" data-live-search="true"
                         data-size="8">
-                    @if ($employees->count() > 1)
+                    @if ($employees->count() > 1 || in_array('admin', user_roles()))
                         <option value="all">@lang('app.all')</option>
                     @endif
                     @foreach ($employees as $employee)
@@ -32,7 +32,7 @@
                 <select class="form-control select-picker" name="designation" id="designation">
                     <option value="all">@lang('app.all')</option>
                     @foreach ($designations as $designation)
-                        <option value="{{ $designation->id }}">{{ ucfirst($designation->name) }}</option>
+                        <option value="{{ $designation->id }}">{{ $designation->name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -74,7 +74,7 @@
                                 id="department">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($departments as $department)
-                                <option value="{{ $department->id }}">{{ ucfirst($department->team_name) }}</option>
+                                <option value="{{ $department->id }}">{{ $department->team_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -89,11 +89,7 @@
                         <select class="form-control select-picker" name="role" id="role" data-container="body">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($roles as $role)
-                                @if (in_array($role->name, ['admin', 'client', 'employee']))
-                                    <option value="{{ $role->id }}">{{ __('app.' . $role->name) }}</option>
-                                @else
-                                    <option value="{{ $role->id }}">{{ ucfirst($role->name) }}</option>
-                                @endif
+                                    <option value="{{ $role->id }}">{{ $role->display_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -110,6 +106,20 @@
                             <option value="deactive">@lang('app.inactive')</option>
                             <option {{ request('status') == 'ex_employee' ? 'selected' : '' }} value="ex_employee">
                                 @lang('modules.employees.exEmployee')</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="more-filter-items">
+                <label class="f-14 text-dark-grey mb-12 text-capitalize" for="usr">@lang('modules.employees.gender')</label>
+                <div class="select-filter mb-4">
+                    <div class="select-others">
+                        <select class="form-control select-picker" name="gender" id="gender" data-container="body">
+                            <option value="all">@lang('app.all')</option>
+                            <option value="male">@lang('app.male')</option>
+                            <option value="female">@lang('app.female')</option>
+                            <option value="others">@lang('app.others')</option>
                         </select>
                     </div>
                 </div>
@@ -134,6 +144,7 @@
         <div class="d-flex justify-content-between action-bar">
 
             <div id="table-actions" class="d-block d-lg-flex align-items-center">
+                @if (checkCompanyCanAddMoreEmployees(user()->company_id))
                 @if ($addEmployeePermission == 'all')
                     <x-forms.link-primary :link="route('employees.create')" class="mr-3 openRightModal" icon="plus">
                         @lang('app.add')
@@ -146,10 +157,11 @@
                 @endif
 
                 @if ($addEmployeePermission == 'all')
-                    <x-forms.link-secondary :link="route('employees.import')" class="mr-3 openRightModal mb-2 mb-lg-0"
+                    <x-forms.link-secondary :link="route('employees.import')" class="mr-3 openRightModal mb-2 mb-lg-0 d-none d-lg-block"
                                             icon="file-upload">
                         @lang('app.importExcel')
                     </x-forms.link-secondary>
+                @endif
                 @endif
             </div>
 
@@ -172,7 +184,7 @@
         </div>
         <!-- Add Task Export Buttons End -->
         <!-- Task Box Start -->
-        <div class="d-flex flex-column w-tables rounded mt-3 bg-white">
+        <div class="d-flex flex-column w-tables rounded mt-3 bg-white table-responsive">
 
             {!! $dataTable->table(['class' => 'table table-hover border-0 w-100']) !!}
 
@@ -207,6 +219,7 @@
             const status = $('#status').val();
             const employee = $('#employee').val();
             const role = $('#role').val();
+            const gender = $('#gender').val();
             const skill = $('#skill').val();
             const designation = $('#designation').val();
             const department = $('#department').val();
@@ -214,6 +227,7 @@
             data['status'] = status;
             data['employee'] = employee;
             data['role'] = role;
+            data['gender'] = gender;
             data['skill'] = skill;
             data['designation'] = designation;
             data['department'] = department;
@@ -233,13 +247,15 @@
             window.LaravelDataTables["employees-table"].draw(false);
         }
 
-        $('#employee, #status, #role, #skill, #designation, #department').on('change keyup',
+        $('#employee, #status, #role, #gender, #skill, #designation, #department').on('change keyup',
             function () {
                 if ($('#status').val() != "all") {
                     $('#reset-filters').removeClass('d-none');
                 } else if ($('#employee').val() != "all") {
                     $('#reset-filters').removeClass('d-none');
                 } else if ($('#role').val() != "all") {
+                    $('#reset-filters').removeClass('d-none');
+                } else if ($('#gender').val() != "all") {
                     $('#reset-filters').removeClass('d-none');
                 } else if ($('#designation').val() != "all") {
                     $('#reset-filters').removeClass('d-none');

@@ -42,10 +42,15 @@ class PaymentObserver
                 // Notify client
                 $clientId = ($payment->project_id && $payment->project->client_id != null) ? $payment->project->client_id : $payment->invoice->client_id;
 
-                $notifyUser = User::withoutGlobalScope(ActiveScope::class)->findOrFail($clientId);
+                $admins = User::allAdmins($payment->company->id);
+
+                $client_details = User::withoutGlobalScope(ActiveScope::class)->where('id', $clientId)->get();
+                $notifyUser = $client_details;
+
+                $notifyUsers = $notifyUser->merge($admins);
 
                 if ($notifyUser && $payment->status === 'complete') {
-                    event(new NewPaymentEvent($payment, $notifyUser));
+                    event(new NewPaymentEvent($payment, $notifyUsers));
                 }
             }
         }
@@ -331,6 +336,8 @@ class PaymentObserver
                 $payment->invoice->status = 'partial';
             }
 
+            $payment->invoice->due_amount = $due;
+
             $payment->invoice->saveQuietly();
         }
 
@@ -346,7 +353,7 @@ class PaymentObserver
                 $quickBooks->deletePayment($payment);
             }
         }
-        
+
         $notifyData = ['App\Notifications\NewPayment', 'App\Notifications\PaymentReminder'];
         \App\Models\Notification::deleteNotification($notifyData, $payment->id);
 

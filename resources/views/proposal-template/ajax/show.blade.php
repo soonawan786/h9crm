@@ -49,7 +49,7 @@
                 <tr class="inv-num">
                     <td class="f-14 text-dark">
                         <p class="mt-3 mb-0">
-                            {{ mb_ucwords(company()->company_name) }}<br>
+                            {{ company()->company_name }}<br>
                             @if (!is_null($settings))
                                 {!! nl2br(default_address()->address) !!}<br>
                                 {{ company()->company_phone }}
@@ -119,7 +119,7 @@
                                 @if($invoiceSetting->hsn_sac_code_show == 1)
                                     <td class="border-right-0 border-left-0" align="right">@lang("app.hsnSac")</td>
                                 @endif
-                                <td class="border-right-0 border-left-0" align="right">{{ucwords($invoice->units->unit_type)}}</td>
+                                <td class="border-right-0 border-left-0" align="right">@lang('modules.invoices.qty')</td>
                                 <td class="border-right-0 border-left-0" align="right">
                                     @lang("modules.invoices.unitPrice") ({{ $invoice->currency->currency_code }})
                                 </td>
@@ -133,11 +133,11 @@
                             @foreach ($invoice->items as $item)
                                 @if ($item->type == 'item')
                                     <tr class="text-dark font-weight-semibold f-13">
-                                        <td>{{ ucfirst($item->item_name) }}</td>
+                                        <td>{{ $item->item_name }}</td>
                                         @if($invoiceSetting->hsn_sac_code_show == 1)
                                             <td align="right">{{ $item->hsn_sac_code }}</td>
                                         @endif
-                                        <td align="right">{{ $item->quantity }}</td>
+                                        <td align="right">{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                                         <td align="right">
                                             {{ currency_format($item->unit_price, $invoice->currency_id, false) }}
                                         </td>
@@ -181,7 +181,7 @@
                                         @foreach ($taxes as $key => $tax)
                                             <tr class="text-dark-grey" align="right">
                                                 <td class="w-50 border-top-0 border-left-0">
-                                                    {{ strtoupper($key) }}</td>
+                                                    {{ $key }}</td>
                                             </tr>
                                         @endforeach
                                         <tr class="bg-light-grey text-dark f-w-500 f-16" align="right">
@@ -232,7 +232,7 @@
                                 <table>
                                     <tr width="100%" class="font-weight-semibold f-13">
                                         <td class="border-left-0 border-right-0 border-top-0">
-                                            {{ ucfirst($item->item_name) }}</td>
+                                            {{ $item->item_name }}</td>
                                     </tr>
                                     @if ($item->item_summary != '' || $item->proposalTemplateItemImage)
                                         <tr>
@@ -253,8 +253,9 @@
                         </tr>
                         <tr>
                             <th width="50%" class="bg-light-grey text-dark-grey font-weight-bold">
-                                {{ucwords($invoice->units->unit_type)}}</th>
-                            <td width="50%">{{ $item->quantity }}</td>
+                                @lang('modules.invoices.qty')
+                            </th>
+                            <td width="50%">{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                         </tr>
                         <tr>
                             <th width="50%" class="bg-light-grey text-dark-grey font-weight-bold">
@@ -291,7 +292,7 @@
 
                 @foreach ($taxes as $key => $tax)
                     <tr>
-                        <th width="50%" class="text-dark-grey font-weight-normal">{{ strtoupper($key) }}</th>
+                        <th width="50%" class="text-dark-grey font-weight-normal">{{ $key }}</th>
                         <td width="50%" class="text-dark-grey font-weight-normal">
                             {{ currency_format($tax, $invoice->currency_id, false) }}</td>
                     </tr>

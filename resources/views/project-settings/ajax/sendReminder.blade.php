@@ -46,7 +46,7 @@
                                id="remind_time" class="form-control height-35 f-14" min="0">
                         <x-slot name="append">
                             <span
-                                class="input-group-text height-35 bg-white border-grey">{{ $projectSetting->remind_type }}</span>
+                                class="input-group-text height-35 bg-white border-grey">{{ __('app.'.$projectSetting->remind_type) }}</span>
                         </x-slot>
                     </x-forms.input-group>
                     <input type="hidden" name="remind_type" value="{{ $projectSetting->remind_type }}">

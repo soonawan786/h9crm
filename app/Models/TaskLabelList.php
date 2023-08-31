@@ -24,11 +24,12 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|TaskLabelList whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskLabelList whereLabelName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskLabelList whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $project_id
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|TaskLabelList whereProjectId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|TaskLabelList whereCompanyId($value)
+ * @mixin \Eloquent
  * @property-read \App\Models\Company $company
  */
 class TaskLabelList extends BaseModel

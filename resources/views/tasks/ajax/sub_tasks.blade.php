@@ -124,7 +124,7 @@
                                 @endif
 
                                 <p class="card-title f-14 mr-3 text-dark flex-grow-1" id="subTask">
-                                    {!! $subtask->status == 'complete' ? '<s>' . $subtask->id . ucfirst($subtask->title) . '</s>' : '<a class="view-subtask" href="javascript:;" style="color:black;" data-row-id=' . $subtask->id . ' >' .  ucfirst($subtask->title) . '</a>' !!}
+                                    {!! $subtask->status == 'complete' ? '<s>' . $subtask->title . '</s>' : '<a class="view-subtask text-dark-grey" href="javascript:;" data-row-id=' . $subtask->id . ' >' .  $subtask->title . '</a>' !!}
                                     {!! $subtask->due_date ? '<span class="f-11 text-lightest"><br>'.__('modules.invoices.due') . ': ' . $subtask->due_date->translatedFormat(company()->date_format) . '</span>' : '' !!}
                                 </p>
                                 <div class="dropdown ml-auto subtask-action">
@@ -250,11 +250,11 @@
                 },
                 paramName: "file",
                 maxFilesize: DROPZONE_MAX_FILESIZE,
-                maxFiles: 10,
+                maxFiles: DROPZONE_MAX_FILES,
                 autoProcessQueue: false,
                 uploadMultiple: true,
                 addRemoveLinks: true,
-                parallelUploads: 10,
+                parallelUploads: DROPZONE_MAX_FILES,
                 acceptedFiles: DROPZONE_FILE_ALLOW,
                 init: function () {
                     taskDropzone = this;
@@ -268,8 +268,30 @@
             taskDropzone.on('uploadprogress', function () {
                 $.easyBlockUI();
             });
-            taskDropzone.on('completemultiple', function () {
+            taskDropzone.on('queuecomplete', function () {
                 window.location.reload();
+            });
+            taskDropzone.on('removedfile', function () {
+                var grp = $('div#file-upload-dropzone').closest(".form-group");
+                var label = $('div#file-upload-box').siblings("label");
+                $(grp).removeClass("has-error");
+                $(label).removeClass("is-invalid");
+            });
+            taskDropzone.on('error', function (file, message) {
+                taskDropzone.removeFile(file);
+                var grp = $('div#file-upload-dropzone').closest(".form-group");
+                var label = $('div#file-upload-box').siblings("label");
+                $(grp).find(".help-block").remove();
+                var helpBlockContainer = $(grp);
+
+                if (helpBlockContainer.length == 0) {
+                    helpBlockContainer = $(grp);
+                }
+
+                helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+                $(grp).addClass("has-error");
+                $(label).addClass("is-invalid");
+
             });
         }
 

@@ -7,6 +7,7 @@ use App\DataTables\RecurringExpensesDataTable;
 use App\Helper\Files;
 use App\Helper\Reply;
 use App\Http\Requests\Expenses\StoreRecurringExpense;
+use App\Models\BankAccount;
 use App\Models\Currency;
 use App\Models\Expense;
 use App\Models\ExpenseRecurring;
@@ -68,6 +69,18 @@ class RecurringExpenseController extends AccountBaseController
             $this->employees = User::allEmployees();
         }
 
+        $this->linkExpensePermission = user()->permission('link_expense_bank_account');
+        $this->viewBankAccountPermission = user()->permission('view_bankaccount');
+
+        $bankAccounts = BankAccount::where('status', 1)->where('currency_id', company()->currency_id);
+
+        if($this->viewBankAccountPermission == 'added'){
+            $bankAccounts = $bankAccounts->where('added_by', user()->id);
+        }
+
+        $bankAccounts = $bankAccounts->get();
+        $this->bankDetails = $bankAccounts;
+
         if (request()->ajax()) {
             $html = view('recurring-expenses.ajax.create', $this->data)->render();
             return Reply::dataOnly(['status' => 'success', 'html' => $html, 'title' => $this->pageTitle]);
@@ -110,6 +123,7 @@ class RecurringExpenseController extends AccountBaseController
         }
 
         $expenseRecurring->immediate_expense = ($request->immediate_expense) ? 1 : 0;
+        $expenseRecurring->bank_account_id = $request->bank_account_id;
         $expenseRecurring->status = 'active';
         $expenseRecurring->save();
 
@@ -126,6 +140,7 @@ class RecurringExpenseController extends AccountBaseController
             $expense->price = $request->price;
             $expense->purchase_from = $request->purchase_from;
             $expense->purchase_date = now()->format('Y-m-d');
+            $expense->bank_account_id = $expenseRecurring->bank_account_id;
             $expense->status = 'approved';
             $expense->save();
         }
@@ -195,9 +210,31 @@ class RecurringExpenseController extends AccountBaseController
 
         $this->currencies = Currency::all();
         $this->categories = ExpenseCategoryController::getCategoryByCurrentRole();
-        $this->projects = Project::all();
         $this->pageTitle = __('modules.expensesRecurring.addExpense');
         $this->projectId = request('project_id') ? request('project_id') : null;
+
+        $this->linkExpensePermission = user()->permission('link_expense_bank_account');
+        $this->viewBankAccountPermission = user()->permission('view_bankaccount');
+
+        $bankAccounts = BankAccount::where('status', 1)->where('currency_id', $this->expense->currency_id);
+
+        if($this->viewBankAccountPermission == 'added'){
+            $bankAccounts = $bankAccounts->where('added_by', user()->id);
+        }
+
+        $bankAccounts = $bankAccounts->get();
+        $this->bankDetails = $bankAccounts;
+
+        $userId = $this->expense->user_id;
+
+        if (!is_null($userId)) {
+            $this->projects = Project::with('members')->whereHas('members', function ($q) use ($userId) {
+                $q->where('user_id', $userId);
+            })->get();
+        }
+        else {
+            $this->projects = Project::get();
+        }
 
         if (!is_null($this->projectId)) {
             $employees = Project::with('projectMembers')->where('id', $this->projectId)->first();
@@ -239,6 +276,7 @@ class RecurringExpenseController extends AccountBaseController
             $expense->unlimited_recurring = $request->billing_cycle < 0 ? 1 : 0;
             $expense->description         = trim_editor($request->description);
             $expense->purchase_from       = $request->purchase_from;
+            $expense->bank_account_id     = $request->bank_account_id;
 
             if ($request->project_id > 0) {
                 $expense->project_id = $request->project_id;

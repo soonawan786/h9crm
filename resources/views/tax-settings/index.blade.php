@@ -5,7 +5,7 @@
     <!-- SETTINGS START -->
     <div class="w-100 d-flex ">
 
-        <x-setting-sidebar :activeMenu="$activeSettingMenu"/>
+        @include('sections.setting-sidebar')
 
         <x-setting-card>
             <x-slot name="header">
@@ -21,7 +21,7 @@
 
                         <div class="col-md-12 mb-2">
                             <x-forms.button-primary icon="plus" id="add-tax" class="type-btn mb-2 actionBtn">
-                                @lang('app.add') @lang('app.new') @lang('app.tax')
+                                @lang('modules.credit-notes.addTax')
                             </x-forms.button-primary>
                         </div>
 
@@ -42,8 +42,8 @@
                         @forelse($taxes as $key => $tax)
                             <tr id="tax-{{ $tax->id }}">
                                 <td>{{ $key + 1 }}</td>
-                                <td>{{ strtoupper($tax->tax_name) }}</td>
-                                <td>{{ mb_ucwords($tax->rate_percent) }}</td>
+                                <td>{{ $tax->tax_name }}</td>
+                                <td>{{ $tax->rate_percent }}</td>
                                 <td class="text-right pr-20">
                                     <div class="task_view">
                                         <a class="task_view_more d-flex align-items-center justify-content-center edit-tax"

@@ -50,6 +50,7 @@ class InvoiceUpdated extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $invoiceUpdate = parent::build();
 
         if (($this->invoice->project && !is_null($this->invoice->project->client)) || !is_null($this->invoice->client_id)) {
             // For Sending pdf to email
@@ -64,7 +65,6 @@ class InvoiceUpdated extends BaseNotification
 
                 $content = __('email.invoice.updateText');
 
-                $invoiceUpdate = parent::build();
                 $invoiceUpdate->subject(__('email.invoice.updateSubject') . ' - ' . config('app.name') . '.')
                     ->markdown('mail.email', [
                         'url' => $url,
@@ -73,7 +73,7 @@ class InvoiceUpdated extends BaseNotification
                         'actionText' => __('email.viewInvoice'),
                         'notifiableName' => $notifiable->name
                     ]);
-                    
+
                 $invoiceUpdate->attachData($pdf->output(), $filename . '.pdf');
 
                 return $invoiceUpdate;

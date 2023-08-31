@@ -3,7 +3,6 @@
 namespace App\Notifications;
 
 use App\Models\EmailNotificationSetting;
-use App\Models\SlackSetting;
 use App\Models\Task;
 use Illuminate\Notifications\Messages\SlackMessage;
 use NotificationChannels\OneSignal\OneSignalChannel;
@@ -26,14 +25,15 @@ class TaskNote extends BaseNotification
     {
         $this->task = $task;
         $this->created_at = $created_at;
-        $this->emailSetting = EmailNotificationSetting::userAssignTask();
         $this->company = $this->task->company;
+        $this->emailSetting = EmailNotificationSetting::where('company_id', $this->company->id)->where('slug', 'task-mention-notification')->first();
+
     }
 
     /**
      * Get the notification's delivery channels.
      *
-     * @param mixed $notifiable
+     * @param  mixed $notifiable
      * @return array
      */
     public function via($notifiable)
@@ -58,31 +58,36 @@ class TaskNote extends BaseNotification
     /**
      * Get the mail representation of the notification.
      *
-     * @param mixed $notifiable
+     * @param  mixed $notifiable
      * @return \Illuminate\Notifications\Messages\MailMessage
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('tasks.show', [$this->task->id, 'view' => 'notes']);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('email.taskNote.subject') . ' - ' . ucfirst($this->task->heading) . ' #' . $this->task->task_short_code . '<br>' . (!is_null($this->task->project)) ? __('app.project') . ' - ' . ucfirst($this->task->project->project_name) : '';
+        $projectName = (!is_null($this->task->project)) ? __('app.project') . ' - ' . $this->task->project->project_name : '';
 
-        return parent::build()
+        $content = __('email.taskNote.subject') . ' - ' . $this->task->heading . ' #' . $this->task->task_short_code . '<br>' . $projectName;
+
+        return $build
             ->subject(__('email.taskNote.subject') . ' #' . $this->task->task_short_code . ' - ' . config('app.name') . '.')
-            ->markdown('mail.email', [
+            ->markdown(
+                'mail.email', [
                 'url' => $url,
                 'content' => $content,
                 'themeColor' => $this->company->header_color,
                 'actionText' => __('email.taskNote.action'),
                 'notifiableName' => $notifiable->name
-            ]);
+                ]
+            );
     }
 
     /**
      * Get the array representation of the notification.
      *
-     * @param mixed $notifiable
+     * @param  mixed $notifiable
      * @return array
      */
     //phpcs:ignore
@@ -98,7 +103,7 @@ class TaskNote extends BaseNotification
     /**
      * Get the Slack representation of the notification.
      *
-     * @param mixed $notifiable
+     * @param  mixed $notifiable
      * @return SlackMessage
      */
     public function toSlack($notifiable)
@@ -110,7 +115,7 @@ class TaskNote extends BaseNotification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content('*' . __('email.taskNote.subject') . '*' . "\n" . ucfirst($this->task->heading) . "\n" . ' #' . $this->task->task_short_code);
+                ->content('*' . __('email.taskNote.subject') . '*' . "\n" . $this->task->heading . "\n" . ' #' . $this->task->task_short_code);
         }
 
         return (new SlackMessage())
@@ -123,8 +128,8 @@ class TaskNote extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.taskNote.subject'))
-            ->body(ucfirst($this->task->heading) . ' ' . __('email.taskNote.subject'));
+            ->setSubject(__('email.taskNote.subject'))
+            ->setBody($this->task->heading . ' ' . __('email.taskNote.subject'));
     }
 
 }

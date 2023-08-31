@@ -29,6 +29,7 @@ class SignRequest extends FormRequest
         $rules = [
             'first_name' => 'required',
             'last_name' => 'required',
+            'place' => 'required',
             'email' => 'required|email:rfc',
         ];
 

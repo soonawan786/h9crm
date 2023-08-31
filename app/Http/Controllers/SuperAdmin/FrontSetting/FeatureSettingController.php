@@ -12,6 +12,7 @@ use App\Models\SuperAdmin\TrFrontDetail;
 use App\Http\Controllers\AccountBaseController;
 use App\Http\Requests\SuperAdmin\FeatureSetting\StoreRequest;
 use App\Http\Requests\SuperAdmin\FeatureSetting\UpdateRequest;
+use App\Models\GlobalSetting;
 
 class FeatureSettingController extends AccountBaseController
 {
@@ -21,6 +22,12 @@ class FeatureSettingController extends AccountBaseController
         parent::__construct();
         $this->pageTitle = 'superadmin.frontFeatureSettings';
         $this->activeSettingMenu = 'features';
+
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_front_settings'));
+
+            return $next($request);
+        });
     }
 
     public function index()
@@ -75,7 +82,7 @@ class FeatureSettingController extends AccountBaseController
             }
 
             if ($request->hasFile('image')) {
-                $feature->image = Files::upload($request->image, 'front/feature');
+                $feature->image = Files::uploadLocalOrS3($request->image, 'front/feature');
             }
         }
 
@@ -133,7 +140,7 @@ class FeatureSettingController extends AccountBaseController
 
             if ($request->hasFile('image')) {
                 Files::deleteFile($feature->image, 'front/feature');
-                $feature->image = Files::upload($request->image, 'front/feature');
+                $feature->image = Files::uploadLocalOrS3($request->image, 'front/feature');
             }
         }
 

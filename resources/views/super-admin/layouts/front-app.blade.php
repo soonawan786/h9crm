@@ -15,7 +15,8 @@
     <link href="{{ asset('front/plugin/froiden-helper/helper.css') }}" rel="stylesheet">
     <link href="{{ asset('front/css/style.css') }}" rel="stylesheet">
     <link href="https://use.fontawesome.com/releases/v5.0.8/css/all.css" rel="stylesheet">
-
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="{{ asset('vendor/css/bootstrap-icons.css') }}">
     <!-- Favicons -->
     <link rel="icon" type="image/png" sizes="16x16" href="{{ $setting->favicon_url }}">
     {{--<link rel="manifest" href="{{ asset('favicon/manifest.json') }}">--}}
@@ -25,8 +26,9 @@
 
     <script src="https://www.google.com/recaptcha/api.js"></script>
     @foreach ($frontWidgets as $item)
-    {!! $item->widget_code !!}
-
+        @if(!is_null($item->header_script))
+            {!! $item->header_script !!}
+        @endif
     @endforeach
     @stack('head-script')
     <style>
@@ -219,6 +221,12 @@
     <script src="{{ asset('front/js/theme.min.js') }}"></script>
     <script src="{{ asset('front/plugin/froiden-helper/helper.js') }}"></script>
     <script src="{{ asset('front/js/script.js') }}"></script>
+    @foreach ($frontWidgets as $item)
+        @if(!is_null($item->footer_script))
+            {!! $item->footer_script !!}
+        @endif
+
+    @endforeach
 
     @stack('footer-script')
 </body>

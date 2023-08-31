@@ -21,12 +21,6 @@
                 </div>
 
                 <div class="col-lg-6">
-                    <x-forms.text
-                        :fieldLabel="__('app.name')" fieldName="name" fieldId="name"
-                        fieldRequired="true"/>
-                </div>
-
-                <div class="col-lg-6">
                     <div class="form-group my-3">
                         <label class="f-14 text-dark-grey mb-12 w-100" for="usr">@lang('app.required')</label>
                         <div class="d-flex">
@@ -107,14 +101,6 @@
 
     $('#type').on('change', function () {
         (this.value === 'select' || this.value === 'radio' || this.value === 'checkbox') ? $('.mt-repeater').removeClass('d-none') : $('.mt-repeater').addClass('d-none');
-    });
-
-    function convertToSlug(Text) {
-        return Text.toLowerCase().replace(/[^\w ]+/g, '').replace(/ +/g, '-');
-    }
-
-    $('#label').keyup(function () {
-        $('#name').val(convertToSlug($(this).val()));
     });
 
     $('#save-custom-field').click(function () {

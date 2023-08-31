@@ -14,4 +14,18 @@ class TicketAgentGroupsObserver
         }
     }
 
+    public function saving(TicketAgentGroups $model)
+    {
+        if (!isRunningInConsoleOrSeeding()) {
+            $model->last_updated_by = user()->id;
+        }
+    }
+
+    public function updating(TicketAgentGroups $model)
+    {
+        if (!isRunningInConsoleOrSeeding()) {
+            $model->last_updated_by = user()->id;
+        }
+    }
+
 }

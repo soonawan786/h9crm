@@ -37,7 +37,7 @@ class TicketReplyTemplatesController extends AccountBaseController
     {
         $template = new TicketReplyTemplate();
         $template->reply_heading = trim_editor($request->reply_heading);
-        $template->reply_text = $request->reply_text;
+        $template->reply_text = $request->description;
         $template->save();
 
         return Reply::success(__('messages.recordSaved'));
@@ -63,7 +63,7 @@ class TicketReplyTemplatesController extends AccountBaseController
     {
         $template = TicketReplyTemplate::findOrFail($id);
         $template->reply_heading = $request->reply_heading;
-        $template->reply_text = $request->reply_text;
+        $template->reply_text = $request->description;
         $template->save();
 
         return Reply::success(__('messages.templateUpdateSuccess'));

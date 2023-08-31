@@ -98,7 +98,7 @@ class CreditNotesDataTable extends BaseDataTable
                 return $row->client->name;
             })
             ->editColumn('cn_number', function ($row) {
-                return '<a href="' . route('creditnotes.show', $row->id) . '" class="text-darkest-grey">' . ucfirst($row->cn_number) . '</a>';
+                return '<a href="' . route('creditnotes.show', $row->id) . '" class="text-darkest-grey">' . $row->cn_number . '</a>';
             })
             ->addColumn('credit_note', function ($row) {
                 return $row->cn_number;
@@ -247,16 +247,6 @@ class CreditNotesDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'credit_notes' .now()->format('Y-m-d-H-i-s');
     }
 
 }

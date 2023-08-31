@@ -132,12 +132,20 @@
     @endif
 </div>
 
+
 {{-- WORKSUITESAAS --}}
 @if (!user()->is_superadmin)
 <div class="col-xl-4 col-lg-12 col-md-12 ntfcn-tab-content-right border-left-grey p-4">
     <h4 class="f-16 text-capitalize f-w-500 text-dark-grey">@lang("modules.emailSettings.notificationTitle")</h4>
+    <div class="mb-3 d-flex">
+
+        <x-forms.checkbox  :checked="$checkedAll==true"
+                          :fieldLabel="__('modules.permission.selectAll')"
+                          fieldName="select_all_checkbox" fieldId="select_all"
+                          fieldValue="all"/>
+    </div>
     @foreach ($emailSettings as $emailSetting)
-        <div class="mb-3 d-flex">
+        <div class="mb-3 d-flex notification">
             <x-forms.checkbox :checked="$emailSetting->send_email == 'yes'"
                               :fieldLabel="__('modules.emailNotification.'.str_slug($emailSetting->setting_name))"
                               fieldName="send_email[]" :fieldId="'send_email_'.$emailSetting->id"
@@ -168,7 +176,7 @@
 <!-- Buttons End -->
 
 <script>
-    let CHANGE_DETECTED = false;
+    var CHANGE_DETECTED = false;
     $('.field').each(function () {
         let elem = $(this);
         CHANGE_DETECTED = false
@@ -215,6 +223,23 @@
         })
     }
 
+    var checkboxes = document.querySelectorAll(".notification input[type=checkbox]");
+
+    $('body').on('click', '#select_all', function() {
+        var selectAll = $('#select_all').is(':checked');
+
+        if(selectAll == true){
+            checkboxes.forEach(function(checkbox){
+                checkbox.checked = true;
+            })
+        }
+        else{
+            checkboxes.forEach(function(checkbox){
+                checkbox.checked = false;
+            })
+        }
+    });
+
     $('body').on('click', '#save-email-form', function () {
         submitForm()
     });
@@ -227,6 +252,17 @@
         const url = "{{ route('smtp_settings.show_send_test_mail_modal') }}";
         $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
         $.ajaxModal(MODAL_LG, url);
+    });
+
+    $('body').on('click', '#send-test-email-btn', function () {
+        $.easyAjax({
+            container: "#testEmail",
+            url: "{{route('smtp_settings.send_test_mail')}}",
+            type: "GET",
+            messagePosition: "inline",
+            blockUI: true,
+            data: $('#testEmail').serialize(),
+        })
     });
 </script>
 <script>

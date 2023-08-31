@@ -13,10 +13,18 @@ class NewProjectEvent
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $project;
+    public $projectStatus;
+    public $notifyUser;
+    public $notificationName;
 
-    public function __construct(Project $project)
+    public function __construct(Project $project, $notifyUser, $notificationName, $projectStatus=null)
     {
+
         $this->project = $project;
+        $this->notifyUser = $notifyUser;
+        $this->projectStatus = $projectStatus;
+        $this->notificationName = $notificationName;
+
     }
 
 }

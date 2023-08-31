@@ -62,13 +62,14 @@ class NewDiscussionReply extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('discussion.show', $this->discussionReply->discussion_id);
         $url = getDomainSpecificUrl($url, $this->company);
 
         $content = __('email.discussionReply.text') . ' ' . $this->discussionReply->discussion->title . ':-' . '<br>' . new HtmlString($this->discussionReply->body);
 
-        return parent::build()
-            ->subject(mb_ucwords($this->discussionReply->user->name) . ' ' . __('email.discussionReply.subject') . $this->discussionReply->discussion->title . ' - ' . config('app.name') . '.')
+        return $build
+            ->subject($this->discussionReply->user->name . ' ' . __('email.discussionReply.subject') . $this->discussionReply->discussion->title . ' - ' . config('app.name') . '.')
             ->markdown('mail.email', [
                 'url' => $url,
                 'content' => $content,
@@ -112,7 +113,7 @@ class NewDiscussionReply extends BaseNotification
                 ->from(config('app.name'))
                 ->image($slack->slack_logo_url)
                 ->to('@' . $notifiable->employee[0]->slack_username)
-                ->content('*' . mb_ucwords($this->discussionReply->user->name) . ' ' . __('email.discussionReply.subject') . $this->discussionReply->discussion->title . '*' . "\n" . $this->discussionReply->body);
+                ->content('*' . $this->discussionReply->user->name . ' ' . __('email.discussionReply.subject') . $this->discussionReply->discussion->title . '*' . "\n" . $this->discussionReply->body);
         }
 
         return (new SlackMessage())
@@ -125,8 +126,8 @@ class NewDiscussionReply extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.discussionReply.subject'))
-            ->body(ucfirst($this->discussionReply->discussion->title));
+            ->setSubject(__('email.discussionReply.subject'))
+            ->setBody($this->discussionReply->discussion->title);
     }
 
 }

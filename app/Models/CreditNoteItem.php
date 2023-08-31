@@ -34,11 +34,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|CreditNoteItem whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|CreditNoteItem whereUnitPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder|CreditNoteItem whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read \App\Models\CreditNoteItemImage|null $creditNoteItemImage
  * @property string|null $item_summary
  * @property-read mixed $tax_list
  * @method static \Illuminate\Database\Eloquent\Builder|CreditNoteItem whereItemSummary($value)
+ * @property-read \App\Models\UnitType|null $unit
+ * @property int|null $unit_id
+ * @property int|null $product_id
+ * @method static \Illuminate\Database\Eloquent\Builder|CreditNoteItem whereProductId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|CreditNoteItem whereUnitId($value)
+ * @mixin \Eloquent
  */
 class CreditNoteItem extends BaseModel
 {

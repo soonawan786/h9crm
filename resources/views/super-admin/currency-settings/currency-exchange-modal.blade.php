@@ -31,8 +31,8 @@
 
             <div class="col-sm-12 col-lg-6">
                 <x-forms.select fieldId="country" fieldLabel="Version" fieldName="currency_key_version">
-                    <option {{ (global_setting()->currency_key_version == 'free' ? 'selected' : '')  }} value="free">Free</option>
-                    <option {{ (global_setting()->currency_key_version == 'api' ? 'selected' : '')  }} value="paid">Paid</option>
+                    <option {{ (global_setting()->currency_key_version == 'free' ? 'selected' : '')  }} value="free">@lang('app.free')</option>
+                    <option {{ (global_setting()->currency_key_version == 'api' ? 'selected' : '')  }} value="paid">@lang('app.paid')</option>
                 </x-forms.select>
             </div>
 

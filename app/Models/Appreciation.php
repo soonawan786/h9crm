@@ -44,7 +44,11 @@ class Appreciation extends BaseModel
 {
     use HasCompany;
 
-    public $dates = ['created_at', 'updated_at', 'award_date'];
+    protected $casts = [
+        'award_date' => 'datetime',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
     protected $appends = ['image_url'];
     protected $with = ['award'];
 
@@ -55,12 +59,12 @@ class Appreciation extends BaseModel
 
     public function awardTo(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'award_to');
+        return $this->belongsTo(User::class, 'award_to')->withoutGlobalScope(ActiveScope::class);
     }
 
     public function addedBy(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'added_by');
+        return $this->belongsTo(User::class, 'added_by')->withoutGlobalScope(ActiveScope::class);
     }
 
     public function award(): BelongsTo

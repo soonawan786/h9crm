@@ -2,9 +2,9 @@
 
 namespace App\Models\SuperAdmin;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class AuthorizeSubscription extends Model
+class AuthorizeSubscription extends BaseModel
 {
     protected $table = 'authorize_subscriptions';
 }

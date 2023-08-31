@@ -7,6 +7,7 @@ use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Project;
 use App\Models\ProjectMilestone;
+use App\Models\ProjectStatusSetting;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -27,8 +28,8 @@ trait ClientPanelDashboard
 
         $this->modules = user_modules();
         $this->counts = User::select(
-                DB::raw('(select count(projects.id) from `projects` where client_id = ' . $this->user->id . ' and deleted_at IS NULL) as totalProjects'),
-                DB::raw('(select count(tickets.id) from `tickets` where (status="open" or status="pending") and user_id = ' . $this->user->id . ') as totalUnResolvedTickets')
+                DB::raw('(select count(projects.id) from `projects` where client_id = ' . $this->user->id . ' and deleted_at IS NULL and projects.company_id = '. company()->id .') as totalProjects'),
+                DB::raw('(select count(tickets.id) from `tickets` where (status="open" or status="pending") and user_id = ' . $this->user->id . '  and tickets.company_id = '. company()->id .' and deleted_at IS NULL) as totalUnResolvedTickets')
             )
             ->first();
 
@@ -85,9 +86,9 @@ trait ClientPanelDashboard
 
     public function projectStatusChartData()
     {
-        $labels = ['in progress', 'on hold', 'not started', 'canceled', 'finished'];
-        $data['labels'] = [__('app.inProgress'), __('app.onHold'), __('app.notStarted'), __('app.canceled'), __('app.finished')];
-        $data['colors'] = ['#1d82f5', '#FCBD01', '#616e80', '#D30000', '#2CB100'];
+        $labels = ProjectStatusSetting::where('status', 'active')->pluck('status_name');
+        $data['labels'] = ProjectStatusSetting::where('status', 'active')->pluck('status_name');
+        $data['colors'] = ProjectStatusSetting::where('status', 'active')->pluck('color');
         $data['values'] = [];
 
         foreach ($labels as $label) {

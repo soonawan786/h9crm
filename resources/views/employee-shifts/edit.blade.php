@@ -67,12 +67,17 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-6">
+                    <div class="col-lg-4">
+                        <x-forms.number fieldName="early_clock_in" fieldId="early_clock_in"
+                        :fieldLabel="__('modules.attendance.earlyClockIn')" :fieldValue="$employeeShift->early_clock_in"/>
+                    </div>
+
+                    <div class="col-lg-4">
                         <x-forms.number class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.attendance.lateMark')" fieldName="late_mark_duration"
                             fieldId="late_mark_duration" fieldRequired="true" :fieldValue="$employeeShift->late_mark_duration" />
                     </div>
 
-                    <div class="col-lg-6">
+                    <div class="col-lg-4">
                         <x-forms.number class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.attendance.checkininday')" fieldName="clockin_in_day"
                             fieldId="clockin_in_day" fieldRequired="true" :fieldValue="$employeeShift->clockin_in_day" />
                     </div>

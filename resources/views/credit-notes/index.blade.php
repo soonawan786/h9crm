@@ -66,7 +66,7 @@
                         <select class="form-control select-picker" name="project_id" id="project_id" data-live-search="true" data-container="body" data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($projects as $project)
-                                <option value="{{ $project->id }}">{{ mb_ucwords($project->project_name) }}</option>
+                                <option value="{{ $project->id }}">{{ $project->project_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -100,6 +100,12 @@
         <!-- Add Task Export Buttons Start -->
         <div class="d-flex">
             <div id="table-actions" class="flex-grow-1 align-items-center">
+            </div>
+
+            <div class="btn-group mt-3 mt-lg-0 mt-md-0 ml-lg-3" role="group">
+                <a href="javascript:;" class="img-lightbox btn btn-secondary f-14"
+                data-image-url="{{ asset('img/credit-note-lc.png') }}" data-toggle="tooltip"
+                data-original-title="@lang('app.howItWorks')"><i class="side-icon bi bi-question-circle"></i></a>
             </div>
 
         </div>

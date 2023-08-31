@@ -14,6 +14,34 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
  * @property string|null $image
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Estimate whereCompanyId($value)
+ * @property int $id
+ * @property int|null $company_id
+ * @property int|null $user_id
+ * @property int|null $country_id
+ * @property int|null $added_by
+ * @property string $visa_number
+ * @property \Illuminate\Support\Carbon $issue_date
+ * @property \Illuminate\Support\Carbon $expiry_date
+ * @property string|null $file
+ * @property \Illuminate\Support\Carbon|null $created_at
+ * @property \Illuminate\Support\Carbon|null $updated_at
+ * @property-read \App\Models\Country|null $country
+ * @property-read mixed $image_url
+ * @property-read \App\Models\User|null $user
+ * @method static \Illuminate\Database\Eloquent\Builder|VisaDetail newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|VisaDetail newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|VisaDetail query()
+ * @method static \Illuminate\Database\Eloquent\Builder|VisaDetail whereAddedBy($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VisaDetail whereCountryId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VisaDetail whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VisaDetail whereExpiryDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VisaDetail whereFile($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VisaDetail whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VisaDetail whereIssueDate($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VisaDetail whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VisaDetail whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|VisaDetail whereVisaNumber($value)
+ * @mixin \Eloquent
  */
 
 class VisaDetail extends Model
@@ -23,7 +51,10 @@ class VisaDetail extends Model
     const FILE_PATH = 'visa';
     // protected $table = 'passport';
     protected $appends = ['image_url'];
-    protected $dates = ['issue_date', 'expiry_date'];
+    protected $casts = [
+        'issue_date' => 'datetime',
+        'expiry_date' => 'datetime',
+    ];
 
     public function user(): BelongsTo
     {
@@ -32,7 +63,7 @@ class VisaDetail extends Model
 
     public function getImageUrlAttribute()
     {
-        return asset_url(VisaDetail::FILE_PATH . '/'  . $this->file);
+        return asset_url_local_s3(VisaDetail::FILE_PATH . '/'  . $this->file);
     }
 
     public function country(): HasOne

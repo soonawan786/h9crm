@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -58,7 +59,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Ticket whereUserId($value)
  * @method static \Illuminate\Database\Query\Builder|Ticket withTrashed()
  * @method static \Illuminate\Database\Query\Builder|Ticket withoutTrashed()
- * @mixin \Eloquent
  * @property string|null $mobile
  * @property int|null $country_id
  * @method static \Illuminate\Database\Eloquent\Builder|Ticket whereCountryId($value)
@@ -69,6 +69,16 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @property-read \App\Models\Company|null $company
  * @property-read mixed $extras
  * @method static \Illuminate\Database\Eloquent\Builder|Ticket whereCompanyId($value)
+ * @property int|null $ticket_number
+ * @method static \Illuminate\Database\Eloquent\Builder|Ticket whereTicketNumber($value)
+ * @property int|null $group_id
+ * @property-read \App\Models\TicketReply|null $latestReply
+ * @method static \Illuminate\Database\Eloquent\Builder|Ticket whereGroupId($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @property-read int|null $mention_user_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\MentionUser> $ticketMention
+ * @property-read int|null $ticket_mention_count
+ * @mixin \Eloquent
  */
 class Ticket extends BaseModel
 {
@@ -77,7 +87,9 @@ class Ticket extends BaseModel
     use SoftDeletes, HasFactory;
     use CustomFieldsTrait;
 
-    protected $dates = ['deleted_at'];
+    protected $casts = [
+        'deleted_at' => 'datetime',
+    ];
     protected $appends = ['created_on'];
 
     const CUSTOM_FIELD_MODEL = 'App\Models\Ticket';
@@ -102,6 +114,11 @@ class Ticket extends BaseModel
         return $this->hasMany(TicketReply::class, 'ticket_id');
     }
 
+    public function latestReply(): HasOne
+    {
+        return $this->hasOne(TicketReply::class, 'ticket_id')->latest();
+    }
+
     public function tags(): HasMany
     {
         return $this->hasMany(TicketTag::class, 'ticket_id');
@@ -116,11 +133,36 @@ class Ticket extends BaseModel
     {
         $setting = company();
 
-        if (!is_null($this->created_at)) {
-            return $this->created_at->timezone($setting->timezone)->format('d M Y H:i');
+        if (is_null($this->created_at)) {
+            return '';
         }
 
-        return '';
+        return $this->created_at->timezone($setting->timezone)->format('d M Y H:i');
+    }
+
+    public function badge($tag = 'p')
+    {
+
+        $latestReplyUser = $this->latestReply?->user;
+        $totalReply = $this->reply()->count();
+
+        $selfReplyCount = $this->reply()->where('user_id', $latestReplyUser?->id)->count();
+
+        if ($totalReply > 1 && ($totalReply !== $selfReplyCount) && $latestReplyUser && $latestReplyUser->id !== user()->id) {
+            return '<'.$tag.' class="mb-0"><span class="badge badge-secondary mr-1 bg-info">' . __('app.newResponse') . '</span></'.$tag.'>';
+        }
+
+        return $totalReply == 1 || ($totalReply == $selfReplyCount) ? '<'.$tag.' class="mb-0"><span class="badge badge-secondary mr-1 bg-dark-green">' . __('app.new') . '</span></'.$tag.'>' : '';
+    }
+
+    public function mentionUser(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'mention_users')->withoutGlobalScope(ActiveScope::class)->using(MentionUser::class);
+    }
+
+    public function ticketMention(): HasMany
+    {
+        return $this->hasMany(MentionUser::class, 'ticket_id');
     }
 
 }

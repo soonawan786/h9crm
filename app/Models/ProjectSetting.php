@@ -25,10 +25,10 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectSetting whereRemindType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectSetting whereSendReminder($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectSetting whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ProjectSetting whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ProjectSetting extends BaseModel
 {

@@ -53,8 +53,8 @@ $manageCategoryPermission = user()->permission('manage_discussion_category');
                         <option value="">@lang('app.all')</option>
                         @foreach ($discussionCategories as $item)
                             <option
-                                data-content="<i class='fa fa-circle mr-2' style='color: {{ $item->color }}'></i> {{ mb_ucwords($item->name) }}"
-                                value="{{ $item->id }}">{{ mb_ucwords($item->name) }}</option>
+                                data-content="<i class='fa fa-circle mr-2' style='color: {{ $item->color }}'></i> {{ $item->name }}"
+                                value="{{ $item->id }}">{{ $item->name }}</option>
                         @endforeach
                     </select>
                 </div>

@@ -56,7 +56,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @method static \Illuminate\Database\Eloquent\Builder|Proposal whereTotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Proposal whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Proposal whereValidTill($value)
- * @mixin \Eloquent
  * @property string|null $hash
  * @method static \Illuminate\Database\Eloquent\Builder|Proposal whereHash($value)
  * @property string|null $description
@@ -66,6 +65,13 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Proposal whereCompanyId($value)
+ * @property-read \App\Models\UnitType|null $unit
+ * @method static \Illuminate\Database\Eloquent\Builder|Proposal whereIpAddress($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Proposal whereLastViewed($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Proposal whereUnitId($value)
+ * @property int $send_status
+ * @method static \Illuminate\Database\Eloquent\Builder|Proposal whereSendStatus($value)
+ * @mixin \Eloquent
  */
 class Proposal extends BaseModel
 {
@@ -74,7 +80,10 @@ class Proposal extends BaseModel
 
     protected $table = 'proposals';
 
-    protected $dates = ['valid_till', 'last_viewed'];
+    protected $casts = [
+        'valid_till' => 'datetime',
+        'last_viewed' => 'datetime',
+    ];
 
     public function items(): HasMany
     {

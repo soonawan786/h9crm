@@ -99,7 +99,10 @@ class SendProjectReminder extends Command
                         $projectsArr = !in_array('admins', $this->project_setting->remind_to) ? $this->filterProjects($projectsArr, $company) : $projects;
                     }
 
-                    event(new ProjectReminderEvent($projectsArr, $user, ['company' => $company, 'project_setting' => $this->project_setting]));
+                    if ($projectsArr->count())
+                    {
+                        event(new ProjectReminderEvent($projectsArr, $user, ['company' => $company, 'project_setting' => $this->project_setting]));
+                    }
 
                 }
             }

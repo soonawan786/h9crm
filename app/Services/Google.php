@@ -24,6 +24,7 @@ class Google
         $client->setApprovalPrompt(config('services.google.approval_prompt'));
         $client->setAccessType(config('services.google.access_type'));
         $client->setIncludeGrantedScopes(config('services.google.include_granted_scopes'));
+        $client->setState(route('googleAuth'));
         $this->client = $client;
     }
 

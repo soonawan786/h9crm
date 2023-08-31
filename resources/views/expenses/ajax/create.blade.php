@@ -89,7 +89,7 @@ $addExpenseCategoryPermission = user()->permission('manage_expense_category');
                                 <option value="">--</option>
                                 @foreach ($projects as $project)
                                     <option data-currency-id="{{ $project->currency_id }}" @if ($projectId == $project->id) selected @endif value="{{ $project->id }}">
-                                        {{ mb_ucwords($project->project_name) }}
+                                        {{ $project->project_name }}
                                     </option>
                                 @endforeach
                             </x-forms.select>
@@ -105,7 +105,7 @@ $addExpenseCategoryPermission = user()->permission('manage_expense_category');
                                 data-live-search="true">
                                 <option value="">--</option>
                                 @foreach ($categories as $category)
-                                    <option value="{{ $category->id }}">{{ mb_ucwords($category->category_name) }}
+                                    <option value="{{ $category->id }}">{{ $category->category_name }}
                                     </option>
                                 @endforeach
                             </select>
@@ -123,7 +123,7 @@ $addExpenseCategoryPermission = user()->permission('manage_expense_category');
                     <div class="col-md-4">
                         <x-forms.text :fieldLabel="__('modules.expenses.purchaseFrom')" fieldName="purchase_from"
                             fieldId="purchase_from" :fieldPlaceholder="__('placeholders.expense.vendor')" />
-                        <ul id="searchResults"></ul>
+<ul id="searchResults"></ul>
                     </div>
 
                     @if($linkExpensePermission == 'all')
@@ -134,13 +134,14 @@ $addExpenseCategoryPermission = user()->permission('manage_expense_category');
                                 @if($viewBankAccountPermission != 'none')
                                     @foreach ($bankDetails as $bankDetail)
                                         <option value="{{ $bankDetail->id }}">@if($bankDetail->type == 'bank')
-                                            {{ $bankDetail->bank_name }} | @endif {{ mb_ucwords($bankDetail->account_name) }}
+                                            {{ $bankDetail->bank_name }} | @endif {{ $bankDetail->account_name }}
                                         </option>
                                     @endforeach
                                 @endif
                             </x-forms.select>
                         </div>
                     @endif
+                    <input type = "hidden" name = "mention_user_ids" id = "mentionUserId" class ="mention_user_ids">
 
                     <div class="col-md-12">
                         <div class="form-group my-3">
@@ -240,14 +241,14 @@ $addExpenseCategoryPermission = user()->permission('manage_expense_category');
 <script>
     $(document).ready(function() {
 
-        quillImageLoad('#description');
+        quillMention(null, '#description');
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         const dp1 = datepicker('#purchase_date', {
             position: 'bl',
@@ -257,6 +258,10 @@ $addExpenseCategoryPermission = user()->permission('manage_expense_category');
         $('#save-expense-form').click(function() {
             let note = document.getElementById('description').children[0].innerHTML;
             document.getElementById('description-text').value = note;
+            var mention_user_id = $('#description span[data-id]').map(function(){
+                            return $(this).attr('data-id')
+                        }).get();
+            $('#mentionUserId').val(mention_user_id.join(','));
             const url = "{{ route('expenses.store') }}";
             var data = $('#save-expense-data-form').serialize();
 

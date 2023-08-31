@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\Designation;
+use App\Models\LeaveType;
 use App\Models\Team;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -37,6 +38,15 @@ class DepartmentTableSeeder extends Seeder
 
         Team::insert($departments);
         Designation::insert($designations);
+
+        $teams = Team::where('company_id', $companyId)->pluck('id')->toArray();
+        $designations = Designation::where('company_id', $companyId)->pluck('id')->toArray();
+
+        LeaveType::where('company_id', $companyId)->update([
+            'department' => json_encode($teams),
+            'designation' => json_encode($designations),
+        ]);
+
     }
 
 }

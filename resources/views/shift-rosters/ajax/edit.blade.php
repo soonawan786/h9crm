@@ -35,14 +35,22 @@
                 <div class="col-sm-12">
                     <x-forms.select fieldName="employee_shift_id" fieldId="employee_shift_id" :fieldLabel="__('modules.attendance.shift')">
                         @foreach ($employeeShifts as $item)
-                            <option
-                                {{ !is_null($shiftSchedule) && $shiftSchedule->employee_shift_id == $item->id ? 'selected' : '' }}
-                                value="{{ $item->id }}">{{ $item->shift_name }} {{ ($item->shift_name != 'Day Off') ? ' ['.$item->office_start_time.' - '.$item->office_end_time.']' : ''}}</option>
+                            @if($item->office_open_days == '' || in_array($day, json_decode($item->office_open_days)))
+                                <option data-content="<i class='fa fa-circle mr-2' style='color: {{ $item->color }}'></i> {{ ($item->shift_name != 'Day Off') ? $item->shift_name : __('modules.attendance.' . str($item->shift_name)->camel()) }} {{ ($item->shift_name != 'Day Off') ? ' ['.$item->office_start_time.' - '.$item->office_end_time.']' : ''}}"
+                                    {{ !is_null($shiftSchedule) && $shiftSchedule->employee_shift_id == $item->id ? 'selected' : '' }}
+                                    value="{{ $item->id }}">{{ ($item->shift_name != 'Day Off') ? $item->shift_name : __('modules.attendance.' . str($item->shift_name)->camel()) }} {{ ($item->shift_name != 'Day Off') ? ' ['.$item->office_start_time.' - '.$item->office_end_time.']' : ''}}</option>
+                            @endif
                         @endforeach
                     </x-forms.select>
                 </div>
                 <div class="col-sm-12">
                     <x-forms.textarea fieldName="remarks" fieldId="remarks" :fieldLabel="__('app.remark')" :fieldValue="!is_null($shiftSchedule) ? $shiftSchedule->remarks : ''" />
+                </div>
+                <div class="col-lg-12">
+                    <x-forms.file class="mr-0 mr-lg-2 mr-md-2 cropper" :fieldLabel="__('app.menu.addFile')" fieldName="file" fieldId="file" :fieldValue="(!is_null($shiftSchedule) && $shiftSchedule->file ? $shiftSchedule->file_url : '')" />
+                    @if (!is_null($shiftSchedule) && $shiftSchedule->file)
+                        <x-cards.data-row :label="__('app.downloadFile')" :value="'<a href='.$shiftSchedule->download_file_url.' download>'.$shiftSchedule->download_file_url.'</a>'" />
+                    @endif
                 </div>
             @endif
         </div>
@@ -73,6 +81,7 @@
             @else
                 var url = "{{ route('shifts.store') }}";
             @endif
+
             $.easyAjax({
                 url: url,
                 type: "POST",
@@ -81,6 +90,7 @@
                 disableButton: true,
                 buttonSelector: "#save-shift",
                 data: $('#attendance-container').serialize(),
+                file: true,
                 success: function(response) {
                     if (response.status == 'success') {
                         if (typeof loadData !== 'undefined' && typeof loadData === 'function') {

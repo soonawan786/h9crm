@@ -22,10 +22,10 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|DiscussionCategory whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DiscussionCategory whereOrder($value)
  * @method static \Illuminate\Database\Eloquent\Builder|DiscussionCategory whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|DiscussionCategory whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class DiscussionCategory extends BaseModel
 {

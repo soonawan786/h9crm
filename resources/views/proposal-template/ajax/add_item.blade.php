@@ -9,7 +9,7 @@
                     @if($invoiceSetting->hsn_sac_code_show)
                         <td width="10%" class="border-0" align="right">@lang("app.hsnSac")</td>
                     @endif
-                    <td width="10%" class="border-0" align="right">{{ isset($items->unit) ? $items->unit->unit_type : 'Qty\hrs' }}</td>
+                    <td width="10%" class="border-0" align="right">@lang('modules.invoices.qty')</td>
                     <td width="10%" class="border-0" align="right">@lang("modules.invoices.unitPrice")</td>
                     <td width="13%" class="border-0" align="right">@lang('modules.invoices.tax')</td>
                     <td width="17%" class="border-0 bblr-mbl" align="right">@lang('modules.invoices.amount')</td>
@@ -43,8 +43,8 @@
                             <select id="multiselect" name="taxes[0][]" multiple="multiple"
                                 class="select-picker type customSequence border-0" data-size="3">
                                 @foreach ($taxes as $tax)
-                                    <option data-rate="{{ $tax->rate_percent }}" @if (isset($items->taxes) && array_search($tax->id, json_decode($items->taxes)) !== false) selected @endif value="{{ $tax->id }}">
-                                        {{ strtoupper($tax->tax_name) }}:
+                                    <option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%" @if (isset($items->taxes) && array_search($tax->id, json_decode($items->taxes)) !== false) selected @endif value="{{ $tax->id }}">
+                                        {{ $tax->tax_name }}:
                                         {{ $tax->rate_percent }}%</option>
                                 @endforeach
                             </select>
@@ -63,7 +63,7 @@
                     </td>
 
                     <td class="border-left-0">
-                        <input type="file" class="dropify" id="dropify" name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg" data-messages-default="test" data-height="70"
+                        <input type="file" class="dropify" id="dropify" name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg bmp" data-messages-default="test" data-height="70"
                         data-default-file="{{ $items->image_url }}" />
                         <input type="hidden" name="invoice_item_image_url[]" value="{{ $items->image_url }}">
                     </td>

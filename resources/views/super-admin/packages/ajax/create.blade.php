@@ -5,7 +5,91 @@
                 <h4 class="mb-0 p-3 f-21 font-weight-normal text-capitalize border-bottom-grey">
                     @lang('superadmin.packages.create')</h4>
                 <div class="row px-3">
+                    <div class="col-md-12">
+                        <x-forms.label fieldId="package_type" :fieldLabel="__('superadmin.packages.choosePackageType')" class="mt-3" />
+                    </div>
+
+                    <div class="col-md-12 mb-4">
+                        <div class="btn btn btn-light p-2 f-15 border mr-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="package_type" id="package_type_paid" value="paid" checked>
+                                <label class="form-check-label ml-2" for="package_type_paid">
+                                    @lang('superadmin.packages.paidPlan')
+                                    <i class="fa fa-question-circle" data-toggle="popover" data-placement="top" data-content="@lang('superadmin.packages.paidPlanInfo')" data-html="true" data-trigger="hover"></i>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="btn btn btn-light p-2 f-15 border mr-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="package_type" id="package_type_free" value="free" >
+                                <label class="form-check-label ml-2" for="package_type_free">
+                                    @lang('superadmin.freePlan')
+                                    <i class="fa fa-question-circle" data-toggle="popover" data-placement="top" data-content="@lang('superadmin.packages.freePlanInfo')" data-html="true" data-trigger="hover"></i>
+                                </label>
+                            </div>
+                        </div>
+
+                    </div>
+
+
                     <div class="col-lg-4 col-md-6">
+                        <x-forms.text :fieldLabel="__('superadmin.packages.name')" fieldName="name" fieldRequired="true"
+                                      fieldId="name"/>
+                    </div>
+                    <div class="col-lg-4 col-md-6 col-xl-3">
+                        <x-forms.number :fieldLabel="__('superadmin.max') . ' ' . __('app.menu.employees')"
+                                        fieldName="max_employees" fieldRequired="true" fieldId="max_employees"
+                                        :popover="__('superadmin.packages.maxEmployeesInfo')"
+                        />
+                    </div>
+
+                    <div class="col-lg-4 col-md-6 col-xl-3">
+                        <x-forms.number :fieldLabel="__('superadmin.maxStorageSize')" fieldName="max_storage_size"
+                                        fieldRequired="true" fieldId="max_storage_size"
+                                        :fieldHelp="__('superadmin.packages.maxStorageSizeHelp')"/>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6 col-xl-2">
+                        <x-forms.select fieldId="storage_unit" :fieldLabel="__('superadmin.storageUnit')"
+                                        fieldName="storage_unit">
+                            <option value="mb">@lang('superadmin.mb')</option>
+                            <option value="gb">@lang('superadmin.gb')</option>
+                        </x-forms.select>
+                    </div>
+                    <div class="col-lg-4 col-md-6">
+                        <x-forms.select fieldId="sort" :fieldLabel="__('superadmin.position')"
+                                        fieldName="sort" :popover="__('superadmin.packages.positionInfo')" fieldRequired="true">
+                            @for ($i = 1; $i <= ($packageCount+1); $i++)
+                                <option value="{{ $i }}" @if (($packageCount+1) == $i) selected @endif>{{ $i }}</option>
+                            @endfor
+                        </x-forms.select>
+                    </div>
+
+
+                </div>
+
+
+                <div class="row px-3 py-3">
+                    <div class="col-md-6 col-lg-4">
+                        <x-forms.checkbox class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.tasks.makePrivate')"
+                                          fieldName="is_private" fieldId="is_private"
+                                          :popover="__('superadmin.packages.privateInfo')"/>
+                    </div>
+                    <div class="col-md-6 col-lg-4">
+                        <x-forms.checkbox class="mr-0 mr-lg-2 mr-md-2"
+                                          :fieldLabel="__('superadmin.packages.isRecommended')"
+                                          fieldName="is_recommended" fieldId="is_recommended"/>
+                    </div>
+                </div>
+
+
+                <h4 class="mb-0 p-3 heading-h4 border-top-grey payment-title mt-3">
+                    @lang('superadmin.packages.paymentGatewayPlans')
+                </h4>
+                <div class="row px-3 payment-box">
+
+                    <div class="col-md-6 col-lg-4 mb-4">
                         <x-forms.select fieldId="currency_id"
                             :fieldLabel="__('superadmin.packages.currency')"
                             fieldName="currency_id" search="true" fieldRequired="true"
@@ -17,48 +101,9 @@
                             @endforeach
                         </x-forms.select>
                     </div>
-                    <div class="col-lg-4 col-md-6">
-                        <x-forms.text :fieldLabel="__('app.name')" fieldName="name" fieldRequired="true"
-                                      fieldId="name"/>
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <x-forms.number :fieldLabel="__('superadmin.max') . ' ' . __('app.menu.employees')"
-                                        fieldName="max_employees" fieldRequired="true" fieldId="max_employees"
-                                        :popover="__('superadmin.packages.maxEmployeesInfo')"
-                        />
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <x-forms.number :fieldLabel="__('superadmin.maxStorageSize')" fieldName="max_storage_size"
-                                        fieldRequired="true" fieldId="max_storage_size"
-                                        :fieldHelp="__('superadmin.packages.maxStorageSizeHelp')"/>
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <x-forms.select fieldId="storage_unit" :fieldLabel="__('superadmin.storageUnit')"
-                                        fieldName="storage_unit">
-                            <option value="mb">@lang('superadmin.mb')</option>
-                            <option value="gb">@lang('superadmin.gb')</option>
-                        </x-forms.select>
-                    </div>
-                    <div class="col-lg-4 col-md-6">
-                        <x-forms.number :fieldLabel="__('superadmin.position')" fieldName="sort" fieldId="sort"
-                                        :fieldValue="$position"
-                                        :popover="__('superadmin.packages.positionInfo')"
-                        />
-                    </div>
 
+                    <div class="col-sm-12"></div>
 
-                    <div class="col-md-4 col-lg-6">
-                        <x-forms.checkbox class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('superadmin.freePlan')"
-                                          fieldName="is_free" fieldId="is_free" fieldValue="true"
-                                          :popover="__('superadmin.packages.freePlanInfo')"
-                        />
-                    </div>
-
-                </div>
-                <h4 class="mb-0 p-3 heading-h4 border-top-grey payment-title mt-3">
-                    @lang('superadmin.packages.paymentGatewayPlans')
-                </h4>
-                <div class="row p-3 payment-box">
                     <div class="col-md-6 col-lg-6">
                         <x-forms.checkbox class="mr-0 mr-lg-2 mr-md-2 packages" data-value='monthly' checked
                                           :fieldLabel="__('superadmin.monthly')"
@@ -128,18 +173,6 @@
                     </div>
                 </div>
 
-                <div class="row px-3 py-3">
-                    <div class="col-md-6 col-lg-6">
-                        <x-forms.checkbox class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.tasks.makePrivate')"
-                                          fieldName="is_private" fieldId="is_private"
-                                          :popover="__('superadmin.packages.privateInfo')"/>
-                    </div>
-                    <div class="col-md-6 col-lg-6">
-                        <x-forms.checkbox class="mr-0 mr-lg-2 mr-md-2"
-                                          :fieldLabel="__('superadmin.packages.isRecommended')"
-                                          fieldName="is_recommended" fieldId="is_recommended"/>
-                    </div>
-                </div>
                 <h4 class="mb-0 p-3 heading-h4 border-top-grey mt-3">
                     @lang('superadmin.packages.selectModule')
                 </h4>
@@ -202,11 +235,12 @@
             }
         });
 
-        $('#is_free').change(function () {
-            if ($(this).is(':checked')) {
+        $('input[type=radio][name=package_type]').change(function() {
+            if (this.value == 'free') {
                 $('.payment-title').addClass('d-none');
                 $('.payment-box').addClass('d-none');
-            } else {
+            }
+            else if (this.value == 'paid') {
                 $('.payment-title').removeClass('d-none');
                 $('.payment-box').removeClass('d-none');
             }

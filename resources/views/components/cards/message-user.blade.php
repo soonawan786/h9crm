@@ -12,7 +12,7 @@ $user = $message->from != user()->id ? $message->fromUser : $message->toUser;
 @endif
 
 
-<div class="card rounded-0 border-top-0 border-left-0 border-right-0" id="user-no-{{ $user->id }}">
+<div class="card rounded-0 border-top-0 border-left-0 border-right-0 user_list_box" id="user-no-{{ $user->id }}">
     <a @class([
         'tablinks',
         'show-user-messages',
@@ -20,7 +20,7 @@ $user = $message->from != user()->id ? $message->fromUser : $message->toUser;
     ]) href="javascript:;" data-name="{{ $user->name }}"
         data-user-id="{{ $user->id }}"
         data-unread-message-count="{{ $unreadMessageCount }}">
-        <div class="card-horizontal">
+        <div class="card-horizontal user-message">
             <div class="card-img">
                 <img class="" src="{{ $user->image_url }}" alt="{{ $user->name }}">
             </div>
@@ -36,10 +36,11 @@ $user = $message->from != user()->id ? $message->fromUser : $message->toUser;
                     'text-lightest',
                     'd-flex',
                     'justify-content-between',
+                    'message-mention',
                     'text-dark' => $unreadMessageCount > 0,
                     'font-weight-bold' => $unreadMessageCount > 0,
                 ])>
-                    <div>{{ $message->message }}</div>
+                    <div> <p>{{ strip_tags($message->message) }}</p></div>
 
 
                     @if ($unreadMessageCount > 0)
@@ -52,3 +53,4 @@ $user = $message->from != user()->id ? $message->fromUser : $message->toUser;
         </div>
     </a>
 </div><!-- card end -->
+

@@ -20,7 +20,7 @@
     <!-- SETTINGS START -->
     <div class="w-100 d-flex ">
 
-        <x-setting-sidebar :activeMenu="$activeSettingMenu"/>
+        @include('sections.setting-sidebar')
 
         <x-setting-card method="POST">
             <x-slot name="header">
@@ -31,7 +31,7 @@
             </x-slot>
             <div class="col-lg-6 mr-5">
                 <x-forms.text class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('modules.accountSettings.appName')"
-                              fieldPlaceholder="e.g. Acme Corporation" fieldRequired="true" fieldName="app_name"
+                              :fieldPlaceholder="__('placeholders.company')" fieldRequired="true" fieldName="app_name"
                               fieldId="app_name" :fieldValue="company()->app_name"
                               :popover="__('messages.appNameToolTip')"
                 />
@@ -41,8 +41,8 @@
                     <div class="col-lg-12">
                         <div class="form-group">
                             <x-forms.label fieldId="sidebar_logo_style"
-                                           :fieldLabel="__('modules.themeSettings.sidebarBrandingStyle')"
-                                           fieldRequired="true">
+                                           :fieldLabel="__('modules.themeSettings.selectBrandingStyle')"
+                                           fieldRequired="true" :popover="__('messages.brandingStyleToolTip')">
                             </x-forms.label>
                             <select name="sidebar_logo_style" class="image-picker show-labels show-html">
                                 <option data-img-src="{{ asset('img/square-logo-header.png') }}"
@@ -59,65 +59,87 @@
 
 
                     <div class="col-lg-6">
-                        <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2 cropper"
+                        <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2 cropper"
                                       :fieldLabel="__('modules.accountSettings.lightCompanyLogo')"
                                       :fieldValue="company()->light_logo_url" fieldName="light_logo"
                                       fieldId="light_logo"
                                       :popover="__('messages.lightThemeLogoTooltip')"/>
                     </div>
                     <div class="col-lg-6">
-                        <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2 cropper"
+                        <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2 cropper"
                                       :fieldLabel="__('modules.accountSettings.darkCompanyLogo')"
                                       :fieldValue="company()->defaultLogo()"
                                       fieldName="logo" fieldId="logo" :popover="__('messages.darkThemeLogoTooltip')"/>
                     </div>
                     @if(module_enabled('Subdomain') || isWorksuite())
-                        <div class="col-lg-6">
-                            <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2 cropper"
-                                          :fieldLabel="__('modules.themeSettings.loginScreenBackground')"
-                                          :fieldValue="company()->login_background_url" fieldName="login_background"
-                                          fieldId="login_background"
-                                          :popover="__('modules.themeSettings.loginBackgroundSize')"
-                                          :popover="__('messages.fileFormat.ImageFile')"/>
-                        </div>
-
-                        <div class="col-lg-6">
-                            <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2"
-                                          :fieldLabel="__('modules.accountSettings.faviconImage')"
-                                          :popover="__('modules.themeSettings.faviconSize')"
-                                          :fieldValue="company()->favicon_url"
-                                          fieldName="favicon" fieldId="favicon"
-                                          :popover="__('messages.fileFormat.ImageFile')"/>
-                        </div>
-
-                        <div class="col-lg-6">
-                            <div class="form-group my-3">
-                                <x-forms.label fieldId="logo_background_color" fieldRequired="true"
-                                               :fieldLabel="__('modules.themeSettings.loginLogoBackgroundColor')">
-                                </x-forms.label>
-                                <x-forms.input-group class="color-picker">
-                                    <input type="text" class="form-control height-35 f-14"
-                                           value="{{ company()->logo_background_color }}" id="logo_background_color"
-                                           placeholder="{{ __('placeholders.colorPicker') }}" name="logo_background_color">
-
-                                    <x-slot name="append">
-                                        <span class="input-group-text height-35 colorpicker-input-addon"><i></i></span>
-                                    </x-slot>
-                                </x-forms.input-group>
-                            </div>
-                        </div>
-
-                    @endif
-
-                    <div class="col-sm-12 mt-3">
-                        <x-alert type="info" icon="info-circle">@lang('messages.darkThemeRestrictionInfo')</x-alert>
+                    <div class="col-lg-6">
+                        <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2 cropper"
+                                      :fieldLabel="__('modules.themeSettings.loginScreenBackground')"
+                                      :fieldValue="company()->login_background_url" fieldName="login_background"
+                                      fieldId="login_background"
+                                      :popover="__('modules.themeSettings.loginBackgroundSize')"
+                                      :popover="__('messages.fileFormat.ImageFile')"/>
                     </div>
+                    @endif
+                    <div class="col-lg-6">
+                        <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2"
+                                      :fieldLabel="__('modules.accountSettings.faviconImage')"
+                                      :popover="__('modules.themeSettings.faviconSize')"
+                                      :fieldValue="company()->favicon_url"
+                                      fieldName="favicon" fieldId="favicon"
+                                      :popover="__('messages.fileFormat.ImageFile')"/>
+                    </div>
+                    @if(module_enabled('Subdomain') || isWorksuite())
+                    <div class="col-lg-6">
+                        <div class="form-group my-3">
+                            <x-forms.label fieldId="logo_background_color" fieldRequired="true"
+                                           :fieldLabel="__('modules.themeSettings.loginLogoBackgroundColor')">
+                            </x-forms.label>
+                            <x-forms.input-group class="color-picker">
+                                <input type="text" class="form-control height-35 f-14"
+                                       value="{{ company()->logo_background_color }}" id="logo_background_color"
+                                       placeholder="{{ __('placeholders.colorPicker') }}" name="logo_background_color">
 
-                    <div class="col-lg-12">
-                        <h4>{{__('modules.themeSettings.authTheme')}}</h4>
+                                <x-slot name="append">
+                                    <span class="input-group-text height-35 colorpicker-input-addon"><i></i></span>
+                                </x-slot>
+                            </x-forms.input-group>
+                        </div>
                     </div>
 
                     <div class="col-lg-6">
+                        <div class="form-group my-3">
+                            <x-forms.label fieldId="auth_theme_text" :fieldLabel="__('modules.themeSettings.loginLogoTextColor')"
+                            :popover="__('modules.themeSettings.loginLogoTextColorInfo')">
+                        </x-forms.label>
+                        <div class="d-flex">
+                                <x-forms.radio fieldId="auth_theme_text_dark_4"
+                                                :fieldLabel="__('modules.themeSettings.dark')"
+                                                fieldName="auth_theme_text" fieldValue="dark" class="auth_theme_text"
+                                                :checked="(company()->auth_theme_text == 'dark')">
+                                </x-forms.radio>
+
+                                    <x-forms.radio fieldId="auth_theme_text_light_4"
+                                                   :fieldLabel="__('modules.themeSettings.light')"
+                                                   fieldValue="light" fieldName="auth_theme_text" class="auth_theme_text"
+                                                   :checked="(company()->auth_theme_text == 'light')">
+                                    </x-forms.radio>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+
+
+
+                <div class="col-sm-12 mt-3">
+                    <x-alert type="info" icon="info-circle">@lang('messages.darkThemeRestrictionInfo')</x-alert>
+                </div>
+
+                    <div class="col-lg-12 {{ $superAdminThemeSetting->restrict_admin_theme_change ? 'd-none' : '' }}">
+                        <h4>{{__('modules.themeSettings.authTheme')}}</h4>
+                    </div>
+
+                    <div class="col-lg-6 {{ $superAdminThemeSetting->restrict_admin_theme_change ? 'd-none' : '' }}">
                         <div class="form-group my-3">
                             <x-forms.label fieldId="colorselector" fieldRequired="true"
                                            :fieldLabel="__('modules.themeSettings.headerColor')">
@@ -134,7 +156,7 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-6">
+                    <div class="col-lg-6 {{ $superAdminThemeSetting->restrict_admin_theme_change ? 'd-none' : '' }}">
                         <div class="form-group my-3">
                             <x-forms.label fieldId="auth_theme" :fieldLabel="__('modules.themeSettings.authTheme')"
                                            :popover="__('modules.themeSettings.authThemeInfo')">
@@ -155,126 +177,9 @@
                         </div>
                     </div>
 
-
-                    <div class="col-lg-12">
-                        <h4>@lang('modules.themeSettings.adminPanelTheme')</h4>
-                    </div>
-
-                    <div class="col-lg-6">
-                        <div class="form-group my-3">
-                            <x-forms.label fieldId="colorselector" fieldRequired="true"
-                                           :fieldLabel="__('modules.themeSettings.headerColor')">
-                            </x-forms.label>
-                            <x-forms.input-group class="color-picker">
-                                <input type="text" class="form-control height-35 f-14 header_color"
-                                       value="{{ $adminTheme->header_color }}"
-                                       placeholder="{{ __('placeholders.colorPicker') }}" name="primary_color[]">
-
-                                <x-slot name="append">
-                                    <span class="input-group-text height-35 colorpicker-input-addon"><i></i></span>
-                                </x-slot>
-                            </x-forms.input-group>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-6">
-                        <div class="form-group my-3">
-                            <x-forms.label fieldId="late_yes" :fieldLabel="__('modules.themeSettings.sidebarTheme')">
-                            </x-forms.label>
-                            <div class="d-flex">
-                                <x-forms.radio fieldId="sidebar_dark_1" :fieldLabel="__('modules.themeSettings.dark')"
-                                               fieldName="theme_settings[1][sidebar_theme]" fieldValue="dark"
-                                               class="sidebar_theme"
-                                               :checked="($adminTheme->sidebar_theme == 'dark')">
-                                </x-forms.radio>
-                                <x-forms.radio fieldId="sidebar_light_1" :fieldLabel="__('modules.themeSettings.light')"
-                                               fieldValue="light" :checked="($adminTheme->sidebar_theme == 'light')"
-                                               class="sidebar_theme"
-                                               fieldName="theme_settings[1][sidebar_theme]"></x-forms.radio>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="col-lg-12 mt-3">
-                        <h4>@lang('modules.themeSettings.employeePanelTheme')</h4>
-                    </div>
-
-                    <div class="col-lg-6">
-                        <div class="form-group my-3">
-                            <x-forms.label fieldId="colorselector" fieldRequired="true"
-                                           :fieldLabel="__('modules.themeSettings.headerColor')">
-                            </x-forms.label>
-                            <x-forms.input-group class="color-picker">
-                                <input type="text" class="form-control height-35 f-14 header_color"
-                                       value="{{ $employeeTheme->header_color }}"
-                                       placeholder="{{ __('placeholders.colorPicker') }}" name="primary_color[]">
-
-                                <x-slot name="append">
-                                    <span class="input-group-text height-35 colorpicker-input-addon"><i></i></span>
-                                </x-slot>
-                            </x-forms.input-group>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-6">
-                        <div class="form-group my-3">
-                            <x-forms.label fieldId="late_yes" :fieldLabel="__('modules.themeSettings.sidebarTheme')">
-                            </x-forms.label>
-                            <div class="d-flex">
-                                <x-forms.radio fieldId="sidebar_dark_3" :fieldLabel="__('modules.themeSettings.dark')"
-                                               fieldName="theme_settings[3][sidebar_theme]" class="sidebar_theme"
-                                               fieldValue="dark"
-                                               :checked="($employeeTheme->sidebar_theme == 'dark')">
-                                </x-forms.radio>
-                                <x-forms.radio fieldId="sidebar_light_3" class="sidebar_theme"
-                                               :fieldLabel="__('modules.themeSettings.light')" fieldValue="light"
-                                               :checked="($employeeTheme->sidebar_theme == 'light')"
-                                               fieldName="theme_settings[3][sidebar_theme]"></x-forms.radio>
-                            </div>
-                        </div>
-                    </div>
-
-
-                    <div class="col-lg-12 mt-3">
-                        <h4>@lang('modules.themeSettings.clientPanelTheme')</h4>
-                    </div>
-
-                    <div class="col-lg-6">
-                        <div class="form-group my-3">
-                            <x-forms.label fieldId="colorselector" fieldRequired="true"
-                                           :fieldLabel="__('modules.themeSettings.headerColor')">
-                            </x-forms.label>
-                            <x-forms.input-group class="color-picker">
-                                <input type="text" class="form-control height-35 f-14 header_color"
-                                       value="{{ $clientTheme->header_color }}"
-                                       placeholder="{{ __('placeholders.colorPicker') }}" name="primary_color[]">
-
-                                <x-slot name="append">
-                                    <span class="input-group-text height-35 colorpicker-input-addon"><i></i></span>
-                                </x-slot>
-                            </x-forms.input-group>
-                        </div>
-                    </div>
-
-                    <div class="col-lg-6">
-                        <div class="form-group my-3">
-                            <x-forms.label fieldId="late_yes" :fieldLabel="__('modules.themeSettings.sidebarTheme')">
-                            </x-forms.label>
-                            <div class="d-flex">
-                                <x-forms.radio fieldId="sidebar_dark_4" :fieldLabel="__('modules.themeSettings.dark')"
-                                               fieldName="theme_settings[4][sidebar_theme]" fieldValue="dark"
-                                               class="sidebar_theme"
-                                               :checked="($clientTheme->sidebar_theme == 'dark')">
-                                </x-forms.radio>
-                                <x-forms.radio fieldId="sidebar_light_4" :fieldLabel="__('modules.themeSettings.light')"
-                                               fieldValue="light" fieldName="theme_settings[4][sidebar_theme]"
-                                               class="sidebar_theme"
-                                               :checked="($clientTheme->sidebar_theme == 'light')">
-                                </x-forms.radio>
-                            </div>
-                        </div>
-                    </div>
+                    @if (!$superAdminThemeSetting->restrict_admin_theme_change)
+                        @include('theme-settings.ajax.customer_theme')
+                    @endif
 
 
                 </div>
@@ -327,7 +232,7 @@
         $('#reset-colors').click(function () {
             $('.header_color').val('#1d82f5');
             $('.sidebar_theme .custom-control-input').val('dark');
-            $('.auth_theme .custom-control-input').val('light');
+            $('.auth_theme .custom-control-input .auth_theme_text').val('light');
             $('#logo_background_color').val('#FFFFFF');
 
             Swal.fire({

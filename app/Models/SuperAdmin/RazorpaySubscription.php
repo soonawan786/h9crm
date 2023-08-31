@@ -4,11 +4,13 @@ namespace App\Models\SuperAdmin;
 
 use App\Models\Company;
 use App\Models\Currency;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
-class RazorpaySubscription extends Model
+class RazorpaySubscription extends BaseModel
 {
     protected $dates = ['created_at'];
+
+    protected $casts = ['created_at'];
 
     protected $table = 'razorpay_subscriptions';
 

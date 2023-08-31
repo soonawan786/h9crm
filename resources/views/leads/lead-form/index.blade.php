@@ -35,7 +35,7 @@
                                                                value="{{ $item->id }}">
                                                     </div>
                                                     <div
-                                                        class="col-md-5">{{ mb_ucwords($item->field_display_name)}}</div>
+                                                        class="col-md-5">{{ $item->field_display_name}}</div>
                                                     <div class="col-md-4">
                                                         @if ($item->field_name != 'name')
                                                             <div class="custom-control custom-switch">
@@ -64,7 +64,7 @@
                         <x-cards.data>
                             <p class="f-w-500">@lang('modules.lead.iframeSnippet')</p>
                             <code>
-                                &lt;iframe src="{{ route('front.lead_form', [company()->hash]) }}" width="80%" frameborder="0">&lt;/iframe&gt;
+                                &lt;iframe src="{{ route('front.lead_form',[company()->hash]) }}"  frameborder="0" scrolling="yes"  style="display:block; width:100%; height:60vh;">&lt;/iframe&gt;
                             </code>
                         </x-cards.data>
                         <x-cards.data>
@@ -153,7 +153,7 @@
         function resizeIframe(obj) {
             obj.style.height = obj.contentWindow.document.documentElement.scrollHeight + 50 + 'px';
         }
-        
+
         init();
     </script>
 @endpush

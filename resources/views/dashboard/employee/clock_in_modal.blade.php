@@ -5,8 +5,8 @@
 </div>
 
 @if ($cannotLogin == false)
+<x-form id="startTimerForm">
     <div class="modal-body">
-        <x-form id="startTimerForm">
             <div class="row justify-content-between">
                 <div class="col" id="task_div">
                     <h4 class="mb-4 d-flex justify-content-between"><span><i class="fa fa-clock"></i> {{ now()->timezone(company()->timezone)->translatedFormat(company()->date_format . ' ' . company()->time_format) }}</span>
@@ -20,7 +20,7 @@
                                 @foreach ($location as $locations)
                                     <option @if ($locations->is_default == 1) selected
                                             @endif value="{{ $locations->id }}">
-                                        {{ mb_ucwords($locations->location) }}</option>
+                                        {{ $locations->location }}</option>
                                 @endforeach
                             </x-forms.select>
                         </div>
@@ -41,12 +41,12 @@
                     </div>
                 </div>
             </div>
-        </x-form>
     </div>
     <div class="modal-footer">
         <x-forms.button-cancel data-dismiss="modal" class="border-0 mr-3">@lang('app.cancel')</x-forms.button-cancel>
         <x-forms.button-primary id="save-clock-in">@lang('modules.attendance.clock_in')</x-forms.button-primary>
     </div>
+</x-form>
 @else
     <div class="modal-body">
         <x-alert type="danger">@lang('messages.clockInNotAllowed')</x-alert>

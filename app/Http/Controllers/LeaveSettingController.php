@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Helper\Reply;
+use App\Models\Designation;
 use App\Models\LeaveSetting;
 use App\Models\LeaveType;
+use App\Models\Team;
 use Illuminate\Http\Request;
 
 class LeaveSettingController extends AccountBaseController
@@ -17,7 +19,7 @@ class LeaveSettingController extends AccountBaseController
         $this->activeSettingMenu = 'leave_settings';
 
         $this->middleware(function ($request, $next) {
-            abort_403(!(user()->permission('manage_leave_setting') == 'all'));
+            abort_403(!(user()->permission('manage_leave_setting') == 'all' && in_array('leaves', user_modules())));
             return $next($request);
         });
     }
@@ -34,6 +36,8 @@ class LeaveSettingController extends AccountBaseController
             $this->view = 'leave-settings.ajax.general';
                 break;
         default:
+            $this->departments = Team::all();
+            $this->designations = Designation::all();
             $this->view = 'leave-settings.ajax.type';
                 break;
         }

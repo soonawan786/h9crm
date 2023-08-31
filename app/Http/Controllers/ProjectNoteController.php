@@ -33,7 +33,21 @@ class ProjectNoteController extends AccountBaseController
 
         $this->employees = $this->project->projectMembers;
 
-        $this->pageTitle = __('app.add') . ' ' . __('app.project') . ' ' . __('app.note');
+        $this->pageTitle = __('app.addProjectNote');
+
+        $userData = [];
+
+        $usersData = $this->employees;
+
+        foreach ($usersData as $user) {
+
+            $url = route('employees.show', [$user->id]);
+
+            $userData[] = ['id' => $user->id, 'value' => $user->name, 'image' => $user->image_url, 'link' => $url];
+
+        }
+
+        $this->userData = $userData;
 
         if (request()->ajax()) {
             $html = view('projects.notes.create', $this->data)->render();
@@ -110,7 +124,7 @@ class ProjectNoteController extends AccountBaseController
             || ($viewProjectNotePermission == 'both' && (user()->id == $this->note->client_id || $this->note->added_by == user()->id || in_array(user()->id, $memberIds)))/* @phpstan-ignore-line */
         ));
 
-        $this->pageTitle = ucfirst($this->note->title);
+        $this->pageTitle = $this->note->title;
 
         if (request()->ajax()) {
             $html = view('projects.notes.show', $this->data)->render();
@@ -129,9 +143,22 @@ class ProjectNoteController extends AccountBaseController
         $this->employees = $this->note->project->projectMembers; /** @phpstan-ignore-line */
         $this->noteMembers = $this->note->members->pluck('user_id')->toArray();
         $this->projectId = $this->note->project_id;
+        $projectuserData = [];
+
+        $usersData = $this->note->project->projectMembers;
+
+        foreach ($usersData as $user) {
+            $url = route('employees.show', [$user->id]);
+
+            $projectuserData[] = ['id' => $user->id, 'value' => $user->name, 'image' => $user->image_url, 'link' => $url];
+
+        }
+
+        $this->projectuserData = $projectuserData;
+
         abort_403(!in_array($this->editPermission, ['all', 'added', 'owned', 'both']));
 
-        $this->pageTitle = __('app.edit') . ' ' . __('app.project') . ' ' . __('app.note');
+        $this->pageTitle = __('app.editProjectNote');
 
         if (request()->ajax()) {
             $html = view('projects.notes.edit', $this->data)->render();

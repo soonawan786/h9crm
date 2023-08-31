@@ -195,7 +195,7 @@ class CountriesTableSeeder extends Seeder
             array('id' => '174', 'iso' => 'QA', 'name' => 'QATAR', 'nicename' => 'Qatar', 'iso3' => 'QAT', 'numcode' => '634', 'phonecode' => '974'),
             array('id' => '175', 'iso' => 'RE', 'name' => 'REUNION', 'nicename' => 'Reunion', 'iso3' => 'REU', 'numcode' => '638', 'phonecode' => '262'),
             array('id' => '176', 'iso' => 'RO', 'name' => 'ROMANIA', 'nicename' => 'Romania', 'iso3' => 'ROM', 'numcode' => '642', 'phonecode' => '40'),
-            array('id' => '177', 'iso' => 'RU', 'name' => 'RUSSIAN FEDERATION', 'nicename' => 'Russian Federation', 'iso3' => 'RUS', 'numcode' => '643', 'phonecode' => '70'),
+            array('id' => '177', 'iso' => 'RU', 'name' => 'RUSSIAN FEDERATION', 'nicename' => 'Russian Federation', 'iso3' => 'RUS', 'numcode' => '643', 'phonecode' => '7'),
             array('id' => '178', 'iso' => 'RW', 'name' => 'RWANDA', 'nicename' => 'Rwanda', 'iso3' => 'RWA', 'numcode' => '646', 'phonecode' => '250'),
             array('id' => '179', 'iso' => 'SH', 'name' => 'SAINT HELENA', 'nicename' => 'Saint Helena', 'iso3' => 'SHN', 'numcode' => '654', 'phonecode' => '290'),
             array('id' => '180', 'iso' => 'KN', 'name' => 'SAINT KITTS AND NEVIS', 'nicename' => 'Saint Kitts and Nevis', 'iso3' => 'KNA', 'numcode' => '659', 'phonecode' => '1869'),

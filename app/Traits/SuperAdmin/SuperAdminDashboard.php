@@ -45,7 +45,7 @@ trait SuperAdminDashboard
 
         $this->topCompaniesUserCount = Company::active()->withCount(['users', 'employees', 'clients'])->orderBy('users_count', 'desc')->limit(5)->get();
 
-        $this->packageCompanyCount = Package::withCount(['companies'])->orderBy('companies_count', 'desc')->limit(10)->get();
+        $this->packageCompanyCount = Package::where('default', '!=', 'trial')->withCount(['companies'])->orderBy('companies_count', 'desc')->limit(10)->get();
         $this->totalPackages = Package::where('default', '!=', 'trial')->count();
         $year = now(global_setting()->timezone)->year;
 

@@ -2,7 +2,7 @@
 
 namespace App\Models\SuperAdmin;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\SuperAdmin\FaqCategory
@@ -22,7 +22,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|FaqCategory whereUpdatedAt($value)
  * @mixin \Eloquent
  */
-class FaqCategory extends Model
+class FaqCategory extends BaseModel
 {
 
     public function faqs()

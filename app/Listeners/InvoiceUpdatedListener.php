@@ -3,6 +3,7 @@
 namespace App\Listeners;
 
 use App\Events\InvoiceUpdatedEvent;
+use App\Events\NewInvoiceEvent;
 use App\Notifications\InvoiceUpdated;
 use App\Notifications\InvoiceWhatsAppUpdated;
 use Illuminate\Support\Facades\Notification;
@@ -20,10 +21,9 @@ class InvoiceUpdatedListener
     public function handle(InvoiceUpdatedEvent $event)
     {
         Notification::send($event->notifyUser, new InvoiceUpdated($event->invoice));
-        //whatsapp notification
+//whatsapp notification
         Notification::send($event->notifyUser, new InvoiceWhatsAppUpdated($event->invoice));
 
     }
-
 
 }

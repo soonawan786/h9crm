@@ -24,13 +24,13 @@
                             data-live-search="true" data-row-id="{{ $subcategory->id }}">
                         @foreach ($categories as $category)
                             <option value="{{ $category->id }}"
-                                    @if($subcategory->category_id == $category->id) selected @endif >{{ mb_ucwords($category->category_name) }}</option>
+                                    @if($subcategory->category_id == $category->id) selected @endif >{{ $category->category_name }}</option>
                         @endforeach
                     </select>
                 </td>
 
                 <td data-row-id="{{ $subcategory->id }}"
-                    contenteditable="true">{{ mb_ucwords($subcategory->category_name) }}</td>
+                    contenteditable="true">{{ $subcategory->category_name }}</td>
 
                 <td class="text-right">
                     @if ($deleteProductSubCategoryPermission == 'all' || ($deleteProductSubCategoryPermission == 'added' && $subcategory->added_by == user()->id))
@@ -52,7 +52,7 @@
                 <x-forms.select fieldId="category_id" :fieldLabel="__('modules.projectCategory.categoryName')"
                                 fieldName="category_id" search="true" fieldRequired="true">
                     @forelse($categories as $category)
-                        <option value="{{ $category->id }}">{{ mb_ucwords($category->category_name) }}</option>
+                        <option value="{{ $category->id }}">{{ $category->category_name }}</option>
                     @empty
                         <option value="">@lang('messages.noCategoryAdded')</option>
                     @endforelse
@@ -60,7 +60,7 @@
             </div>
             <div class="col-sm-12 col-md-6">
                 <x-forms.text fieldId="category_name" :fieldLabel="__('modules.productCategory.productSubCategory')"
-                              fieldName="category_name" fieldRequired="true" fieldPlaceholder="e.g. Potential Client">
+                              fieldName="category_name" fieldRequired="true" :fieldPlaceholder="__('placeholders.categoryName')">
                 </x-forms.text>
             </div>
 

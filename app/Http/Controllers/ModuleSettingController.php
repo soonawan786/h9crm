@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Helper\Reply;
 use App\Models\ModuleSetting;
 use App\Models\Role;
+use App\Models\Session;
 use Illuminate\Http\Request;
 
 class ModuleSettingController extends AccountBaseController
@@ -27,9 +28,9 @@ class ModuleSettingController extends AccountBaseController
         $tab = request('tab');
 
         $this->modulesData = match ($tab) {
-            'employee' => ModuleSetting::where('type', 'employee')->where('is_allowed', 1)->get(),
-            'client' => ModuleSetting::where('type', 'client')->where('is_allowed', 1)->get(),
-            default => ModuleSetting::where('type', 'admin')->where('is_allowed', 1)->get(),
+            'employee' => ModuleSetting::where('module_name', '<>', 'settings')->where('is_allowed', 1)->where('type', 'employee')->get(),
+            'client' => ModuleSetting::where('module_name', '<>', 'settings')->where('is_allowed', 1)->where('type', 'client')->get(),
+            default => ModuleSetting::where('module_name', '<>', 'settings')->where('is_allowed', 1)->where('type', 'admin')->get(),
         };
 
         $this->view = 'module-settings.ajax.modules';
@@ -49,13 +50,7 @@ class ModuleSettingController extends AccountBaseController
         $setting->status = $request->status;
         $setting->save();
 
-        $role = Role::with('roleuser')->where('name', $setting->type)->first();
-        $roleusers = $role->roleuser->pluck('user_id')->toArray();
-
-        $deleteSessions = new AppSettingController();
-        $deleteSessions->deleteSessions($roleusers);
-
-        return Reply::success(__('messages.updateSuccess'));
+        return Reply::redirect(route('module-settings.index'));
     }
 
 }

@@ -61,8 +61,8 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
                 <div class="select-filter mb-4">
                     <div class="select-others">
                         <select class="form-control select-picker" name="employee_id" id="employee_id"
-                            data-live-search="true" data-size="8">
-                            @if ($employees->count() > 1)
+                            data-live-search="true" data-container="body" data-size="8">
+                            @if ($employees->count() > 1 || in_array('admin', user_roles()))
                                 <option value="all">@lang('app.all')</option>
                             @endif
                             @foreach ($employees as $employee)
@@ -81,7 +81,7 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
                             data-container="body" data-size="8">
                             <option value="all">@lang('app.all')</option>
                             @foreach ($leaveTypes as $leaveType)
-                                <option value="{{ $leaveType->id }}">{{ mb_ucwords($leaveType->type_name) }}</option>
+                                <option value="{{ $leaveType->id }}">{{ $leaveType->type_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -118,7 +118,7 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
     <div class="content-wrapper">
 
         <!-- Add Task Export Buttons Start -->
-        <div class="d-block d-lg-flex d-md-flex justify-content-between action-bar">
+        <div class="d-grid d-lg-flex d-md-flex action-bar">
             <div id="table-actions" class="flex-grow-1 align-items-center">
                 @if ($addLeavePermission == 'all' || $addLeavePermission == 'added')
                     <x-forms.link-primary :link="route('leaves.create')" class="mr-3 openRightModal float-left" icon="plus">
@@ -148,7 +148,7 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
             </x-datatable.actions>
 
 
-            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-3" role="group" aria-label="Basic example">
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group" aria-label="Basic example">
                 <a href="{{ route('leaves.index') }}" class="btn btn-secondary f-14 btn-active" data-toggle="tooltip"
                     data-original-title="@lang('modules.leaves.tableView')"><i class="side-icon bi bi-list-ul"></i></a>
 
@@ -405,7 +405,11 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
         $('body').on('click', '.leave-action-approved', function() {
             let action = $(this).data('leave-action');
             let leaveId = $(this).data('leave-id');
-            let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId;
+            var type = $(this).data('type');
+            if(type == undefined){
+                var type = 'single';
+            }
+            let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId + "&type=" + type;
             let url = "{{ route('leaves.show_approved_modal') }}" + searchQuery;
 
             $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
@@ -415,7 +419,11 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
         $('body').on('click', '.leave-action-reject', function() {
             let action = $(this).data('leave-action');
             let leaveId = $(this).data('leave-id');
-            let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId;
+            var type = $(this).data('type');
+            if(type == undefined){
+                var type = 'single';
+            }
+            let searchQuery = "?leave_action=" + action + "&leave_id=" + leaveId + "&type=" + type;
             let url = "{{ route('leaves.show_reject_modal') }}" + searchQuery;
 
             $(MODAL_LG + ' ' + MODAL_HEADING).html('...');

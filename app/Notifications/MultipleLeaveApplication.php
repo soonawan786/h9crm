@@ -51,17 +51,16 @@ class MultipleLeaveApplication extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('leaves.show', $this->leave->unique_id);
         $url = getDomainSpecificUrl($url, $this->company);
+        $dates = str_replace(',', ' to ', $this->multiDates);;
 
-        $dates = explode(',', $this->multiDates);
         $emailDate = __('app.leaveDate') . '<br>';
 
-        foreach ($dates as $key => $date) {
-            $emailDate .= ($key + 1) . '. ' . $date .' ( '. __('app.status') . ': ' . mb_ucwords($this->leave->status).' )'.'<br>';
-        }
+        $emailDate .= $dates .' ( '. __('app.status') . ': ' . $this->leave->status.' )'.'<br>';
 
-        return parent::build()
+        return $build
             ->subject(__('email.leave.applied') . ' - ' . config('app.name'))
             ->greeting(__('email.hello') . ' ' . $notifiable->name . ',')
             ->markdown('mail.leaves.multiple', [

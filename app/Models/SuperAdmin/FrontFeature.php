@@ -3,7 +3,7 @@
 namespace App\Models\SuperAdmin;
 
 use App\Models\LanguageSetting;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\SuperAdmin\FrontFeature
@@ -30,7 +30,7 @@ use Illuminate\Database\Eloquent\Model;
  * @mixin \Eloquent
  * @property-read LanguageSetting|null $language
  */
-class FrontFeature extends Model
+class FrontFeature extends BaseModel
 {
 
     public function features()

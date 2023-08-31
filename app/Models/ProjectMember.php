@@ -43,6 +43,7 @@ class ProjectMember extends Pivot
 
     protected $hidden = ['user_id', 'project_id'];
     protected $table = 'project_members';
+    protected $with = ['user'];
 
     public function routeNotificationForMail()
     {

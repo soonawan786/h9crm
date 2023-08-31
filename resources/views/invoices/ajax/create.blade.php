@@ -16,8 +16,18 @@ $addProductPermission = user()->permission('add_product');
         }
 </style>
 
+<link rel="stylesheet" href="{{ asset('vendor/css/dropzone.min.css') }}">
+
+@if (!in_array('clients', user_modules()))
+    <x-alert class="mb-3" type="danger" icon="exclamation-circle"><span>@lang('messages.enableClientModule')</span>
+        <x-forms.link-secondary icon="arrow-left" :link="route('invoices.index')">@lang('app.back')</x-forms.link-secondary>
+    </x-alert>
+@else
+
 <!-- CREATE INVOICE START -->
 <div class="bg-white rounded b-shadow-4 create-inv">
+
+
     <!-- HEADING START -->
     <div class="px-lg-4 px-md-4 px-3 py-3">
         <h4 class="mb-0 f-21 font-weight-normal text-capitalize">@lang('app.invoice') @lang('app.details')</h4>
@@ -117,7 +127,7 @@ $addProductPermission = user()->permission('add_product');
 
         <!-- CLIENT, PROJECT, GST, BILLING, SHIPPING ADDRESS START -->
         <div class="row px-lg-4 px-md-4 px-3 pt-3">
-            <div class="col-md-4">
+<div class="col-md-4">
                 <div class="form-group c-inv-select mb-lg-0 mb-md-0 mb-4">
                     <x-forms.label  fieldId="" :fieldLabel="__('modules.unitType.unitType')">
                     </x-forms.label>
@@ -186,7 +196,7 @@ $addProductPermission = user()->permission('add_product');
                 @endif
             </div>
             <!-- PROJECT END -->
-            <div class="row px-lg-4 px-md-4 px-3 py-3">
+<div class="row px-lg-4 px-md-4 px-3 py-3">
                 {{-- mobile number --}}
                 <div class="col-md-3">
                     <div class="form-group c-inv-select mb-0">
@@ -197,16 +207,15 @@ $addProductPermission = user()->permission('add_product');
                                {{ $invoice->client->clientDetails->mobile }}
                             @elseif (isset($invoice) && isset($client))
                                 {{ $client->clientDetails->mobile }}
-
-                            @elseif (isset($estimate) && $estimate->client)
+                                @elseif (isset($estimate) && $estimate->client)
                                 {{ $estimate->client->clientDetails->mobile }}
                             @else
-                                <span class="text-lightest">@lang('messages.selectCustomerForMobile')</span>
+                            <span class="text-lightest">@lang('messages.selectCustomerForMobile')</span>
                             @endif
                         </p>
-                    </div>
                 </div>
-                {{-- client date of birth --}}
+            </div>
+            {{-- client date of birth --}}
                 <div class="col-md-3">
                     <div class="form-group c-inv-select mb-0">
                         <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
@@ -245,68 +254,70 @@ $addProductPermission = user()->permission('add_product');
                         @endif
                         </p>
                     </div>
-                </div>
 
-                <!-- BILLING ADDRESS START -->
-                <div class="col-md-4">
-                    <div class="form-group c-inv-select mb-0">
-                        <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
-                            for="usr">@lang('modules.invoices.billingAddress')</label>
-                        <p class="f-15" id="client_billing_address">
-                            @if (isset($invoice) && $invoice->client)
-                                {!! nl2br($invoice->client->clientDetails->address) !!}
-                            @elseif (isset($invoice) && isset($client))
-                                {!! nl2br($client->clientDetails->address) !!}
-                            @elseif (isset($estimate) && $estimate->client)
-                                {!! nl2br($estimate->client->clientDetails->address) !!}
-                            @else
-                                <span class="text-lightest">@lang('messages.selectCustomerForBillingAddress')</span>
-                            @endif
-                        </p>
-                    </div>
+        <div class="row px-lg-4 px-md-4 px-3 py-3">
+            <!-- BILLING ADDRESS START -->
+            <div class="col-md-4">
+                <div class="form-group c-inv-select mb-0">
+                    <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
+                        for="usr">@lang('modules.invoices.billingAddress')</label>
+                    <p class="f-15" id="client_billing_address">
+                        @if (isset($invoice) && $invoice->client)
+                            {!! nl2br($invoice->client->clientDetails->address) !!}
+                        @elseif (isset($invoice) && isset($client))
+                            {!! nl2br($client->clientDetails->address) !!}
+                        @elseif (isset($estimate) && $estimate->client)
+                            {!! nl2br($estimate->client->clientDetails->address) !!}
+                        @else
+                            <span class="text-lightest">@lang('messages.selectCustomerForBillingAddress')</span>
+                        @endif
+                    </p>
                 </div>
-                <!-- BILLING ADDRESS END -->
-                <!-- SHIPPING ADDRESS START -->
-                <div class="col-md-4">
-                    <div class="form-group c-inv-select mb-lg-0 mb-md-0 mb-4">
-                        <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
-                            for="usr">@lang('modules.invoices.shippingAddress') </label>
-                        <p class="f-15" id="client_shipping_address">
-                            @if (isset($invoice) && $invoice->client && $invoice->client->clientDetails->shipping_address)
-                                {!! nl2br($invoice->client->clientDetails->shipping_address) !!}
-                            @elseif(isset($client) && $client->clientDetails &&
-                                $client->clientDetails->shipping_address)
-                                {!! nl2br($client->clientDetails->shipping_address) !!}
-                            @else
-                                <a href="javascript:;" class="text-capitalize" id="show-shipping-field"><i
-                                        class="f-12 mr-2 fa fa-plus"></i>@lang('app.addShippingAddress')</a>
-                            @endif
-                        </p>
-                        <p class="d-none" id="add-shipping-field">
-                            <textarea class="form-control f-14 pt-2" rows="3" placeholder="@lang('placeholders.address')"
-                                name="shipping_address" id="shipping_address">@if (isset($invoice) && $invoice->client) {!! nl2br($invoice->client->clientDetails->shipping_address) !!} @endif</textarea>
-                        </p>
-                    </div>
+            </div>
+            <!-- BILLING ADDRESS END -->
+            <!-- SHIPPING ADDRESS START -->
+            <div class="col-md-4">
+                <div class="form-group c-inv-select mb-lg-0 mb-md-0 mb-4">
+                    <label class="f-14 text-dark-grey mb-12 text-capitalize w-100"
+                        for="usr">@lang('modules.invoices.shippingAddress') </label>
+                    <p class="f-15" id="client_shipping_address">
+                        @if (isset($invoice) && $invoice->client && $invoice->client->clientDetails->shipping_address)
+                            {!! nl2br($invoice->client->clientDetails->shipping_address) !!}
+                        @elseif(isset($client) && $client->clientDetails &&
+                            $client->clientDetails->shipping_address)
+                            {!! nl2br($client->clientDetails->shipping_address) !!}
+                        @else
+                            <a href="javascript:;" class="text-capitalize" id="show-shipping-field"><i
+                                    class="f-12 mr-2 fa fa-plus"></i>@lang('app.addShippingAddress')</a>
+                        @endif
+                    </p>
+                    <p class="d-none" id="add-shipping-field">
+                        <textarea class="form-control f-14 pt-2" rows="3" placeholder="@lang('placeholders.address')"
+                            name="shipping_address" id="shipping_address">@if (isset($invoice) && $invoice->client) {!! nl2br($invoice->client->clientDetails->shipping_address) !!} @endif</textarea>
+                    </p>
                 </div>
-                <!-- SHIPPING ADDRESS END -->
+            </div>
+            <!-- SHIPPING ADDRESS END -->
 
-                <div class="col-md-4">
-                    <div class="form-group c-inv-select mb-4">
-                        <x-forms.label fieldId="company_address_id" :fieldLabel="__('modules.invoices.generatedBy')">
-                        </x-forms.label>
-                        <div class="select-others height-35 rounded">
-                            <select class="form-control select-picker" data-live-search="true" data-size="8"
-                                name="company_address_id" id="company_address_id">
-                                @foreach ($companyAddresses as $item)
-                                    <option {{ $item->is_default ? 'selected' : '' }} value="{{ $item->id }}">
-                                        {{ $item->location }}</option>
-                                @endforeach
-                            </select>
-                        </div>
+            <div class="col-md-4">
+                <div class="form-group c-inv-select mb-4">
+                    <x-forms.label fieldId="company_address_id" :fieldLabel="__('modules.invoices.generatedBy')">
+                    </x-forms.label>
+                    <div class="select-others height-35 rounded">
+                        <select class="form-control select-picker" data-live-search="true" data-size="8"
+                            name="company_address_id" id="company_address_id">
+                            @foreach ($companyAddresses as $item)
+                                <option {{ $item->is_default ? 'selected' : '' }} value="{{ $item->id }}">
+                                    {{ $item->location }}</option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
             </div>
+        </div>
+        <!-- CLIENT, PROJECT, GST, BILLING, SHIPPING ADDRESS END -->
 
+            <x-forms.custom-field :fields="$fields"></x-forms.custom-field>
             <div class="col-md-6">
                 <div class="form-group c-inv-select mb-4">
                     <x-forms.label fieldId="calculate_tax" :fieldLabel="__('modules.invoices.calculateTax')">
@@ -323,7 +334,8 @@ $addProductPermission = user()->permission('add_product');
                 </div>
             </div>
 
-            @if($linkInvoicePermission == 'all')
+        <hr class="m-0 border-top-grey">
+        @if($linkInvoicePermission == 'all')
                 <div class="col-md-6">
                     <div class="form-group c-inv-select mb-4" style="margin-top: -1rem;">
                         <x-forms.select fieldId="bank_account_id" :fieldLabel="__('app.menu.bankaccount')" fieldName="bank_account_id"
@@ -354,13 +366,25 @@ $addProductPermission = user()->permission('add_product');
                                 </option>
                             @endforeach
 
+        <div class="row px-lg-4 px-md-4 px-3 py-3">
+            <div class="col-md-3 d-none product-category-filter">
+                <div class="form-group c-inv-select mb-4">
+                    <x-forms.input-group>
+                        <select class="form-control select-picker" name="category_id"
+                                id="product_category_id" data-live-search="true">
+                            <option value="">{{ __('app.select') . ' ' . __('app.product') . ' ' . __('app.category')  }}</option>
+                            @foreach ($categories as $category)
+                                <option value="{{ $category->id }}">
+                                    {{ $category->category_name }}</option>
+                            @endforeach
                         </select>
-                    </div>
+                    </x-forms.input-group>
                 </div>
+            </div>
             </div> --}}
             <div class="col-md-6">
                 <div class="form-group c-inv-select mb-4">
-                    <label class="f-14 text-dark-grey mb-12 text-capitalize w-100" for="usr">@lang('modules.invoices.client_referal_name') </label>
+<label class="f-14 text-dark-grey mb-12 text-capitalize w-100" for="usr">@lang('modules.invoices.client_referal_name') </label>
                     <input type="text" class="form-control height-35 f-15" name="referral_name" id="referral_name" placeholder="@lang('modules.invoices.client_referal_name')" value="{{ $item->item_name }}">
                     <ul id="searchResults"></ul>
                 </div>
@@ -388,6 +412,11 @@ $addProductPermission = user()->permission('add_product');
                                 {{ $item->name }}</option>
                         @endforeach
                     </select>
+                    <x-slot name="preappend">
+                        <a href="javascript:;"
+                            class="btn btn-outline-secondary border-grey toggle-product-category"
+                            data-toggle="tooltip" data-original-title="{{ __('modules.productCategory.filterByCategory') }}"><i class="fa fa-filter"></i></a>
+                    </x-slot>
                     @if ($addProductPermission == 'all' || $addProductPermission == 'added')
                         <x-slot name="append">
                             <a href="{{ route('products.create') }}" data-redirect-url="{{ url()->full() }}"
@@ -396,7 +425,7 @@ $addProductPermission = user()->permission('add_product');
                         </x-slot>
                     @endif
                 </x-forms.input-group>
-
+                </div>
             </div>
         </div>
 
@@ -448,6 +477,20 @@ $addProductPermission = user()->permission('add_product');
                                             <input type="number" min="1"
                                                 class="form-control f-14 border-0 w-100 text-right quantity"
                                                 value="{{ $item->quantity }}" name="quantity[]">
+                                                @if (!is_null($item->product_id) && $item->product_id != 0)
+                                                    <span class="text-dark-grey float-right border-0 f-12">{{ $item->unit->unit_type }}</span>
+                                                    <input type="hidden" name="product_id[]" value="{{ $item->product_id }}">
+                                                    <input type="hidden" name="unit_id[]" value="{{ $item->unit_id }}">
+                                                @else
+                                                    <select class="text-dark-grey float-right border-0 f-12" name="unit_id[]">
+                                                        @foreach ($units as $unit)
+                                                            <option
+                                                            @if ($item->unit_id == $unit->id) selected @endif
+                                                            value="{{ $unit->id }}">{{ $unit->unit_type }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <input type="hidden" name="product_id[]" value="">
+                                                @endif
                                         </td>
                                         <td class="border-bottom-0">
                                             <input type="number" class="f-14 border-0 w-100 text-right cost_per_item form-control"
@@ -497,7 +540,7 @@ $addProductPermission = user()->permission('add_product');
                     </div>
                     <!-- DESKTOP DESCRIPTION TABLE END -->
                 @endforeach
-            @elseif (isset($estimate))
+                @elseif (isset($estimate))
                 @foreach ($estimate->items as $key => $item)
                     <!-- DESKTOP DESCRIPTION TABLE START -->
                     <div class="d-flex px-4 py-3 c-inv-desc item-row">
@@ -545,6 +588,20 @@ $addProductPermission = user()->permission('add_product');
                                             <input type="number" min="1"
                                                 class="form-control f-14 border-0 w-100 text-right quantity"
                                                 value="{{ $item->quantity }}" name="quantity[]">
+                                                @if (!is_null($item->product_id) && $item->product_id != 0)
+                                                    <span class="text-dark-grey float-right border-0 f-12">{{ $item->unit->unit_type }}</span>
+                                                    <input type="hidden" name="product_id[]" value="{{ $item->product_id }}">
+                                                    <input type="hidden" name="unit_id[]" value="{{ $item->unit_id }}">
+                                                @else
+                                                    <select class="text-dark-grey float-right border-0 f-12" name="unit_id[]">
+                                                        @foreach ($units as $unit)
+                                                            <option
+                                                            @if ($item->unit_id == $unit->id) selected @endif
+                                                            value="{{ $unit->id }}">{{ $unit->unit_type }}</option>
+                                                        @endforeach
+                                                    </select>
+                                                    <input type="hidden" name="product_id[]" value="">
+                                                @endif
                                         </td>
                                         <td class="border-bottom-0">
                                             <input type="number" class="f-14 border-0 w-100 text-right cost_per_item form-control"
@@ -580,8 +637,33 @@ $addProductPermission = user()->permission('add_product');
                                                 placeholder="@lang('placeholders.invoices.description')">{{ $item->item_summary }}</textarea>
                                         </td>
                                         <td class="border-left-0">
-                                            <input type="file" class="dropify" name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg" data-messages-default="test" data-height="70" />
-                                            <input type="hidden" name="invoice_item_image_url[]">
+                                            @if (isset($type) && $type == 'proposal')
+                                                <input type="hidden" id="imageId_{{ $item->id }}"
+                                                    class="itemOldImage" name="image_id[]"
+                                                    value={{ isset($item->proposalItemImage->id) ? $item->proposalItemImage->id : '' }} />
+
+                                                <input type="file" class="dropify itemImage"
+                                                    name="invoice_item_image[]" id="image{{ $item->id }}"
+                                                    data-index="{{ $loop->index }}"
+                                                    data-allowed-file-extensions="png jpg jpeg bmp"
+                                                    data-item-id="{{ $item->id }}"
+                                                    data-default-file="{{ $item->proposalItemImage ? $item->proposalItemImage->file_url : '' }}"
+                                                    data-height="70" multiple />
+                                                <input type="hidden" name="invoice_item_image_url[]">
+                                            @else
+                                                <input type="hidden" id="imageId_{{ $item->id }}"
+                                                    class="itemOldImage" name="image_id[]"
+                                                    value={{ isset($item->estimateItemImage->id) ? $item->estimateItemImage->id : '' }} />
+
+                                                <input type="file" class="dropify itemImage"
+                                                    name="invoice_item_image[]" id="image{{ $item->id }}"
+                                                    data-index="{{ $loop->index }}"
+                                                    data-allowed-file-extensions="png jpg jpeg bmp"
+                                                    data-item-id="{{ $item->id }}"
+                                                    data-default-file="{{ $item->estimateItemImage ? $item->estimateItemImage->file_url : '' }}"
+                                                    data-height="70" multiple />
+                                                <input type="hidden" name="invoice_item_image_url[]">
+                                            @endif
                                         </td>
                                     </tr>
                                 </tbody>
@@ -607,8 +689,8 @@ $addProductPermission = user()->permission('add_product');
                                     @if ($invoiceSetting->hsn_sac_code_show)
                                         <td width="10%" class="border-0" align="right">@lang("app.hsnSac")</td>
                                     @endif
-                                    <td width="10%" class="border-0" align="right" id="type">
-
+                                    <td width="10%" class="border-0" align="right">
+                                        @lang("modules.invoices.qty")
                                     </td>
                                     <td width="10%" class="border-0" align="right">
                                         @lang("modules.invoices.unitPrice")
@@ -637,8 +719,16 @@ $addProductPermission = user()->permission('add_product');
                                     @endif
                                     <td class="border-bottom-0">
                                         <input type="number" min="1"
-                                            class="form-control f-14 border-0 w-100 text-right quantity" value="1"
+                                            class="form-control f-14 border-0 w-100 text-right quantity mt-3" value="1"
                                             name="quantity[]">
+                                        <select class="text-dark-grey float-right border-0 f-12" name="unit_id[]">
+                                            @foreach ($units as $unit)
+                                                <option
+                                                @if ($unit->default == 1) selected @endif
+                                                value="{{ $unit->id }}">{{ $unit->unit_type }}</option>
+                                            @endforeach
+                                        </select>
+                                        <input type="hidden" name="product_id[]" value="">
                                     </td>
                                     <td class="border-bottom-0">
                                         <input type="number" min="1"
@@ -650,8 +740,8 @@ $addProductPermission = user()->permission('add_product');
                                             <select id="multiselect" name="taxes[0][]" multiple="multiple"
                                                 class="select-picker type customSequence border-0" data-size="3">
                                                 @foreach ($taxes as $tax)
-                                                    <option data-rate="{{ $tax->rate_percent }}"
-                                                        value="{{ $tax->id }}">{{ strtoupper($tax->tax_name) }}:
+                                                    <option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%"
+                                                        value="{{ $tax->id }}">{{ $tax->tax_name }}:
                                                         {{ $tax->rate_percent }}%</option>
                                                 @endforeach
                                             </select>
@@ -669,7 +759,7 @@ $addProductPermission = user()->permission('add_product');
                                             placeholder="@lang('placeholders.invoices.description')"></textarea>
                                     </td>
                                     <td class="border-left-0">
-                                        <input type="file" class="dropify" name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg" data-messages-default="test" data-height="70" />
+                                        <input type="file" class="dropify" name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg bmp" data-messages-default="test" data-height="70" />
                                         <input type="hidden" name="invoice_item_image_url[]">
                                     </td>
                                 </tr>
@@ -698,7 +788,7 @@ $addProductPermission = user()->permission('add_product');
 
         <!-- TOTAL, DISCOUNT START -->
         <div class="d-flex px-lg-4 px-md-4 px-3 pb-3 c-inv-total">
-            <table width="100%" class="text-right f-14 text-capitalize">
+            <table width="100%" class="text-right f-14">
                 <tbody>
                     <tr>
                         <td width="50%" class="border-0 d-lg-table d-md-table d-none"></td>
@@ -715,7 +805,7 @@ $addProductPermission = user()->permission('add_product');
                                         <td width="20%" class="text-dark-grey">@lang('modules.invoices.discount')
                                         </td>
                                         <td width="40%" style="padding: 5px;">
-                                            <table width="100%">
+                                            <table width="100%" class="mw-250">
                                                 <tbody>
                                                     <tr>
                                                         <td width="70%" class="c-inv-sub-padding">
@@ -787,6 +877,73 @@ $addProductPermission = user()->permission('add_product');
         </div>
         <!-- NOTE AND TERMS AND CONDITIONS END -->
 
+        <!-- UPLOAD MULTIPLE FILES START -->
+        <div class="row px-lg-4 px-md-4 px-3 py-3">
+            <!-- INVOICE NUMBER START -->
+            <div class="col-md-12">
+                <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.menu.addFile')" fieldName="file" fieldId="file-upload-dropzone"/>
+            </div>
+            <input type="hidden" name="invoiceID" id="invoiceID">
+        </div>
+        <!-- UPLOAD MULTIPLE FILES END -->
+
+        <div class="d-flex px-lg-4 px-md-4 px-3 py-2 bg-light-grey">
+            <div class="col-md-3">
+                <div class="form-group">
+                    <label class="f-14 text-dark-grey mb-12 w-100" for="payment_status"></label>
+                    <div class="d-flex">
+                        <x-forms.checkbox fieldId="payment_status" :fieldLabel="__('modules.invoices.receivedPayment')" fieldValue="0" fieldName="payment_status"></x-forms.checkbox>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-3 payment-types d-none">
+                <x-forms.select fieldId="payment_gateway_id" :fieldLabel="__('modules.payments.paymentGateway')" fieldName="gateway"
+                search="true" fieldRequired="true">
+                    <option value="">--</option>
+                    <option value="Offline"  id="offline_method" >{{ __('modules.offlinePayment.offlinePayment') }}</option>
+                    @if ($paymentGateway->paypal_status == 'active')
+                        <option value="paypal">{{ __('app.paypal') }}</option>
+                    @endif
+                    @if ($paymentGateway->stripe_status == 'active')
+                        <option value="stripe">{{ __('app.stripe') }}</option>
+                    @endif
+                    @if ($paymentGateway->razorpay_status == 'active')
+                        <option value="razorpay">{{ __('app.razorpay') }}</option>
+                    @endif
+                    @if ($paymentGateway->paystack_status == 'active')
+                        <option value="paystack">{{ __('app.paystack') }}</option>
+                    @endif
+                    @if ($paymentGateway->mollie_status == 'active')
+                        <option value="mollie">{{ __('app.mollie') }}</option>
+                    @endif
+                    @if ($paymentGateway->payfast_status == 'active')
+                        <option value="payfast">{{ __('app.payfast') }}</option>
+                    @endif
+                    @if ($paymentGateway->authorize_status == 'active')
+                        <option value="authorize">{{ __('app.authorize') }}</option>
+                    @endif
+                    @if ($paymentGateway->square_status == 'active')
+                        <option value="square">{{ __('app.square') }}</option>
+                    @endif
+                    @if ($paymentGateway->flutterwave_status == 'active')
+                        <option value="flutterwave">{{ __('app.flutterwave') }}</option>
+                    @endif
+                </x-forms.select>
+            </div>
+
+            <div class="col-md-3 d-none" id="add_offline">
+                <x-forms.select fieldId="add_offline_methods" :fieldLabel="__('modules.payments.offlinePaymentMethod')" fieldName="offline_methods"
+                search="true" fieldRequired="true">
+                </x-forms.select>
+            </div>
+
+            <div class="col-md-3 payment-types d-none">
+                <x-forms.text fieldId="transaction_id" :fieldLabel="__('modules.payments.transactionId')"
+                    fieldName="transaction_id" :fieldPlaceholder="__('placeholders.payments.transactionId')" />
+            </div>
+        </div>
+
         <!-- CANCEL SAVE SEND START -->
         <x-form-actions class="c-inv-btns d-block d-lg-flex d-md-flex">
             <div class="d-flex mb-3 mb-lg-0 mb-md-0">
@@ -810,6 +967,12 @@ $addProductPermission = user()->permission('add_product');
                                 <i class="fa fa-paper-plane f-w-500  mr-2 f-12"></i> @lang('app.saveSend')
                             </a>
                         </li>
+                        <li>
+                            <a class="dropdown-item f-14 text-dark save-form" href="javascript:void(0);"
+                                data-type="mark_as_send" data-toggle="tooltip" data-original-title="@lang('messages.markSentInfo')">
+                                <i class="fa fa-check-double f-w-500  mr-2 f-12"></i> @lang('app.saveMark')
+                            </a>
+                        </li>
                     </ul>
                 </div>
 
@@ -828,20 +991,22 @@ $addProductPermission = user()->permission('add_product');
     <!-- FORM END -->
 </div>
 <!-- CREATE INVOICE END -->
-
-
+<script src="{{ asset('vendor/jquery/dropzone.min.js') }}"></script>
 <script>
     $(document).ready(function() {
         var searchResults = $('#searchResults');
         var searchInput = $('#referral_name');
         var referral_mobile = $('#referral_mobile');
         var resultsList = [];
-
+        
+        let defaultImage = '';
+        let lastIndex = 0;
         searchInput.on('keyup', function() {
             var searchTerm = $(this).val();
 
             if (searchTerm !== '') {
                 $.ajax({
+
                     url: "{{ url('account/referral_name') }}",
                     type: 'GET',
                     data: {
@@ -875,10 +1040,10 @@ $addProductPermission = user()->permission('add_product');
                         searchInput.val(selectedExpense.referral_name);
                         referral_mobile.val(selectedExpense.referral_mobile);
                         searchResults.hide();
-                    });
+});
                 });
 
-                searchResults.show();
+                        searchResults.show();
             } else {
                 // var noResultsMessage = $('<li>')
                 //     .addClass('noResultsMessage')
@@ -903,11 +1068,8 @@ $addProductPermission = user()->permission('add_product');
     $("#update_client").click(function(event) {
         event.preventDefault();
         var id = $('#client_list_id').find(":selected").val();
-
         var client_mobile = $('#save_client_mobile').val();
-
         var client_dob = $('#save_client_dob').val();
-
         var token = "{{ csrf_token() }}";
         $.easyAjax({
             url: "{{ route('update.client') }}",
@@ -933,49 +1095,140 @@ $addProductPermission = user()->permission('add_product');
         function changesProduct(id){
             var url = "{{ route('get_clients_data', ':id') }}",
             url = url.replace(':id', id);
+        Dropzone.autoDiscover = false;
+        //Dropzone class
+        invoiceDropzone = new Dropzone("div#file-upload-dropzone", {
+            dictDefaultMessage: "{{ __('app.dragDrop') }}",
+            url: "{{ route('invoice-files.store') }}",
+            headers: {
+                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+            },
+            paramName: "file",
+            maxFilesize: DROPZONE_MAX_FILESIZE,
+            maxFiles: DROPZONE_MAX_FILES,
+            autoProcessQueue: false,
+            uploadMultiple: true,
+            addRemoveLinks: true,
+            parallelUploads: DROPZONE_MAX_FILES,
+            acceptedFiles: DROPZONE_FILE_ALLOW,
+            init: function () {
+                invoiceDropzone = this;
+            }
+        });
+        invoiceDropzone.on('sending', function (file, xhr, formData) {
+            const invoiceID = $('#invoiceID').val();
+            formData.append('invoice_id', invoiceID);
+            formData.append('default_image', defaultImage);
+            $.easyBlockUI();
+        });
+        invoiceDropzone.on('uploadprogress', function () {
+            $.easyBlockUI();
+        });
+        invoiceDropzone.on('queuecomplete', function () {
+            window.location.href = '{{ route("invoices.index") }}';
+        });
+        invoiceDropzone.on('removedfile', function () {
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).removeClass("has-error");
+            $(label).removeClass("is-invalid");
+        });
+        invoiceDropzone.on('error', function (file, message) {
+            invoiceDropzone.removeFile(file);
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).find(".help-block").remove();
+            var helpBlockContainer = $(grp);
+
+            if (helpBlockContainer.length == 0) {
+                helpBlockContainer = $(grp);
+            }
+
+            helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+            $(grp).addClass("has-error");
+            $(label).addClass("is-invalid");
+
+        });
+        invoiceDropzone.on('addedfile', function (file) {
+            lastIndex++;
+
+            const div = document.createElement('div');
+            div.className = 'form-check-inline custom-control custom-radio mt-2 mr-3';
+            const input = document.createElement('input');
+            input.className = 'custom-control-input';
+            input.type = 'radio';
+            input.name = 'default_image';
+            input.id = 'default-image-' + lastIndex;
+            input.value = file.name;
+            if (lastIndex == 1) {
+                input.checked = true;
+            }
+            div.appendChild(input);
+
+            var label = document.createElement('label');
+            label.className = 'custom-control-label pt-1 cursor-pointer';
+            label.innerHTML = "@lang('modules.makeDefaultImage')";
+            label.htmlFor = 'default-image-' + lastIndex;
+            div.appendChild(label);
+
+            file.previewTemplate.appendChild(div);
+        });
+
+        $('.toggle-product-category').click(function() {
+            $('.product-category-filter').toggleClass('d-none');
+        });
+
+        $('#product_category_id').on('change', function(){
+            var categoryId = $(this).val();
+            var url = "{{route('invoices.product_category', ':id')}}",
+            url = (categoryId) ? url.replace(':id', categoryId) : url.replace(':id', null);
             $.easyAjax({
                 url : url,
                 type : "GET",
+                container: '#saveInvoiceForm',
+                blockUI: true,
                 success: function (response) {
                     if (response.status == 'success') {
                         var options = [];
                         var rData = [];
                         rData = response.data;
-                        $.each(rData, function (index, value) {
+                        $.each(rData, function(index, value) {
                             var selectData = '';
-                            selectData = '<option value="' + value.id + '">' + value.name + '</option>';
+                            selectData = '<option value="' + value.id + '">' + value.name +
+                                '</option>';
                             options.push(selectData);
                         });
-                        $('#add-products').html('<option value="" class="form-control" >{{ __('app.select') . ' ' . __('app.product') }}</option>' +
+                        $('#add-products').html(
+                            '<option value="" class="form-control" >{{ __('app.select') . ' ' . __('app.product') }}</option>' +
                             options);
                         $('#add-products').selectpicker('refresh');
-                        term = ucWord(response.type.unit_type);
+term = ucWord(response.type.unit_type);
                         $('#type').html(term);
                     }
                 }
             });
-        }
-
+        });
 
         const hsn_status = {{ $invoiceSetting->hsn_sac_code_show }};
         const defaultClient = "{{ request('client_id') }}";
 
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         const dp1 = datepicker('#invoice_date', {
             position: 'bl',
             ...datepickerConfig
         });
+
         const dp2 = datepicker('#due_date', {
             position: 'bl',
             ...datepickerConfig
         });
-        const dp3 = datepicker('#save_client_dob', {
+const dp3 = datepicker('#save_client_dob', {
             position: 'bl',
             ...datepickerConfig
         });
@@ -1039,7 +1292,7 @@ $addProductPermission = user()->permission('add_product');
                                     .client_details
                                     .shipping_address));
                             }
-                            $('#client_mobile').html('<input type="text" class="px-6 position-relative text-dark font-weight-normal form-control height-35 rounded p-0 text-left f-15" name="client_mobile" value="'+response.data.mobile+'" id="save_client_mobile">');
+$('#client_mobile').html('<input type="text" class="px-6 position-relative text-dark font-weight-normal form-control height-35 rounded p-0 text-left f-15" name="client_mobile" value="'+response.data.mobile+'" id="save_client_mobile">');
 
                             $('#save_client_dob').show();
 
@@ -1071,6 +1324,7 @@ $addProductPermission = user()->permission('add_product');
             });
 
         }
+
         $('body').on('click', '#show-shipping-field', function() {
             $('#add-shipping-field').removeClass('d-none');
             $('#client_shipping_address').addClass('d-none');
@@ -1086,6 +1340,30 @@ $addProductPermission = user()->permission('add_product');
             if (previousValue != id && id != '') {
                 addProduct(id);
                 resetAddProductButton();
+            }
+        });
+
+        $(".itemOldImage").next(".dropify-clear").trigger("click");
+
+        var file = $('#sortable .dropify').dropify({
+            messages: dropifyMessages
+        });
+
+        file.on("dropify.afterClear", function(event, element) {
+            var elementID = element.element.id;
+            var elementName = element.element.name;
+            var elementIndex = element.element.dataset.index;
+            if (elementName.indexOf("[]") > -1) {
+                elementName = elementName.replace("[]", "");
+            }
+            if ($("#" + elementID + "_delete").length == 0) {
+                $("#" + elementID).after(
+                    '<input type="hidden" name="' +
+                    elementName +
+                    '_delete[' + elementIndex + ']" id="' +
+                    elementID +
+                    '_delete" value="yes">'
+                );
             }
         });
 
@@ -1158,7 +1436,15 @@ $addProductPermission = user()->permission('add_product');
                     </td>`;
             }
             item += `<td class="border-bottom-0">
-                <input type="number" min="1" class="form-control f-14 border-0 w-100 text-right quantity" value="1" name="quantity[]">
+                <input type="number" min="1" class="form-control f-14 border-0 w-100 text-right quantity mt-3" value="1" name="quantity[]">
+                <select class="text-dark-grey float-right border-0 f-12" name="unit_id[]">
+                    @foreach ($units as $unit)
+                        <option
+                        @if ($unit->default == 1) selected @endif
+                        value="{{ $unit->id }}">{{ $unit->unit_type }}</option>
+                    @endforeach
+                </select>
+                <input type="hidden" name="product_id[]" value="">
                 </td>
                 <td class="border-bottom-0">
                 <input type="number" min="1" class="f-14 border-0 w-100 text-right cost_per_item" placeholder="0.00" value="0" name="cost_per_item[]">
@@ -1167,8 +1453,8 @@ $addProductPermission = user()->permission('add_product');
                 <div class="select-others height-35 rounded border-0">
                 <select id="multiselect${i}" name="taxes[${i}][]" multiple="multiple" class="select-picker type customSequence" data-size="3">
             @foreach ($taxes as $tax)
-                <option data-rate="{{ $tax->rate_percent }}" value="{{ $tax->id }}">
-                    {{ strtoupper($tax->tax_name) }}:{{ $tax->rate_percent }}%</option>
+                <option data-rate="{{ $tax->rate_percent }}" data-tax-text="{{ $tax->tax_name .':'. $tax->rate_percent }}%" value="{{ $tax->id }}">
+                    {{ $tax->tax_name }}:{{ $tax->rate_percent }}%</option>
             @endforeach
 
                 </select>
@@ -1180,11 +1466,11 @@ $addProductPermission = user()->permission('add_product');
                 </td>
                 </tr>
                 <tr class="d-none d-md-table-row d-lg-table-row">
-                    <td colspan="3" class="dash-border-top bblr">
+                    <td colspan="{{ $invoiceSetting->hsn_sac_code_show ? 4 : 3 }}" class="dash-border-top bblr">
                         <textarea class="f-14 border-0 w-100 desktop-description form-control" name="item_summary[]" placeholder="@lang("placeholders.invoices.description")"></textarea>
                     </td>
                     <td class="border-left-0">
-                        <input type="file" class="dropify" id="dropify${i}" name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg" data-messages-default="test" data-height="70" />
+                        <input type="file" class="dropify" id="dropify${i}" name="invoice_item_image[]" data-allowed-file-extensions="png jpg jpeg bmp" data-messages-default="test" data-height="70" />
                         <input type="hidden" name="invoice_item_image_url[]">
                     </td>
                 </tr>
@@ -1253,8 +1539,17 @@ $addProductPermission = user()->permission('add_product');
                 file: true,  // Commented so that we dot get error of Input variables exceeded 1000
                 data: $('#saveInvoiceForm').serialize(),
                 success: function(response) {
+
                     if (response.status === 'success') {
-                        window.location.href = response.redirectUrl;
+                        if (typeof invoiceDropzone !== 'undefined' && invoiceDropzone.getQueuedFiles().length > 0) {
+                            invoiceID = response.invoiceID;
+                            $('#invoiceID').val(response.invoiceID);
+                            (response.add_more == true) ? localStorage.setItem("redirect_invoice", window.location.href) : localStorage.setItem("redirect_invoice", response.redirectUrl);
+                            invoiceDropzone.processQueue();
+                        }
+                        else {
+                            window.location.href = response.redirectUrl;
+                        }
                     }
                 }
             })
@@ -1281,6 +1576,7 @@ $addProductPermission = user()->permission('add_product');
 
             calculateTotal();
         });
+
         $('#saveInvoiceForm').on('change', '.type, #discount_type, #calculate_tax', function() {
             var quantity = $(this).closest('.item-row').find('.quantity').val();
             var perItemCost = $(this).closest('.item-row').find('.cost_per_item').val();
@@ -1355,7 +1651,57 @@ $addProductPermission = user()->permission('add_product');
                 }
             }
         });
+    });
 
+    $('input[type=checkbox][name=payment_status]').change(function() {
+        if ($(this).is(":checked")) {
+            $(this).val(1);
+            $('#add_offline').addClass('d-none');
+            $('.payment-types').removeClass('d-none');
+        } else {
+            $(this).val(0);
+            $('#transaction_id').val('');
+            $('#add_offline').addClass('d-none');
+            $('.payment-types').addClass('d-none');
+            $('#payment_gateway_id').val('');
+            $('#payment_gateway_id').selectpicker('refresh');
+        }
+    });
+
+    $('#payment_gateway_id').on('change', function(){
+        let val = $(this).val();
+
+        if (val == 'Offline'){
+            let url = "{{ route('offline.methods') }}";
+
+            $.easyAjax({
+                url : url,
+                type : "GET",
+                success: function (response) {
+                    if (response.status == 'success') {
+                        $('#add_offline').removeClass('d-none');
+                        var options = [];
+                        var rData = [];
+                        rData = response.data;
+                            $.each(rData, function (index, value) {
+                            var selectData = '';
+                            if(value.status=='yes'){
+                            selectData = '<option value="' + value.id + '">' + value.name + '</option>';
+                            }
+                            options.push(selectData);
+                        });
+                        $('#add_offline_methods').html(
+                            options);
+                        $('#add_offline_methods').selectpicker('refresh');
+                    }
+                }
+            });
+        }
+        else
+        {
+            $('#add_offline').addClass('d-none');
+        }
     });
 
 </script>
+@endif

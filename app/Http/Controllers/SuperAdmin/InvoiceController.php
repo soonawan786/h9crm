@@ -5,18 +5,10 @@ namespace App\Http\Controllers\SuperAdmin;
 use App\Models\Company;
 use App\Models\GlobalSetting;
 use App\Models\SuperAdmin\GlobalInvoice;
-use App\Models\SuperAdmin\MollieInvoice;
-use App\Models\SuperAdmin\PaypalInvoice;
-use App\Models\SuperAdmin\StripeInvoice;
-use App\Models\SuperAdmin\OfflineInvoice;
-use App\Models\SuperAdmin\PayfastInvoice;
 use App\Scopes\ActiveScope;
 use App\Traits\SuperAdmin\StripeSettings;
-use App\Models\SuperAdmin\PaystackInvoice;
-use App\Models\SuperAdmin\RazorpayInvoice;
 use App\DataTables\SuperAdmin\InvoiceDataTable;
 use App\Http\Controllers\AccountBaseController;
-use App\Models\SuperAdmin\AuthorizeInvoice;
 
 class InvoiceController extends AccountBaseController
 {

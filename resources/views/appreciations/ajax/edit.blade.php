@@ -6,7 +6,7 @@
         <x-form id="update-appreciation-data-form" method="PUT">
             <div class="add-client bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
-                    @lang('app.edit') @lang('modules.appreciations.appreciation')</h4>
+                    @lang('modules.appreciations.editAppreciation')</h4>
                 <div class="row p-20">
                     <div class="col-lg-12">
                         <div class="row">
@@ -21,7 +21,7 @@
                                         <option value="">--</option>
                                         @foreach ($appreciationTypes as $appreciationType)
                                             <option @if($appreciation->award_id == $appreciationType->id) selected @endif  data-content="<i class='bi bi-{{ $appreciationType->awardIcon->icon }}' style='color: {{ $appreciationType->color_code }}'></i> {{ $appreciationType->title }}" value="{{ $appreciationType->id }}">
-                                                {{ mb_ucwords($appreciationType->title) }} {{ $appreciationType->id }}
+                                                {{ $appreciationType->title }} {{ $appreciationType->id }}
                                             </option>
                                         @endforeach
                                     </select>
@@ -62,7 +62,7 @@
                             </div>
 
                             <div class="col-md-12">
-                                <x-forms.file allowedFileExtensions="png jpg jpeg svg" class="mr-0 mr-lg-2 mr-md-2 cropper"
+                                <x-forms.file allowedFileExtensions="png jpg jpeg svg bmp" class="mr-0 mr-lg-2 mr-md-2 cropper"
                                               :fieldLabel="__('modules.appreciations.photo')" fieldName="photo" fieldId="photo"
                                               :fieldValue="($appreciation->image ? $appreciation->image_url : '')"
                                               fieldHeight="119" :popover="__('messages.appreciationPhoto')" />

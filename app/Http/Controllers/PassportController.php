@@ -33,7 +33,7 @@ class PassportController extends Controller
         $passport->country_id = $request->nationality;
 
         if ($request->hasFile('file')) {
-            $passport->file = Files::upload($request->file, Passport::FILE_PATH, 300);
+            $passport->file = Files::uploadLocalOrS3($request->file, Passport::FILE_PATH);
         }
 
         $passport->save();
@@ -64,7 +64,7 @@ class PassportController extends Controller
 
         if ($request->hasFile('file')) {
             Files::deleteFile($passport->file, Passport::FILE_PATH);
-            $passport->file = Files::upload($request->file, Passport::FILE_PATH, 300);
+            $passport->file = Files::uploadLocalOrS3($request->file, Passport::FILE_PATH);
         }
 
         $passport->save();

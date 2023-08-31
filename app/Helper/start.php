@@ -14,9 +14,11 @@
 
 use App\Models\User;
 use App\Helper\Files;
+use App\Http\Controllers\FileController;
 use App\Models\Company;
 use App\Models\Currency;
 use App\Models\Permission;
+use App\Scopes\ActiveScope;
 use Illuminate\Support\Str;
 use App\Models\ThemeSetting;
 use App\Scopes\CompanyScope;
@@ -55,6 +57,9 @@ if (!function_exists('user')) {
                 session(['user' => $user]);
                 return session('user');
             }
+            else {
+                auth()->logout();
+            }
         }
 
         return null;
@@ -81,7 +86,9 @@ if (!function_exists('user_roles')) {
                 session(['user' => User::find(user()->id)]);
             }
 
-            session(['user_roles' => user()->roles->pluck('name')->toArray()]);
+            $roles = user()->roles;
+            session(['user_roles' => $roles->pluck('name')->toArray()]);
+            session(['user_role_ids' => $roles->pluck('id')->toArray()]);
 
             return session('user_roles');
         }
@@ -129,7 +136,13 @@ if (!function_exists('admin_theme')) {
     function admin_theme()
     {
         if (!session()->has('admin_theme')) {
-            session(['admin_theme' => ThemeSetting::where('panel', 'admin')->first()]);
+            if (superadmin_theme()->restrict_admin_theme_change) {
+                session(['admin_theme' => superadmin_theme()]);
+
+            } else {
+                session(['admin_theme' => ThemeSetting::where('panel', 'admin')->first()]);
+            }
+
         }
 
         return session('admin_theme');
@@ -143,7 +156,12 @@ if (!function_exists('employee_theme')) {
     function employee_theme()
     {
         if (!session()->has('employee_theme')) {
-            session(['employee_theme' => ThemeSetting::where('panel', 'employee')->first()]);
+            if (superadmin_theme()->restrict_admin_theme_change) {
+                session(['employee_theme' => superadmin_theme()]);
+
+            } else {
+                session(['employee_theme' => ThemeSetting::where('panel', 'employee')->first()]);
+            }
         }
 
         return session('employee_theme');
@@ -157,7 +175,12 @@ if (!function_exists('client_theme')) {
     function client_theme()
     {
         if (!session()->has('client_theme')) {
-            session(['client_theme' => ThemeSetting::where('panel', 'client')->first()]);
+            if (superadmin_theme()->restrict_admin_theme_change) {
+                session(['client_theme' => superadmin_theme()]);
+
+            } else {
+                session(['client_theme' => ThemeSetting::where('panel', 'client')->first()]);
+            }
         }
 
         return session('client_theme');
@@ -207,6 +230,20 @@ if (!function_exists('language_setting')) {
         }
 
         return cache('language_setting');
+    }
+
+}
+
+if (!function_exists('language_setting_locale')) {
+
+    // @codingStandardsIgnoreLine
+    function language_setting_locale($locale)
+    {
+        if (!cache()->has('language_setting_'.$locale)) {
+            cache(['language_setting_'.$locale => \App\Models\LanguageSetting::where('language_code', $locale)->first()]);
+        }
+
+        return cache('language_setting_'.$locale);
     }
 
 }
@@ -304,9 +341,10 @@ if (!function_exists('user_modules')) {
         if (!$user) {
             return [];
         }
+
         // WORKSUITESAAS
         if (user()->is_superadmin) {
-            return session(['user_modules' => []]);
+            return [];
         }
 
         if (cache()->has('user_modules_' . $user->id)) {
@@ -338,7 +376,7 @@ if (!function_exists('user_modules')) {
         }
 
         cache()->put('user_modules_' . $user->id, $moduleArray);
-
+        return $moduleArray;
     }
 
 }
@@ -410,9 +448,19 @@ if (!function_exists('isRunningInConsoleOrSeeding')) {
 if (!function_exists('asset_url_local_s3')) {
 
     // @codingStandardsIgnoreLine
-    function asset_url_local_s3($path)
+    function asset_url_local_s3($path, $appRoute = false, $type = 'file')
     {
         if (in_array(config('filesystems.default'), StorageSetting::S3_COMPATIBLE_STORAGE)) {
+            if ($appRoute) {
+                $filePath = FileController::encryptDecrypt($path);
+
+                if ($type == 'image') {
+                    $filePath = $filePath . '.png';
+                }
+
+                return route('file.getFile', ['type' => $type, 'path' => $filePath]);
+            }
+
             return Storage::disk(config('filesystems.default'))->temporaryUrl($path, now()->addMinutes(StorageSetting::HASH_TEMP_FILE_TIME));
         }
 
@@ -538,7 +586,7 @@ if (!function_exists('check_migrate_status')) {
             $status = Artisan::call('migrate:check');
 
             if ($status && !request()->ajax()) {
-                Artisan::call('migrate', array('--force' => true)); // Migrate database
+                Artisan::call('migrate', ['--force' => true, '--schema-path' => 'do not run schema path']); // Migrate database
                 Artisan::call('optimize:clear');
             }
 
@@ -555,11 +603,11 @@ if (!function_exists('countries')) {
     // @codingStandardsIgnoreLine
     function countries()
     {
-        if (!session()->has('countries')) {
-            session(['countries' => \App\Models\Country::all()]);
+        if (!cache()->has('countries')) {
+            cache(['countries' => \App\Models\Country::all()]);
         }
 
-        return session('countries');
+        return cache('countries');
     }
 
 }
@@ -596,11 +644,11 @@ if (!function_exists('currency_format')) {
     {
         $formats = currency_format_setting($currencyId);
 
-        if ($showSymbol == false) {
+        if (!$showSymbol) {
             $currency_symbol = '';
         }
         else {
-            $settings = Company::find($formats->company_id);
+            $settings = $formats->company ?? Company::find($formats->company_id);
             $currency_symbol = $currencyId == null ? $settings->currency->currency_symbol : $formats->currency_symbol;
         }
 
@@ -840,7 +888,9 @@ if (!function_exists('sidebar_user_perms')) {
                 'view_client_note',
                 'view_bankaccount',
                 'view_appreciation',
-                'manage_award'
+                'manage_award',
+                'view_lead_report',
+                'view_sales_report',
             ];
 
 
@@ -878,6 +928,63 @@ if (!function_exists('sidebar_user_perms')) {
 
 }
 
+if (!function_exists('sidebar_superadmin_perms')) {
+
+    // @codingStandardsIgnoreLine
+    function sidebar_superadmin_perms()
+    {
+        session()->forget('sidebar_superadmin_perms');
+        if (!session()->has('sidebar_superadmin_perms')) {
+
+            $sidebarPermissionsArray = [
+                'view_packages',
+                'view_companies',
+                'manage_billing',
+                'view_request',
+                'view_admin_faq',
+                'view_superadmin',
+                'view_superadmin_ticket',
+                'manage_superadmin_front_settings',
+
+            ];
+
+            $superadminSidebarPermissions = Permission::whereIn('name', $sidebarPermissionsArray)
+                ->whereHas('module', function ($query) {
+                    $query->withoutGlobalScopes()->where('is_superadmin', '1');
+                })->orderBy('id', 'asc')->get();
+
+            $uperadminSidebarPermissionsId = $superadminSidebarPermissions->pluck('id')->toArray();
+
+            $sidebarSuperadminPermissionType = UserPermission::where('user_id', user()->id)
+                ->whereIn('permission_id', $uperadminSidebarPermissionsId)
+                ->join('permissions', 'permissions.id', '=', 'user_permissions.permission_id')
+                ->orderBy('user_permissions.id')
+                ->select('user_permissions.permission_type_id', 'permissions.name', 'permissions.id')
+                ->groupBy(['user_id', 'permission_id', 'permission_type_id'])
+                ->get()
+                ->keyBy('name');
+
+            $sidebarSuperadminPermissions = array_combine($sidebarSuperadminPermissionType->pluck('name')->toArray(), $sidebarSuperadminPermissionType->pluck('permission_type_id')->toArray());
+
+            $unassignedPermissions = array_diff($uperadminSidebarPermissionsId, $sidebarSuperadminPermissionType->pluck('id')->toArray());
+
+            $filteredPermissions = $superadminSidebarPermissions->filter(function ($item) use ($unassignedPermissions) {
+                return in_array($item->id, $unassignedPermissions);
+            });
+
+            foreach ($filteredPermissions as $item) {
+                $sidebarSuperadminPermissions[$item->name] = 5;
+            }
+
+            session(['sidebar_superadmin_perms' => $sidebarSuperadminPermissions]);
+        }
+
+        return session('sidebar_superadmin_perms');
+
+    }
+
+}
+
 if (!function_exists('mb_ucfirst')) {
 
     // @codingStandardsIgnoreLine
@@ -906,7 +1013,7 @@ if (!function_exists('minute_to_hour')) {
     // @codingStandardsIgnoreLine
     function minute_to_hour($totalMinutes)
     {
-        return \Carbon\CarbonInterval::formatHuman($totalMinutes);
+        return \Carbon\CarbonInterval::formatHuman($totalMinutes); /** @phpstan-ignore-line */
     }
 
 }
@@ -1027,7 +1134,7 @@ if (!function_exists('getDomain')) {
     function getDomain($host = false)
     {
         if (!$host) {
-            $host = $_SERVER['SERVER_NAME'];
+            $host = $_SERVER['SERVER_NAME'] ?? 'worksuite-saas.test';
         }
 
         $shortDomain = config('app.short_domain_name');
@@ -1092,20 +1199,6 @@ if (!function_exists('companyOrGlobalSetting')) {
 
 }
 
-if (!function_exists('superadmin_theme')) {
-
-    // @codingStandardsIgnoreLine
-    function superadmin_theme()
-    {
-        if (!session()->has('superadmin_theme')) {
-            session(['superadmin_theme' => \App\Models\ThemeSetting::withoutGlobalScope(CompanyScope::class)->where('panel', 'superadmin')->first()]);
-        }
-
-        return session('superadmin_theme');
-    }
-
-}
-
 if (!function_exists('trim_editor')) {
 
     // @codingStandardsIgnoreLine
@@ -1135,6 +1228,22 @@ if (!function_exists('quickbooks_setting')) {
 
 }
 
+if (!function_exists('user_role_ids')) {
+
+    /**
+     * Return current logged in user
+     */
+    // @codingStandardsIgnoreLine
+    function user_role_ids()
+    {
+        if (session()->has('user_role_ids')) {
+            return session('user_role_ids');
+        }
+
+        return null;
+    }
+
+}
 
 if (!function_exists('global_currency_format_setting')) {
 
@@ -1142,7 +1251,7 @@ if (!function_exists('global_currency_format_setting')) {
     function global_currency_format_setting($currencyId = null)
     {
         if (!cache()->has('global_currency_format_setting' . $currencyId)) {
-            $setting = $currencyId == null ? GlobalCurrency::first() : GlobalCurrency::where('id', $currencyId)->first();
+            $setting = $currencyId == null ? GlobalCurrency::first() : GlobalCurrency::withTrashed()->where('id', $currencyId)->first();
             cache(['global_currency_format_setting' . $currencyId => $setting]);
         }
 
@@ -1185,14 +1294,15 @@ if (!function_exists('global_currency_format')) {
 
 }
 
-if (!function_exists('userCompanies')) {
+if (!function_exists('user_companies')) {
 
-    function userCompanies()
+    // @codingStandardsIgnoreLine
+    function user_companies($user)
     {
 
         if (!session()->has('user_companies')) {
             $userCompanies = User::withoutGlobalScope(CompanyScope::class)
-                ->where('email', user()->email)
+                ->where('email', $user->email)
                 ->where('login', 'enable')
                 ->whereHas('approvedCompany')
                 ->with('company')
@@ -1209,3 +1319,91 @@ if (!function_exists('userCompanies')) {
     }
 
 }
+
+
+if (!function_exists('flushCompanySpecificSessions')) {
+
+    function flushCompanySpecificSessions()
+    {
+        session()->forget([
+            'user_roles',
+            'admin_theme',
+            'employee_theme',
+            'client_theme',
+            'message_setting',
+            'email_notification_setting',
+            'invoice_setting',
+            'time_log_setting',
+            'currency_format_setting',
+            'attendance_setting',
+            'add_project_permission',
+            'add_tasks_permission',
+            'add_clients_permission',
+            'add_employees_permission',
+            'add_payments_permission',
+            'add_tickets_permission',
+            'add_timelogs_permission',
+            'manage_active_timelogs',
+            'slack_setting',
+            'default_address',
+            'sidebar_user_perms',
+            'quickbooks_setting',
+            'user_permissions',
+        ]);
+
+    }
+
+}
+
+if (!function_exists('checkCompanyPackageIsValid')) {
+
+    function checkCompanyPackageIsValid($companyId)
+    {
+
+        if (is_null($companyId)) {
+            return true;
+        }
+
+        return cache()->rememberForever('company_' . $companyId . '_valid_package', function () use ($companyId) {
+            $company = Company::with('package')->withCount('employees')->find($companyId);
+            return $company->employees_count <= $company->package->max_employees;
+        });
+
+    }
+
+}
+
+if (!function_exists('checkCompanyCanAddMoreEmployees')) {
+
+    function checkCompanyCanAddMoreEmployees($companyId)
+    {
+
+        if (is_null($companyId)) {
+            return true;
+        }
+
+        return cache()->rememberForever('company_' . $companyId . '_can_add_more_employees', function () use ($companyId) {
+            $company = Company::with('package')->withCount('employees')->find($companyId);
+            return $company->employees_count < $company->package->max_employees;
+        });
+
+    }
+
+}
+
+if (!function_exists('clearCompanyValidPackageCache')) {
+
+    function clearCompanyValidPackageCache($companyId)
+    {
+
+        if (is_null($companyId)) {
+            return true;
+        }
+
+        cache()->forget('company_' . $companyId . '_valid_package');
+        cache()->forget('company_' . $companyId . '_can_add_more_employees');
+    }
+
+}
+
+

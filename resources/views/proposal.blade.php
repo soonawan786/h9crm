@@ -119,7 +119,7 @@
                             <table width="100%" class="">
                                 <tr class="inv-logo-heading">
                                     <td><img src="{{ $invoiceSetting->logo_url }}"
-                                            alt="{{ mb_ucwords($company->company_name) }}" id="logo" /></td>
+                                            alt="{{ $company->company_name }}" id="logo" /></td>
                                     <td align="right"
                                         class="font-weight-bold f-21 text-dark text-uppercase mt-4 mt-lg-0 mt-md-0">
                                         @lang('app.menu.proposal')</td>
@@ -127,7 +127,7 @@
                                 <tr class="inv-num">
                                     <td class="f-14 text-dark">
                                         <p class="mt-3 mb-0">
-                                            {{ mb_ucwords($company->company_name) }}<br>
+                                            {{ $company->company_name }}<br>
                                             @if (!is_null($company))
                                                 {!! nl2br($company->defaultAddress->address) !!}<br>
                                                 {{ $company->company_phone }}
@@ -168,7 +168,7 @@
                                             </span><br>
 
                                             @if ($proposal->lead && $proposal->lead->client_name && $invoiceSetting->show_client_name == 'yes')
-                                                <b>{{ mb_ucwords($proposal->lead->client_name) }}</b><br>
+                                                <b>{{ $proposal->lead->client_name }}</b><br>
                                             @endif
                                             @if ($proposal->lead && $proposal->lead->client_email && $invoiceSetting->show_client_email == 'yes')
                                                 {{ $proposal->lead->client_email }}<br>
@@ -177,7 +177,7 @@
                                                 {{ $proposal->lead->mobile }}<br>
                                             @endif
                                             @if ($proposal->lead && $proposal->lead->company_name && $invoiceSetting->show_client_company_name == 'yes')
-                                                {{ mb_ucwords($proposal->lead->company_name) }}<br>
+                                                {{ $proposal->lead->company_name }}<br>
 
                                             @endif
                                             @if ($proposal->lead && $proposal->lead->address && $invoiceSetting->show_client_company_address == 'yes')
@@ -213,7 +213,7 @@
                                                             @lang("app.hsnSac")</td>
                                                     @endif
                                                     <td class="border-right-0 border-left-0" align="right">
-                                                        {{isset($proposal->unit) ? $proposal->unit->unit_type : 'Qty\hrs'}}
+                                                        @lang('modules.invoices.qty')
                                                     </td>
                                                     <td class="border-right-0 border-left-0" align="right">
                                                         @lang("modules.invoices.unitPrice")
@@ -229,11 +229,11 @@
                                                 @foreach ($proposal->items as $item)
                                                     @if ($item->type == 'item')
                                                         <tr class="text-dark font-weight-semibold f-13">
-                                                            <td>{{ ucfirst($item->item_name) }}</td>
+                                                            <td>{{ $item->item_name }}</td>
                                                             @if ($invoiceSetting->hsn_sac_code_show == 1)
                                                                 <td align="right">{{ $item->hsn_sac_code }}</td>
                                                             @endif
-                                                            <td align="right">{{ $item->quantity }}</td>
+                                                            <td align="right">{{ $item->quantity }}@if($item->unit)<br><span class="f-11 text-dark-grey">{{ $item->unit->unit_type }}</span>@endif</td>
                                                             <td align="right">
                                                                 {{ currency_format($item->unit_price, $proposal->currency_id, false) }}
                                                             </td>
@@ -246,7 +246,7 @@
                                                         </tr>
                                                         @if ($item->item_summary || $item->proposalItemImage)
                                                             <tr class="text-dark f-12">
-                                                                <td colspan="5" class="border-bottom-0">
+                                                                <td colspan="{{ ($invoiceSetting->hsn_sac_code_show == 1) ? '6' : '5' }}" class="border-bottom-0">
                                                                     {!! nl2br(strip_tags($item->item_summary)) !!}
                                                                     @if ($item->proposalItemImage)
                                                                         <p class="mt-2">
@@ -285,7 +285,7 @@
                                                             @foreach ($taxes as $key => $tax)
                                                                 <tr class="text-dark-grey" align="right">
                                                                     <td class="w-50 border-top-0 border-left-0">
-                                                                        {{ mb_strtoupper($key) }}</td>
+                                                                        {{ $key }}</td>
                                                                     <td class="border-top-0 border-right-0">
                                                                         {{ currency_format($tax, $proposal->currency_id, false) }}
                                                                     </td>
@@ -320,7 +320,7 @@
                                                     <table>
                                                         <tr width="100%" class="font-weight-semibold f-13">
                                                             <td class="border-left-0 border-right-0 border-top-0">
-                                                                {{ ucfirst($item->item_name) }}</td>
+                                                                {{ $item->item_name }}</td>
                                                         </tr>
                                                         @if ($item->item_summary != '' || $item->proposalItemImage)
                                                             <tr>
@@ -341,7 +341,7 @@
                                             </tr>
                                             <tr>
                                                 <th width="50%" class="bg-light-grey text-dark-grey font-weight-bold">
-                                                    {{isset($proposal->unit) ? $proposal->unit->unit_type : 'Qty\hrs'}}
+                                                    @lang('modules.invoices.qty')
                                                 </th>
                                                 <td width="50%">{{ $item->quantity }}</td>
                                             </tr>
@@ -385,7 +385,7 @@
                                     @foreach ($taxes as $key => $tax)
                                         <tr>
                                             <th width="50%" class="text-dark-grey font-weight-normal">
-                                                {{ mb_strtoupper($key) }}</th>
+                                                {{ $key }}</th>
                                             <td width="50%" class="text-dark-grey font-weight-normal">
                                                 {{ currency_format($tax, $proposal->currency_id, false) }}</td>
                                         </tr>
@@ -404,7 +404,7 @@
                                         <td height="30" colspan="2"></td>
                                     </tr>
                                     <tr>
-                                        <td>
+                                        <td style="vertical-align: text-top">
                                             <table>
                                                 <tr>@lang('app.note')</tr>
                                                 <tr>
@@ -452,10 +452,12 @@
                         @endif
 
                         @if ($proposal->client_comment)
-                            <hr>
-                            <div class="col-md-12">
-                                <h4 class="name" style="margin-bottom: 20px;">@lang('app.rejectReason')</h4>
-                                <p> {{ $proposal->client_comment }} </p>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <hr>
+                                    <h4 class="name heading-h4" style="margin-bottom: 20px;">@lang('app.rejectReason')</h4>
+                                    <p> {{ $proposal->client_comment }} </p>
+                                </div>
                             </div>
                         @endif
                     </div>
@@ -467,37 +469,20 @@
                         class="card-footer bg-white border-0 d-flex justify-content-end py-0 py-lg-4 py-md-4 mb-4 mb-lg-3 mb-md-3 ">
 
                         <div class="d-flex">
-                            <div class="inv-action mr-3 mr-lg-3 mr-md-3 dropup">
-                                <button class="dropdown-toggle btn-secondary" type="button" id="dropdownMenuButton"
-                                    data-toggle="dropdown" aria-haspopup="true"
-                                    aria-expanded="false">@lang('app.action')
-                                    <span><i class="fa fa-chevron-down f-15 text-dark-grey"></i></span>
-                                </button>
-                                <!-- DROPDOWN - INFORMATION -->
-                                <ul class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton"
-                                    tabindex="0">
-                                    @if (!$proposal->signature && $proposal->status == 'waiting')
-                                        <li>
-                                            <a class="dropdown-item f-14 text-dark" data-toggle="modal"
-                                                data-target="#signature-modal" href="javascript:;">
-                                                <i class="fa fa-check f-w-500 mr-2 f-11"></i> @lang('app.accept')
-                                            </a>
-                                        </li>
-                                        <li>
-                                            <a class="dropdown-item f-14 text-dark" data-toggle="modal"
-                                                data-target="#decline-modal" href="javascript:;">
-                                                <i class="fa fa-times f-w-500 mr-2 f-11"></i> @lang('app.decline')
-                                            </a>
-                                        </li>
-                                    @endif
-                                    <li>
-                                        <a class="dropdown-item f-14 text-dark"
-                                            href="{{ route('front.download_proposal', md5($proposal->id)) }}">
-                                            <i class="fa fa-download f-w-500 mr-2 f-11"></i> @lang('app.download')
-                                        </a>
-                                    </li>
-                                </ul>
-                            </div>
+
+                            <x-forms.link-secondary :link="route('front.download_proposal', $proposal->hash)" class="mr-3" icon="download">@lang('app.download')
+                            </x-forms.link-secondary>
+
+                            @if (!$proposal->signature && $proposal->status == 'waiting')
+                                <x-forms.link-secondary link="javascript:;" class="mr-3" icon="times" data-toggle="modal"
+                                data-target="#decline-modal">@lang('app.decline')
+                                </x-forms.link-secondary>
+
+                                <x-forms.link-primary link="javascript:;" icon="check"  data-toggle="modal"
+                                data-target="#signature-modal">@lang('app.accept')
+                                </x-forms.link-primary>
+                            @endif
+
                         </div>
                     </div>
                     <!-- CARD FOOTER END -->
@@ -573,6 +558,7 @@
     <!-- Global Required Javascript -->
     <script src="{{ asset('js/main.js') }}"></script>
     <script>
+        document.loading = '@lang('app.loading')';
         const MODAL_DEFAULT = '#myModalDefault';
         const MODAL_LG = '#myModal';
         const MODAL_XL = '#myModalXl';
@@ -714,7 +700,7 @@
 
         $('body').on('click', '.img-lightbox', function () {
             const imageUrl = $(this).data('image-url');
-            const url = "{{ route('invoices.public.show_image').'?image_url=' }}"+imageUrl;
+            const url = "{{ route('front.public.show_image').'?image_url=' }}"+imageUrl;
             $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
             $.ajaxModal(MODAL_LG, url);
         });

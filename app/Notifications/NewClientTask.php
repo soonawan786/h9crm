@@ -52,17 +52,20 @@ class NewClientTask extends BaseNotification
      */
     public function toMail($notifiable): MailMessage
     {
-        $dueDate = (!is_null($this->task->due_date)) ? $this->task->due_date->format($this->company->date_format) : null;
+        $build = parent::build();
+        $startDate = (!is_null($this->task->start_date)) ? $this->task->start_date->format($this->company->date_format) : null;
 
-        $content = ucfirst($this->task->heading) . ' #' . $this->task->task_short_code . '<p>
-            <b style="color: green">' . __('email.dueOn') . ': ' . $dueDate . '</b>
+        $content = __('email.newClientTask.content') . ': <b style="color: black"> '. $this->task->project->project_name . '</b><p>'
+        .__('app.task'). ' '. __('app.details'). ':' .'<br>' .
+        ' <b style="color: green">' . __('app.task') . __('app.name') . ': ' . $this->task->heading . '</b> <br> ' .
+           ' <b style="color: green">' . __('app.startDate') . ': ' . $startDate . '</b>
         </p>';
-
-        return parent::build()
-            ->subject(__('email.newClientTask.subject') . ' #' . $this->task->task_short_code . ' - ' . config('app.name') . '.')
+        return $build
+            ->subject(__('email.newClientTask.subject') . ' ' . $this->task->heading . ' - ' . config('app.name') . '.')
             ->greeting(__('email.hello') . ' ' . $notifiable->name . ',')
             ->markdown('mail.task.task-created-client-notification', [
-                'content' => $content
+                'content' => $content,
+                'notifiableName' => $notifiable->name,
             ]);
     }
 
@@ -77,6 +80,7 @@ class NewClientTask extends BaseNotification
             'id' => $this->task->id,
             'created_at' => $this->task->created_at->format('Y-m-d H:i:s'),
             'heading' => $this->task->heading
+
         ];
     }
 

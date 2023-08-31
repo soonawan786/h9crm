@@ -8,6 +8,7 @@ use App\Models\ProjectMember;
 use App\Models\EmployeeDetails;
 use App\Models\ProjectActivity;
 use App\Events\NewProjectMemberEvent;
+use App\Models\User;
 
 class ProjectMemberObserver
 {
@@ -31,7 +32,7 @@ class ProjectMemberObserver
 
                 $activity = new ProjectActivity();
                 $activity->project_id = $projectMember->project_id;
-                $activity->activity = mb_ucwords($member->user->name) . ' ' . __('messages.isAddedAsProjectMember');
+                $activity->activity = $member->user->name . ' ' . __('messages.isAddedAsProjectMember');
                 $activity->save();
             }
         }
@@ -40,8 +41,9 @@ class ProjectMemberObserver
     public function created(ProjectMember $member)
     {
         if (!isRunningInConsoleOrSeeding()) {
-            if (user() && $member->user_id != user()->id) {
+            if (user() && $member->user_id != user()->id && is_null(request()->mention_user_ids)) {
                 event(new NewProjectMemberEvent($member));
+
             }
         }
     }
@@ -51,9 +53,11 @@ class ProjectMemberObserver
         $notificationModel = ['App\Notifications\NewProjectMember'];
         Notification::whereIn('type', $notificationModel)
             ->whereNull('read_at')
-            ->where(function ($q) use ($projectMember) {
-                $q->where('data', 'like', '{"member_id":' . $projectMember->id . ',%');
-            })->delete();
+            ->where(
+                function ($q) use ($projectMember) {
+                    $q->where('data', 'like', '{"member_id":' . $projectMember->id . ',%');
+                }
+            )->delete();
 
     }
 

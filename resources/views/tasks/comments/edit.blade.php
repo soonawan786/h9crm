@@ -10,7 +10,7 @@
             <div class="col-md-12 p-20 ">
                 <div class="media">
                     <img src="{{ $comment->user->image_url }}" class="align-self-start mr-3 taskEmployeeImg rounded"
-                        alt="{{ mb_ucwords($comment->user->name) }}">
+                        alt="{{ $comment->user->name }}">
                     <div class="media-body bg-white">
                         <div class="form-group">
                             <div id="task-edit-comment">{!! $comment->comment !!}</div>
@@ -28,17 +28,23 @@
     <x-forms.button-primary id="save-edit-comment" icon="check">@lang('app.save')</x-forms.button-primary>
 </div>
 
+
 <script>
     var edit_task_comments = "{{ user()->permission('edit_task_comments') }}";
 
     $(document).ready(function() {
-        if (edit_task_comments == "all" || edit_task_comments == "added") {
-            quillImageLoad('#task-edit-comment');
-        }
+            const atValues = @json($taskuserData);
 
-        $('#save-edit-comment').click(function() {
+            if (add_task_comments == "all" || add_task_comments == "added") {
+                quillMention(atValues, '#task-edit-comment');
+            }
+
+            $('#save-edit-comment').click(function() {
             var comment = document.getElementById('task-edit-comment').children[0].innerHTML;
             document.getElementById('task-edit-comment-text').value = comment;
+            var mention_user_id = $('#task-edit-comment span[data-id]').map(function(){
+                return $(this).attr('data-id')
+            }).get();
 
             var token = '{{ csrf_token() }}';
 
@@ -54,13 +60,17 @@
                 data: {
                     '_token': token,
                     comment: comment,
+                    mention_user_id : mention_user_id,
                     '_method': 'PUT',
                     taskId: '{{ $comment->task->id }}'
                 },
                 success: function(response) {
                     if (response.status == "success") {
+                        destory_editor('#task-edit-comment');
+
                         document.getElementById('comment-list').innerHTML = response.view;
                         $(MODAL_LG).modal('hide');
+
                     }
 
                 }

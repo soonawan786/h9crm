@@ -66,6 +66,22 @@ class MessageController extends AccountBaseController
         }])
         ->whereIn('id', $messageIds)->orderBy('id', 'desc')->get();
 
+        $this->employees = User::allEmployees(null, true, 'all');
+
+        $userData = [];
+
+        $usersData = $this->employees;
+
+        foreach ($usersData as $user) {
+
+            $url = route('employees.show', [$user->id]);
+
+            $userData[] = ['id' => $user->id, 'value' => $user->name, 'image' => $user->image_url, 'link' => $url];
+
+        }
+
+        $this->userData = $userData;
+
         // To show particular user's chat using it's user_id
         Session::flash('message_user_id', request()->user);
 
@@ -117,6 +133,22 @@ class MessageController extends AccountBaseController
         else if ($this->messageSetting->allow_client_admin == 'yes' && in_array('client', user_roles())) {
             $this->employees = User::allAdmins($this->messageSetting->company->id);
         }
+
+        $this->employees = User::allEmployees(null, true, 'all');
+
+        $userData = [];
+
+        $usersData = $this->employees;
+
+        foreach ($usersData as $user) {
+
+            $url = route('employees.show', [$user->id]);
+
+            $userData[] = ['id' => $user->id, 'value' => $user->name, 'image' => $user->image_url, 'link' => $url];
+
+        }
+
+        $this->userData = $userData;
 
         return view('messages.create', $this->data);
     }

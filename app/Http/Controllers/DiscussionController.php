@@ -25,6 +25,18 @@ class DiscussionController extends AccountBaseController
         $this->projectId = request('id');
         $project = Project::findOrFail($this->projectId);
 
+        $userData = [];
+        $usersData = $project->projectMembers;
+
+        foreach ($usersData as $user) {
+
+            $url = route('employees.show', [$user->id]);
+
+            $userData[] = ['id' => $user->id, 'value' => $user->name, 'image' => $user->image_url, 'link' => $url];
+
+        }
+
+        $this->userData = $userData;
         abort_403(!(in_array($this->addPermission, ['all', 'added']) || $project->project_admin == user()->id));
 
         $this->categories = DiscussionCategory::orderBy('order', 'asc')->get();
@@ -77,6 +89,20 @@ class DiscussionController extends AccountBaseController
         $viewPermission = user()->permission('view_project_discussions');
         abort_403(!($viewPermission == 'all' || ($viewPermission == 'added' && $this->discussion->added_by == user()->id)));
 
+        $project = Project::findOrFail($this->discussion->project_id);
+
+        $userData = [];
+        $usersData = $project->projectMembers;
+
+        foreach ($usersData as $user) {
+
+            $url = route('employees.show', [$user->id]);
+
+            $userData[] = ['id' => $user->id, 'value' => $user->name, 'image' => $user->image_url, 'link' => $url];
+        }
+
+        $this->userData = $userData;
+
         if (request()->ajax()) {
             $html = view('discussions.replies.show', $this->data)->render();
             return Reply::dataOnly(['status' => 'success', 'html' => $html, 'title' => $this->pageTitle]);
@@ -105,7 +131,6 @@ class DiscussionController extends AccountBaseController
         $replyId = ($request->type == 'set') ? $request->replyId : null;
         Discussion::where('id', $reply->discussion_id)
             ->update(['best_answer_id' => $replyId]);
-
         $this->discussion = Discussion::with('category', 'replies', 'replies.user', 'replies.files')->findOrFail($reply->discussion_id);
         $html = view('discussions.replies.show', $this->data)->render();
         return Reply::dataOnly(['status' => 'success', 'html' => $html, 'title' => $this->pageTitle]);

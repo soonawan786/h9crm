@@ -37,14 +37,14 @@ class EstimateTemplateDataTable extends BaseDataTable
                 $action .= ' <a href="' . route('estimate-template.show', [$row->id]) . '" class="dropdown-item"><i class="fa fa-eye mr-2"></i>' . __('app.view') . '</a>';
 
 
-                    $action .= '<a class="dropdown-item openRightModal" href="' . route('estimates.create') . '?template=' . $row->id . '">
+                    $action .= '<a class="dropdown-item" href="' . route('estimates.create') . '?template=' . $row->id . '">
                         <i class="fa fa-plus mr-2"></i>
                         ' . trans('app.create') . ' ' . trans('app.menu.estimate') . '
                     </a>';
 
 
 
-                    $action .= '<a class="dropdown-item openRightModal" href="' . route('estimate-template.edit', [$row->id]) . '">
+                    $action .= '<a class="dropdown-item" href="' . route('estimate-template.edit', [$row->id]) . '">
                             <i class="fa fa-edit mr-2"></i>
                             ' . trans('app.edit') . '
                         </a>';
@@ -132,7 +132,7 @@ class EstimateTemplateDataTable extends BaseDataTable
     protected function getColumns()
     {
         return [
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id')],
             __('app.name') => ['data' => 'name', 'name' => 'name', 'title' => __('app.name')],
             __('modules.invoices.total') => ['data' => 'total', 'name' => 'total', 'title' => __('modules.invoices.total')],
@@ -144,16 +144,6 @@ class EstimateTemplateDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'estimate_templates_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

@@ -102,7 +102,7 @@ class TicketSeeder extends Seeder
 
                     // Log search
                     $search = new \App\Models\UniversalSearch();
-                    $search->searchable_id = $ticket->id;
+                    $search->searchable_id = $ticket->ticket_number;
                     $search->company_id = $companyId;
                     /* @phpstan-ignore-line */
                     $search->title = 'Ticket: ' . $ticket->subject;

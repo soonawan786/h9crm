@@ -51,15 +51,17 @@ class ProposalSigned extends BaseNotification
     public function toMail($notifiable): MailMessage
     {
 
+        $build = parent::build();
+
         $url = route('front.proposal', $this->proposal->hash);
         $url = getDomainSpecificUrl($url, $this->company);
 
 
         if ($this->proposal->status == 'accepted') {
 
-            $content = __('app.status') . ' : ' . mb_ucwords($this->proposal->status);
+            $content = __('app.status') . ' : ' . $this->proposal->status;
 
-            return parent::build()
+            return $build
                 ->subject(__('email.proposalSigned.subject'))
                 ->markdown('mail.email', [
                     'url' => $url,
@@ -69,9 +71,9 @@ class ProposalSigned extends BaseNotification
                 ]);
         }
 
-        $content = __('email.proposalRejected.rejected') . ' : ' . $this->proposal->client_comment . '<br>' . __('app.status') . ': ' . mb_ucwords($this->proposal->status);
+        $content = __('email.proposalRejected.rejected') . ' : ' . $this->proposal->client_comment . '<br>' . __('app.status') . ': ' . $this->proposal->status;
 
-        return parent::build()
+        return $build
             ->subject(__('email.proposalRejected.subject'))
             ->markdown('mail.email', [
                 'url' => $url,

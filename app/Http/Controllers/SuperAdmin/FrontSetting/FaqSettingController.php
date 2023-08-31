@@ -10,6 +10,7 @@ use App\Models\SuperAdmin\TrFrontDetail;
 use App\Http\Controllers\AccountBaseController;
 use App\Http\Requests\SuperAdmin\FaqSettings\StoreRequest;
 use App\Http\Requests\SuperAdmin\FaqSettings\UpdateRequest;
+use App\Models\GlobalSetting;
 
 class FaqSettingController extends AccountBaseController
 {
@@ -19,6 +20,12 @@ class FaqSettingController extends AccountBaseController
         parent::__construct();
         $this->pageTitle = 'superadmin.menu.faqSetting';
         $this->activeSettingMenu = 'faq_settings';
+
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_front_settings'));
+
+            return $next($request);
+        });
     }
 
     /**

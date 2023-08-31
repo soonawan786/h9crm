@@ -28,12 +28,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|Designation whereLastUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Designation whereName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Designation whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read int|null $childs_count
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Designation whereCompanyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Designation whereParentId($value)
+ * @mixin \Eloquent
  */
 class Designation extends BaseModel
 {

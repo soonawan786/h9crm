@@ -29,6 +29,7 @@
     var calendar = new FullCalendar.Calendar(calendarEl, {
         locale: initialLocaleCode,
         timeZone: '{{ company()->timezone }}',
+        firstDay: parseInt("{{ attendance_setting()?->week_start_from }}"),
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',

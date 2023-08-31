@@ -24,15 +24,45 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|ModuleSetting whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ModuleSetting whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ModuleSetting whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ModuleSetting whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ModuleSetting extends BaseModel
 {
 
     use HasCompany;
+
+    const CLIENT_MODULES = [
+            'clients',
+            'projects',
+            'tickets',
+            'invoices',
+            'estimates',
+            'events',
+            'messages',
+            'tasks',
+            'timelogs',
+            'contracts',
+            'notices',
+            'payments',
+            'orders',
+            'knowledgebase',
+        ];
+
+    const OTHER_MODULES = [
+            'employees',
+            'attendance',
+            'expenses',
+            'leaves',
+            'leads',
+            'holidays',
+            'products',
+            'reports',
+            'settings',
+            'bankaccount'
+        ];
 
     protected $guarded = ['id'];
 
@@ -75,9 +105,10 @@ class ModuleSetting extends BaseModel
     {
         self::addCompanyIdToNullModule($company, $module);
 
+        // WORKSUITESAAS
+        $moduleInPackage = collect(json_decode($company->package->module_in_package));
+
         foreach ($roles as $role) {
-
-
             $data = ModuleSetting::withoutGlobalScope(CompanyScope::class)
                 ->where('module_name', $module)
                 ->where('type', $role)
@@ -89,8 +120,8 @@ class ModuleSetting extends BaseModel
                     'module_name' => $module,
                     'type' => $role,
                     'company_id' => $company->id,
-                    'status' => str_contains($company->package->module_in_package, $module) ? 'active' : 'deactive',
-                    'is_allowed' => str_contains($company->package->module_in_package, $module) ? 1 : 0,
+                    'status' => $moduleInPackage->contains($module) ? 'active' : 'deactive',
+                    'is_allowed' => $moduleInPackage->contains($module) ? 1 : 0,
                 ]);
             }
 

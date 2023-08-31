@@ -7,6 +7,7 @@ return array(
     'name' => 'e.g. John Doe',
     'email' => 'e.g. johndoe@example.com',
     'mobile' => 'e.g. 1234567890',
+    'mobileWithPlus' => 'e.g. +19876543',
     'password' => 'Must have at least 8 characters',
     'designation' => 'e.g. Team Lead',
     'department' => 'e.g. Human Resource',
@@ -35,8 +36,15 @@ return array(
     'cluster' => 'e.g. ap2',
     'note' => 'Enter note title',
     'consent' => 'Enter consent name',
-    'consentDescription' => 'Briefly describe the purpose on consent',
+    'consentDescription' => 'Briefly describe the purpose of consent',
     'title' => 'e.g. Manager',
+    'noneSelectedText' => 'Nothing selected',
+    'noneResultsText' => 'No results matched {0}',
+    'selectAllText' => 'Select All',
+    'deselectAllText' => 'Deselect All',
+    'linkTitle' => 'Link Title',
+    'url' => 'URL',
+    'categoryName' => "e.g. Finance",
     'invoices' => array(
         'invoicePrefix' => 'Enter invoice prefix',
         'estimatePrefix' => 'Enter estimate prefix',
@@ -51,6 +59,7 @@ return array(
         'estimateNumberSeparator' => 'Estimate Number Separator',
         'credit_noteNumberSeparator' => 'Credit Note Number Separator',
         'contractNumberSeparator' => 'Contract Number Separator',
+        'contractPrefix' => 'Contract Prefix'
     ),
 
     'currency' => array(
@@ -67,7 +76,7 @@ return array(
     'columnName' => 'e.g. Pending',
     'message' => 'Write your message here',
     'payments' => array(
-        'remark' => 'Enter summary of the payment.',
+        'remark' => 'Enter a summary of the payment.',
         'transactionId' => 'Enter transaction ID of the payment',
         'paymentGateway' => 'e.g. PayPal, Stripe, Bank Transfer, Cash etc.'
     ),
@@ -115,6 +124,7 @@ return array(
         'accountName' => 'e.g. John Doe',
         'bankName' => 'e.g. Federal Bank',
         'accountNumber' => 'e.g. 123456789',
+        'balance' => 'e.g. 25$',
     ),
     'renterPassword' => 'Please enter your password',
     'city' => 'e.g. New York, Jaipur, Dubai',
@@ -127,5 +137,42 @@ return array(
         'title' => 'e.g. Employee of the month'
     ),
     'select2Min' => 'Please enter 2 or more characters',
-    'searchForProjects' => 'Search for projects'
+    'searchForProjects' => 'Search for projects',
+    'min' => 'Min',
+    'max' => 'Max',
+    'consent_description' => 'consent description',
+    'recaptchaV2' => 'e.g. 6LeL_s8ZAAAAAMVC2clQdxxxXXXxxxxxXXX',
+    'recaptchaSecret' => 'e.g. XXXXXXxxxxxXXXXXXxxxxx',
+    'recaptchaV3' => 'e.g. 6LeL_s8ZAAAAAMVC2clQdxxxXXXxxxxxXXX',
+    'fileSetting' => 'e.g. application/x-zip-compressed',
+    'searchForCompany' => 'Search For A Compnay',
+    'tickets' => array(
+        'ticketChannel' => 'e.g. Facebook, Phone, etc.',
+        'ticketGroup' => 'e.g. Sales, Support, etc.',
+    ),
+    'offlinePayment' => array(
+        'method' => 'e.g. Cash, Cheque, etc.',
+        'description' => 'e.g. via USD dollar',
+    ),
+    'state' => 'e.g. California, Rajasthan, Dubai',
+    'postalCode' => 'e.g. 90250',
+    'gstNumber' => 'e.g. 18AABCU960XXXXX',
+    'latitude' => 'e.g. 38.895',
+    'longitude' => 'e.g. -77.0364',
+    'client' => array(
+        'skype' => 'e.g. skypeUsername',
+        'linkedin' => 'e.g. https://www.linkedin.com/XXXXXXXXXX/',
+        'twitter' => 'e.g. @johndoe',
+        'facebook' => 'e.g. https://www.facebook.com/XXXXXXXXXX/',
+    ),
+    'googleMapKey' => 'e.g. AIzaSyDSl2bG7XXXXXXXXXXXXXXXXXX',
+    'categoryName' => 'e.g. Potential Client',
+    'role' => array(
+        'roleName' => 'e.g. HR',
+    ),
+    'purchaseCode' => 'e.g. 147778a2-dfa2-424e-a29f-xxxxxxxxx',
+    'language' => array(
+        'languageName' => 'e.g. English',
+        'languageCode' => 'e.g. en',
+    ),
 );

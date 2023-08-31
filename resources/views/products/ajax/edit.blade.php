@@ -10,7 +10,7 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
         <x-form id="save-product-data-form" method="PUT">
             <div class="add-client bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
-                    @lang('app.edit') @lang('app.menu.products') </h4>
+                    @lang('app.menu.editProducts') </h4>
                 <div class="row p-20">
                     <div class="col-lg-12">
                         <div class="row">
@@ -22,7 +22,7 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
                                 </x-forms.text>
                             </div>
 
-                            <div class="col-md-2">
+                            <div class="col-md-4">
                                 <x-forms.number class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.price')"
                                     fieldName="price" fieldId="price" :fieldPlaceholder="__('placeholders.price')"
                                     :fieldValue="$product->price" />
@@ -44,7 +44,7 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
                                         id="product_category_id" data-live-search="true">
                                         <option value="">--</option>
                                         @foreach ($categories as $category)
-                                            <option value="{{ $category->id }}" @if ($category->id == $product->category_id) selected @endif>{{ mb_ucwords($category->category_name) }}</option>
+                                            <option value="{{ $category->id }}" @if ($category->id == $product->category_id) selected @endif>{{ $category->category_name }}</option>
                                         @endforeach
                                     </select>
 
@@ -68,7 +68,7 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
                                         <option value="">@lang('messages.noProductSubCategoryAdded')</option>
                                         @if ($product->category_id)
                                             @foreach ($product->category->subCategories as $category)
-                                                <option value="{{ $category->id }}" @if ($category->id == $product->sub_category_id) selected @endif>{{ mb_ucwords($category->category_name) }}</option>
+                                                <option value="{{ $category->id }}" @if ($category->id == $product->sub_category_id) selected @endif>{{ $category->category_name }}</option>
                                             @endforeach
                                         @endif
                                     </select>
@@ -115,7 +115,7 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
                                         data-live-search="true" multiple="true">
                                         @foreach ($taxes as $tax)
                                             <option value="{{ $tax->id }}" @if (isset($product->taxes) && array_search($tax->id, json_decode($product->taxes)) !== false) selected @endif>
-                                                {{ strtoupper($tax->tax_name) }}: {{ $tax->rate_percent }}%
+                                                {{ $tax->tax_name }}: {{ $tax->rate_percent }}%
                                             </option>
                                         @endforeach
                                     </select>
@@ -131,19 +131,19 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
                                 </x-forms.input-group>
                             </div>
 
-                            <div class="col-lg-3 col-md-4">
+                            <div class="col-md-4">
                                 <x-forms.text fieldId="hsn_sac_code" :fieldLabel="__('app.hsnSac')"
                                     fieldName="hsn_sac_code" :fieldPlaceholder="__('placeholders.hsnSac')"
                                     :fieldValue="$product->hsn_sac_code">
                                 </x-forms.text>
                             </div>
 
-                            <div class="col-lg-3 col-md-4">
+                            <div class="col-lg-4 col-md-6">
                                 <x-forms.label class="my-3" fieldId="" :fieldLabel="__('modules.unitType.unitType')">
                                 </x-forms.label>
                                 <x-forms.input-group>
                                     <select class="form-control select-picker" name="unit_type" id="unit_type_id"
-                                            data-live-search="true" multiple="true">
+                                            data-live-search="true">
                                         @foreach ($unit_types as $unit_type)
                                             <option value="{{ $unit_type->id }}" @if ($unit_type->id == $product->unit_id) selected @endif>{{ $unit_type->unit_type }}
                                             </option>
@@ -183,7 +183,7 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
                                     fieldName="purchase_allow" fieldId="purchase_allow" fieldValue="no"
                                     fieldRequired="true" :checked="$product->allow_purchase == 1" />
                             </div>
-                            <div class="col-lg-4 col-md-6 mt-3">
+                            <div class="col-lg-4 col-md-6 mt-5">
                                 <x-forms.checkbox class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.downloadable')"
                                     fieldName="downloadable" fieldId="downloadable" fieldValue="true"
                                     fieldRequired="true" :popover="__('messages.downloadable')" :checked="$product->downloadable == 1" />
@@ -204,7 +204,7 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
                             </div>
 
                             <div class="col-lg-12">
-                                <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.add') . ' ' .__('app.file')"
+                                <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2" :fieldLabel="__('app.menu.addFile')"
                                     fieldName="file" fieldId="file-upload-dropzone" />
                             </div>
 
@@ -244,11 +244,11 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
             },
             paramName: "file",
             maxFilesize: DROPZONE_MAX_FILESIZE,
-            maxFiles: 10,
+            maxFiles: DROPZONE_MAX_FILES,
             autoProcessQueue: false,
             uploadMultiple: true,
             addRemoveLinks: true,
-            parallelUploads: 10,
+            parallelUploads: DROPZONE_MAX_FILES,
             acceptedFiles: 'image/*',
             init: function() {
                 productDropzone = this;
@@ -326,8 +326,30 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
             $.easyBlockUI();
         });
 
-        productDropzone.on('completemultiple', function() {
+        productDropzone.on('successmultiple', function() {
             window.location.href = '{{ route("products.index") }}';
+        });
+        productDropzone.on('removedfile', function () {
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).removeClass("has-error");
+            $(label).removeClass("is-invalid");
+        });
+        productDropzone.on('error', function (file, message) {
+            productDropzone.removeFile(file);
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).find(".help-block").remove();
+            var helpBlockContainer = $(grp);
+
+            if (helpBlockContainer.length == 0) {
+                helpBlockContainer = $(grp);
+            }
+
+            helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+            $(grp).addClass("has-error");
+            $(label).addClass("is-invalid");
+
         });
 
         productDropzone.on('addedfile', function(file) {
@@ -361,11 +383,11 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
 
         // Create the mock file:
         mockFile.forEach(file => {
-            var path = "{{ asset_url('products/' . '/:file_name') }}";
+var path = "{{ asset_url('products/' . '/:file_name') }}";
             path = path.replace(':file_name', file.hashname);
 
             productDropzone.emit('addedfile', file);
-            productDropzone.emit('thumbnail', file, path);
+            productDropzone.emit('thumbnail', file, file.file_url);
             productDropzone.files.push(file);
             productDropzone.emit("complete", file);
         });
@@ -460,6 +482,8 @@ $addProductSubCategoryPermission = user()->permission('manage_product_sub_catego
             $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
             $.ajaxModal(MODAL_LG, url);
         });
+
+        <x-forms.custom-field-filejs/>
 
         init(RIGHT_MODAL);
 

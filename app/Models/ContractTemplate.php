@@ -36,6 +36,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|ContractTemplate whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ContractTemplate whereSubject($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ContractTemplate whereUpdatedAt($value)
+ * @property int|null $contract_template_number
+ * @property-read \App\Models\Company|null $company
+ * @method static \Illuminate\Database\Eloquent\Builder|ContractTemplate whereContractTemplateNumber($value)
  * @mixin \Eloquent
  */
 class ContractTemplate extends BaseModel

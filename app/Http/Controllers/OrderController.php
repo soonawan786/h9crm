@@ -2,23 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use Exception;
 use Carbon\Carbon;
 use Stripe\Stripe;
 use App\Models\Tax;
 use App\Models\User;
 use App\Helper\Reply;
 use App\Models\Order;
-use App\Models\Country;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Product;
 use App\Models\Project;
 use App\Models\Currency;
+use App\Models\UnitType;
 use App\Models\OrderItems;
 use App\Models\CreditNotes;
 use App\Scopes\ActiveScope;
-use Illuminate\Support\Str;
 use App\Models\InvoiceItems;
 use Illuminate\Http\Request;
 use App\Events\NewOrderEvent;
@@ -26,6 +24,7 @@ use App\Models\CompanyAddress;
 use App\Models\CreditNoteItem;
 use App\Models\OrderItemImage;
 use App\Events\NewInvoiceEvent;
+use App\Models\ProductCategory;
 use App\Models\InvoiceItemImage;
 use Illuminate\Support\Facades\DB;
 use App\DataTables\OrdersDataTable;
@@ -37,7 +36,6 @@ use App\Http\Requests\Orders\PlaceOrder;
 use App\Http\Requests\Orders\UpdateOrder;
 use App\Models\PaymentGatewayCredentials;
 use App\Http\Requests\Stripe\StoreStripeDetail;
-use App\Models\UnitType;
 
 class OrderController extends AccountBaseController
 {
@@ -46,11 +44,13 @@ class OrderController extends AccountBaseController
     {
         parent::__construct();
         $this->pageTitle = 'app.menu.orders';
-        $this->middleware(function ($request, $next) {
-            abort_403(!in_array('orders', $this->user->modules));
+        $this->middleware(
+            function ($request, $next) {
+                abort_403(!in_array('orders', $this->user->modules));
 
-            return $next($request);
-        });
+                return $next($request);
+            }
+        );
     }
 
     public function index(OrdersDataTable $dataTable)
@@ -81,8 +81,21 @@ class OrderController extends AccountBaseController
         $this->pageTitle = __('modules.orders.createOrder');
         $this->clients = User::allClients();
         $this->products = Product::all();
+        $this->categories = ProductCategory::all();
         $this->unit_types = UnitType::all();
         $this->companyAddresses = CompanyAddress::all();
+
+        $this->lastOrder = Order::lastOrderNumber() + 1;
+        $this->orderSetting = invoice_setting();
+        $this->zero = '';
+
+        if ($this->orderSetting && (strlen($this->lastOrder) < $this->orderSetting->order_digit)) {
+            $condition = $this->orderSetting->order_digit - strlen($this->lastOrder);
+
+            for ($i = 0; $i < $condition; $i++) {
+                $this->zero = '0' . $this->zero;
+            }
+        }
 
         if (request()->ajax()) {
             $html = view('orders.ajax.admin_create', $this->data)->render();
@@ -96,6 +109,36 @@ class OrderController extends AccountBaseController
 
     }
 
+    public function saveOrder($request)
+    {
+
+        $order = new Order();
+        $order->client_id = $request->client_id ?: user()->id;
+        $order->order_date = now()->format('Y-m-d');
+        $order->sub_total = round($request->sub_total, 2);
+        $order->total = round($request->total, 2);
+        $order->discount = is_null($request->discount_value) ? 0 : $request->discount_value;
+        $order->discount_type = $request->discount_type;
+        $order->status = $request->has('status') ? $request->status : 'pending';
+        $order->currency_id = $this->company->currency_id;
+        $order->note = trim_editor($request->note);
+        $order->show_shipping_address = (($request->has('shipping_address') && $request->shipping_address != '') ? 'yes' : 'no');
+        $order->company_address_id = $request->company_address_id ?: null;
+        $order->save();
+
+        if ($order->show_shipping_address == 'yes') {
+            /**
+     @phpstan-ignore-next-line
+*/
+            $client = $order->clientdetails;
+            $client->shipping_address = $request->shipping_address;
+            $client->saveQuietly();
+
+        }
+
+        return $order;
+    }
+
     /**
      * XXXXXXXXXXX
      *
@@ -103,8 +146,8 @@ class OrderController extends AccountBaseController
      */
     public function store(PlaceOrder $request)
     {
-
         if (!in_array('client', user_roles())) {
+
             $this->addPermission = user()->permission('add_order');
             abort_403(!in_array($this->addPermission, ['all', 'added']));
         }
@@ -120,13 +163,12 @@ class OrderController extends AccountBaseController
                     return Reply::error(__('messages.itemBlank'));
                 }
             }
-        }
-        else {
+        } else {
             return Reply::error(__('messages.addItem'));
         }
 
         foreach ($quantity as $qty) {
-            if (!is_numeric($qty) && (intval($qty) < 1)) {
+            if (!is_numeric($qty) && (intval($qty) < 1) || ($qty == 0)) {
                 return Reply::error(__('messages.quantityNumber'));
             }
         }
@@ -143,19 +185,36 @@ class OrderController extends AccountBaseController
             }
         }
 
+        $this->lastOrder = Order::lastOrderNumber() + 1;
+        $this->orderSetting = invoice_setting();
+
+        $zero = '';
+        $customOrderNumber = '';
+
+        if ($this->orderSetting && (strlen($this->lastOrder) < $this->orderSetting->order_digit)) {
+            $condition = $this->orderSetting->order_digit - strlen($this->lastOrder);
+
+            for ($i = 0; $i < $condition; $i++) {
+                $zero = '0' . $zero;
+            }
+
+            $customOrderNumber = $this->orderSetting->order_prefix.''.$this->orderSetting->order_number_separator.''. $zero .''.$request->order_number;
+        }
+
         $order = new Order();
         $order->client_id = $request->client_id ?: user()->id;
         $order->order_date = now()->format('Y-m-d');
         $order->sub_total = round($request->sub_total, 2);
         $order->total = round($request->total, 2);
-        $order->discount = $request->discount_value;
+        $order->discount = is_null($request->discount_value) ? 0 : $request->discount_value;
         $order->discount_type = $request->discount_type;
-        $order->unit_id = $request->unit_type_id;
         $order->status = $request->has('status') ? $request->status : 'pending';
         $order->currency_id = $this->company->currency_id;
         $order->note = trim_editor($request->note);
         $order->show_shipping_address = (($request->has('shipping_address') && $request->shipping_address != '') ? 'yes' : 'no');
         $order->company_address_id = $request->company_address_id ?: null;
+        $order->order_number = $request->order_number;
+        $order->custom_order_number = $customOrderNumber;
         $order->save();
 
         if ($order->show_shipping_address == 'yes') {
@@ -164,6 +223,7 @@ class OrderController extends AccountBaseController
             $client->shipping_address = $request->shipping_address;
             $client->saveQuietly();
         }
+
 
         if ($request->has('status') && $request->status == 'completed') {
             $clientId = $order->client_id;
@@ -178,10 +238,12 @@ class OrderController extends AccountBaseController
             $this->makePayment($order->total, $invoice, 'complete');
         }
 
-        // Log search
-        $this->logSearchEntry($order->id, $order->id, 'orders.show', 'order');
 
-        return response(Reply::redirect(route('orders.show', $order->id), __('messages.recordSaved')))->withCookie(Cookie::forget('productDetails'));
+         // Log search
+         $this->logSearchEntry($order->id, $order->id, 'orders.show', 'order');
+
+         return response(Reply::redirect(route('orders.show', $order->id), __('messages.recordSaved')))->withCookie(Cookie::forget('productDetails'));
+
     }
 
     public function addItem(Request $request)
@@ -192,15 +254,16 @@ class OrderController extends AccountBaseController
         $exchangeRate = ($request->currencyId) ? Currency::findOrFail($request->currencyId) : Currency::findOrFail($companyCurrencyID);
 
         if (!is_null($exchangeRate) && !is_null($exchangeRate->exchange_rate)) {
+
             if ($this->item->total_amount != '') {
+
                 $this->item->price = floor($this->item->total_amount * $exchangeRate->exchange_rate);
-            }
-            else {
+
+            } else {
                 /** @phpstan-ignore-next-line */
                 $this->item->price = $this->item->price * $exchangeRate->exchange_rate;
             }
-        }
-        else {
+        } else {
             if ($this->item->total_amount != '') {
                 $this->item->price = $this->item->total_amount;
             }
@@ -215,11 +278,11 @@ class OrderController extends AccountBaseController
 
     public function edit($id)
     {
-        $this->order = Order::with('client')->findOrFail($id);
+        $this->order = Order::with('client', 'unit')->findOrFail($id);
 
         $this->editPermission = user()->permission('edit_order');
 
-        $this->unit_types = UnitType::all();
+        $this->units = UnitType::all();
 
         abort_403(in_array('client', user_roles()) || !($this->editPermission == 'all' || ($this->editPermission == 'both' && ($this->order->added_by == user()->id || $this->order->client_id == user()->id)) || ($this->editPermission == 'added' && $this->order->added_by == user()->id) || ($this->editPermission == 'owned' && $this->order->client_id == user()->id)));
 
@@ -229,6 +292,7 @@ class OrderController extends AccountBaseController
         $this->currencies = Currency::all();
         $this->taxes = Tax::all();
         $this->products = Product::all();
+        $this->categories = ProductCategory::all();
         $this->clients = User::allClients();
         $this->companyAddresses = CompanyAddress::all();
 
@@ -293,11 +357,11 @@ class OrderController extends AccountBaseController
         $order->total = round($request->total, 2);
         $order->note = trim_editor($request->note);
         $order->show_shipping_address = $request->show_shipping_address;
-        $order->discount = $request->discount_value;
+        $order->discount = is_null($request->discount_value) ? 0 : $request->discount_value;
         $order->discount_type = $request->discount_type;
-        $order->unit_id = $request->unit_type_id;
         $order->status = $request->has('status') ? $request->status : $order->status;
         $order->company_address_id = $request->company_address_id ?: null;
+        $order->custom_order_number = $order->order_number;
         $order->save();
 
         // delete old data
@@ -365,7 +429,7 @@ class OrderController extends AccountBaseController
         $this->viewPermission = user()->permission('view_order');
         abort_403(!($this->viewPermission == 'all' || ($this->viewPermission == 'both' && ($this->order->added_by == user()->id || $this->order->client_id == user()->id)) || ($this->viewPermission == 'owned' && $this->order->client_id == user()->id) || ($this->viewPermission == 'added' && $this->order->added_by == user()->id)));
 
-        $this->pageTitle = __('app.order').'#'.$this->order->order_number;
+        $this->pageTitle = $this->order->order_number;
 
         $this->discount = 0;
 
@@ -464,7 +528,8 @@ class OrderController extends AccountBaseController
             $total = $this->order->total;
             $totalAmount = $total;
 
-            $customer = \Stripe\Customer::create([
+            $customer = \Stripe\Customer::create(
+                [
                 'email' => $client->email,
                 'name' => $request->clientName,
                 'address' => [
@@ -473,9 +538,11 @@ class OrderController extends AccountBaseController
                     'state' => $request->state,
                     'country' => $request->country,
                 ],
-            ]);
+                ]
+            );
 
-            $intent = \Stripe\PaymentIntent::create([
+            $intent = \Stripe\PaymentIntent::create(
+                [
                 'amount' => $totalAmount * 100,
                 /** @phpstan-ignore-next-line */
                 'currency' => $this->order->currency->currency_code,
@@ -484,7 +551,8 @@ class OrderController extends AccountBaseController
                 'payment_method_types' => ['card'],
                 'description' => $this->order->id . ' Payment',
                 'metadata' => ['integration_check' => 'accept_a_payment', 'order_id' => $id]
-            ]);
+                ]
+            );
 
             $this->intent = $intent;
         }
@@ -572,6 +640,8 @@ class OrderController extends AccountBaseController
                         'quantity' => $item->quantity,
                         'unit_price' => $item->unit_price,
                         'amount' => $item->amount,
+                        'product_id' => $item->product_id,
+                        'unit_id' => $item->unit_id,
                         'taxes' => $item->taxes
                     ]
                 );
@@ -603,7 +673,7 @@ class OrderController extends AccountBaseController
         $payment->status = 'complete';
         $payment->save();
 
-        return Reply::success(__('Order successful'));
+        return Reply::success(__('app.order_success'));
     }
 
     public function changeStatus(Request $request)
@@ -644,7 +714,6 @@ class OrderController extends AccountBaseController
         $invoice->discount_type = $order->discount_type;
         $invoice->total = $order->total;
         $invoice->currency_id = $order->currency_id;
-        $invoice->unit_id = $order->unit_id;
         $invoice->status = 'paid';
         $invoice->note = trim_editor($order->note);
         $invoice->issue_date = now();
@@ -668,6 +737,8 @@ class OrderController extends AccountBaseController
             $invoiceItem->unit_price = $item->unit_price;
             $invoiceItem->amount = $item->amount;
             $invoiceItem->taxes = $item->taxes;
+            $invoiceItem->product_id = $item->product_id;
+            $invoiceItem->unit_id = $item->unit_id;
             $invoiceItem->saveQuietly();
 
             // Save invoice item image
@@ -774,7 +845,8 @@ class OrderController extends AccountBaseController
             $creditNoteItem = null;
 
             if (!is_null($item)) {
-                $creditNoteItem = CreditNoteItem::create([
+                $creditNoteItem = CreditNoteItem::create(
+                    [
                     'credit_note_id' => $creditNote->id,
                     'item_name' => $item->item_name,
                     'type' => 'item',
@@ -784,7 +856,8 @@ class OrderController extends AccountBaseController
                     'unit_price' => round($item->unit_price, 2),
                     'amount' => round($item->amount, 2),
                     'taxes' => $item->taxes,
-                ]);
+                    ]
+                );
             }
 
             $invoice_item_image_url = $item->invoiceItemImage ? (!empty($item->invoiceItemImage->external_link) ? $item->invoiceItemImage->external_link : $item->invoiceItemImage->file_url) : null;
@@ -813,7 +886,6 @@ class OrderController extends AccountBaseController
 
         $this->viewPermission = user()->permission('view_order');
         abort_403(!($this->viewPermission == 'all' || ($this->viewPermission == 'both' && ($this->order->added_by == user()->id || $this->order->client_id == user()->id)) || ($this->viewPermission == 'owned' && $this->order->client_id == user()->id) || ($this->viewPermission == 'added' && $this->order->added_by == user()->id)));
-
 
         App::setLocale($this->invoiceSetting->locale);
         Carbon::setLocale($this->invoiceSetting->locale);
@@ -884,7 +956,7 @@ class OrderController extends AccountBaseController
     {
         $client_data = Product::where('unit_id', $id)->get();
         $unitId = UnitType::where('id', $id)->first();
-        return Reply::dataOnly(['status' => 'success', 'data' => $client_data, 'type' => $unitId] );
+        return Reply::dataOnly(['status' => 'success', 'data' => $client_data, 'type' => $unitId]);
     }
 
 }

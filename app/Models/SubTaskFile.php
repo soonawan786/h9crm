@@ -42,9 +42,9 @@ use App\Traits\IconTrait;
  * @method static \Illuminate\Database\Eloquent\Builder|TaskFile whereTaskId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskFile whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|TaskFile whereUserId($value)
- * @mixin \Eloquent
  * @property int $sub_task_id
  * @method static \Illuminate\Database\Eloquent\Builder|SubTaskFile whereSubTaskId($value)
+ * @mixin \Eloquent
  */
 class SubTaskFile extends BaseModel
 {

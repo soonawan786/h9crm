@@ -5,8 +5,8 @@ namespace App\Listeners;
 use App\Events\BirthdayReminderEvent;
 use App\Models\User;
 use App\Notifications\BirthdayReminder;
+use Notification;
 use App\Notifications\BirthdayReminderWhatsApp;
-use Illuminate\Support\Facades\Notification;
 class BirthdayReminderListener
 {
 

@@ -61,7 +61,7 @@ color: #fff !important;
                                                 <option
                                                 {{ isset($knowledge->category_id) && $knowledge->category_id == $category->id ? 'selected' : '' }}
                                                  value="{{ $category->id }}">
-                                                    {{ mb_ucwords($category->name) }}</option>
+                                                    {{ $category->name }}</option>
                                             @endforeach
                                         </select>
 
@@ -186,7 +186,7 @@ color: #fff !important;
 <script>
     $(document).ready(function() {
 
-        quillImageLoad('#description');
+        quillMention(null, '#description');
 
         Dropzone.autoDiscover = false;
         knowledgeBaseDropzone = new Dropzone("div#file", {
@@ -197,11 +197,11 @@ color: #fff !important;
             },
             paramName: "file",
             maxFilesize: DROPZONE_MAX_FILESIZE,
-            maxFiles: 10,
+            maxFiles: DROPZONE_MAX_FILES,
             autoProcessQueue: false,
             uploadMultiple: true,
             addRemoveLinks: true,
-            parallelUploads: 10,
+            parallelUploads: DROPZONE_MAX_FILES,
             acceptedFiles: DROPZONE_FILE_ALLOW,
             init: function() {
                 knowledgeBaseDropzone = this;
@@ -218,9 +218,29 @@ color: #fff !important;
         knowledgeBaseDropzone.on('uploadprogress', function() {
             $.easyBlockUI();
         });
-        knowledgeBaseDropzone.on('completemultiple', function(file) {
+        knowledgeBaseDropzone.on('queuecomplete', function(file) {
             window.location.href = "{{ route('knowledgebase.index') }}";        });
-        knowledgeBaseDropzone.on('error', function(file) {
+        knowledgeBaseDropzone.on('removedfile', function () {
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).removeClass("has-error");
+            $(label).removeClass("is-invalid");
+        });
+        knowledgeBaseDropzone.on('error', function (file, message) {
+            knowledgeBaseDropzone.removeFile(file);
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).find(".help-block").remove();
+            var helpBlockContainer = $(grp);
+
+            if (helpBlockContainer.length == 0) {
+                helpBlockContainer = $(grp);
+            }
+
+            helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+            $(grp).addClass("has-error");
+            $(label).addClass("is-invalid");
+
         });
 
         $('#add-file').click(function() {
@@ -325,5 +345,9 @@ color: #fff !important;
         init(RIGHT_MODAL);
 
 
+    });
+
+    $('#close-settings').click(function() {
+        closeTaskDetail()
     });
 </script>

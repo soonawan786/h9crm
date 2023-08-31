@@ -27,13 +27,13 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|ExpensesCategory whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ExpensesCategory whereLastUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ExpensesCategory whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read \Illuminate\Database\Eloquent\Collection|ExpensesCategoryRole[] $roles
  * @property-read int|null $roles_count
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @property-read \App\Models\Expense|null $expenses
  * @method static \Illuminate\Database\Eloquent\Builder|ExpensesCategory whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ExpensesCategory extends BaseModel
 {

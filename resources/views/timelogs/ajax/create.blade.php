@@ -118,12 +118,12 @@
 
 <script>
     $(document).ready(function() {
-        if ($('.custom-date-picker').length > 0) {
-            datepicker('.custom-date-picker', {
+        $('.custom-date-picker').each(function(ind, el) {
+            datepicker(el, {
                 position: 'bl',
                 ...datepickerConfig
             });
-        }
+        });
 
         const dp1 = datepicker('#start_date', {
             position: 'bl',
@@ -163,7 +163,7 @@
             if (id == '') {
                 id = 0;
             }
-            var url = "{{ route('tasks.project_tasks', ':id') }}";
+            var url = "{{ route('tasks.project_tasks', ':id').'?for_timelogs=true' }}";
             url = url.replace(':id', id);
             $.easyAjax({
                 url: url,
@@ -207,6 +207,7 @@
                 type: "POST",
                 disableButton: true,
                 blockUI: true,
+                file: true,
                 buttonSelector: "#save-timelog-form",
                 data: $('#save-timelog-data-form').serialize(),
                 success: function(response) {
@@ -224,18 +225,16 @@
 
         function calculateTime() {
             var format = '{{ company()->moment_date_format }}';
+            var timeFormat = '{{ company()->time_format }}';
             var startDate = $('#start_date').val();
             var endDate = $('#end_date').val();
             var startTime = $("#start_time").val();
             var endTime = $("#end_time").val();
 
-            startDate = moment(startDate, format).format('YYYY-MM-DD');
-            endDate = moment(endDate, format).format('YYYY-MM-DD');
+            startDate = moment(startDate + " " + startTime, format + " " + 'hh:mm A');
+            endDate = moment(endDate + " " + endTime, format + " " + 'hh:mm A');
 
-            var timeStart = new Date(startDate + " " + startTime);
-            var timeEnd = new Date(endDate + " " + endTime);
-
-            var diff = (timeEnd - timeStart) / 60000; //dividing by seconds and milliseconds
+            var diff = endDate.diff(startDate, 'minutes');
 
             var minutes = diff % 60;
             var hours = (diff - minutes) / 60;
@@ -254,27 +253,9 @@
                     },
                     buttonsStyling: false
                 });
-                $("#start_time").val(startTime);
-                $('#end_time').val(endTime);
 
-                return false;
-                var numberOfDaysToAdd = 1;
-                timeEnd.setDate(timeEnd.getDate() + numberOfDaysToAdd);
-                var dd = timeEnd.getDate();
+                $('#end_time').val(startTime);
 
-                if (dd < 10) {
-                    dd = "0" + dd;
-                }
-
-                var mm = timeEnd.getMonth() + 1;
-
-                if (mm < 10) {
-                    mm = "0" + mm;
-                }
-
-                var y = timeEnd.getFullYear();
-
-                $('#end_date').val(mm + '/' + dd + '/' + y);
                 calculateTime();
             } else {
                 $('#total_time').html(hours + "Hrs " + minutes + "Mins");

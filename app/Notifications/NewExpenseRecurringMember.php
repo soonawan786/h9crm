@@ -62,12 +62,13 @@ class NewExpenseRecurringMember extends BaseNotification
     //phpcs:ignore
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $url = route('recurring-expenses.show', $this->expense->id);
         $url = getDomainSpecificUrl($url, $this->company);
 
-        $content = __('email.newExpenseRecurring.subject') . '.' . '<br>' . __('app.employee') . ': ' . mb_ucwords($this->expense->user->name) . '<br>' . __('modules.expenses.itemName') . ': ' . $this->expense->item_name . '<br>' . __('app.price') . ': ' . $this->expense->currency->currency_symbol . $this->expense->price;
+        $content = __('email.newExpenseRecurring.subject') . '.' . '<br>' . __('app.employee') . ': ' . $this->expense->user->name . '<br>' . __('modules.expenses.itemName') . ': ' . $this->expense->item_name . '<br>' . __('app.price') . ': ' . $this->expense->currency->currency_symbol . $this->expense->price;
 
-        return parent::build()
+        return $build
             ->subject(__('email.newExpenseRecurring.subject') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,
@@ -117,8 +118,8 @@ class NewExpenseRecurringMember extends BaseNotification
     public function toOneSignal($notifiable)
     {
         return OneSignalMessage::create()
-            ->subject(__('email.newExpenseRecurring.subject'))
-            ->body($this->expense->item_name . ' by ' . mb_ucwords($this->expense->user->name));
+            ->setSubject(__('email.newExpenseRecurring.subject'))
+            ->setBody($this->expense->item_name . ' by ' . $this->expense->user->name);
     }
 
 }

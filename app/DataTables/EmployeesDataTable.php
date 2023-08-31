@@ -22,6 +22,7 @@ class EmployeesDataTable extends BaseDataTable
     private $editEmployeePermission;
     private $deleteEmployeePermission;
     private $viewEmployeePermission;
+    private $changeEmployeeRolePermission;
 
     public function __construct()
     {
@@ -55,19 +56,16 @@ class EmployeesDataTable extends BaseDataTable
             $userRole = $row->roles->pluck('name')->toArray();
 
             if (in_array('admin', $userRole)) {
-                return __('app.admin');
+                return $row->roles()->withoutGlobalScopes()->latest()->first()->display_name;
+            }
 
-            }
-            else {
-                return $row->current_role_name;
-            }
+            return $row->current_role_name;
         });
         $datatables->addColumn('role', function ($row) use ($roles) {
             $userRole = $row->roles->pluck('name')->toArray();
 
             if (in_array('admin', $userRole)) {
-                $uRole = __('app.admin');
-
+                $uRole = $row->roles()->withoutGlobalScopes()->latest()->first()->display_name;
             }
             else {
                 $uRole = $row->current_role_name;
@@ -98,7 +96,7 @@ class EmployeesDataTable extends BaseDataTable
                         $role .= 'selected';
                     }
 
-                    $role .= ' value="' . $item->id . '">' . ((in_array($item->name, ['admin', 'client', 'employee'])) ? __('app.' . $item->name) : ucfirst($item->name)) . '</option>';
+                    $role .= ' value="' . $item->id . '">' . $item->display_name . '</option>';
 
                 }
             }
@@ -133,7 +131,7 @@ class EmployeesDataTable extends BaseDataTable
             }
 
             if ($this->deleteEmployeePermission == 'all' || ($this->deleteEmployeePermission == 'added' && user()->id == $row->added_by)) {
-                if ((!in_array('admin', $userRole) && user()->id !== $row->id) || ( user()->id !== $row->id && in_array('admin', $userRole) && in_array('admin', user_roles()))) {
+                if ((!in_array('admin', $userRole) && user()->id !== $row->id) || (user()->id !== $row->id && in_array('admin', $userRole) && in_array('admin', user_roles()))) {
                     $action .= '<a class="dropdown-item delete-table-row" href="javascript:;" data-user-id="' . $row->id . '">
                                 <i class="fa fa-trash mr-2"></i>
                                 ' . trans('app.delete') . '
@@ -183,13 +181,14 @@ class EmployeesDataTable extends BaseDataTable
         $datatables->setRowId(function ($row) {
             return 'row-' . $row->id;
         });
-        $datatables->rawColumns(['name', 'action', 'role', 'status', 'check', 'employee_id']);
         $datatables->removeColumn('roleId');
         $datatables->removeColumn('roleName');
         $datatables->removeColumn('current_role');
 
         // Custom Fields For export
-        CustomField::customFieldData($datatables, EmployeeDetails::CUSTOM_FIELD_MODEL);
+        $customFieldColumns = CustomField::customFieldData($datatables, EmployeeDetails::CUSTOM_FIELD_MODEL, 'employeeDetail');
+
+        $datatables->rawColumns(array_merge(['name', 'action', 'role', 'status', 'check', 'employee_id'], $customFieldColumns));
 
         return $datatables;
     }
@@ -214,8 +213,9 @@ class EmployeesDataTable extends BaseDataTable
             ->leftJoin('employee_details', 'employee_details.user_id', '=', 'users.id')
             ->leftJoin('designations', 'employee_details.designation_id', '=', 'designations.id')
             ->join('roles', 'roles.id', '=', 'role_user.role_id')
-            ->select('users.id', 'employee_details.added_by', 'users.name', 'users.email', 'users.created_at', 'roles.name as roleName', 'roles.id as roleId', 'users.image', 'users.status', DB::raw('(select user_roles.role_id from role_user as user_roles where user_roles.user_id = users.id ORDER BY user_roles.role_id DESC limit 1) as `current_role`'), DB::raw('(select roles.name from roles as roles where roles.id = current_role limit 1) as `current_role_name`'), 'designations.name as designation_name', 'employee_details.employee_id', 'employee_details.joining_date')
+            ->select('users.id', 'employee_details.added_by', 'users.name', 'users.email', 'users.created_at', 'roles.name as roleName', 'roles.id as roleId', 'users.image', 'users.gender', 'users.status', DB::raw('(select user_roles.role_id from role_user as user_roles where user_roles.user_id = users.id ORDER BY user_roles.role_id DESC limit 1) as `current_role`'), DB::raw('(select roles.name from roles as roles where roles.id = current_role limit 1) as `current_role_name`'), 'designations.name as designation_name', 'employee_details.employee_id', 'employee_details.joining_date')
             ->onlyEmployee();
+
 
         if ($request->status != 'all' && $request->status != '') {
 
@@ -226,6 +226,10 @@ class EmployeesDataTable extends BaseDataTable
             else {
                 $users = $users->where('users.status', $request->status);
             }
+        }
+
+        if ($request->gender != 'all' && $request->gender != '') {
+            $users = $users->where('users.gender', $request->gender);
         }
 
         if ($request->employee != 'all' && $request->employee != '') {
@@ -332,7 +336,7 @@ class EmployeesDataTable extends BaseDataTable
                 'orderable' => false,
                 'searchable' => false
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id'), 'visible' => false],
             __('modules.employees.employeeId') => ['data' => 'employee_id', 'name' => 'employee_id', 'title' => __('modules.employees.employeeId')],
             __('app.name') => ['data' => 'name', 'name' => 'name', 'exportable' => false, 'title' => __('app.name')],
@@ -341,7 +345,10 @@ class EmployeesDataTable extends BaseDataTable
             __('app.role') => ['data' => 'role', 'name' => 'role', 'width' => '20%', 'orderable' => false, 'exportable' => false, 'title' => __('app.role'), 'visible' => ($this->changeEmployeeRolePermission == 'all')],
             __('modules.employees.role') => ['data' => 'current_role_name', 'name' => 'current_role_name', 'visible' => false, 'title' => __('modules.employees.role')],
             __('modules.employees.joiningDate') => ['data' => 'joining_date', 'name' => 'joining_date', 'visible' => false, 'title' => __('modules.employees.joiningDate')],
-            __('app.status') => ['data' => 'status', 'name' => 'status', 'title' => __('app.status')],
+            __('app.status') => ['data' => 'status', 'name' => 'status', 'title' => __('app.status')]
+        ];
+
+        $action = [
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -350,18 +357,8 @@ class EmployeesDataTable extends BaseDataTable
                 ->addClass('text-right pr-20')
         ];
 
-        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new EmployeeDetails()));
+        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new EmployeeDetails()), $action);
 
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'employees_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

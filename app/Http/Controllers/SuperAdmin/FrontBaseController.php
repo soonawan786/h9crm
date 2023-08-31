@@ -3,8 +3,6 @@
 namespace App\Http\Controllers\SuperAdmin;
 
 use App\Http\Controllers\Controller;
-use App\Models\GlobalSetting;
-use App\Models\LanguageSetting;
 use App\Models\SuperAdmin\FooterMenu;
 use App\Models\SuperAdmin\FrontDetail;
 use App\Models\SuperAdmin\FrontMenu;
@@ -23,13 +21,10 @@ class FrontBaseController extends Controller
         $this->middleware(function ($request, $next) {
 
             $this->frontDetail = FrontDetail::first();
-            $this->languages = LanguageSetting::where('status', 'enabled')->get();
-            $this->setting = global_setting();
-            $this->globalSetting = $this->setting;
-
+            $this->languages = language_setting();
+            $this->global = $this->globalSetting = $this->setting = global_setting();
 
             $this->locale = $this->frontDetail->locale;
-
 
             if (session()->has('language')) {
                 $this->locale = session('language');
@@ -37,8 +32,8 @@ class FrontBaseController extends Controller
 
             setlocale(LC_TIME, $this->locale . '_' . strtoupper($this->locale));
 
-            $this->enLocaleLanguage = LanguageSetting::where('language_code', 'en')->first();
-            $this->localeLanguage = $this->locale != 'en' ? LanguageSetting::where('language_code', $this->locale)->first() : $this->enLocaleLanguage;
+            $this->enLocaleLanguage = language_setting_locale('en');
+            $this->localeLanguage = $this->locale != 'en' ? language_setting_locale($this->locale) : $this->enLocaleLanguage;
             $this->localeLanguage = $this->localeLanguage ?: $this->enLocaleLanguage;
 
             $this->footerSettings = FooterMenu::whereNotNull('slug')
@@ -46,11 +41,9 @@ class FrontBaseController extends Controller
                 ->where('language_setting_id', $this->localeLanguage->id)
                 ->get();
 
-            $this->footerSettings = $this->footerSettings->count() > 0 ?
-                $this->footerSettings :
-                FooterMenu::whereNotNull('slug')->where('private', 0)
-                    ->where('language_setting_id', $this->enLocaleLanguage->id)
-                    ->get();
+            $this->footerSettings = $this->footerSettings->count() > 0 ? $this->footerSettings : FooterMenu::whereNotNull('slug')->where('private', 0)
+                ->where('language_setting_id', $this->enLocaleLanguage->id)
+                ->get();
 
             $this->frontMenu = FrontMenu::where('language_setting_id', $this->localeLanguage->id)->first();
             $this->frontMenu = $this->frontMenu ?: FrontMenu::where('language_setting_id', $this->enLocaleLanguage->id)->first();
@@ -65,7 +58,7 @@ class FrontBaseController extends Controller
             // ACCOUNT SETUP REDIRECT
             $userTotal = User::count();
 
-            if ($userTotal == 0) {
+            if ($userTotal == 0 && !module_enabled('Subdomain')) {
                 return redirect()->route('login');
             }
 

@@ -161,7 +161,7 @@
                         </div>
                     </div>
 
-                    <div class="col-lg-6">
+                    <div class="col-lg-2">
                         <div class="form-group my-3">
                             <x-forms.label fieldId="late_yes" :fieldLabel="__('modules.themeSettings.sidebarTheme')">
                             </x-forms.label>
@@ -176,6 +176,10 @@
                                 </x-forms.radio>
                             </div>
                         </div>
+                    </div>
+
+                    <div class="col-lg-4 mt-5">
+                        <x-forms.checkbox fieldId="set_customer_theme" :fieldLabel="__('superadmin.themeSettings.setThisCustomerTheme')" fieldName="set_customer_theme" :checked="$superAdminTheme->restrict_admin_theme_change" :popover="__('superadmin.themeSettings.setThisCustomerThemeInfo')" />
                     </div>
 
                 </div>

@@ -66,15 +66,12 @@ class AutoStopTimer extends Command
                     $activeTimer->edited_by_user = $admin->id;
                     $activeTimer->save();
 
-                    /** @phpstan-ignore-next-line */
-                    $activeTimer->total_hours = ($activeTimer->end_time->diff($activeTimer->start_time)->format('%d') * 24) + ($activeTimer->end_time->diff($activeTimer->start_time)->format('%H'));
+                    $activeTimer->total_hours = ((int)$activeTimer->end_time->diff($activeTimer->start_time)->format('%d') * 24) + ((int)$activeTimer->end_time->diff($activeTimer->start_time)->format('%H'));
 
                     if ($activeTimer->total_hours == 0) {
-                        /** @phpstan-ignore-next-line */
                         $activeTimer->total_hours = (int)$activeTimer->end_time->diff($activeTimer->start_time)->format('%d') * 24 + (int)$activeTimer->end_time->diff($activeTimer->start_time)->format('%H');
                     }
 
-                    /** @phpstan-ignore-next-line */
                     $activeTimer->total_minutes = ((int)$activeTimer->total_hours * 60) + (int)($activeTimer->end_time->diff($activeTimer->start_time)->format('%i'));
 
                     $activeTimer->saveQuietly();

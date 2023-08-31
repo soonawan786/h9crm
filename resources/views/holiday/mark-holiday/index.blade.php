@@ -15,6 +15,13 @@
                         </div>
                     </div>
                 </div>
+                <div class="col-lg-5">
+                    <div class="form-group my-3">
+                        <x-forms.text :fieldLabel="__('modules.holiday.occasion')" fieldName="occassion"
+                            fieldId="occassion" :fieldPlaceholder="__('modules.holiday.occasion')"
+                            fieldValue="" data-toggle="tooltip" data-original-title="{{ __('messages.selectOccassion')}}" />
+                    </div>
+                </div>
             </div>
 
     </div>
@@ -56,8 +63,12 @@
                         data: $('#save-mark-holiday-form').serialize(),
                         success: function(response) {
                             if (response.status == "success") {
-                                window.LaravelDataTables["holiday-table"].draw(false);
-                                $(MODAL_LG).modal('hide');
+                                if (response.redirectUrl == 'table-view') {
+                                    window.LaravelDataTables["holiday-table"].draw(false);
+                                    $(MODAL_LG).modal('hide');
+                                } else {
+                                    location.href = response.redirectUrl;
+                                }
                             }
                         }
                     });

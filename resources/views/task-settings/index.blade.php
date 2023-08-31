@@ -149,7 +149,7 @@
                     </div>
 
                     <div class="col-lg-4">
-                        <x-forms.checkbox :fieldLabel="__('app.add') . ' ' .__('app.file')" fieldName="files_tab" fieldId="files_tab" fieldValue="yes" fieldRequired="true" :checked="($taskSetting->files == 'yes') ? $taskSetting->files : ''"/>
+                        <x-forms.checkbox :fieldLabel="__('app.menu.addFile')" fieldName="files_tab" fieldId="files_tab" fieldValue="yes" fieldRequired="true" :checked="($taskSetting->files == 'yes') ? $taskSetting->files : ''"/>
                     </div>
 
                     <div class="col-lg-4">

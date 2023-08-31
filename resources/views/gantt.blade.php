@@ -54,7 +54,7 @@
                         <select class="form-control select-picker" id="projectTask" data-live-search="true"
                             data-size="8" multiple name="projectTask[]">
                             @foreach ($project->tasks as $task)
-                                <option value="{{ $task->id}}">{{ mb_ucwords($task->heading) }}</option>
+                                <option value="{{ $task->id}}">{{ $task->heading }}</option>
                             @endforeach
                         </select>
                     </div>

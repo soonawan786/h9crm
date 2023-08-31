@@ -6,10 +6,10 @@
 
 <div class="row">
     <div class="col-sm-12">
-        <x-form id="save-department-data-form" method="put">
+        <x-form id="save-department-data-form" method="PUT">
             <div class="add-client bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
-                    @lang('app.edit') @lang('app.menu.department')</h4>
+                    @lang('app.menu.editDepartment')</h4>
                 <div class="row p-20">
                     <div class="col-md-6">
                         <x-forms.text fieldId="team_name" :fieldLabel="__('app.name')" fieldName="team_name"
@@ -24,9 +24,7 @@
                                 data-live-search="true">
                                 <option value="">--</option>
                                 @foreach($departments as $item)
-                                    @if($department->id != $item->id)
                                         <option value="{{ $item->id }}" @if($department->parent_id == $item->id) selected @endif>{{ $item->team_name }}</option>
-                                    @endif
                                 @endforeach
                             </select>
                         </x-forms.input-group>

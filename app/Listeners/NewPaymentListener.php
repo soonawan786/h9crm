@@ -2,6 +2,7 @@
 
 namespace App\Listeners;
 
+use App\Models\User;
 use App\Events\NewPaymentEvent;
 use App\Notifications\NewPayment;
 use Illuminate\Support\Facades\Notification;
@@ -18,7 +19,7 @@ class NewPaymentListener
 
     public function handle(NewPaymentEvent $event)
     {
-        Notification::send($event->notifyUser, new NewPayment($event->payment));
+        Notification::send($event->notifyUsers, new NewPayment($event->payment));
     }
 
 }

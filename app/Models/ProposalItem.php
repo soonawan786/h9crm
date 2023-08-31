@@ -36,9 +36,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|ProposalItem whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProposalItem whereUnitPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProposalItem whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property-read \App\Models\ProposalItemImage|null $proposalItemImage
  * @property-read mixed $tax_list
+ * @property int|null $product_id
+ * @property int|null $unit_id
+ * @property-read \App\Models\UnitType|null $unit
+ * @method static \Illuminate\Database\Eloquent\Builder|ProposalItem whereProductId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|ProposalItem whereUnitId($value)
+ * @mixin \Eloquent
  */
 class ProposalItem extends BaseModel
 {

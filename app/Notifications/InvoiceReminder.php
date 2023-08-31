@@ -47,6 +47,7 @@ class InvoiceReminder extends BaseNotification
      */
     public function toMail($notifiable)
     {
+        $build = parent::build();
         $setting = $this->company;
         $invoice_setting = $this->company->invoiceSetting->send_reminder;
         $invoice_number = $this->invoice->invoice_number;
@@ -56,7 +57,7 @@ class InvoiceReminder extends BaseNotification
 
         $content = __('email.invoiceReminder.text') . ' ' . Carbon::now($setting->timezone)->addDays($invoice_setting)->toFormattedDateString() . '<br>' . new HtmlString($invoice_number) . '<br>' . __('email.messages.loginForMoreDetails');
 
-        return parent::build()
+        return $build
             ->subject(__('email.invoiceReminder.subject') . ' - ' . config('app.name'))
             ->markdown('mail.email', [
                 'url' => $url,

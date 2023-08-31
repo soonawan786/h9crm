@@ -155,35 +155,35 @@ class FixUpgradeCompanyCommand extends Command
     {
         $credentials = PaymentGatewayCredentials::withoutGlobalScope(CompanyScope::class);
         $razorpayCredentials = $credentials->clone()->where('razorpay_status', 'deactive')->orWhereNull('razorpay_status')->orWhere('razorpay_status', '');
-        $razorpayCredentials->update(['razorpay_status' => NULL]);
+        $razorpayCredentials->update(['razorpay_status' => null]);
         \DB::statement('ALTER TABLE payment_gateway_credentials MODIFY razorpay_status ENUM("active", "inactive") DEFAULT "inactive"');
-        $razorpayCredentials->update(['razorpay_status' => "inactive"]);
+        $razorpayCredentials->update(['razorpay_status' => 'inactive']);
 
         $paystackCredentials = $credentials->clone()->where('paystack_status', 'inactive')->orWhereNull('paystack_status')->orWhere('paystack_status', '');
-        $paystackCredentials->update(['paystack_status' => NULL]);
+        $paystackCredentials->update(['paystack_status' => null]);
         \DB::statement('ALTER TABLE payment_gateway_credentials MODIFY paystack_status ENUM("active", "deactive") DEFAULT "deactive"');
-        $paystackCredentials->update(['paystack_status' => "deactive"]);
+        $paystackCredentials->update(['paystack_status' => 'deactive']);
 
         $mollieCredentials = $credentials->clone()->where('mollie_status', 'inactive')->orWhereNull('mollie_status')->orWhere('mollie_status', '');
-        $mollieCredentials->update(['mollie_status' => NULL]);
+        $mollieCredentials->update(['mollie_status' => null]);
         \DB::statement('ALTER TABLE payment_gateway_credentials MODIFY mollie_status ENUM("active", "deactive") DEFAULT "deactive"');
-        $mollieCredentials->update(['mollie_status' => "deactive"]);
+        $mollieCredentials->update(['mollie_status' => 'deactive']);
 
         $payfastCredentials = $credentials->clone()->where('payfast_status', 'inactive')->orWhereNull('payfast_status')->orWhere('payfast_status', '');
-        $payfastCredentials->update(['payfast_status' => NULL]);
+        $payfastCredentials->update(['payfast_status' => null]);
         \DB::statement('ALTER TABLE payment_gateway_credentials MODIFY payfast_status ENUM("active", "deactive") DEFAULT "deactive"');
-        $payfastCredentials->update(['payfast_status' => "deactive"]);
+        $payfastCredentials->update(['payfast_status' => 'deactive']);
 
         $authorizeCredentials = $credentials->clone()->where('authorize_status', 'inactive')->orWhereNull('authorize_status')->orWhere('authorize_status', '');
-        $authorizeCredentials->update(['authorize_status' => NULL]);
+        $authorizeCredentials->update(['authorize_status' => null]);
         \DB::statement('ALTER TABLE payment_gateway_credentials MODIFY authorize_status ENUM("active", "deactive") DEFAULT "deactive"');
-        $authorizeCredentials->update(['authorize_status' => "deactive"]);
+        $authorizeCredentials->update(['authorize_status' => 'deactive']);
 
 
         $globalCredentials = GlobalPaymentGatewayCredentials::withoutGlobalScope(CompanyScope::class)->where('razorpay_status', 'deactive')->orWhereNull('razorpay_status')->orWhere('razorpay_status', '');
-        $globalCredentials->update(['razorpay_status' => NULL]);
+        $globalCredentials->update(['razorpay_status' => null]);
         \DB::statement('ALTER TABLE global_payment_gateway_credentials MODIFY razorpay_status ENUM("active", "inactive") DEFAULT "inactive"');
-        $globalCredentials->update(['razorpay_status' => "inactive"]);
+        $globalCredentials->update(['razorpay_status' => 'inactive']);
 
     }
 

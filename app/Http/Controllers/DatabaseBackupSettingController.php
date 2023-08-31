@@ -20,7 +20,7 @@ class DatabaseBackupSettingController extends AccountBaseController
         $this->pageTitle = __('app.menu.databaseBackupSetting');
         $this->activeSettingMenu = 'database_backup_settings';
         $this->middleware(function ($request, $next) {
-            GlobalSetting::validateAdmin();
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_database_backup_settings'));
             return $next($request);
         });
     }

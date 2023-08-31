@@ -22,7 +22,6 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Tax whereRatePercent($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Tax whereTaxName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Tax whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property \Illuminate\Support\Carbon|null $deleted_at
  * @property-read \App\Models\Company|null $company
@@ -31,6 +30,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Eloquent\Builder|Tax whereDeletedAt($value)
  * @method static \Illuminate\Database\Query\Builder|Tax withTrashed()
  * @method static \Illuminate\Database\Query\Builder|Tax withoutTrashed()
+ * @mixin \Eloquent
  */
 class Tax extends BaseModel
 {

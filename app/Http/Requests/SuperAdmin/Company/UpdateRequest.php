@@ -15,10 +15,26 @@ class UpdateRequest extends FormRequest
      */
     public function rules()
     {
+        // This is done to remove request()->merge(['sub_domain' => $subdomain]); and
+        // validate on sub_domain part
+        if (module_enabled('Subdomain')) {
+            if (request()->sub_domain) {
+                $subdomain = str_replace('.' . getDomain(), '', request()->sub_domain);
+
+                if (!preg_match('/^[-a-zA-Z0-9_]+$/i', $subdomain)) {
+                    return [
+                        'sub_domain' => 'alpha_dash',
+                    ];
+                }
+            }
+        }
+
+        $len = strlen(getDomain()) + 4;
+
         $rules = [
             'company_name' => 'required',
-            'company_email' => 'required|email|unique:companies,company_email,'.$this->route('company'),
-            'sub_domain' => module_enabled('Subdomain') ? 'required|min:4|max:50|banned_sub_domain|unique:companies,sub_domain,'.$this->route('company') : '',
+            'company_email' => 'required|email|unique:companies,company_email,' . $this->route('company'),
+            'sub_domain' => module_enabled('Subdomain') ? 'required|min:4|max:50|banned_sub_domain|min:' . $len . '|unique:companies,sub_domain,' . $this->route('company') : '',
             'address' => 'required',
             'status' => 'required'
         ];
@@ -33,7 +49,7 @@ class UpdateRequest extends FormRequest
                 $customField = CustomField::findOrFail($id);
 
                 if ($customField->required == 'yes' && (is_null($value) || $value == '')) {
-                    $rules['custom_fields_data['.$key.']'] = 'required';
+                    $rules['custom_fields_data[' . $key . ']'] = 'required';
                 }
             }
         }
@@ -66,7 +82,7 @@ class UpdateRequest extends FormRequest
                 $customField = CustomField::findOrFail($id);
 
                 if ($customField->required == 'yes') {
-                    $attributes['custom_fields_data['.$key.']'] = $customField->label;
+                    $attributes['custom_fields_data[' . $key . ']'] = $customField->label;
                 }
             }
         }

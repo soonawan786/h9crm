@@ -40,7 +40,7 @@
                     data-size="8">
                     <option value="all">@lang('app.all')</option>
                     @foreach ($departments as $department)
-                        <option value="{{ $department->id }}">{{ ucfirst($department->team_name) }}</option>
+                        <option value="{{ $department->id }}">{{ $department->team_name }}</option>
                     @endforeach
                 </select>
             </div>

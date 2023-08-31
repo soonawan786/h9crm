@@ -2,7 +2,7 @@
 
 <x-form id="edit-save-subtask-data-form" method="PUT">
     <div class="modal-header">
-        <h5 class="modal-title" id="modelHeading">@lang('app.edit') @lang('modules.tasks.subTask')</h5>
+        <h5 class="modal-title" id="modelHeading">@lang('modules.tasks.editSubTask')</h5>
         <button type="button"  class="close" data-dismiss="modal" aria-label="Close"><span
                 aria-hidden="true">×</span></button>
     </div>
@@ -120,11 +120,11 @@
             },
             paramName: "file",
             maxFilesize: DROPZONE_MAX_FILESIZE,
-            maxFiles: 10,
+            maxFiles: DROPZONE_MAX_FILES,
             autoProcessQueue: false,
             uploadMultiple: true,
             addRemoveLinks: true,
-            parallelUploads: 10,
+            parallelUploads: DROPZONE_MAX_FILES,
             acceptedFiles: DROPZONE_FILE_ALLOW,
             init: function() {
                 subTaskDropzone = this;
@@ -138,8 +138,30 @@
         subTaskDropzone.on('uploadprogress', function() {
             $.easyBlockUI();
         });
-        subTaskDropzone.on('completemultiple', function(resp) {
+        subTaskDropzone.on('queuecomplete', function(resp) {
             window.location.reload();
+        });
+        subTaskDropzone.on('removedfile', function () {
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).removeClass("has-error");
+            $(label).removeClass("is-invalid");
+        });
+        subTaskDropzone.on('error', function (file, message) {
+            subTaskDropzone.removeFile(file);
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).find(".help-block").remove();
+            var helpBlockContainer = $(grp);
+
+            if (helpBlockContainer.length == 0) {
+                helpBlockContainer = $(grp);
+            }
+
+            helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+            $(grp).addClass("has-error");
+            $(label).addClass("is-invalid");
+
         });
 
         $('#edit-save-subtask').click(function() {

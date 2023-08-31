@@ -69,7 +69,7 @@ class NewCompanyRegister extends BaseNotification
      */
     public function toArray($notifiable)
     {
-        return array_merge($notifiable->toArray(), ['company_name' => $this->forCompany->company_name]);
+        return $this->forCompany->toArray();
     }
 
     /**

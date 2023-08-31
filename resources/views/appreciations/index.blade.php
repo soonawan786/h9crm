@@ -48,7 +48,7 @@
         <div class="more-filter-items">
             <label class="f-14 text-dark-grey mb-12 text-capitalize" for="usr">@lang('modules.appreciations.appreciationType')</label>
             <div class="select-filter mb-4">
-                <select class="form-control select-picker" name="award_type" id="award_type">
+                <select class="form-control select-picker" name="award_type" id="award_type" data-container="body">
                     <option value="all">@lang('app.all')</option>
                     @foreach ($appreciations as $item)
                         <option data-content="<i class='bi bi-{{ $item->awardIcon->icon }}' style='color: {{ $item->color_code }}'></i> {{ $item->title }}"
@@ -89,11 +89,11 @@ $manageAwardPermission = user()->permission('manage_award');
     <!-- CONTENT WRAPPER START -->
     <div class="content-wrapper">
         <!-- Add Task Export Buttons Start -->
-        <div class="d-flex justify-content-between action-bar">
+        <div class="d-grid d-lg-flex d-md-flex action-bar">
             <div id="table-actions" class="flex-grow-1 align-items-center">
                 @if ($addAppreciationPermission == 'all')
                     <x-forms.link-primary :link="route('appreciations.create')" class="mr-3 openRightModal float-left" icon="plus">
-                        @lang('app.add') @lang('modules.appreciations.appreciation')
+                        @lang('modules.appreciations.addAppreciation')
                     </x-forms.link-primary>
                 @endif
             </div>
@@ -105,12 +105,11 @@ $manageAwardPermission = user()->permission('manage_award');
                     </select>
                 </div>
             </x-datatable.actions>
-            <div class="btn-group mt-3 mt-lg-0 mt-md-0 ml-lg-3" role="group">
+            <div class="btn-group mt-2 mt-lg-0 mt-md-0 ml-0 ml-lg-3 ml-md-3" role="group">
                 @if($viewAppreciationPermission != 'none')
                     <a href="{{ route('appreciations.index') }}" class="btn btn-secondary f-14 btn-active" data-toggle="tooltip"
                        data-original-title="@lang('app.menu.appreciation')"><i class="side-icon bi bi-trophy"></i></a>
-                @endif
-                @if($manageAwardPermission == 'all')
+
                     <a href="{{ route('awards.index') }}" class="btn btn-secondary f-14" data-toggle="tooltip"
                        data-original-title="@lang('app.menu.award')"><i class="side-icon bi bi-award"></i></a>
                 @endif

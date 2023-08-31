@@ -41,7 +41,7 @@ class TicketChannelController extends AccountBaseController
         $select = '<option value="">--</option>';
 
         foreach ($allChannels as $channel) {
-            $select .= '<option value="' . $channel->id . '">' . mb_ucwords($channel->channel_name) . '</option>';
+            $select .= '<option value="' . $channel->id . '">' . $channel->channel_name . '</option>';
         }
 
         return Reply::successWithData(__('messages.recordSaved'), ['optionData' => $select]);

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Traits\IconTrait;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * App\Models\ProposalItemImage
@@ -28,6 +29,7 @@ use App\Traits\IconTrait;
  * @method static \Illuminate\Database\Eloquent\Builder|ProposalItemImage whereProposalItemId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProposalItemImage whereSize($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ProposalItemImage whereUpdatedAt($value)
+ * @property-read \App\Models\ProposalItem $item
  * @mixin \Eloquent
  */
 class ProposalItemImage extends BaseModel
@@ -52,6 +54,11 @@ class ProposalItemImage extends BaseModel
             return '';
         }
 
+    }
+
+    public function item() : BelongsTo
+    {
+        return $this->belongsTo(ProposalItem::class, 'proposal_item_id');
     }
 
 }

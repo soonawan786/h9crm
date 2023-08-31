@@ -21,14 +21,14 @@ namespace App\Models;
  * @method static \Illuminate\Database\Eloquent\Builder|LanguageSetting whereLanguageName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LanguageSetting whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LanguageSetting whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property string|null $flag_code
  * @method static \Illuminate\Database\Eloquent\Builder|LanguageSetting whereFlagCode($value)
+ * @property-read mixed $label
+ * @mixin \Eloquent
  * @property-read mixed $label
  */
 class LanguageSetting extends BaseModel
 {
-
     const LANGUAGES_TRANS = [
         'en' => 'English',
         'ar' => 'عربي',

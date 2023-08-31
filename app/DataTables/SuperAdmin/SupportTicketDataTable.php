@@ -6,12 +6,21 @@ use Carbon\Carbon;
 use App\DataTables\BaseDataTable;
 use Yajra\DataTables\Html\Button;
 use Yajra\DataTables\Html\Column;
-use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\EloquentDataTable;
 use App\Models\SuperAdmin\SupportTicket;
 
 class SupportTicketDataTable extends BaseDataTable
 {
+    private $deleteTicketPermission;
+    private $viewTicketPermission;
+
+    public function __construct()
+    {
+        parent::__construct();
+
+        $this->deleteTicketPermission = user()->permission('delete_superadmin_ticket');
+        $this->viewTicketPermission = user()->permission('view_superadmin_ticket');
+    }
 
     /**
      * Build DataTable class.
@@ -36,9 +45,21 @@ class SupportTicketDataTable extends BaseDataTable
                     </a>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink-' . $row->id . '" tabindex="0">';
 
+                if (
+                        in_array('admin', user_roles()) || $this->viewTicketPermission == 'all'
+                        || ($this->viewTicketPermission == 'added' && user()->id == $row->created_by)
+                        || ($this->viewTicketPermission == 'owned' && (user()->id == $row->user_id || $row->agent_id == user()->id))
+                        || ($this->viewTicketPermission == 'both' && (user()->id == $row->user_id || $row->agent_id == user()->id || $row->created_by == user()->id))
+                    ) {
                     $action .= '<a href="' . route('superadmin.support-tickets.show', [$row->id]) . '" class="dropdown-item"><i class="fa fa-eye mr-2"></i>' . __('app.view') . '</a>';
+                }
 
-                if(user()->is_superadmin) {
+                if (
+                        $this->deleteTicketPermission == 'all'
+                        || ($this->deleteTicketPermission == 'added' && user()->id == $row->created_by)
+                        || ($this->deleteTicketPermission == 'owned' && (user()->id == $row->agent_id || user()->id == $row->user_id))
+                        || ($this->deleteTicketPermission == 'both' && (user()->id == $row->agent_id || user()->id == $row->created_by || user()->id == $row->user_id))
+                    ) {
                     $action .= '<a class="dropdown-item delete-table-row" href="javascript:;" data-ticket-id="' . $row->id . '">
                             <i class="fa fa-trash mr-2"></i>
                             ' . trans('app.delete') . '
@@ -72,7 +93,7 @@ class SupportTicketDataTable extends BaseDataTable
             })
 
             ->editColumn('subject', function ($row) {
-                return '<a href="' . route('superadmin.support-tickets.show', $row->id) . '" class="text-darkest-grey" >' . ucfirst($row->subject) . '</a>';
+                return '<a href="' . route('superadmin.support-tickets.show', $row->id) . '" class="text-darkest-grey" >' . ucfirst($row->subject) . '</a>'.$row->badge();
             })
             ->addColumn('name', function ($row) {
                 return $row->requester?->name ?? '--';
@@ -123,14 +144,11 @@ class SupportTicketDataTable extends BaseDataTable
             $model->where('agent_id', $request->agentId);
         }
 
-        if ($request->self && $request->self == 'yes' && $request->agentId == 'all') {
-            $model->where('agent_id', user()->id);
-        }
-
         if ($request->ticketStatus && $request->ticketStatus != 'all') {
             if ($request->ticketStatus == 'unassigned') {
                 $model->whereNull('agent_id');
-            } else {
+            }
+            else {
                 $model->where('status', $request->ticketStatus);
             }
         }
@@ -155,9 +173,35 @@ class SupportTicketDataTable extends BaseDataTable
             });
         }
 
+        if ($this->viewTicketPermission == 'added') {
+            $model->where(
+                function ($query) {
+                    return $query->where('created_by', user()->id);
+                }
+            );
+        }
+
+        if ($this->viewTicketPermission == 'owned') {
+            $model->where(
+                function ($query) {
+                    return $query->where('user_id', user()->id)
+                        ->orWhere('agent_id', user()->id);
+                }
+            );
+        }
+
+        if ($this->viewTicketPermission == 'both') {
+            $model->where(
+                function ($query) {
+                    return $query->where('created_by', user()->id)
+                        ->orWhere('user_id', user()->id)
+                        ->orWhere('agent_id', user()->id);
+                }
+            );
+        }
+
         return $model;
     }
-
 
     /**
      * Optional method if you want to use html builder.
@@ -209,16 +253,6 @@ class SupportTicketDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'tickets_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

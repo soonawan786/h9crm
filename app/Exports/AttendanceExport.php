@@ -8,6 +8,7 @@ use Carbon\CarbonPeriod;
 use App\Models\Attendance;
 use Illuminate\Support\Carbon;
 use App\Models\EmployeeDetails;
+use App\Models\EmployeeShiftSchedule;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -24,7 +25,6 @@ class AttendanceExport implements FromCollection, WithHeadings, WithMapping, Wit
     public static $sum;
     public $year;
     public $month;
-    public $late;
     public $userId;
     public $viewAttendancePermission;
     public $department;
@@ -32,13 +32,12 @@ class AttendanceExport implements FromCollection, WithHeadings, WithMapping, Wit
     public $startdate;
     public $enddate;
 
-    public function __construct($year, $month, $id, $late, $department, $designation, $startdate, $enddate)
+    public function __construct($year, $month, $id, $department, $designation, $startdate, $enddate)
     {
         $this->viewAttendancePermission = user()->permission('view_attendance');
         $this->year = $year;
         $this->month = $month;
         $this->userId = $id;
-        $this->late = $late;
         $this->department = $department;
         $this->designation = $designation;
         $this->startdate = $startdate;
@@ -138,10 +137,6 @@ class AttendanceExport implements FromCollection, WithHeadings, WithMapping, Wit
 
             $attendances = Attendance::where('attendances.user_id', '=', $userId);
 
-            if ($this->late != 'all') {
-                $attendances->where('attendances.late', $this->late);
-            }
-
             $attendances = $attendances->orderBy('attendances.clock_in_time', 'asc')
                 ->where(DB::raw('DATE(attendances.clock_in_time)'), '>=', $startDate->format('Y-m-d'))
                 ->where(DB::raw('DATE(attendances.clock_in_time)'), '<=', $endDate->format('Y-m-d'))
@@ -152,6 +147,12 @@ class AttendanceExport implements FromCollection, WithHeadings, WithMapping, Wit
                 ->where('leave_date', '<=', $endDate)
                 ->where('status', 'approved')
                 ->select('leave_date', 'reason', 'duration')->get();
+
+            $employeeShifts = EmployeeShiftSchedule::with('shift')
+                ->where('user_id', $userId)
+                ->where('date', '>=', $startDate)
+                ->where('date', '<=', $endDate)
+                ->get();
 
             $period = CarbonPeriod::create($startDate, $endDate); // Get All Dates from start to end date
             $holidays = Holiday::getHolidayByDates($startDate, $endDate); // Getting Holiday Data
@@ -187,6 +188,12 @@ class AttendanceExport implements FromCollection, WithHeadings, WithMapping, Wit
                         }
                     }
 
+                    foreach ($employeeShifts as $shift) { // Check shifts
+                        if ($date->equalTo($shift->date) && $shift->shift->shift_name == 'Day Off') {
+                            $att->status = $shift->shift->shift_name;
+                        }
+                    }
+
                     $attendances->push($att);
 
                 }
@@ -214,11 +221,18 @@ class AttendanceExport implements FromCollection, WithHeadings, WithMapping, Wit
 
                     }
 
+                    foreach ($employeeShifts as $shift) { // Check shifts
+                        if ($date->equalTo($shift->date) && $shift->shift->shift_name == 'Day Off') {
+                            $att->status = $shift->shift->shift_name;
+                            $attendances->push($att);
+                        }
+                    }
+
                 }
             }
 
             $employee_temp = array();
-
+            $status = __('app.present');
 
             foreach ($attendances->sortBy('date') as $attendance) {
                 $date = Carbon::createFromFormat('Y-m-d', $attendance->date)->timezone(company()->timezone)->format(company()->date_format);
@@ -240,6 +254,9 @@ class AttendanceExport implements FromCollection, WithHeadings, WithMapping, Wit
                     else if ($attendance->status == 'Leave') {
                         $status = __('app.onLeave');
                     }
+                    else if ($attendance->status == 'Day Off') {
+                        $status = __('modules.attendance.dayOff');
+                    }
                     else if ($attendance->status == 'Holiday') {
                         $status = __('app.holiday', ['name' => $attendance->occassion]);
                     }
@@ -252,9 +269,6 @@ class AttendanceExport implements FromCollection, WithHeadings, WithMapping, Wit
                 }
                 else if ($attendance->half_day == 'yes') {
                     $status = __('app.halfday');
-                }
-                else {
-                    $status = __('app.present');
                 }
 
                 if ($employee_temp && $employee_temp[1] == $date) {

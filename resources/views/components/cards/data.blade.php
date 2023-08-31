@@ -15,7 +15,10 @@
             {{ $slot }}
         </div>
     @else
-        <div class="card-body {{ $otherClasses }}">
+        <div @class([
+            'card-body', 'pt-2' => ($title),
+            $otherClasses
+        ])>
             {{ $slot }}
         </div>
     @endif

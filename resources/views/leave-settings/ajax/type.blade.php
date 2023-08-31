@@ -10,6 +10,8 @@
                 <th>@lang('modules.leaves.noOfLeaves')</th>
                 <th>@lang('modules.leaves.monthLimit')</th>
                 <th>@lang('modules.leaves.leavePaidStatus')</th>
+                <th>@lang('app.department')</th>
+                <th>@lang('app.designation')</th>
                 <th class="text-right">@lang('app.action')</th>
             </x-slot>
 
@@ -17,7 +19,7 @@
                 <tr id="type-{{ $leaveType->id }}">
                     <td>
                         <p class="f-w-500 mb-0"><i class="fa fa-circle mr-1 text-yellow"
-                                style="color: {{ $leaveType->color }}"></i>{{ mb_ucwords($leaveType->type_name) }}
+                                style="color: {{ $leaveType->color }}"></i>{{ $leaveType->type_name }}
                         </p>
                     </td>
                     <td> {{ $leaveType->no_of_leaves }}</td>
@@ -28,6 +30,24 @@
                         @else
                             @lang('modules.credit-notes.unpaid')
                         @endif
+                    </td>
+                    <td>
+                        <ol class="pl-3">
+                            @foreach ($departments as $department)
+                                @if(!is_null($leaveType->department) && in_array($department->id, json_decode($leaveType->department)))
+                                    <li>{{$department->team_name}}</li>
+                                @endif
+                            @endforeach
+                        </ol>
+                    </td>
+                    <td>
+                        <ol class="pl-3">
+                            @foreach ($designations as $designation)
+                                @if(!is_null($leaveType->designation) && in_array($designation->id, json_decode($leaveType->designation)))
+                                    <li>{{$designation->name}}</li>
+                                @endif
+                            @endforeach
+                        </ol>
                     </td>
                     <td class="text-right">
                         <div class="task_view">
@@ -108,10 +128,20 @@
     // add new leave type
     $('#addNewLeaveType').click(function() {
     var url = "{{ route('leaveType.create') }}";
-    $(MODAL_LG + ' ' + MODAL_HEADING).html('...');
-    $.ajaxModal(MODAL_LG, url);
+    $(MODAL_XL + ' ' + MODAL_HEADING).html('...');
+    $.ajaxModal(MODAL_XL, url);
     });
 
-    // add new leave type
+
+    $('.editNewLeaveType').click(function() {
+
+        var id = $(this).data('leave-id');
+
+        var url = "{{ route('leaveType.edit', ':id ') }}";
+        url = url.replace(':id', id);
+
+        $(MODAL_XL + ' ' + MODAL_HEADING).html('...');
+        $.ajaxModal(MODAL_XL, url);
+    });
 
 </script>

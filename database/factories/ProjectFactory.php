@@ -133,6 +133,7 @@ class ProjectFactory extends Factory
             'completion_percent' => fake()->numberBetween(40, 100),
             'feedback' => fake()->realText(),
             'project_short_code' => $this->initials($projectName),
+            'calculate_task_progress' => 'false',
         ];
     }
 

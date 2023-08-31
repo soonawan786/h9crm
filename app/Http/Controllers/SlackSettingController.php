@@ -45,7 +45,7 @@ class SlackSettingController extends AccountBaseController
         elseif ($request->hasFile('slack_logo')) {
 
             Files::deleteFile($setting->slack_logo, 'slack-logo');
-            $setting->slack_logo = Files::upload($request->slack_logo, 'slack-logo');
+            $setting->slack_logo = Files::uploadLocalOrS3($request->slack_logo, 'slack-logo');
         }
 
         $setting->save();

@@ -24,15 +24,4 @@
                                 icon="check">@lang('app.send')</x-forms.button-primary>
     </div>
 </x-form>
-<script>
-    $('body').on('click', '#send-test-email-btn', function () {
-        $.easyAjax({
-            container: "#testEmail",
-            url: "{{route('smtp_settings.send_test_mail')}}",
-            type: "GET",
-            messagePosition: "inline",
-            blockUI: true,
-            data: $('#testEmail').serialize(),
-        })
-    });
-</script>
+

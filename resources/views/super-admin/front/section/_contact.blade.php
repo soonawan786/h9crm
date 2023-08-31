@@ -20,10 +20,10 @@
                             </div>
 
                             @if ($global->google_recaptcha_status)
-                            <div class="g-recaptcha" data-sitekey="{{ $global->google_recaptcha_key }}"></div>
+                            <div class="g-recaptcha" data-sitekey="{{ ($global->google_captcha_version == 'v2' && $global->google_recaptcha_v2_status == 'deactive') ? $global->google_recaptcha_v2_site_key :  $global->google_recaptcha_v3_site_key}}"></div>
                             <br>
                             @endif
-                          
+
 
                             <button class="btn btn-lg btn-block btn-primary " type="button" id="save-form">@lang('modules.frontCms.submitEnquiry')</button>
                         </div>

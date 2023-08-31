@@ -64,7 +64,7 @@
 <div class="modal-header">
     <h5 class="modal-title" id="modelHeading">
         @if($free)
-            @lang('superadmin.choosePlan')
+            @lang('superadmin.packages.choosePlan')
         @else
             @lang('superadmin.choosePaymentMethod')
         @endif
@@ -319,7 +319,7 @@
         @else
             <div class="row">
                 <div class="col-sm-12">
-                    @lang('superadmin.choseFreePlan')
+                    @lang($package->default == 'yes' ? 'superadmin.choseDefaultPlan' : 'superadmin.choseFreePlan')
                 </div>
             </div>
         @endif
@@ -498,9 +498,10 @@
             var options = {
                 "key": "{{ $stripeSettings->razorpay_key }}",
                 "subscription_id": subscriptionID,
-                "name": "{{$companyName}}",
+                "name": "{{ global_setting()->global_app_name }}",
                 "description": "{{ $package->description }}",
-                "image": "{{ $logo }}",
+                "image": "{{ global_setting()->logo_url }}",
+                "currency": "{{ $package->currency->currency_code }}",
                 "handler": function (response) {
                     confirmRazorpayPayment(response);
                 },

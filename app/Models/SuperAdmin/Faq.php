@@ -2,7 +2,7 @@
 
 namespace App\Models\SuperAdmin;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 
 /**
  * App\Models\SuperAdmin\Faq
@@ -30,7 +30,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $image
  * @method static \Illuminate\Database\Eloquent\Builder|Faq whereImage($value)
  */
-class Faq extends Model
+class Faq extends BaseModel
 {
 
     public $appends = ['image_url'];

@@ -93,7 +93,7 @@
 
 </style>
 <div class="modal-header">
-    <h5 class="modal-title">@lang('app.edit') @lang('app.address')</h5>
+    <h5 class="modal-title">@lang('app.editAddress')</h5>
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
 </div>
 <x-form id="createAddress" method="PUT" class="ajax-form">
@@ -128,13 +128,13 @@
 
                     <div class="col-md-6">
                         <x-forms.text :fieldLabel="__('modules.accountSettings.latitude')"
-                                      fieldPlaceholder="e.g. 38.895"
+                                        :fieldPlaceholder="__('placeholders.latitude')"
                                       fieldName="latitude" fieldId="latitude" :fieldValue="$companyAddress->latitude"/>
                     </div>
 
                     <div class="col-md-6">
                         <x-forms.text :fieldLabel="__('modules.accountSettings.longitude')"
-                                      fieldPlaceholder="e.g. -77.0364"
+                                        :fieldPlaceholder="__('placeholders.longitude')"
                                       fieldName="longitude" fieldId="longitude"
                                       :fieldValue="$companyAddress->longitude"/>
                     </div>

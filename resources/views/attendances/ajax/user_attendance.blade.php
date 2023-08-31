@@ -23,6 +23,7 @@
                         <tr>
                             <td width="50%">
                                 {{ $attendance->clock_in_time->timezone(company()->timezone)->translatedFormat(company()->time_format) }}
+
                                 @if ($attendance->late == 'yes')
                                     <span class="text-dark-grey"><i class="fa fa-exclamation-triangle ml-2"></i>
                                     @lang('modules.attendance.late')</span>

@@ -16,7 +16,7 @@ class TaskSettingController extends AccountBaseController
         $this->pageTitle = 'app.menu.taskSettings';
         $this->activeSettingMenu = 'task_settings';
         $this->middleware(function ($request, $next) {
-            abort_403(!(user()->permission('manage_task_setting') == 'all'));
+            abort_403(!(user()->permission('manage_task_setting') == 'all' && in_array('tasks', user_modules())));
             return $next($request);
         });
     }

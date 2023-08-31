@@ -6,13 +6,13 @@
 @endpush
 
 @section('filter-section')
+
     <x-filters.filter-box>
         <!-- DATE START -->
         <div class="select-box d-flex pr-2 border-right-grey border-right-grey-sm-0">
             <p class="mb-0 pr-2 f-14 text-dark-grey d-flex align-items-center">@lang('app.duration')</p>
             <div class="select-status d-flex">
-                <input type="text"
-                    class="position-relative text-dark form-control border-0 p-2 text-left f-14 f-w-500 border-additional-grey"
+                <input type="text" class="position-relative text-dark form-control border-0 p-2 text-left f-14 f-w-500 border-additional-grey"
                     id="datatableRange2" placeholder="@lang('placeholders.dateRange')">
             </div>
         </div>
@@ -41,7 +41,7 @@
                     data-size="8">
                     <option value="all">@lang('app.all')</option>
                     @foreach ($projects as $project)
-                        <option value="{{ $project->id }}">{{ mb_ucwords($project->project_name) }}</option>
+                        <option value="{{ $project->id }}">{{ $project->project_name }}</option>
                     @endforeach
                 </select>
             </div>
@@ -57,6 +57,7 @@
         <!-- RESET END -->
 
     </x-filters.filter-box>
+
 @endsection
 
 @section('content')
@@ -64,7 +65,8 @@
     <div class="content-wrapper">
         <div class="row mb-4">
             <div class="col-lg-4">
-                <x-cards.widget :title="__('modules.dashboard.totalEarnings')" value="0" icon="coins" widgetId="totalEarnings" />
+                <x-cards.widget :title="__('modules.dashboard.totalEarnings')" value="0" icon="coins"
+                    widgetId="totalEarnings" />
             </div>
         </div>
 
@@ -76,9 +78,9 @@
             <!-- TASK STATUS END -->
 
             <div id="table-actions" class="flex-grow-1 align-items-center mt-4">
-                <button id="custom-print-btn" style="padding: 8px 17px;font-size: 14px;margin-left: 2rem;"
+            <button id="custom-print-btn" style="padding: 8px 17px;font-size: 14px;margin-left: 2rem;"
                     class="btn btn-secondary"><i class="fa fa-print"></i> Print</button>
-            </div>
+        </div>
 
         </div>
 
@@ -92,12 +94,14 @@
         <!-- Task Box End -->
     </div>
     <!-- CONTENT WRAPPER END -->
+
 @endsection
 
 @push('scripts')
     @include('sections.datatable_js')
 
     <script type="text/javascript">
+
         function getDate() {
             var start = moment().clone().startOf('month');
             var end = moment();
@@ -117,6 +121,7 @@
                 showTable();
             });
         });
+
     </script>
 
 
@@ -233,7 +238,7 @@
             });
         }
         pieChart();
-
+        
         $('#custom-print-btn').on('click', function() {
             // Initialize an empty array to store the extracted data
             var dataToPrint = [];
@@ -313,5 +318,6 @@
             // Trigger the print functionality for the new window
             printWindow.print();
         });
-    </script>
+
+</script>
 @endpush

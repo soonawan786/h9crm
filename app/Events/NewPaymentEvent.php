@@ -13,12 +13,12 @@ class NewPaymentEvent
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public $payment;
-    public $notifyUser;
+    public $notifyUsers;
 
-    public function __construct(Payment $payment, $notifyUser)
+    public function __construct(Payment $payment, $notifyUsers)
     {
         $this->payment = $payment;
-        $this->notifyUser = $notifyUser;
+        $this->notifyUsers = $notifyUsers;
     }
 
 }

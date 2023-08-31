@@ -7,6 +7,7 @@ use App\Traits\CustomFieldsTrait;
 use App\Traits\HasCompany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -71,12 +72,22 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @method static \Illuminate\Database\Eloquent\Builder|Expense whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Expense whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Expense whereUserId($value)
- * @mixin \Eloquent
  * @property-read \App\Models\ExpensesCategory|null $category
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Expense whereApproverId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Expense whereCompanyId($value)
+ * @property int|null $bank_account_id
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\BankTransaction> $transactions
+ * @property-read int|null $transactions_count
+ * @method static \Illuminate\Database\Eloquent\Builder|Expense whereBankAccountId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Expense whereDefaultCurrencyId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|Expense whereExchangeRate($value)
+
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\User> $mentionUser
+ * @property-read int|null $mention_user_count
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\BankTransaction> $transactions
+ * @mixin \Eloquent
  */
 class Expense extends BaseModel
 {
@@ -86,7 +97,10 @@ class Expense extends BaseModel
     const FILE_PATH = 'expense-invoice';
     const CUSTOM_FIELD_MODEL = 'App\Models\Expense';
 
-    protected $dates = ['purchase_date', 'purchase_on'];
+    protected $casts = [
+        'purchase_date' => 'datetime',
+        'purchase_on' => 'datetime',
+    ];
     protected $appends = ['total_amount', 'purchase_on', 'bill_url'];
     protected $with = ['currency', 'company:id'];
 
@@ -119,10 +133,6 @@ class Expense extends BaseModel
     {
         return $this->belongsTo(User::class, 'approver_id')->withoutGlobalScope(ActiveScope::class);
     }
-    public function bankAccount()
-    {
-        return $this->belongsTo(BankAccount::class, 'bank_account_id');
-    }
 
     public function recurrings(): HasMany
     {
@@ -152,6 +162,11 @@ class Expense extends BaseModel
 
         return $this->purchase_date->format($this->company ? $this->company->date_format : company()->date_format);
 
+    }
+
+    public function mentionUser(): BelongsToMany
+    {
+        return $this->belongsToMany(User::class, 'mention_users')->withoutGlobalScope(ActiveScope::class)->using(MentionUser::class);
     }
 
 }

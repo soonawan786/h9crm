@@ -8,6 +8,7 @@ $dropify-font-path: "../fonts" !default;
 @import "../../node_modules/flag-icon-css/sass/flag-icons";
 @import "../../node_modules/quill/dist/quill.snow.css";
 @import "../../node_modules/quill-emoji/dist/quill-emoji.css";
+@import "../../node_modules/quill-mention/dist/quill.mention.css";
 @import "../../node_modules/frappe-charts/src/css/charts";
 // @import "../../node_modules/bootstrap-icons/font/bootstrap-icons.css";
 
@@ -984,10 +985,7 @@ input[type="number"] {
     font-size: 40px;
 }
 
-.appreciation-icon {
-    top: 13px;
-    left: 12px;
-}
+
 .notification-apr-icon {
     top: 9px;
     left: 9px;
@@ -1028,6 +1026,21 @@ input[type="number"] {
     width: 35px;
 }
 
+.width-40 {
+    width: 40px;
+}
+
 .btrr {
     border-top-right-radius: 4px;
+}
+
+.mw-300 {
+    max-width: 300px;
+}
+
+
+#terms_link {
+    display: contents !important;
+    color:#007bff !important;
+    font-size: 15px;
 }

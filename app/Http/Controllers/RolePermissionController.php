@@ -38,7 +38,6 @@ class RolePermissionController extends AccountBaseController
         abort_403(user()->permission('manage_role_permission_setting') != 'all');
 
         $this->roles = Role::withCount('users')
-            ->where('name', '<>', 'admin')
             ->orderBy('id', 'asc')
             ->get();
 
@@ -125,16 +124,16 @@ class RolePermissionController extends AccountBaseController
     public function permissions()
     {
         $roleId = request('roleId');
-        $this->role = Role::with('permissions')->findOrFail($roleId);
+        $this->role = Role::with('permissions')->where('name', '<>', 'admin')->findOrFail($roleId);
 
         if ($this->role->name == 'client') {
             $clientModules = ModuleSetting::where('type', 'client')->get()->pluck('module_name');
             $this->modulesData = Module::with('permissions')->withCount('customPermissions')
-                ->whereIn('module_name', $clientModules)->get();
+                ->whereIn('module_name', $clientModules)->where('module_name', '<>', 'messages')->get();
 
         }
         else {
-            $this->modulesData = Module::with('permissions')->withCount('customPermissions')->get();
+            $this->modulesData = Module::with('permissions')->where('module_name', '<>', 'messages')->withCount('customPermissions')->get();
         }
 
         $html = view('role-permissions.ajax.permissions', $this->data)->render();
@@ -166,7 +165,7 @@ class RolePermissionController extends AccountBaseController
 
         $role = new Role();
         $role->name = $request->name;
-        $role->display_name = mb_ucwords($request->name);
+        $role->display_name = $request->name;
         $role->save();
 
         if ($request->import_from_role != '') {
@@ -184,7 +183,9 @@ class RolePermissionController extends AccountBaseController
 
         }
         else {
-            $allPermissions = Permission::all();
+            $allPermissions = Permission::whereHas('module', function ($query) {
+                $query->withoutGlobalScopes()->where('is_superadmin', '0');
+            })->get();
             $role->perms()->sync([]);
             $role->attachPermissions($allPermissions);
         }
@@ -218,7 +219,9 @@ class RolePermissionController extends AccountBaseController
     public function resetPermissions()
     {
         $role = Role::with('roleuser', 'roleuser.user.roles')->findOrFail(request('roleId'));
-        $allPermissions = Permission::all();
+        $allPermissions = Permission::whereHas('module', function ($query) {
+            $query->withoutGlobalScopes()->where('is_superadmin', '0');
+        })->get();
 
         PermissionRole::where('role_id', $role->id)->delete();
 
@@ -247,7 +250,7 @@ class RolePermissionController extends AccountBaseController
 
     public function update(Request $request, $id)
     {
-        Role::where('id', $id)->update(['display_name' => mb_ucwords($request->role_name), 'name' => $request->role_name]);
+        Role::where('id', $id)->update(['display_name' => $request->role_name]);
     }
 
     public function addMissingAdminPermission($companyId = null)

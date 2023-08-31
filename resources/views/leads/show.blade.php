@@ -23,13 +23,12 @@ $viewClientNote = user()->permission('view_lead_note');
 
             <x-tab :href="route('leads.show', $lead->id).'?tab=files'" :text="__('modules.lead.file')" class="files" ajax="false"/>
 
-            <x-tab :href="route('leads.show', $lead->id).'?tab=follow-up'" :text="__('modules.lead.followUp')" class="follow-up" />
+            <x-tab :href="route('leads.show', $lead->id).'?tab=follow-up'" :text="__('modules.lead.followUp')" class="follow-up" ajax="false" />
 
             <x-tab :href="route('leads.show', $lead->id).'?tab=proposals'" :text="__('modules.lead.proposal')" class="proposals" ajax="false" />
 
         @if ($viewClientNote == 'all' || $viewClientNote == 'both' || $viewClientNote == 'added' || $viewClientNote == 'owned')
-            <x-tab :href="route('leads.show', $lead->id).'?tab=notes'" ajax="false" text="Notes"
-            class="notes" />
+            <x-tab :href="route('leads.show', $lead->id).'?tab=notes'" ajax="false" :text="__('app.notes')" class="notes" />
         @endif
 
             @if ($gdpr->enable_gdpr)

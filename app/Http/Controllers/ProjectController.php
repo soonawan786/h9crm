@@ -15,15 +15,18 @@ use App\Models\Expense;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Project;
+use App\Models\SubTask;
 use App\Models\Currency;
 use App\Models\TaskFile;
 use App\Models\TaskUser;
 use App\Models\Discussion;
 use App\Models\Permission;
+use App\Models\BankAccount;
+use App\Models\MentionUser;
 use App\Models\ProjectFile;
 use App\Models\ProjectNote;
+use App\Models\SubTaskFile;
 use App\Scopes\ActiveScope;
-use App\Models\BankAccount;
 use App\Traits\ImportExcel;
 use Illuminate\Http\Request;
 use App\Models\ProjectMember;
@@ -65,8 +68,7 @@ use App\Http\Requests\Project\UpdateProject;
 use Maatwebsite\Excel\Imports\HeadingRowFormatter;
 use App\Http\Requests\Admin\Employee\ImportRequest;
 use App\Http\Requests\Admin\Employee\ImportProcessRequest;
-use App\Models\SubTask;
-use App\Models\SubTaskFile;
+use Symfony\Component\Mailer\Exception\TransportException;
 
 class ProjectController extends AccountBaseController
 {
@@ -92,7 +94,7 @@ class ProjectController extends AccountBaseController
     public function index(ProjectsDataTable $dataTable)
     {
         $viewPermission = user()->permission('view_projects');
-        abort_403(!in_array($viewPermission, ['all', 'added', 'owned', 'both']));
+        abort_403((!in_array($viewPermission, ['all', 'added', 'owned', 'both'])));
 
         if (!request()->ajax()) {
 
@@ -168,6 +170,8 @@ class ProjectController extends AccountBaseController
 
     protected function changeStatus($request)
     {
+
+
         abort_403(user()->permission('edit_projects') != 'all');
 
         Project::whereIn('id', explode(',', $request->row_ids))->update(['status' => $request->status]);
@@ -175,6 +179,7 @@ class ProjectController extends AccountBaseController
 
     public function updateStatus(Request $request, $id)
     {
+
         Project::findOrFail($id)
             ->update([
                 'status' => $request->status,
@@ -213,7 +218,7 @@ class ProjectController extends AccountBaseController
         $this->addPermission = user()->permission('add_projects');
         abort_403(!in_array($this->addPermission, ['all', 'added']));
 
-        $this->pageTitle = __('app.add') . ' ' . __('app.project');
+        $this->pageTitle = __('app.addProject');
         $this->clients = User::allClients(null, true, ($this->addPermission == 'all' ? 'all' : null));
         $this->categories = ProjectCategory::all();
         $this->templates = ProjectTemplate::all();
@@ -236,7 +241,7 @@ class ProjectController extends AccountBaseController
 
         $project = new Project();
 
-        if (!empty($project->getCustomFieldGroupsWithFields())) {
+        if ($project->getCustomFieldGroupsWithFields()) {
             $this->fields = $project->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -247,6 +252,20 @@ class ProjectController extends AccountBaseController
         else {
             $this->client = isset(request()->default_client) ? User::withoutGlobalScope(ActiveScope::class)->findOrFail(request()->default_client) : null;
         }
+
+        $userData = [];
+
+        $usersData = $this->employees;
+
+        foreach ($usersData as $user) {
+
+            $url = route('employees.show', [$user->id]);
+
+            $userData[] = ['id' => $user->id, 'value' => $user->name, 'image' => $user->image_url, 'link' => $url];
+
+        }
+
+        $this->userData = $userData;
 
         if (request()->ajax()) {
             $html = view('projects.ajax.create', $this->data)->render();
@@ -407,16 +426,16 @@ class ProjectController extends AccountBaseController
                 return Reply::dataOnly(['projectID' => $project->id, 'redirectUrl' => $redirectUrl]);
             }
 
-        } catch (\Swift_TransportException $e) {
+        } catch (TransportException $e) {
             // Rollback Transaction
             DB::rollback();
 
-            return Reply::error('Please configure SMTP details to add project. Visit Settings -> notification setting to set smtp' . $e->getMessage(), 'smtp_error');
+            return Reply::error('Please configure SMTP details to add project. Visit Settings -> notification setting to set smtp ' . $e->getMessage(), 'smtp_error');
         } catch (\Exception $e) {
             // Rollback Transaction
             DB::rollback();
 
-            return Reply::error('Some error occurred when inserting the data. Please try again or contact support' . $e->getMessage());
+            return Reply::error('Some error occurred when inserting the data. Please try again or contact support ' . $e->getMessage());
         }
     }
 
@@ -443,7 +462,7 @@ class ProjectController extends AccountBaseController
 
         $this->pageTitle = __('app.update') . ' ' . __('app.project');
 
-        if (!empty($this->project->getCustomFieldGroupsWithFields())) {
+        if ($this->project->getCustomFieldGroupsWithFields()) {
             $this->fields = $this->project->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -458,6 +477,20 @@ class ProjectController extends AccountBaseController
         if ($this->editPermission == 'all' || $this->editProjectMembersPermission == 'all') {
             $this->employees = User::allEmployees(null, null, ($this->editPermission == 'all' ? 'all' : null));
         }
+
+        $userData = [];
+
+        $usersData = $this->employees;
+
+        foreach ($usersData as $user) {
+
+            $url = route('employees.show', [$user->id]);
+
+            $userData[] = ['id' => $user->id, 'value' => $user->name, 'image' => $user->image_url, 'link' => $url];
+
+        }
+
+        $this->userData = $userData;
 
         if (request()->ajax()) {
             $html = view('projects.ajax.edit', $this->data)->render();
@@ -598,6 +631,7 @@ class ProjectController extends AccountBaseController
      */
     public function show($id)
     {
+
         $this->viewPermission = user()->permission('view_projects');
         $viewFilePermission = user()->permission('view_project_files');
         $this->viewMiroboardPermission = user()->permission('view_miroboard');
@@ -609,7 +643,7 @@ class ProjectController extends AccountBaseController
         $this->viewBurndownChartPermission = user()->permission('view_project_burndown_chart');
         $this->viewProjectMemberPermission = user()->permission('view_project_members');
 
-        $this->project = Project::with(['client', 'members', 'members.user', 'members.user.session', 'members.user.employeeDetail.designation', 'milestones' => function ($q) use ($viewMilestonePermission) {
+        $this->project = Project::with(['client', 'members', 'members.user','mentionProject', 'members.user.session', 'members.user.employeeDetail.designation', 'milestones' => function ($q) use ($viewMilestonePermission) {
             if ($viewMilestonePermission == 'added') {
                 $q->where('added_by', user()->id);
             }
@@ -624,8 +658,8 @@ class ProjectController extends AccountBaseController
             ->withCustomFields();
 
         $this->projectStatusColor = ProjectStatusSetting::where('status_name', $this->project->status)->first();
-
         $memberIds = $this->project->members->pluck('user_id')->toArray();
+        $mentionIds = $this->project->mentionProject->pluck('user_id')->toArray();
 
         abort_403(!(
             $this->viewPermission == 'all'
@@ -635,11 +669,12 @@ class ProjectController extends AccountBaseController
             || ($this->viewPermission == 'owned' && in_array(user()->id, $memberIds) && in_array('employee', user_roles()))
             || ($this->viewPermission == 'both' && (user()->id == $this->project->client_id || user()->id == $this->project->added_by))
             || ($this->viewPermission == 'both' && (in_array(user()->id, $memberIds) || user()->id == $this->project->added_by) && in_array('employee', user_roles()))
+           || (($this->viewPermission == 'none') && (!is_null(($this->project->mentionProject))) && in_array(user()->id, $mentionIds))
         ));
 
-        $this->pageTitle = ucfirst($this->project->project_name);
+        $this->pageTitle = $this->project->project_name;
 
-        if (!empty($this->project->getCustomFieldGroupsWithFields())) {
+        if ($this->project->getCustomFieldGroupsWithFields()) {
             $this->fields = $this->project->getCustomFieldGroupsWithFields()->fields;
         }
 
@@ -705,15 +740,17 @@ class ProjectController extends AccountBaseController
             break;
         default:
             $this->taskChart = $this->taskChartData($id);
-            $this->hoursBudgetChart = $this->hoursBudgetChartData($this->project);
+            $hoursLogged = $this->project->times()->sum('total_minutes');
+
+            $breakMinutes = ProjectTimeLogBreak::projectBreakMinutes($id);
+
+            $this->hoursBudgetChart = $this->hoursBudgetChartData($this->project, $hoursLogged, $breakMinutes);
+
             $this->amountBudgetChart = $this->amountBudgetChartData($this->project);
             $this->taskBoardStatus = TaskboardColumn::all();
             $this->earnings = Payment::where('status', 'complete')
                 ->where('project_id', $id)
                 ->sum('amount');
-            $hoursLogged = $this->project->times()->sum('total_minutes');
-
-            $breakMinutes = ProjectTimeLogBreak::projectBreakMinutes($id);
 
             $this->hoursLogged = intdiv($hoursLogged - $breakMinutes, 60);
             $this->expenses = Expense::where(['project_id' => $id, 'status' => 'approved'])->sum('price');
@@ -758,13 +795,14 @@ class ProjectController extends AccountBaseController
      *
      * @return array
      */
-    public function hoursBudgetChartData($project)
+    public function hoursBudgetChartData($project, $hoursLogged, $breakMinutes)
     {
         $hoursBudget = $project->hours_allocated ? $project->hours_allocated : 0;
-        $hoursLogged = $project->times()->sum('total_minutes');
-        $hoursLogged = intdiv($hoursLogged, 60);
+
+        $hoursLogged = intdiv($hoursLogged - $breakMinutes, 60);
         $overRun = $hoursLogged - $hoursBudget;
         $overRun = $overRun < 0 ? 0 : $overRun;
+        $hoursLogged = ($hoursLogged > $hoursBudget) ? $hoursBudget : $hoursLogged;
 
         $data['labels'] = [__('app.planned'), __('app.actual')];
         $data['colors'] = ['#2cb100', '#d30000'];
@@ -772,7 +810,7 @@ class ProjectController extends AccountBaseController
         $dataset = [
             [
                 'name' => __('app.planned'),
-                'values' => [$hoursBudget, $hoursBudget],
+                'values' => [$hoursBudget, $hoursLogged],
             ],
             [
                 'name' => __('app.overrun'),
@@ -780,7 +818,6 @@ class ProjectController extends AccountBaseController
             ],
         ];
         $data['datasets'] = $dataset;
-
         return $data;
     }
 
@@ -934,7 +971,7 @@ class ProjectController extends AccountBaseController
         foreach ($tasks as $task) {
             $data[$count] = [
                 'id' => 'task-' . $task->id,
-                'name' => ucfirst($task->heading),
+                'name' => $task->heading,
                 'start' => ((!is_null($task->start_date)) ? $task->start_date->format('Y-m-d') : ((!is_null($task->due_date)) ? $task->due_date->format('Y-m-d') : null)),
                 'end' => (!is_null($task->due_date)) ? $task->due_date->format('Y-m-d') : $task->start_date->format('Y-m-d'),
                 'progress' => 0,
@@ -1020,7 +1057,7 @@ class ProjectController extends AccountBaseController
                 $bankName = $bankDetail->bank_name.' |';
             }
 
-            $bankData .= '<option value="' . $bankDetail->id . '">'.$bankName .' '.mb_ucwords($bankDetail->account_name). '</option>';
+            $bankData .= '<option value="' . $bankDetail->id . '">'.$bankName .' '.$bankDetail->account_name. '</option>';
         }
 
         $exchangeRate = Currency::where('id', $request->currencyId)->pluck('exchange_rate')->toArray();
@@ -1036,6 +1073,7 @@ class ProjectController extends AccountBaseController
     public function members($id)
     {
         $options = '';
+        $userData = [];
 
         $project = Project::select('id', 'public')->find($id);
         $checkPublic = ($project) ? $project->public : 0;
@@ -1052,7 +1090,9 @@ class ProjectController extends AccountBaseController
             $projectShortCode = '--';
         }
         else {
+
             $members = ProjectMember::with('user')->where('project_id', $id)->get();
+
 
             foreach ($members as $item) {
                 $self_select = (user() && user()->id == $item->user->id) ? '<span class=\'ml-2 badge badge-secondary\'>' . __('app.itsYou') . '</span>' : '';
@@ -1060,13 +1100,20 @@ class ProjectController extends AccountBaseController
                 $options .= '<option
                 data-content="<span class=\'badge badge-pill badge-light border\'><div class=\'d-inline-block mr-1\'><img class=\'taskEmployeeImg rounded-circle\' src=' . $item->user->image_url . ' ></div> ' . $item->user->name . '' . $self_select . '</span>"
                 value="' . $item->user->id . '"> ' . $item->user->name . ' </option>';
+
+                $url = route('employees.show', [$item->user->id]);
+
+                $userData[] = ['id' => $item->user->id, 'value' => $item->user->name, 'image' => $item->user->image_url, 'link' => $url];
             }
+
 
             $project = Project::findOrFail($id);
             $projectShortCode = $project->project_short_code;
+
         }
 
-        return Reply::dataOnly(['status' => 'success', 'unique_id' => $projectShortCode, 'data' => $options]);
+        return Reply::dataOnly(['status' => 'success', 'unique_id' => $projectShortCode, 'data' => $options, 'userData' => $userData]);
+
     }
 
     public function timelogs($projectAdmin = false)
@@ -1390,11 +1437,11 @@ class ProjectController extends AccountBaseController
             $name = '';
 
             if (!is_null($item->project_id)) {
-                $name .= "<h5 class='f-12 text-darkest-grey'>" . ucfirst($item->heading) . "</h5><div class='text-muted f-11'>" . $item->project->project_name . '</div>';
+                $name .= "<h5 class='f-12 text-darkest-grey'>" . $item->heading . "</h5><div class='text-muted f-11'>" . $item->project->project_name . '</div>';
 
             }
             else {
-                $name .= "<span class='text-dark-grey f-11'>" . ucfirst($item->heading) . '</span>';
+                $name .= "<span class='text-dark-grey f-11'>" . $item->heading . '</span>';
             }
 
             $options .= '<option data-content="' . $name . '" value="' . $item->id . '">' . $item->heading . '</option>';
@@ -1580,6 +1627,7 @@ class ProjectController extends AccountBaseController
                     $task->estimate_minutes = $projectTask->estimate_minutes;
                     $task->milestone_id = $projectTask->milestone_id;
                     $task->repeat = $projectTask->repeat;
+                    $task->hash = md5(microtime());
 
                     if ($projectTask->repeat) {
                         $task->repeat_count = $projectTask->repeat_count;
@@ -1587,7 +1635,10 @@ class ProjectController extends AccountBaseController
                         $task->repeat_cycles = $projectTask->repeat_cycles;
                     }
 
-                    $task->task_short_code = ($project) ? $project->project_short_code . '-' . Task::count() : null;
+                    if ($project) {
+                        $projectLastTaskCount = Task::projectTaskCount($project->id);
+                        $task->task_short_code = ($project) ? $project->project_short_code . '-' . ((int)$projectLastTaskCount + 1) : null;
+                    }
 
                     $task->saveQuietly();
 

@@ -1,6 +1,11 @@
 <!-- HEADER START -->
 <header class="main-header clearfix bg-white" id="header">
-
+    @php
+        $addSuperadminPermission = user()->permission('add_superadmin');
+        $addPackagePermission = user()->permission('add_packages');
+        $addCompanyPermission = user()->permission('add_companies');
+        $appSettingPermission = user()->permission('manage_superadmin_app_settings');
+    @endphp
 
     <!-- NAVBAR LEFT(MOBILE MENU COLLAPSE) START-->
     <div class="navbar-left float-left d-flex align-items-center">
@@ -33,18 +38,20 @@
 
     <!-- NAVBAR LEFT(MOBILE MENU COLLAPSE) END-->
     <!-- NAVBAR RIGHT(SEARCH, ADD, NOTIFICATION, LOGOUT) START-->
-    <div class="page-header-right float-right d-flex align-items-center">
+    <div class="page-header-right float-right d-flex align-items-center justify-content-end">
 
         <ul>
-            <!-- Sticky Note START -->
-            <li data-toggle="tooltip" data-placement="top" title="{{__('modules.accountSettings.clearCache')}}"
-                class="d-none d-sm-block cursor-pointer clear-cache">
-                <div class="d-flex align-items-center">
-                    <span class="d-block header-icon-box">
-                        <i class="fa fa-eraser f-16 text-dark-grey"></i>
-                    </span>
-                </div>
-            </li>
+            @if($appSettingPermission == 'all')
+                <!-- Sticky Note START -->
+                <li data-toggle="tooltip" data-placement="top" title="{{__('modules.accountSettings.clearCache')}}"
+                    class="d-none d-sm-block cursor-pointer clear-cache">
+                    <div class="d-flex align-items-center">
+                        <span class="d-block header-icon-box">
+                            <i class="fa fa-eraser f-16 text-dark-grey"></i>
+                        </span>
+                    </div>
+                </li>
+            @endif
             <!-- Sticky Note START -->
             <li data-toggle="tooltip" data-placement="top" title="{{__('app.menu.stickyNotes')}}"
                 class="d-none d-sm-block">
@@ -56,6 +63,7 @@
             </li>
             <!-- Sticky Note END -->
             <!-- ADD START -->
+            @if($addSuperadminPermission == 'all' || $addPackagePermission == 'all' || $addCompanyPermission == 'all')
             <li data-toggle="tooltip" data-placement="top" title="{{__('app.createNew')}}">
                 <div class="add_box dropdown">
                     <a class="d-block dropdown-toggle header-icon-box" type="link" data-toggle="dropdown"
@@ -64,27 +72,32 @@
                     </a>
                     <!-- DROPDOWN - INFORMATION -->
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuLink" tabindex="0">
-
-                        <a class="dropdown-item f-14 text-dark openRightModal"
-                           href="{{ route('superadmin.companies.create') }}">
-                            <i class="fa fa-plus f-w-500 mr-2 f-11"></i>
-                            @lang('app.add') @lang('superadmin.company')
-                        </a>
-
-                        <a class="dropdown-item f-14 text-dark openRightModal"
-                           href="{{ route('superadmin.packages.create') }}">
-                            <i class="fa fa-plus f-w-500 mr-2 f-11"></i>
-                            @lang('app.add') @lang('superadmin.menu.packages')
-                        </a>
+                        @if($addCompanyPermission == 'all')
+                            <a class="dropdown-item f-14 text-dark openRightModal"
+                            href="{{ route('superadmin.companies.create') }}">
+                                <i class="fa fa-plus f-w-500 mr-2 f-11"></i>
+                                @lang('app.add') @lang('superadmin.company')
+                            </a>
+                        @endif
+                        @if($addPackagePermission == 'all')
+                            <a class="dropdown-item f-14 text-dark openRightModal"
+                            href="{{ route('superadmin.packages.create') }}">
+                                <i class="fa fa-plus f-w-500 mr-2 f-11"></i>
+                                @lang('app.add') @lang('superadmin.menu.packages')
+                            </a>
+                        @endif
+                        @if($addSuperadminPermission == 'all')
                         <a class="dropdown-item f-14 text-dark openRightModal"
                            href="{{ route('superadmin.superadmin.create') }}">
                             <i class="fa fa-plus f-w-500 mr-2 f-11"></i>
                             @lang('app.add') @lang('superadmin.menu.superAdmin')
                         </a>
+                        @endif
                     </div>
 
                 </div>
             </li>
+            @endif
             <!-- NOTIFICATIONS START -->
             <li title="{{__('app.newNotifications')}}">
                 <div class="notification_box dropdown">

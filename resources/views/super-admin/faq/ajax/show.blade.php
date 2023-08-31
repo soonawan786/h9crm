@@ -177,4 +177,8 @@
     });
     @endif
 
+    $('#close-settings').click(function() {
+        closeTaskDetail()
+    });
+
 </script>

@@ -14,7 +14,7 @@
                         @foreach ($employees as $item)
                             <div class="taskEmployeeImg rounded-circle mr-1">
                                 <a href="{{ route('employees.show', $item->id) }}">
-                                    <img data-toggle="tooltip" data-original-title="{{ mb_ucwords($item->name) }}"
+                                    <img data-toggle="tooltip" data-original-title="{{ $item->name }}"
                                         src="{{ $item->image_url }}">
                                 </a>
                             </div>

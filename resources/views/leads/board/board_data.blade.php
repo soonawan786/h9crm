@@ -17,7 +17,7 @@ $changeStatusPermission = user()->permission('change_lead_status');
                  </a>
 
                  <p class="mb-3 mx-0 f-15 text-dark-grey font-weight-bold"><i class="fa fa-circle mb-2 text-red"
-                         style="color: {{ $column->label_color }}"></i>{{ mb_ucwords($column->type) }}
+                         style="color: {{ $column->label_color }}"></i>{{ $column->type }}
                 </p>
 
                  <span class="b-p-badge bg-grey f-13 px-2 py-2 text-lightest font-weight-bold rounded d-inline-block" id="lead-column-count-{{ $column->id }}">{{ $column->leads_count }}</span>
@@ -34,12 +34,12 @@ $changeStatusPermission = user()->permission('change_lead_status');
              <div class="mx-3 mt-3 mb-1 b-p-header">
                 <div class="d-flex">
                  <p class="mb-0 f-15 mr-3 text-dark-grey font-weight-bold"><i class="fa fa-circle mr-2 text-yellow"
-                         style="color: {{ $column->label_color }}"></i>{{ mb_ucwords($column->type) }}
+                         style="color: {{ $column->label_color }}"></i>{{ $column->type }}
                  </p>
 
                  <span
                      class="b-p-badge bg-grey f-13 px-2 text-lightest font-weight-bold rounded d-inline-block" id="lead-column-count-{{ $column->id }}">{{ $column->leads_count }}</span>
-                
+
                  <span class="ml-auto d-flex align-items-center">
 
                      <a href="javascript:;" class="d-flex f-8 text-lightest mr-3 collapse-column"
@@ -80,8 +80,8 @@ $changeStatusPermission = user()->permission('change_lead_status');
 
                  </span>
                 </div>
-                
-                <div class="mr-3 ml-4 f-11 text-dark-grey">{{ currency_format($column->total_value) }}</div>
+
+                <div class="mr-3 ml-4 f-11 text-dark-grey">{{ currency_format($column->total_value, company()->currency_id) }}</div>
              </div>
 
              <!-- TASK BOARD HEADER END -->
@@ -96,7 +96,7 @@ $changeStatusPermission = user()->permission('change_lead_status');
                                 <p class="mb-0">
                                     <a href="{{ route('leads.create') }}?column_id={{ $column->id }}"
                                         class="text-dark-grey openRightModal"><i
-                                            class="fa fa-plus mr-2"></i>@lang('app.add') @lang('app.lead')</a>
+                                            class="fa fa-plus mr-2"></i>@lang('app.addLead')</a>
                                 </p>
                             </div>
                         </div>

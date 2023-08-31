@@ -9,9 +9,7 @@ use Carbon\CarbonInterval;
 use Carbon\CarbonPeriod;
 use App\Models\Attendance;
 use Illuminate\Support\Facades\DB;
-use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\Exportable;
-use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\WithMapping;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\FromCollection;
@@ -22,6 +20,17 @@ class AttendanceByMemberExport implements FromCollection, WithHeadings,  WithMap
     use Exportable;
 
     public static $sum;
+    public $year;
+    public $month;
+    public $id;
+    public $employeeName;
+    public $startDate;
+    public $userId;
+    public $startdate;
+    public $empname;
+    public $endaDate;
+    public $date;
+    public $enddate;
 
     public function __construct($year, $month, $id, $employeeName, $startDate, $endaDate)
     {
@@ -73,6 +82,7 @@ class AttendanceByMemberExport implements FromCollection, WithHeadings,  WithMap
         // Add New Collection if period date does not match with attendance collection...
         $employeedata = array();
         $emp_attendance = 0;
+        $status = __('app.present');
 
         foreach ($period->toArray() as $date) {
 
@@ -169,9 +179,6 @@ class AttendanceByMemberExport implements FromCollection, WithHeadings,  WithMap
             else if ($attendance->half_day == 'yes') {
                 $status = __('app.halfday');
             }
-            else {
-                $status = __('app.present');
-            }
 
             if ($diff_time > 0 || $clock_out != 0) {
                 if ($employee_temp && $employee_temp[1] == $date) {
@@ -223,7 +230,7 @@ class AttendanceByMemberExport implements FromCollection, WithHeadings,  WithMap
         $diff = $employeedata['total_hours'];
 
         if (is_int($diff)) {
-            $diff = CarbonInterval::formatHuman($employeedata['total_hours']);
+            $diff = CarbonInterval::formatHuman($employeedata['total_hours']); /** @phpstan-ignore-line */
         }
 
         $view_status = ($diff > 0) ? $diff : $employeedata['comments']['status'];

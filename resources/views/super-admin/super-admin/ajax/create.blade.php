@@ -1,3 +1,6 @@
+@php
+    $changeSuperadminRolePermission = user()->permission('change_superadmin_role');
+@endphp
 <div class="row">
     <div class="col-sm-12">
         <x-form id="save-superadmin-data-form">
@@ -17,18 +20,27 @@
 
                                 <div id="alert"></div>
                             </div>
-                            <div class="col-md-6 ">
+                            <div class="col-md-4 ">
                                 <x-forms.text fieldId="name" :fieldLabel="__('app.name')" fieldName="name"
                                               fieldRequired="true"
                                               :fieldPlaceholder="__('placeholders.name')"></x-forms.text>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-5">
                                 <x-forms.email fieldId="email"
                                                :fieldLabel="__('app.email').' ( '.__('messages.loginDetailsEmailed').')'"
                                                fieldName="email" :fieldPlaceholder="__('placeholders.email')"
                                                fieldRequired="true">
                                 </x-forms.email>
                             </div>
+                            @if ($changeSuperadminRolePermission == 'all' )
+                                <div class="col-md-3">
+                                    <x-forms.select fieldId="role" :fieldLabel="__('app.role')" fieldName="role">
+                                        @foreach ($roles as $role)
+                                            <option value="{{ $role->id }}">{{ $role->display_name }}</option>
+                                        @endforeach
+                                    </x-forms.select>
+                                </div>
+                            @endif
                         </div>
                     </div>
                     <div class="col-lg-3 col-xl-2">

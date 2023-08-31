@@ -27,10 +27,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|StickyNote whereNoteText($value)
  * @method static \Illuminate\Database\Eloquent\Builder|StickyNote whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|StickyNote whereUserId($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|StickyNote whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class StickyNote extends BaseModel
 {
@@ -39,7 +39,10 @@ class StickyNote extends BaseModel
 
     protected $table = 'sticky_notes';
 
-    protected $dates = ['created_at', 'updated_at'];
+    protected $casts = [
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo

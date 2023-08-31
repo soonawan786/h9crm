@@ -7,10 +7,10 @@ use App\Helper\Reply;
 use App\Models\LanguageSetting;
 use App\Models\SuperAdmin\TrFrontDetail;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
 use App\Models\SuperAdmin\SeoDetail;
 use App\Models\SuperAdmin\FooterMenu;
 use App\Http\Controllers\AccountBaseController;
+use App\Models\GlobalSetting;
 
 class SeoDetailController extends AccountBaseController
 {
@@ -20,6 +20,12 @@ class SeoDetailController extends AccountBaseController
         parent::__construct();
         $this->pageTitle = 'superadmin.menu.seoDetails';
         $this->activeSettingMenu = 'seo_details';
+
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_front_settings'));
+
+            return $next($request);
+        });
     }
 
     /**
@@ -87,7 +93,7 @@ class SeoDetailController extends AccountBaseController
 
         if ($request->hasFile('og_image')) {
             Files::deleteFile($seoDetail->og_image, 'front/seo-detail');
-            $seoDetail->og_image = Files::upload($request->og_image, 'front/seo-detail');
+            $seoDetail->og_image = Files::uploadLocalOrS3($request->og_image, 'front/seo-detail');
             $seoDetail->save();
         }
 

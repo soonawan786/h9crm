@@ -121,6 +121,7 @@ class ArchiveTasksDataTable extends BaseDataTable
                     return '--';
                 }
 
+                $key = '';
                 $members = '<div class="position-relative">';
 
                 foreach ($row->users as $key => $member) {
@@ -175,10 +176,10 @@ class ArchiveTasksDataTable extends BaseDataTable
                 }
             })
             ->editColumn('clientName', function ($row) {
-                return ($row->clientName) ? mb_ucwords($row->clientName) : '-';
+                return ($row->clientName) ? $row->clientName : '-';
             })
             ->addColumn('task', function ($row) {
-                return ucfirst($row->heading);
+                return $row->heading;
             })
             ->addColumn('timeLogged', function ($row) {
 
@@ -189,8 +190,7 @@ class ArchiveTasksDataTable extends BaseDataTable
 
                     $breakMinutes = ProjectTimeLogBreak::taskBreakMinutes($row->id);
                     $totalMinutes = $totalMinutes - $breakMinutes;
-                    $timeLog = CarbonInterval::formatHuman($totalMinutes);
-
+                    $timeLog = CarbonInterval::formatHuman($totalMinutes); /** @phpstan-ignore-line */
                 }
 
                 return $timeLog;
@@ -220,7 +220,7 @@ class ArchiveTasksDataTable extends BaseDataTable
 
                 return '<div class="media align-items-center">
                         <div class="media-body">
-                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('tasks.show', [$row->id]) . '" class="openRightModal">' . ucfirst($row->heading) . '</a></h5>
+                    <h5 class="mb-0 f-13 text-darkest-grey"><a href="' . route('tasks.show', [$row->id]) . '" class="openRightModal">' . $row->heading . '</a></h5>
                     <p class="mb-0">' . $private . ' ' . $pin . ' ' . $timer . ' ' . $labels . '</p>
                     </div>
                   </div>';
@@ -258,14 +258,14 @@ class ArchiveTasksDataTable extends BaseDataTable
                 }
             })
             ->addColumn('status', function ($row) {
-                return ucfirst($row->boardColumn->column_name);
+                return $row->boardColumn->column_name;
             })
             ->editColumn('project_name', function ($row) {
                 if (is_null($row->project_id)) {
                     return '-';
                 }
 
-                return '<a href="' . route('projects.show', $row->project_id) . '" class="text-darkest-grey">' . ucfirst($row->project_name) . '</a>';
+                return '<a href="' . route('projects.show', $row->project_id) . '" class="text-darkest-grey">' . $row->project_name . '</a>';
             })
             ->setRowId(function ($row) {
                 return 'row-' . $row->id;
@@ -538,7 +538,7 @@ class ArchiveTasksDataTable extends BaseDataTable
                 'searchable' => false
             ],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id')],
-            __('timer') . ' ' => ['data' => 'timer', 'name' => 'timer', 'exportable' => false, 'searchable' => false, 'sortable' => false, 'title' => '', 'class' => 'text-right'],
+            __('app.timer') . ' ' => ['data' => 'timer', 'name' => 'timer', 'exportable' => false, 'searchable' => false, 'sortable' => false, 'title' => '', 'class' => 'text-right'],
             __('app.task') => ['data' => 'heading', 'name' => 'heading', 'exportable' => false, 'title' => __('app.task')],
             __('app.menu.tasks') . ' ' => ['data' => 'task', 'name' => 'heading', 'visible' => false, 'title' => __('app.menu.tasks')],
             __('app.project') => ['data' => 'project_name', 'name' => 'projects.project_name', 'title' => __('app.project')],
@@ -555,16 +555,6 @@ class ArchiveTasksDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Task_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

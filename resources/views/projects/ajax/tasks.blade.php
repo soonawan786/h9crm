@@ -34,7 +34,7 @@ $projectArchived = $project->trashed();
                             <option value="not finished">@lang('modules.tasks.hideCompletedTask')</option>
                             <option value="all">@lang('app.all')</option>
                             @foreach ($taskBoardStatus as $status)
-                                <option value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : mb_ucwords($status->column_name) }}</option>
+                                <option value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : $status->column_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -106,7 +106,7 @@ $projectArchived = $project->trashed();
                 <div class="select-status mr-3 d-none quick-action-field" id="change-status-action">
                     <select name="status" class="form-control select-picker">
                         @foreach ($taskBoardStatus as $status)
-                            <option value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : mb_ucwords($status->column_name) }}</option>
+                            <option value="{{ $status->id }}">{{ $status->slug == 'completed' || $status->slug == 'incomplete' ? __('app.' . $status->slug) : $status->column_name }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -321,4 +321,130 @@ $projectArchived = $project->trashed();
             }
         })
     };
+
+    $('#allTasks-table').on('click', '.start-timer', function() {
+        var url = "{{ route('timelogs.start_timer') }}";
+        var user_id = "{{ user()->id }}";
+        var token = "{{ csrf_token() }}";
+        var task_id = $(this).data('task-id');
+        var memo = "{{ __('app.task') }}#" + $(this).data('task-id');
+
+        $.easyAjax({
+            url: url,
+            container: '#allTasks-table',
+            type: "POST",
+            blockUI: true,
+            data: {
+                task_id: task_id,
+                memo: memo,
+                '_token': token,
+                user_id: user_id
+            },
+            success: function(response) {
+                if (response.status == 'success') {
+                    if (response.activeTimerCount > 0) {
+                        $('#show-active-timer .active-timer-count').html(response.activeTimerCount);
+                    } else {
+                        $('#show-active-timer .active-timer-count').addClass('d-none');
+                    }
+
+                    $('#timer-clock').html(response.clockHtml);
+                    if ($('#allTasks-table').length) {
+                        window.LaravelDataTables["allTasks-table"].draw(false);
+                    }
+                }
+            }
+        })
+    });
+
+    $('#allTasks-table').on('click', '.stop-timer', function() {
+        var id = $(this).data('time-id');
+        var url = "{{ route('timelogs.stop_timer', ':id') }}";
+        url = url.replace(':id', id);
+        var token = '{{ csrf_token() }}';
+        $.easyAjax({
+            url: url,
+            blockUI: true,
+            container: '#allTasks-table',
+            type: "POST",
+            data: {
+                timeId: id,
+                _token: token
+            },
+            success: function(response) {
+                if (response.activeTimerCount > 0) {
+                    $('#show-active-timer .active-timer-count').html(response.activeTimerCount);
+                } else {
+                    $('#show-active-timer .active-timer-count').addClass('d-none');
+                }
+
+                $('#timer-clock').html('');
+                if ($('#allTasks-table').length) {
+                    window.LaravelDataTables["allTasks-table"].draw(false);
+                }
+            }
+        })
+    });
+
+    $('#allTasks-table').on('click', '.resume-timer', function() {
+        var id = $(this).data('time-id');
+        var url = "{{ route('timelogs.resume_timer', ':id') }}";
+        url = url.replace(':id', id);
+        var token = '{{ csrf_token() }}';
+        $.easyAjax({
+            url: url,
+            blockUI: true,
+            type: "POST",
+            data: {
+                timeId: id,
+                _token: token
+            },
+            success: function(response) {
+                if (response.status == 'success') {
+                    if (response.activeTimerCount > 0) {
+                        $('#show-active-timer .active-timer-count').html(response.activeTimerCount);
+                    } else {
+                        $('#show-active-timer .active-timer-count').addClass('d-none');
+                    }
+
+                    $('#timer-clock').html(response.clockHtml);
+                    if ($('#allTasks-table').length) {
+                        window.LaravelDataTables["allTasks-table"].draw(false);
+                    }
+                }
+            }
+        })
+    });
+
+    $('#allTasks-table').on('click', '.pause-timer', function() {
+        var id = $(this).data('time-id');
+        var url = "{{ route('timelogs.pause_timer', ':id') }}";
+        url = url.replace(':id', id);
+        var token = '{{ csrf_token() }}';
+        $.easyAjax({
+            url: url,
+            blockUI: true,
+            type: "POST",
+            disableButton: true,
+            buttonSelector: "#pause-timer-btn",
+            data: {
+                timeId: id,
+                _token: token
+            },
+            success: function(response) {
+                if (response.status == 'success') {
+                    if (response.activeTimerCount > 0) {
+                        $('#show-active-timer .active-timer-count').html(response.activeTimerCount);
+                    } else {
+                        $('#show-active-timer .active-timer-count').addClass('d-none');
+                    }
+
+                    $('#timer-clock').html(response.clockHtml);
+                    if ($('#allTasks-table').length) {
+                        window.LaravelDataTables["allTasks-table"].draw(false);
+                    }
+                }
+            }
+        })
+    });
 </script>

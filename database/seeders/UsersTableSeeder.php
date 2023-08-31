@@ -39,6 +39,7 @@ class UsersTableSeeder extends Seeder
 
         if ($companyId === 1) {
             $user->email = 'admin@example.com';
+            $user->gender = 'male';
             $user->save();
 
             $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('123456')]);
@@ -52,6 +53,7 @@ class UsersTableSeeder extends Seeder
             $user->name = $faker->name;
             $user->company_id = $companyId;
             $user->email = 'employee@example.com';
+            $user->gender = 'male';
             $user->save();
 
             $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('123456')]);
@@ -65,10 +67,10 @@ class UsersTableSeeder extends Seeder
             $user->name = $faker->name;
             $user->company_id = $companyId;
             $user->email = 'client@example.com';
-
         }
         else {
             $user->email = 'admin' . $companyId . '@example.com';
+            $user->gender = 'male';
             $user->save();
 
             $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('123456')]);
@@ -82,6 +84,7 @@ class UsersTableSeeder extends Seeder
             $user->name = $faker->name;
             $user->company_id = $companyId;
             $user->email = 'employee' . $companyId . '@example.com';
+            $user->gender = 'male';
             $user->save();
 
             $userAuth = UserAuth::create(['email' => $user->email, 'password' => bcrypt('123456')]);
@@ -149,6 +152,8 @@ class UsersTableSeeder extends Seeder
         $employee->department_id = rand(1, 6);
         $employee->designation_id = rand(1, 5);
         $employee->joining_date = now()->subMonths(9)->toDateTimeString();
+        $employee->calendar_view = 'task,events,holiday,tickets,leaves';
+        $employee->marital_status = 'unmarried';
         $employee->save();
 
         $search = new UniversalSearch();

@@ -5,6 +5,9 @@
 @endpush
 
 @section('filter-section')
+@php
+$manageBillingPermission = user()->permission('manage_billing');
+@endphp
     <!-- FILTER START -->
     <!-- PROJECT HEADER STARTmplete -->
     <div class="d-flex filter-box project-header bg-white">
@@ -17,9 +20,10 @@
             </a>
 
             <x-tab :href="route('superadmin.companies.show', $company->id)" :text="__('superadmin.company') . ' ' . __('app.details')" class="company" />
-
-            <x-tab :href="route('superadmin.companies.show', $company->id).'?tab=billing'" ajax="false" :text="__('superadmin.menu.billing')"
-                    class="billing" />
+            @if($manageBillingPermission == 'all')
+                <x-tab :href="route('superadmin.companies.show', $company->id).'?tab=billing'" ajax="false" :text="__('superadmin.menu.billing')"
+                        class="billing" />
+            @endif
         </div>
 
         <a class="mb-0 d-block d-lg-none text-dark-grey ml-auto mr-2 border-left-grey"

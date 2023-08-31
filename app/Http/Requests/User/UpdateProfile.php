@@ -24,16 +24,17 @@ class UpdateProfile extends CoreRequest
      */
     public function rules()
     {
-        $setting = companyOrGlobalSetting() ?? null;
+        $setting = companyOrGlobalSetting();
         $rules = [
             'name' => 'required|max:50',
             'password' => 'nullable|min:8|max:50',
             'image' => 'image|max:2048',
             'mobile' => 'nullable|numeric',
-            'date_of_birth' => 'nullable|date|before_or_equal:' . ($setting ? now($setting->timezone)->toDateString() : null),
+            'date_of_birth' => 'nullable|date_format:"' . $setting->date_format . '"|before_or_equal:'.now($setting->timezone)->format($setting->date_format),
             'email' => [
                 'required',
                 'email:rfc',
+                'regex:/(.+)@(.+)\.(.+)/i',
                 'unique:user_auths,email,' . user()->user_auth_id . ',id',
             ],
         ];

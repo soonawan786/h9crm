@@ -19,7 +19,7 @@
         @forelse($categories as $key=>$item)
             <tr id="row-{{ $item->id }}">
                 <td>{{ $key + 1 }}</td>
-                <td data-row-id="{{ $item->id }}" contenteditable="true">{{ mb_ucwords($item->category_name) }}</td>
+                <td data-row-id="{{ $item->id }}" contenteditable="true">{{ $item->category_name }}</td>
                 <td>
                     <div class='form-group mb-0'>
                         <select name="cat_role[]" data-row-id="{{ $item->id }}" id="cat_role-{{ $item->id }}" multiple class="form-control select-picker cat_roles" data-size="8" >
@@ -36,7 +36,7 @@
                                     @endif
                                 @endforeach
                                 <option {{ $selected }}
-                                value="{{ $role->id }}">{{ mb_ucwords($role->name) }}</option>
+                                value="{{ $role->id }}">{{ $role->display_name }}</option>
                             @endforeach
                         </select>
                     </div>
@@ -64,7 +64,7 @@
             <div class="col-sm-12">
                 <x-forms.select fieldId="role" :fieldLabel="__('modules.expenseCategory.assignToRole')" multiple="true" fieldName="role[]">
                     @foreach($roles as $role)
-                        <option value="{{ $role->id }}">{{ mb_ucwords($role->name) }}</option>
+                        <option value="{{ $role->id }}">{{ $role->display_name }}</option>
                     @endforeach
                 </x-forms.select>
             </div>

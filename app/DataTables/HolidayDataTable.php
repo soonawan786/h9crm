@@ -151,7 +151,7 @@ class HolidayDataTable extends BaseDataTable
                 'orderable' => false,
                 'searchable' => false
             ],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('modules.holiday.date') => ['data' => 'holiday_date', 'name' => 'date', 'title' => __('modules.holiday.date')],
             __('modules.holiday.occasion') => ['data' => 'occasion', 'name' => 'occasion', 'title' => __('modules.holiday.occasion')],
             __('modules.holiday.day') => ['data' => 'day', 'name' => 'day', 'title' => __('modules.holiday.day')],
@@ -162,16 +162,6 @@ class HolidayDataTable extends BaseDataTable
                 ->searchable(false)
                 ->addClass('text-right pr-20')
         ];
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'holiday_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

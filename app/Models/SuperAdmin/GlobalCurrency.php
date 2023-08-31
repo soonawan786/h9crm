@@ -2,7 +2,7 @@
 
 namespace App\Models\SuperAdmin;
 
-use Illuminate\Database\Eloquent\Model;
+use App\Models\BaseModel;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
@@ -40,7 +40,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  * @method static \Illuminate\Database\Query\Builder|GlobalCurrency withTrashed()
  * @method static \Illuminate\Database\Query\Builder|GlobalCurrency withoutTrashed()
  */
-class GlobalCurrency extends Model
+class GlobalCurrency extends BaseModel
 {
     use SoftDeletes;
 }

@@ -30,10 +30,10 @@ use Illuminate\Notifications\Notifiable;
  * @method static \Illuminate\Database\Eloquent\Builder|Issue whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Issue whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Issue whereUserId($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|Issue whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class Issue extends BaseModel
 {
@@ -67,7 +67,7 @@ class Issue extends BaseModel
     public function checkIssueClient(): bool
     {
         $issue = Issue::where('id', $this->id)
-            ->where('user_id', auth()->user()->id)
+            ->where('user_id', user()->id)
             ->count();
 
         if ($issue > 0) {

@@ -14,6 +14,7 @@ use App\Http\Requests\SuperAdmin\FooterSetting\CtaRequest;
 use App\Http\Requests\SuperAdmin\FooterSetting\StoreRequest;
 use App\Http\Requests\SuperAdmin\FooterSetting\UpdateRequest;
 use App\Http\Requests\SuperAdmin\FooterSetting\FooterTextRequest;
+use App\Models\GlobalSetting;
 
 class FooterSettingController extends AccountBaseController
 {
@@ -23,6 +24,12 @@ class FooterSettingController extends AccountBaseController
         parent::__construct();
         $this->pageTitle = 'superadmin.menu.frontMenuSettings';
         $this->activeSettingMenu = 'front_menu_settings';
+
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_front_settings'));
+
+            return $next($request);
+        });
     }
 
     /**
@@ -78,7 +85,7 @@ class FooterSettingController extends AccountBaseController
 
         $footer->language_setting_id = $request->current_language_id;
         $footer->name = $request->title;
-        $footer->slug = Str::slug($request->title);
+        $footer->slug = $request->slug;
 
         if ($request->content == 'link') {
             $footer->description = null;
@@ -267,6 +274,37 @@ class FooterSettingController extends AccountBaseController
             'data' => $request->title,
             'lang' => $row->language->language_code
         ]);
+    }
+
+    public function generateSlug(Request $request)
+    {
+        $slug = Str::slug($request->title, '-');
+
+        $activeLang = LanguageSetting::where('status', 'enabled')->first();
+
+        $slug = $this->getUniqueSlug($slug, $activeLang->id);
+
+        return Reply::dataOnly(['slug' => $slug]);
+    }
+
+    private function getUniqueSlug($slug, $activeLangId, $slugCount = null)
+    {
+        if($slugCount){
+            // remove last - and increment count
+            $slug = str($slug)->beforeLast('-') . '-' . ($slugCount + 1);
+        }
+
+        $count = FooterMenu::where('slug', $slug)->where('language_setting_id', $activeLangId)->count();
+
+        if ($count == 0) {
+            return $slug;
+        }
+
+        if ($count > 0) {
+            $slug = $slug . '-' . $count;
+        }
+
+        return self::getUniqueSlug($slug, $activeLangId, $count);
     }
 
 }

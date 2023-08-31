@@ -178,16 +178,16 @@ return new class extends Migration {
             }
 
             $icons = [
-                ['title' => 'Trophy', 'icon' => 'trophy-fill'],
-                ['title' => 'Thumbs Up', 'icon' => 'hand-thumbs-up-fill'],
-                ['title' => 'Award', 'icon' => 'award-fill'],
-                ['title' => 'Book', 'icon' => 'book-fill'],
-                ['title' => 'Gift', 'icon' => 'gift-fill'],
+                ['title' => 'Trophy', 'icon' => 'trophy'],
+                ['title' => 'Thumbs Up', 'icon' => 'hand-thumbs-up'],
+                ['title' => 'Award', 'icon' => 'award'],
+                ['title' => 'Book', 'icon' => 'book'],
+                ['title' => 'Gift', 'icon' => 'gift'],
                 ['title' => 'Watch', 'icon' => 'watch'],
-                ['title' => 'Cup', 'icon' => 'cup-hot-fill'],
-                ['title' => 'Puzzle', 'icon' => 'puzzle-fill'],
-                ['title' => 'Plane', 'icon' => 'airplane-fill'],
-                ['title' => 'Money', 'icon' => 'piggy-bank-fill'],
+                ['title' => 'Cup', 'icon' => 'cup-hot'],
+                ['title' => 'Puzzle', 'icon' => 'puzzle'],
+                ['title' => 'Plane', 'icon' => 'airplane'],
+                ['title' => 'Money', 'icon' => 'piggy-bank'],
             ];
 
             AwardIcon::insert($icons);

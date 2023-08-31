@@ -13,7 +13,6 @@ use App\Models\TaskboardColumn;
 use App\Models\Ticket;
 use App\Models\UserActivity;
 use Carbon\Carbon;
-use Carbon\CarbonInterval;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -99,7 +98,7 @@ trait OverviewDashboard
 
         $this->pendingLeadFollowUps = Lead::with('followup', 'leadAgent', 'leadAgent.user', 'leadAgent.user.employeeDetail', 'leadAgent.user.employeeDetail.designation')
             ->selectRaw('leads.id,leads.company_name, leads.client_name, leads.agent_id, ( select lead_follow_up.next_follow_up_date from lead_follow_up where lead_follow_up.lead_id = leads.id and DATE(lead_follow_up.next_follow_up_date) < "'.$currentDate.'" ORDER BY lead_follow_up.created_at DESC Limit 1) as follow_up_date_past,
-            ( select lead_follow.next_follow_up_date from lead_follow_up as lead_follow where lead_follow.lead_id = leads.id and DATE(lead_follow.next_follow_up_date) > "'.$currentDate.'" ORDER BY lead_follow.created_at DESC Limit 1) as follow_up_date_next'
+            ( select lead_follow.next_follow_up_date from lead_follow_up as lead_follow where lead_follow.lead_id = leads.id and status = "incomplete" ORDER BY lead_follow.created_at DESC Limit 1) as follow_up_date_next'
         )
             ->where('leads.next_follow_up', 'yes')
             ->groupBy('leads.id')
@@ -150,16 +149,18 @@ trait OverviewDashboard
         $incomes = [];
 
         foreach ($payments as $invoice) {
+
             if (!isset($incomes[$invoice->date])) {
                 $incomes[$invoice->date] = 0;
             }
 
             if ($invoice->currency_id != $this->company->currency_id && $invoice->exchange_rate != 0) {
-                $incomes[$invoice->date] += floor($invoice->total / $invoice->exchange_rate);
-
-            } else {
+                $incomes[$invoice->date] += floor((float)$invoice->total / (float)$invoice->exchange_rate);
+            }
+            else {
                 $incomes[$invoice->date] += round($invoice->total, 2);
             }
+
         }
 
         $dates = array_keys($incomes);

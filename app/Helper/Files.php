@@ -2,12 +2,12 @@
 
 namespace App\Helper;
 
+use App\Models\Company;
 use App\Models\FileStorage;
 use App\Models\StorageSetting;
-use Froiden\RestAPI\Exceptions\ApiException;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\File;
 use Illuminate\Support\Facades\Storage;
+use Froiden\RestAPI\Exceptions\ApiException;
 use Intervention\Image\ImageManagerStatic as Image;
 
 class Files
@@ -21,12 +21,11 @@ class Files
      * @param string $dir
      * @param null $width
      * @param int $height
-     * @param null $crop
      * @return string
      * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      * @throws \Exception
      */
-    public static function upload($image, string $dir, $width = null, int $height = 800, $crop = null)
+    public static function upload($image, string $dir, $width = null, int $height = 800)
     {
         // To upload files to local server
         config(['filesystems.default' => 'local']);
@@ -47,48 +46,13 @@ class Files
 
         $uploadedFile->storeAs('temp', $newName);
 
-        if (!empty($crop)) {
-            // Crop image
-            if (isset($crop[0])) {
-                // To store the multiple images for the copped ones
-                foreach ($crop as $cropped) {
-                    $image = Image::make($tempPath);
-
-                    if (isset($cropped['resize']['width']) && isset($cropped['resize']['height'])) {
-
-                        $image->crop(floor($cropped['width']), floor($cropped['height']), floor($cropped['x']), floor($cropped['y']));
-
-                        $fileName = str_replace('.', '_' . $cropped['resize']['width'] . 'x' . $cropped['resize']['height'] . '.', $newName);
-                        $tempPathCropped = public_path(self::UPLOAD_FOLDER . '/temp') . '/' . $fileName;
-                        $newPathCropped = $folder . '/' . $fileName;
-
-                        $image->save($tempPathCropped);
-
-                        Storage::put($newPathCropped, File::get($tempPathCropped), ['public']);
-
-                        // Deleting cropped temp file
-                        File::delete($tempPathCropped);
-                    }
-
-                }
-            }
-            else {
-                $image = Image::make($tempPath);
-                $image->crop(floor($crop['width']), floor($crop['height']), floor($crop['x']), floor($crop['y']));
-                $image->save();
-            }
-
-        }
-
-        if (($width || $height) && \File::extension($uploadedFile->getClientOriginalName()) !== 'svg') {
-            // Crop image
-
-            $image = Image::make($tempPath);
-            $image->resize($width, $height, function ($constraint) {
-                $constraint->aspectRatio();
-                $constraint->upsize();
-            });
-            $image->save();
+        if (($width && $height) && File::extension($uploadedFile->getClientOriginalName()) !== 'svg') {
+            Image::make($tempPath)
+                ->resize($width, $height, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                })
+                ->save();
         }
 
         Storage::put($newPath, File::get($tempPath), ['public']);
@@ -125,6 +89,36 @@ class Files
         if ($uploadedFile->getSize() <= 10) {
             throw new ApiException('You are not allowed to upload a file with filesize less than 10 bytes', null, 422, 422, 2023);
         }
+
+        // WORKSUITESAAS
+        if (company() && company()->package->max_storage_size > 0) {
+            // Check if company has exceeded the storage limit
+            $companyFilesSize = FileStorage::where('company_id', company()->id)->sum('size');
+            $companyPackageMaxStorageSize = company()->package->max_storage_size;
+            $companyPackageStorageUnit = company()->package->storage_unit;
+            $maxStorageInBytes = $companyPackageMaxStorageSize * self::storageUnitToBytes($companyPackageStorageUnit);
+            $companyAllowedStorageSize = $maxStorageInBytes - $companyFilesSize;
+
+            if ($uploadedFile->getSize() > $companyAllowedStorageSize) {
+                throw new ApiException('You are not allowed to upload a file with filesize greater than ' . $companyAllowedStorageSize . ' bytes', null, 422, 422);
+            }
+        }
+
+    }
+
+    public static function storageUnitToBytes($unit, $size = 1)
+    {
+        $unit = strtolower($unit);
+        $bytes = match ($unit) {
+            'kb' => 1024,
+            'mb' => 1024 * 1024,
+            'gb' => 1024 * 1024 * 1024,
+            'tb' => 1024 * 1024 * 1024 * 1024,
+            'pb' => 1024 * 1024 * 1024 * 1024 * 1024,
+            default => 1,
+        };
+
+        return $bytes * $size;
     }
 
     public static function generateNewFileName($currentFileName)
@@ -136,34 +130,36 @@ class Files
     }
 
     /**
-     * @throws \Illuminate\Contracts\Filesystem\FileNotFoundException
      * @throws \Exception
      */
-    public static function uploadLocalOrS3($uploadedFile, $dir)
+    public static function uploadLocalOrS3($uploadedFile, $dir, $width = null, int $height = 800)
     {
         self::validateUploadedFile($uploadedFile);
 
-        if (config('filesystems.default') === 'local') {
-            $newName = self::upload($uploadedFile, $dir, false, false, false);
+        try {
+            // If width and height is provided then upload image
+            if (($width && $height)) {
+                return self::uploadImage($uploadedFile, $dir, $width, $height);
+            }
 
             // Add data to file_storage table
-            return self::fileStore($uploadedFile, $dir, $newName);
-        }
+            $newName = self::fileStore($uploadedFile, $dir);
 
-        // Add data to file_storage table
-        $newName = self::fileStore($uploadedFile, $dir);
+            $fileVisibility = [];
 
-        // We have given 2 options of upload for now s3 and local
-        Storage::disk(config('filesystems.default'))->putFileAs($dir, $uploadedFile, $newName);
+            if (config('filesystems.default') == 'local') {
+                $fileVisibility = ['directory_visibility' => 'public', 'visibility' => 'public'];
+            }
 
-        try {
-            // Upload files to aws s3 or digitalocean
+            // We have given 2 options of upload for now s3 and local
+            Storage::disk(config('filesystems.default'))->putFileAs($dir, $uploadedFile, $newName, $fileVisibility);
+
+            // Upload files to aws s3 or digitalocean or wasabi or minio
             Storage::disk(config('filesystems.default'))->missing($dir . '/' . $newName);
+            return $newName;
         } catch (\Exception $e) {
-            throw new \Exception('File not uploaded successfully ');
+            throw new \Exception(__('app.fileNotUploaded') . ' ' . $e->getMessage() . config('filesystems.default'));
         }
-
-        return $newName;
     }
 
     public static function fileStore($file, $folder, $generateNewName = '')
@@ -193,9 +189,7 @@ class Files
 
         $fileExist = FileStorage::where('filename', $filename)->first();
 
-        if ($fileExist) {
-            $fileExist->delete();
-        }
+        $fileExist?->delete();
 
         // Delete from Cloud
 
@@ -217,7 +211,7 @@ class Files
 
         if (File::exists(public_path($path))) {
             try {
-                Storage::delete($path);
+                File::delete(public_path($path));
             } catch (\Throwable) {
                 return true;
             }
@@ -243,6 +237,124 @@ class Files
         /** Check if folder exits or not. If not then create the folder */
         if (!File::exists(public_path(self::UPLOAD_FOLDER . '/' . $folder))) {
             File::makeDirectory(public_path(self::UPLOAD_FOLDER . '/' . $folder), 0775, true);
+        }
+    }
+
+    public static function uploadImage($uploadedFile, string $folder, $width = null, int $height = 800)
+    {
+        $newName = self::generateNewFileName($uploadedFile->getClientOriginalName());
+
+        $tempPath = public_path(self::UPLOAD_FOLDER . '/temp/' . $newName);
+
+        /** Check if folder exits or not. If not then create the folder */
+        self::createDirectoryIfNotExist($folder);
+
+        $newPath = $folder . '/' . $newName;
+
+        $uploadedFile->storeAs('temp', $newName, 'local');
+
+        // Resizing image if width and height is provided
+        if ($width && $height && File::extension($uploadedFile->getClientOriginalName()) !== 'svg') {
+            Image::make($tempPath)
+                ->resize($width, $height, function ($constraint) {
+                    $constraint->aspectRatio();
+                    $constraint->upsize();
+                })
+                ->save();
+        }
+
+        Storage::disk(config('filesystems.default'))->put($newPath, File::get($tempPath));
+        self::fileStore($uploadedFile, $folder, $newName);
+
+        // Deleting temp file
+        File::delete($tempPath);
+
+        return $newName;
+    }
+
+    public static function uploadLocalFile($fileName, $path, $companyId = null): void
+    {
+        if (!File::exists(public_path(Files::UPLOAD_FOLDER . '/' . $path . '/' .  $fileName))) {
+            return;
+        }
+
+        self::saveFileInfo($fileName, $path, $companyId);
+        self::storeLocalFileOnCloud($fileName, $path);
+    }
+
+    public static function saveFileInfo($fileName, $path, $companyId = null)
+    {
+        $filePath = public_path(Files::UPLOAD_FOLDER . '/' . $path . '/' .  $fileName);
+
+        $fileStorage = FileStorage::where('filename', $fileName)->first() ?: new FileStorage();
+        $fileStorage->company_id = $companyId;
+        $fileStorage->filename = $fileName;
+        $fileStorage->size = File::size($filePath);
+        $fileStorage->type = File::mimeType($filePath);
+        $fileStorage->path = $path;
+        $fileStorage->storage_location = config('filesystems.default');
+        $fileStorage->save();
+    }
+
+    public static function storeLocalFileOnCloud($fileName, $path)
+    {
+        if (config('filesystems.default') != 'local') {
+            $filePath = public_path(Files::UPLOAD_FOLDER . '/' . $path . '/' .  $fileName);
+            try {
+                $contents = File::get($filePath);
+                Storage::disk(config('filesystems.default'))->put($path . '/' .  $fileName, $contents);
+                // TODO: Delete local file in Next release
+                // File::delete($filePath);
+                return true;
+            } catch (\Exception $e) {
+                info($e->getMessage());
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * fixLocalUploadFiles is used to fix the local upload files
+     *
+     * Example of $model
+     * $model = Company::class;
+     *
+     * Example of $columns
+     * $columns = [
+     *     [
+     *        'name' => 'logo',
+     *       'path' => 'company'
+     *    ]
+     * ];
+     *
+     * @param  mixed $model
+     * @param  array $columns
+     * @return void
+     */
+    public static function fixLocalUploadFiles($model, array $columns)
+    {
+        foreach ($columns as $column) {
+            $name = $column['name'];
+            $path = $column['path'];
+
+            $filesData = $model::withoutGlobalScopes()->whereNotNull($name)->get();
+
+            foreach ($filesData as $item) {
+                /** @phpstan-ignore-next-line */
+                $fileName = $item->{$name};
+                /** @phpstan-ignore-next-line */
+                $companyId = ($model == Company::class) ? $item->id : $item->company_id;
+
+                $filePath = public_path(self::UPLOAD_FOLDER . '/' . $path . '/' .  $fileName);
+
+                if (!File::exists($filePath)) {
+                    continue;
+                }
+
+                self::saveFileInfo($fileName, $path, $companyId);
+                self::storeLocalFileOnCloud($fileName, $path);
+            }
         }
     }
 

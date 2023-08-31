@@ -16,7 +16,6 @@ class InvoiceRecurringObserver
 
     public function saving(RecurringInvoice $invoice)
     {
-        $this->unitType($invoice);
 
         if (!isRunningInConsoleOrSeeding()) {
             $invoice->last_updated_by = user()->id;
@@ -64,6 +63,8 @@ class InvoiceRecurringObserver
                 $hsn_sac_code = request()->hsn_sac_code;
                 $amount = request()->amount;
                 $tax = request()->taxes;
+                $unitId = request()->unit_id;
+                $product = request()->product_id;
                 $invoice_item_image = request()->invoice_item_image;
                 $invoice_item_image_url = request()->invoice_item_image_url;
 
@@ -77,6 +78,8 @@ class InvoiceRecurringObserver
                                 'type' => 'item',
                                 'hsn_sac_code' => (isset($hsn_sac_code[$key]) && !is_null($hsn_sac_code[$key])) ? $hsn_sac_code[$key] : null,
                                 'quantity' => $quantity[$key],
+                                'unit_id' => (isset($unitId[$key]) && !is_null($unitId[$key])) ? $unitId[$key] : null,
+                                'product_id' => (isset($product[$key]) && !is_null($product[$key])) ? $product[$key] : null,
                                 'unit_price' => round($cost_per_item[$key], 2),
                                 'amount' => round($amount[$key], 2),
                                 'taxes' => ($tax ? (array_key_exists($key, $tax) ? json_encode($tax[$key]) : null) : null)

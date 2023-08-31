@@ -24,10 +24,10 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|EventAttendee whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|EventAttendee whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|EventAttendee whereUserId($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|EventAttendee whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class EventAttendee extends BaseModel
 {

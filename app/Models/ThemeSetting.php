@@ -12,6 +12,7 @@ use App\Traits\HasCompany;
  * @property string $header_color
  * @property string $sidebar_color
  * @property string $sidebar_text_color
+ * @property int $restrict_admin_theme_change
  * @property string $link_color
  * @property string|null $user_css
  * @property string $sidebar_theme
@@ -31,10 +32,10 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|ThemeSetting whereSidebarTheme($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ThemeSetting whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ThemeSetting whereUserCss($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ThemeSetting whereCompanyId($value)
+ * @mixin \Eloquent
  * @property int $enable_rounded_theme
  * @property string|null $login_background
  * @method static \Illuminate\Database\Eloquent\Builder|ThemeSetting whereEnableRoundedTheme($value)

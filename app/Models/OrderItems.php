@@ -35,17 +35,21 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @method static \Illuminate\Database\Eloquent\Builder|OrderItems whereType($value)
  * @method static \Illuminate\Database\Eloquent\Builder|OrderItems whereUnitPrice($value)
  * @method static \Illuminate\Database\Eloquent\Builder|OrderItems whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int|null $product_id
  * @property-read \App\Models\OrderItemImage|null $orderItemImage
  * @property-read \App\Models\Product|null $product
  * @method static \Illuminate\Database\Eloquent\Builder|OrderItems whereProductId($value)
  * @property-read mixed $tax_list
+ * @property int|null $product_id
+ * @property int|null $unit_id
+ * @property-read \App\Models\UnitType|null $unit
+ * @method static \Illuminate\Database\Eloquent\Builder|OrderItems whereUnitId($value)
+ * @mixin \Eloquent
  */
 class OrderItems extends BaseModel
 {
 
-    protected $fillable = ['order_id', 'product_id', 'item_name', 'item_summary', 'type', 'quantity', 'unit_price', 'amount', 'hsn_sac_code', 'taxes'];
+    protected $fillable = ['order_id', 'product_id', 'item_name', 'item_summary', 'type', 'quantity', 'unit_price', 'amount', 'hsn_sac_code', 'taxes', 'unit_id'];
 
     protected $with = ['orderItemImage', 'product'];
 
@@ -83,6 +87,12 @@ class OrderItems extends BaseModel
         }
 
         return $taxes;
+
+    }
+
+    public function unit(): BelongsTo
+    {
+        return $this->belongsTo(UnitType::class, 'unit_id');
     }
 
 }

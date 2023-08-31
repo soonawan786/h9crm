@@ -16,7 +16,7 @@
     <!-- SETTINGS START -->
     <div class="w-100 d-flex ">
 
-        <x-setting-sidebar :activeMenu="$activeSettingMenu"/>
+        @include('sections.setting-sidebar')
 
         <x-setting-card>
             <x-slot name="header">
@@ -87,7 +87,7 @@
                             <div class="col-md-12 m-t-20">
                                 <h4 class="box-title text-info">Step 2</h4>
                                 <x-forms.file-multiple class="mr-0 mr-lg-2 mr-md-2"
-                                                       :fieldLabel="__('app.add') . ' ' .__('app.file') .' (Allowed File Type: Zip)'" fieldName="file"
+                                                       :fieldLabel="__('app.menu.addFile') .' (Allowed File Type: Zip)'" fieldName="file"
                                                        fieldId="file-upload-dropzone" />
                                 <form action="{{ route('update-settings.store') }}" class="dropzone"
                                       id="file-upload-dropzone">

@@ -18,7 +18,7 @@ class ProductFileController extends AccountBaseController
     public function __construct()
     {
         parent::__construct();
-        $this->pageIcon = __('icon-people');
+        $this->pageIcon = 'icon-people';
         $this->pageTitle = 'app.menu.product';
     }
 

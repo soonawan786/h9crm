@@ -49,8 +49,7 @@ $deletePermission = user()->permission('delete_notice');
 
                     @if (!is_null($notice->attachment))
                         <x-cards.data-row :label="__('app.viewAttachment')"
-                            value='<a target="_blank" href="{{ $notice->file_url }}" title="@lang('
-                            app.viewAttachment')">
+                            value='<a target="_blank" href="{{ $notice->file_url }}" title="@lang('app.viewAttachment')">
                             <span class="btn btn-sm btn-info"> @lang('app.viewAttachment') </span>
                             </a>'/>
                     @endif

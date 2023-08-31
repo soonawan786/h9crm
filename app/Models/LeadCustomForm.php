@@ -30,7 +30,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @method static \Illuminate\Database\Eloquent\Builder|LeadCustomForm whereLastUpdatedBy($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadCustomForm whereStatus($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadCustomForm whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property int $required
  * @method static \Illuminate\Database\Eloquent\Builder|LeadCustomForm whereRequired($value)
  * @property int|null $company_id
@@ -40,6 +39,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read mixed $extras
  * @method static \Illuminate\Database\Eloquent\Builder|LeadCustomForm whereCompanyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|LeadCustomForm whereCustomFieldsId($value)
+ * @mixin \Eloquent
  */
 class LeadCustomForm extends BaseModel
 {
@@ -143,6 +143,24 @@ class LeadCustomForm extends BaseModel
             'required' => 0,
 
         ],
+        [
+
+            'field_display_name' => 'Source',
+            'field_name' => 'source',
+            'status' => 'active',
+            'field_order' => 8,
+            'required' => 0,
+
+        ],
+        [
+
+            'field_display_name' => 'Product',
+            'field_name' => 'product',
+            'status' => 'active',
+            'field_order' => 9,
+            'required' => 0,
+
+        ],
     ];
 
     public function customField(): BelongsTo
@@ -151,4 +169,3 @@ class LeadCustomForm extends BaseModel
     }
 
 }
-

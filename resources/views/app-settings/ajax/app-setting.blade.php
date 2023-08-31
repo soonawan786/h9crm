@@ -16,13 +16,13 @@
             <x-forms.select fieldId="time_format" :fieldLabel="__('modules.accountSettings.timeFormat')"
                             fieldName="time_format" search="true">
                 <option value="h:i A" @if (companyOrGlobalSetting()->time_format == 'h:i A') selected @endif>
-                    12 Hour ({{ now(companyOrGlobalSetting()->timezone)->translatedFormat('h:i A') }})
+                    12 @lang('app.hour') ({{ now(companyOrGlobalSetting()->timezone)->translatedFormat('h:i A') }})
                 </option>
                 <option value="h:i a" @if (companyOrGlobalSetting()->time_format == 'h:i a') selected @endif>
-                    12 Hour ({{ now(companyOrGlobalSetting()->timezone)->translatedFormat('h:i a') }})
+                    12 @lang('app.hour') ({{ now(companyOrGlobalSetting()->timezone)->translatedFormat('h:i a') }})
                 </option>
                 <option value="H:i" @if (companyOrGlobalSetting()->time_format == 'H:i') selected @endif>
-                    24 Hour ({{ now(companyOrGlobalSetting()->timezone)->translatedFormat('H:i') }})
+                    24 @lang('app.hour') ({{ now(companyOrGlobalSetting()->timezone)->translatedFormat('H:i') }})
                 </option>
             </x-forms.select>
         </div>
@@ -30,15 +30,14 @@
             <x-forms.select fieldId="timezone" :fieldLabel="__('modules.accountSettings.defaultTimezone')"
                             fieldName="timezone" search="true">
                 @foreach ($timezones as $tz)
-                    <option @if (companyOrGlobalSetting()->timezone == $tz) selected @endif>{{ $tz }}
-                    </option>
+                    <option @if (companyOrGlobalSetting()->timezone == $tz) selected @endif value="{{ $tz }}">{{ $tz }}</option>
                 @endforeach
             </x-forms.select>
         </div>
         <div class="col-lg-2">
             <x-forms.select fieldId="currency_id"
                             :fieldLabel="__('modules.accountSettings.defaultCurrency')"
-                            fieldName="currency_id" search="true">
+                            fieldName="currency_id" search="true" :popover="__('modules.accountSettings.appCurrencyInfo')">
                 @foreach ($currencies as $currency)
                     <option @if ($currency->id == companyOrGlobalSetting()->currency_id)
                             selected

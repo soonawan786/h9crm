@@ -78,7 +78,7 @@ class EstimatesDataTable extends BaseDataTable
                     || ($this->editEstimatePermission == 'owned' && $row->client_id == user()->id)
                     || ($this->editEstimatePermission == 'both' && ($row->client_id == user()->id || $row->added_by == user()->id))
                 ) {
-                    $action .= '<a class="dropdown-item openRightModal" href="' . route('estimates.edit', [$row->id]) . '">
+                    $action .= '<a class="dropdown-item" href="' . route('estimates.edit', [$row->id]) . '">
                             <i class="fa fa-edit mr-2"></i>
                             ' . trans('app.edit') . '
                         </a>';
@@ -104,7 +104,7 @@ class EstimatesDataTable extends BaseDataTable
                 }
             }
 
-            if ($row->status == 'waiting') {
+            if ($row->status == 'waiting' || (is_null($row->estimate_id) && $row->status == 'accepted')) {
                 if ($this->addInvoicePermission == 'all' || $this->addInvoicePermission == 'added') {
                     $action .= '<a class="dropdown-item" href="' . route('invoices.create') . '?estimate=' . $row->id . '" ><i class="fa fa-plus mr-2"></i> ' . __('app.create') . ' ' . __('app.invoice') . '</a>';
                 }
@@ -157,7 +157,7 @@ class EstimatesDataTable extends BaseDataTable
             }
 
             if (!$row->send_status && $row->status != 'draft' && $row->status != 'canceled') {
-                $status .= ' <span class="badge badge-secondary my-2"> ' . mb_strtoupper(__('modules.invoices.notSent')) . '</span>';
+                $status .= ' <span class="badge badge-secondary my-2"> ' . __('modules.invoices.notSent') . '</span>';
             }
 
             return $status;
@@ -176,20 +176,15 @@ class EstimatesDataTable extends BaseDataTable
                 return Carbon::parse($row->created_at)->translatedFormat($this->company->date_format);
             }
         );
-        $datatables->rawColumns(['name', 'action', 'status', 'original_estimate_number']);
         $datatables->removeColumn('currency_symbol');
         $datatables->removeColumn('client_id');
 
         // Custom Fields For export
-        CustomField::customFieldData($datatables, Estimate::CUSTOM_FIELD_MODEL);
+        $customFieldColumns = CustomField::customFieldData($datatables, Estimate::CUSTOM_FIELD_MODEL);
+
+        $datatables->rawColumns(array_merge(['name', 'action', 'status', 'original_estimate_number'], $customFieldColumns));
 
         return $datatables;
-    }
-
-    public function ajax()
-    {
-        return $this->dataTable($this->query())
-            ->make(true);
     }
 
     /**
@@ -204,6 +199,7 @@ class EstimatesDataTable extends BaseDataTable
             ->join('client_details', 'estimates.client_id', '=', 'client_details.user_id')
             ->join('currencies', 'currencies.id', '=', 'estimates.currency_id')
             ->join('users', 'users.id', '=', 'estimates.client_id')
+            ->leftJoin('invoices', 'invoices.estimate_id', '=', 'estimates.id')
             ->select([
                 'estimates.id',
                 'estimates.company_id',
@@ -219,6 +215,7 @@ class EstimatesDataTable extends BaseDataTable
                 'estimates.send_status',
                 'estimates.added_by',
                 'estimates.hash',
+                'invoices.estimate_id',
                 'estimates.created_at'
             ]);
 
@@ -310,7 +307,7 @@ class EstimatesDataTable extends BaseDataTable
     {
 
         $data = [
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => false, 'title' => '#'],
             __('app.id') => ['data' => 'id', 'name' => 'id', 'title' => __('app.id'), 'visible' => false],
             __('app.estimate') . '#' => ['data' => 'original_estimate_number', 'name' => 'original_estimate_number', 'title' => __('app.estimate')],
             __('app.client') => ['data' => 'name', 'name' => 'users.name', 'exportable' => false, 'title' => __('app.client'), 'visible' => !in_array('client', user_roles())],
@@ -319,7 +316,10 @@ class EstimatesDataTable extends BaseDataTable
             __('modules.invoices.total') => ['data' => 'total', 'name' => 'total', 'title' => __('modules.invoices.total')],
             __('modules.estimates.validTill') => ['data' => 'valid_till', 'name' => 'valid_till', 'title' => __('modules.estimates.validTill')],
             __('app.createdOn') => ['data' => 'created_at', 'name' => 'created_at', 'title' => __('app.createdOn')],
-            __('app.status') => ['data' => 'status', 'name' => 'status', 'title' => __('app.status')],
+            __('app.status') => ['data' => 'status', 'name' => 'status', 'title' => __('app.status')]
+        ];
+
+        $action = [
             Column::computed('action', __('app.action'))
                 ->exportable(false)
                 ->printable(false)
@@ -328,18 +328,8 @@ class EstimatesDataTable extends BaseDataTable
                 ->addClass('text-right pr-20')
         ];
 
-        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Estimate()));
+        return array_merge($data, CustomFieldGroup::customFieldsDataMerge(new Estimate()), $action);
 
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'estimates_' .now()->format('Y-m-d-H-i-s');
     }
 
 }

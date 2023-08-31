@@ -12,9 +12,9 @@
                 </div>
                 <div class="card-body">
                     @if($bankTransaction->bankAccount->type == 'bank')
-                        <x-cards.data-row :label="__('modules.bankaccount.bankName')" :value="$bankTransaction->bankAccount->bank_name ? ucfirst($bankTransaction->bankAccount->bank_name) : '----'" />
+                        <x-cards.data-row :label="__('modules.bankaccount.bankName')" :value="$bankTransaction->bankAccount->bank_name ? $bankTransaction->bankAccount->bank_name : '----'" />
                     @endif
-                    <x-cards.data-row :label="__('modules.bankaccount.accountName')" :value="ucfirst($bankTransaction->bankAccount->account_name)" />
+                    <x-cards.data-row :label="__('modules.bankaccount.accountName')" :value="$bankTransaction->bankAccount->account_name" />
 
                     @if($bankTransaction->bankAccount->type == 'bank')
                         <x-cards.data-row :label="__('modules.bankaccount.accountNumber')" :value="$bankTransaction->bankAccount->account_number ? $bankTransaction->bankAccount->account_number : '----'" />

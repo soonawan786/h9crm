@@ -43,7 +43,7 @@ class ProjectTemplateSubTaskController extends AccountBaseController
             'title' => $request->title,
             'project_template_task_id' => $request->task_id,
         ]);
-        return Reply::success(__('messages.templateSubrecordSaved'));
+        return Reply::success(__('messages.recordSaved'));
     }
 
     /**

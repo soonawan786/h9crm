@@ -21,7 +21,7 @@
                       title="@lang('modules.client.online')"><i class="fa fa-circle"></i></span>
             @endif
             <img src="{{ $user->image_url }}" class="mr-2 taskEmployeeImg rounded-circle"
-                 alt="{{ mb_ucfirst($user->name) }}" title="{{ $user->userBadge() }}">
+                 alt="{{ $user->name }}" title="{{ $user->userBadge() }}">
         </a>
         <div class="media-body {{$user->status}}">
 
@@ -30,7 +30,7 @@
                    class="text-darkest-grey {{ isset($disabledLink) ? 'disabled-link' : '' }}">{!!   $user->userBadge() !!}</a>
             </h5>
             <p class="mb-0 f-12 text-dark-grey">
-                {{ !is_null($user->employeeDetail) && !is_null($user->employeeDetail->designation) ? mb_ucfirst($user->employeeDetail->designation->name) : ' ' }}
+                {{ !is_null($user->employeeDetail) && !is_null($user->employeeDetail->designation) ? $user->employeeDetail->designation->name : ' ' }}
             </p>
         </div>
     @else

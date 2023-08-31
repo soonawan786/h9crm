@@ -7,10 +7,10 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
 
 <div class="row">
     <div class="col-sm-12">
-        <x-form id="save-lead-data-form" method="put">
+        <x-form id="save-lead-data-form" method="PUT">
             <div class="add-client bg-white rounded">
                 <h4 class="mb-0 p-20 f-21 font-weight-normal text-capitalize border-bottom-grey">
-                    @lang('app.edit') @lang('app.menu.leaves')</h4>
+                    @lang('app.menu.editLeaves')</h4>
                 <div class="row p-20">
 
                     <div class="col-lg-3 col-md-6">
@@ -22,15 +22,18 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
                             <input type="text" value="{{ $defaultAssign->name }}"
                                 class="form-control height-35 f-15 readonly-background" readonly>
                         @else
-                            <x-forms.select fieldId="user_id" :fieldLabel="__('modules.messages.chooseMember')"
-                                fieldName="user_id" search="true" fieldRequired="true">
+                            <x-forms.label class="my-3" fieldId="" :fieldLabel="__('modules.messages.chooseMember')"
+                                fieldRequired="true">
+                            </x-forms.label>
+                            <select class="form-control select-picker" name="user_id" id="user_id"
+                                data-live-search="true">
                                 <option value="">--</option>
                                 @foreach ($employees as $employee)
                                     <x-user-option :user="$employee"
                                                    :selected="(request()->has('default_assign') && request('default_assign') == $employee->id) || ($leave->user_id == $employee->id)">
                                     </x-user-option>
                                 @endforeach
-                            </x-forms.select>
+                            </select>
                         @endif
                     </div>
 
@@ -42,9 +45,15 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
                             <select class="form-control select-picker" name="leave_type_id" id="leave_type_id"
                                 data-live-search="true">
                                 <option value="">--</option>
-                                @foreach ($leaveTypes as $leaveType)
-                                    <option @if ($leave->leave_type_id == $leaveType->id) selected @endif value="{{ $leaveType->id }}">
-                                        {{ mb_ucwords($leaveType->type_name) }}</option>
+                                @foreach ($leaveQuotas as $leaveQuota)
+                                    @php
+                                        $leaveType = new \App\Models\LeaveType();
+                                    @endphp
+
+                                    @if($leaveType->leaveTypeCodition($leaveQuota, $userRole))
+                                        <option @if ($leave->leave_type_id == $leaveQuota->id) selected @endif value="{{ $leaveQuota->id }}">
+                                            {{ $leaveQuota->type_name }}</option>
+                                    @endif
                                 @endforeach
                             </select>
 
@@ -102,7 +111,7 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
 
                     <div class="col-md-12 d-none" id="leave-file">
                         <x-forms.file-multiple class="mr-0"
-                        :fieldLabel="__('app.add') . ' ' .__('app.file')" fieldName="file"
+                        :fieldLabel="__('app.menu.addFile')" fieldName="file"
                         fieldId="file-upload-dropzone" :popover="__('messages.leaveFileMessage')" />
 
                         <div class="w-100 justify-content-end d-flex mt-2">
@@ -180,11 +189,11 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
             },
             paramName: "file",
             maxFilesize: DROPZONE_MAX_FILESIZE,
-            maxFiles: 10,
+            maxFiles: DROPZONE_MAX_FILES,
             autoProcessQueue: false,
             uploadMultiple: true,
             addRemoveLinks: true,
-            parallelUploads: 10,
+            parallelUploads: DROPZONE_MAX_FILES,
             acceptedFiles: DROPZONE_FILE_ALLOW,
             init: function() {
                 leaveDropzone = this;
@@ -198,8 +207,30 @@ $approveRejectPermission = user()->permission('approve_or_reject_leaves');
         leaveDropzone.on('uploadprogress', function() {
             $.easyBlockUI();
         });
-        leaveDropzone.on('completemultiple', function() {
+        leaveDropzone.on('queuecomplete', function() {
             window.location.href = "{{ route('leaves.index') }}"
+        });
+        leaveDropzone.on('removedfile', function () {
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).removeClass("has-error");
+            $(label).removeClass("is-invalid");
+        });
+        leaveDropzone.on('error', function (file, message) {
+            leaveDropzone.removeFile(file);
+            var grp = $('div#file-upload-dropzone').closest(".form-group");
+            var label = $('div#file-upload-box').siblings("label");
+            $(grp).find(".help-block").remove();
+            var helpBlockContainer = $(grp);
+
+            if (helpBlockContainer.length == 0) {
+                helpBlockContainer = $(grp);
+            }
+
+            helpBlockContainer.append('<div class="help-block invalid-feedback">' + message + '</div>');
+            $(grp).addClass("has-error");
+            $(label).addClass("is-invalid");
+
         });
 
         const dp1 = datepicker('#single_date', {

@@ -20,10 +20,10 @@ use App\Traits\HasCompany;
  * @method static \Illuminate\Database\Eloquent\Builder|ClientUserNote whereId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientUserNote whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|ClientUserNote whereUserId($value)
- * @mixin \Eloquent
  * @property int|null $company_id
  * @property-read \App\Models\Company|null $company
  * @method static \Illuminate\Database\Eloquent\Builder|ClientUserNote whereCompanyId($value)
+ * @mixin \Eloquent
  */
 class ClientUserNote extends BaseModel
 {

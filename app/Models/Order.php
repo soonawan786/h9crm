@@ -56,7 +56,6 @@ use Illuminate\Support\Str;
  * @method static \Illuminate\Database\Eloquent\Builder|Order whereSubTotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Order whereTotal($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Order whereUpdatedAt($value)
- * @mixin \Eloquent
  * @property mixed $order_number
  * @property float $discount
  * @property string $discount_type
@@ -66,12 +65,20 @@ use Illuminate\Support\Str;
  * @property int|null $company_address_id
  * @property-read \App\Models\CompanyAddress|null $address
  * @property-read \App\Models\Company|null $company
+ * @property int|null $unit_id
  * @method static \Illuminate\Database\Eloquent\Builder|Order whereCompanyAddressId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Order whereCompanyId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|Order whereOrderNumber($value)
+ * @property-read \App\Models\UnitType $unit
+ * @property int|null $unit_id
+ * @property string|null $custom_order_number
+ * @property-read mixed $original_order_number
+ * @method static \Illuminate\Database\Eloquent\Builder|Order whereCustomOrderNumber($value)
+ * @mixin \Eloquent
  */
 class Order extends BaseModel
 {
+    protected $appends = ['original_order_number'];
 
     use HasCompany;
 
@@ -125,6 +132,44 @@ class Order extends BaseModel
     public function unit(): BelongsTo
     {
         return $this->belongsTo(UnitType::class, 'unit_id');
+    }
+
+    public function getOriginalOrderNumberAttribute()
+    {
+        $orderSettings = (company()) ? company()->invoiceSetting : $this->company->invoiceSetting;
+        $zero = '';
+
+        if ($orderSettings && (strlen($this->attributes['order_number']) < $orderSettings->order_digit)) {
+            $condition = $orderSettings->order_digit - strlen($this->attributes['order_number']);
+
+            for ($i = 0; $i < $condition; $i++) {
+                $zero = '0' . $zero;
+            }
+        }
+
+        return $zero . $this->attributes['order_number'];
+    }
+
+    public function getOrderNumberAttribute($value)
+    {
+        if (is_null($value)) {
+            return '';
+        }
+
+        $orderSettings = (company()) ? company()->invoiceSetting : $this->company->invoiceSetting;
+        $zero = '';
+
+        if ($orderSettings && (strlen($value) < $orderSettings->order_digit)) {
+            $condition = $orderSettings->order_digit - strlen($value);
+
+            for ($i = 0; $i < $condition; $i++) {
+                $zero = '0' . $zero;
+            }
+        }
+
+        $orderPrefix = $orderSettings ? $orderSettings->order_prefix . $orderSettings->order_number_separator . $zero . $value : $zero . $value;
+
+        return $orderPrefix;
     }
 
 }

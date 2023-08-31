@@ -19,10 +19,10 @@
         @forelse($categories as $key=>$item)
             <tr id="row-{{ $item->id }}">
                 <td>{{ $key + 1 }}</td>
-                <td data-row-id="{{ $item->id }}" contenteditable="true">{{ mb_ucwords($item->category_name) }}</td>
+                <td data-row-id="{{ $item->id }}" contenteditable="true">{{ $item->category_name }}</td>
                 <td>
                     @forelse($item->roles as $rolesData)
-                        <span>{{ mb_ucwords($rolesData->role->name) }}</span>  @if(!$loop->last),@endif
+                        <span>{{ $rolesData->role->name }}</span>  @if(!$loop->last),@endif
                     @empty
                     @endforelse
                 </td>
@@ -47,7 +47,7 @@
             <div class="col-sm-12">
                 <x-forms.select fieldId="role" :fieldLabel="__('modules.expenseCategory.assignToRole')" multiple="true" fieldName="role[]">
                         @foreach($roles as $role)
-                            <option value="{{ $role->id }}">{{ mb_ucwords($role->name) }}</option>
+                            <option value="{{ $role->id }}">{{ $role->display_name }}</option>
                         @endforeach
                 </x-forms.select>
             </div>

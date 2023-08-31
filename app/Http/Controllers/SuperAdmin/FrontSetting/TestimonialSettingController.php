@@ -11,6 +11,7 @@ use App\Http\Controllers\AccountBaseController;
 use App\Http\Requests\SuperAdmin\TestimonialSettings\StoreRequest;
 use App\Http\Requests\SuperAdmin\TestimonialSettings\UpdateRequest;
 use App\Http\Requests\SuperAdmin\TestimonialSettings\TitleStoreUpdateRequest;
+use App\Models\GlobalSetting;
 
 class TestimonialSettingController extends AccountBaseController
 {
@@ -20,6 +21,12 @@ class TestimonialSettingController extends AccountBaseController
         parent::__construct();
         $this->pageTitle = 'superadmin.menu.testimonialSetting';
         $this->activeSettingMenu = 'testimonial_settings';
+
+        $this->middleware(function ($request, $next) {
+            abort_403(GlobalSetting::validateSuperAdmin('manage_superadmin_front_settings'));
+
+            return $next($request);
+        });
     }
 
     /**

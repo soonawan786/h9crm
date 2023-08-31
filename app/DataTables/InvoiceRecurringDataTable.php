@@ -4,8 +4,6 @@ namespace App\DataTables;
 
 use App\DataTables\BaseDataTable;
 use App\Models\RecurringInvoice;
-use App\Scopes\CompanyScope;
-use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Html\Button;
@@ -18,6 +16,7 @@ class InvoiceRecurringDataTable extends BaseDataTable
     private $viewInvoicePermission;
     private $deleteInvoicePermission;
     private $editInvoicePermission;
+    private $manageRecurringInvoicePermission;
 
     public function __construct()
     {
@@ -26,7 +25,6 @@ class InvoiceRecurringDataTable extends BaseDataTable
         $this->deleteInvoicePermission = user()->permission('delete_invoices');
         $this->editInvoicePermission = user()->permission('edit_invoices');
         $this->manageRecurringInvoicePermission = user()->permission('manage_recurring_invoice');
-
     }
 
     /**
@@ -74,20 +72,20 @@ class InvoiceRecurringDataTable extends BaseDataTable
             })
             ->editColumn('project_name', function ($row) {
                 if ($row->project_id != null) {
-                    return '<a href="' . route('projects.show', $row->project_id) . '" class="text-darkest-grey">' . ucfirst($row->project->project_name) . '</a>';
+                    return '<a href="' . route('projects.show', $row->project_id) . '" class="text-darkest-grey">' . $row->project->project_name . '</a>';
                 }
 
                 return '--';
             })
             ->addColumn('client_name', function ($row) {
                 if ($row->project && $row->project->client) {
-                    return ucfirst($row->project->client->name);
+                    return $row->project->client->name;
                 }
                 else if ($row->client_id != '') {
-                    return ucfirst($row->client->name);
+                    return $row->client->name;
                 }
                 else if ($row->estimate && $row->estimate->client) {
-                    return ucfirst($row->estimate->client->name);
+                    return $row->estimate->client->name;
                 }
                 else {
                     return '--';
@@ -129,7 +127,7 @@ class InvoiceRecurringDataTable extends BaseDataTable
                     return $role;
                 }
                 else {
-                    return ($row->status == 'inactive') ? ' <i class=\'fa fa-circle mr-2 text-red\'></i>' . ucfirst($row->status) : '<i class=\'fa fa-circle mr-2 text-light-green\'></i>' . ucfirst($row->status);
+                    return ($row->status == 'inactive') ? ' <i class=\'fa fa-circle mr-2 text-red\'></i>' . $row->status : '<i class=\'fa fa-circle mr-2 text-light-green\'></i>' . $row->status;
                 }
             })
             ->editColumn('total', function ($row) {
@@ -259,8 +257,8 @@ class InvoiceRecurringDataTable extends BaseDataTable
         $modules = $this->user->modules;
 
         $dsData = [
-            __('app.id') => ['data' => 'id', 'name' => 'id', 'visible' => false, 'title' => __('app.id')],
-            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false],
+            '#' => ['data' => 'DT_RowIndex', 'orderable' => false, 'searchable' => false, 'visible' => !showId()],
+            __('app.id') => ['data' => 'id', 'name' => 'id', 'visible' => showId(), 'title' => __('app.id')],
             __('app.client') => ['data' => 'name', 'name' => 'project.client.name', 'exportable' => false, 'title' => __('app.client')],
             __('app.customers') => ['data' => 'client_name', 'name' => 'project.client.name', 'visible' => false, 'title' => __('app.customers')],
             __('modules.invoices.startDate') => ['data' => 'issue_date', 'name' => 'issue_date', 'title' => __('app.startDate')],
@@ -280,16 +278,6 @@ class InvoiceRecurringDataTable extends BaseDataTable
 
 
         return $dsData;
-    }
-
-    /**
-     * Get filename for export.
-     *
-     * @return string
-     */
-    protected function filename()
-    {
-        return 'Invoices_recurring_' .now()->format('Y-m-d-H-i-s');
     }
 
 }
