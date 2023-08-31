@@ -156,7 +156,8 @@ class ClientController extends AccountBaseController
 
         $data['country_id'] = $request->country;
         $data['name'] = $request->name;
-        $data['email_notifications'] = $request->sendMail == 'yes' ? 1 : 0;
+        $data['email_notifications'] = 1;
+        //$data['email_notifications'] = $request->sendMail == 'yes' ? 1 : 0;
         $data['gender'] = $request->gender ?? null;
         $data['locale'] = $request->locale ?? 'en';
 
