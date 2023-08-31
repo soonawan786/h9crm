@@ -47,20 +47,30 @@ class WhatsAppController extends  AccountBaseController
         });
     }
     public function whatsapp(){
+
         $this->pageTitle = __('modules.whatsapp.integrate');
-        $this->whats_app = WhatsApp::where('user_id',$this->user->id)->where('status',1)->first();
-        $this->whats_app_numbers = WhatsApp::where('user_id',$this->user->id)->get();
+        $this->whats_app = WhatsApp::where('user_id',$this->user->id)->where('company_id',$this->company->id)->where('status',1)->first();
         return view('whatsapp.create',$this->data);
     }
     public function whatsappStore(Request $request){
         $validateUser = Validator::make($request->all(),[
             'api_secret' => 'required',
-            //'whatsapp_number' => 'required',
+            'account_id' => 'required',
           ]);
           if ($validateUser->fails()) {
             return Reply::formErrors($validateUser->errors());
           }
-          auth()->user()->update(['api_secret'=>$request->api_secret]);
+          $whatsApp = WhatsApp::updateOrCreate(
+            [
+                'company_id' => $this->company->id,
+            ],
+            [
+                'user_id' => $this->user->id,
+                'api_secret' => $request->api_secret,
+                'account_id' => $request->account_id,
+                'company_id' => $this->company->id,
+                'status' => 1,
+            ]);
           return Reply::success('messages.recordSaved');
         //get whatsapp account number to store or update
         $accountId = $this->getWhatsAppNumber($request->api_secret,$request->whatsapp_number);
@@ -127,19 +137,19 @@ class WhatsAppController extends  AccountBaseController
     }
 
     public function test(){
-        dd('hi whatsapp');
-        //$refferalClient = User::find(3);
-        //$phone = '03214518770';
-        //Notification::send($phone, new ReferralInvoiceWhatsApp($refferalClient,'baqar'));
+        //dd('hi whatsapp');
+        // $refferalClient = User::find(3);
+        // $phone = '03214518770';
+        // Notification::send($phone, new ReferralInvoiceWhatsApp($refferalClient,'baqar'));
         //dd('after notification');
 
         //1 test invoice message
-            // $user = User::find(3);
-            // $invoice = Invoice::find(5);
-            // //dd('hi',$user,$invoice);
-            // Notification::send($user, new NewInvoiceWhatsApp($invoice));
+            $user = User::find(3);
+            $invoice = Invoice::find(5);
+            //dd('hi',$user,$invoice);
+            Notification::send($user, new NewInvoiceWhatsApp($invoice));
 
-            // dd('after new invoice ');
+            dd('after new invoice ');
 
 
         //2 test greeting message of new user

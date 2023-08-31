@@ -11,9 +11,9 @@ Class Client{
     public $message;
     public $account_id;
 
-    public function __construct($account_id,$recipient,$type,$message)
+    public function __construct($apiSecret,$account_id,$recipient,$type,$message)
     {
-        $this->secret = (auth()->user()->api_secret != null) ? auth()->user()->api_secret : "9e5ec7c5f8db3aa044f788a15ac60e824bc93699";
+        $this->secret = $apiSecret;
         $this->recipient = $recipient;
         $this->type = $type;
         $this->message = $message;

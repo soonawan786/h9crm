@@ -36,25 +36,22 @@
 
                                                     </label>
 
-                                                    <input type="text" class="form-control height-35 f-14" placeholder="" value="{{ auth()->user()->api_secret ?? old('api_secret') }}" name="api_secret" id="api_secret" autocomplete="off">
+                                                    <input type="text" class="form-control height-35 f-14" placeholder="" value="{{ $whats_app->api_secret ?? old('api_secret') }}" name="api_secret" id="api_secret" autocomplete="off">
                                                     @if ($errors->has('api_secret'))
                                                         <span class="text-danger">{{ $errors->first('api_secret') }}</span>
                                                     @endif
                                                 </div>
                                             </div>
-                                            {{-- <div class="col-lg-6">
+                                            <div class="col-lg-6">
                                                 <div class="form-group my-3 mr-0 mr-lg-2 mr-md-2">
-                                                    <label class="f-14 text-dark-grey mb-12" data-label="false" for="whatsapp_number">WhatsApp Number
-                                                        <sup class="f-14 mr-1">*(Number Must start with +92)</sup>
+                                                    <label class="f-14 text-dark-grey mb-12" data-label="false" for="account_id">Unique Account Id</label>
 
-                                                    </label>
-
-                                                    <input type="text" class="form-control height-35 f-14" placeholder="+92123456789" value="{{ $whats_app->whatsapp_number ?? old('whatsapp_number') }}" name="whatsapp_number" id="whatsapp_number" autocomplete="off">
-                                                    @if ($errors->has('whatsapp_number'))
-                                                        <span class="text-danger">{{ $errors->first('whatsapp_number') }}</span>
+                                                    <input type="text" class="form-control height-35 f-14"  value="{{ $whats_app->account_id ?? old('account_id') }}" name="account_id" id="account_id" autocomplete="off">
+                                                    @if ($errors->has('account_id'))
+                                                        <span class="text-danger">{{ $errors->first('account_id') }}</span>
                                                     @endif
                                                 </div>
-                                            </div> --}}
+                                            </div>
                                         </div>
                                         {{-- <div class="row">
                                             <div class="col-lg-6">

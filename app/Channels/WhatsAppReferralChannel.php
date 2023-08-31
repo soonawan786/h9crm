@@ -14,11 +14,11 @@ class WhatsAppReferralChannel
         $type = 'text';
         $recipient = $phone;
         //dd($message,$recipient);
-        $apiSecret = auth()->user()->api_secret;
-        $account_id = $this->getWhatsAppNumber($apiSecret);
+        $whatsApp = WhatsApp::where('company_id',company()->id)->where('status',1)->first();
+        $apiSecret = $whatsApp->api_secret;
+        $account_id = $whatsApp->account_id;
 
-        $whatsAppClient = new Client($account_id,$recipient,$type,$message);
-
+        $whatsAppClient = new Client($apiSecret,$account_id,$recipient,$type,$message);
         $response = $whatsAppClient->sendWhatsAppSms();
         //dd($response);
         return $response;
